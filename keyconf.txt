@@ -1,0 +1,59 @@
+Alias +mw_weapnext "netevent +mw_weaponnext"
+Alias -mw_weapnext "netevent -mw_weaponnext"
+
+Alias +mw_weapprev "netevent +mw_weaponprev"
+Alias -mw_weapprev "netevent -mw_weaponprev"
+
+Alias +mw_groupnext "netevent +mw_groupnext"
+Alias -mw_groupnext "netevent -mw_groupnext"
+
+Alias +mw_groupprev "netevent +mw_groupprev"
+Alias -mw_groupprev "netevent -mw_groupprev"
+
+Alias +mw_grouptoggle "netevent +mw_grouptoggle 
+Alias +mw_groupchainfire "netevent +mw_groupchainfire 
+
+Alias -mw_grouptoggle "netevent -mw_grouptoggle 
+Alias -mw_groupchainfire "netevent -mw_groupchainfire 
+
+Alias +mw_armlock "netevent +mw_armlock"
+Alias -mw_armlock "netevent -mw_armlock"
+
+Alias +mw_torsolock "netevent +mw_torsolock"
+Alias -mw_torsolock "netevent -mw_torsolock"
+
+Alias +mw_alignlegs "netevent +mw_alignlegs"
+Alias -mw_alignlegs "netevent -mw_alignlegs"
+
+Alias +mw_aligntorso "netevent +mw_aligntorso"
+Alias -mw_aligntorso "netevent -mw_aligntorso"
+
+Alias +mw_stopmech "netevent +mw_stopmech"
+Alias -mw_stopmech "netevent -mw_stopmech"
+
+Alias +mw_gettarget "netevent +mw_gettarget"
+Alias -mw_gettarget "netevent -mw_gettarget"
+
+Alias +mw_peekinventory "netevent +mw_peekinventory";
+Alias -mw_peekinventory "netevent -mw_peekinventory";
+
+addkeysection "Mech Controls" DrivableMechControls
+addmenukey "Fire Group 1" +ATTACK
+addmenukey "Fire Group 2" +ALTATTACK
+addmenukey "Fire Group 3" +USER1
+addmenukey "Fire Group 4" +USER2
+addmenukey "Fire Group 5" +USER3
+addmenukey "Toggle Camera" +RELOAD
+addmenukey "Jump Jets" +JUMP
+addmenukey "Arm Lock" +mw_armlock
+addmenukey "Torso Lock" +mw_torsolock
+addmenukey "Next Weapon" +mw_weapnext
+addmenukey "Previous Weapon" +mw_weapprev
+addmenukey "Next Group" +mw_groupnext
+addmenukey "Previous Group" +mw_groupprev
+addmenukey "Toggle Group" +mw_grouptoggle
+addmenukey "Toggle Chainfire" +mw_groupchainfire
+addmenukey "Set Throttle to 0" +mw_stopmech
+addmenukey "Align Legs to Torso" +mw_alignlegs
+addmenukey "Align Torso to Legs" +mw_aligntorso
+addmenukey "View Mech Inventory" +mw_peekinventory;

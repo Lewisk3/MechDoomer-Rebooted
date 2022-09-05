@@ -1,0 +1,45 @@
+version "4.7.0"
+
+// Helper Libraries
+#include "ZScript/fx_helper.zsc"
+#include "ZScript/sound.zsc"
+
+// UI
+#include "ZScript/UI/SBS/mwdrawer_base.zsc"
+#include "ZScript/UI/SBS/mwdrawer_3D.zsc"
+#include "ZScript/UI/mechhud_handler.zsc"
+#include "ZScript/button_handler.zsc"
+
+// Vehicle System
+#include "ZScript/drivables/drivables_math.zsc"
+#include "ZScript/drivables/drivables_base.zsc"
+#include "ZScript/drivables/drivables_parts.zsc"
+
+// Items
+#include "ZScript/Items/items_base.zsc"
+#include "ZScript/Items/items.zsc"
+#include "ZScript/Items/weapons.zsc"
+
+// Mech Basics
+#include "ZScript/Mech/mech_base.zsc"
+#include "ZScript/Mech/mech_parts.zsc"
+
+// Lightning Effects
+#include "ZScript/Lightning/lightning_base.zsc"
+#include "ZScript/Lightning/lightning_parts.zsc"
+
+// Lasers
+#include "ZScript/lasers/laser_base.zsc"
+#include "ZScript/lasers/laser_fx.zsc"
+#include "ZScript/lasers/mechlasers.zsc"
+
+// Projectiles
+#include "ZScript/Projectiles/base.zsc"
+#include "ZScript/Projectiles/ballistics.zsc"
+#include "ZScript/Projectiles/missiles.zsc"
+
+// Decorations
+#include "ZScript/Decorations/trees.zsc"
+
+// Drivable Mechs
+#include "ZScript/hellbringer.zsc"

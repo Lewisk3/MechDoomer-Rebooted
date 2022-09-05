@@ -1,0 +1,38 @@
+material texture models/c_simple.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+
+material texture models/c_glass.png {
+	// shader "shaders/simsun.fp"
+	brightmap "models/c_glass.png"
+	brightness 1.0
+	specularlevel 0.8
+	glossiness 50
+}
+
+material texture models/missile_exhaust.png {
+	brightmap "models/missile_exhaust.png"
+	brightness 1.0
+	specularlevel 0.8
+	glossiness 50
+}
+
+material texture models/missile_body.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+
+material texture models/missile_engine.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+
+material texture models/hellbringer.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}

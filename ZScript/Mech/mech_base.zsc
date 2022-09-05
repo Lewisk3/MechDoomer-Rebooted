@@ -1,0 +1,1005 @@
+/*
+	How was this constant found?
+	First, a Hellbringer is placed in a map then a pillar
+	is placed next to it, the pillar is then risen until it matches
+	the Hellbringer's observed height.
+	
+	This number is derrived like so
+	HellBringer = 12.9m, 92 units.
+	
+	12.9m / 92.0u = ~0.14 meters a unit.
+	
+	If we compare Doomguy instead, at an assumed height of ~1.70 meters
+	we get; 3.039047882723666
+*/
+
+const UTOCM = (12.9 / 92.0) * 100.0;
+
+class DrivableMech : DrivableObject
+{
+	const MECHFRICTION = 0.94;
+	double angVel, legVel;
+	double throttle, accel, accelKPH, decelKPH;
+	double curHeat, maxHeat, maxKelvin;
+	double moveSpeed, moveSpeedKPH;
+	double weight, maxWeight;
+	double selectedWeapon, selectedGroup; // For UI stuff.
+	int mechbayID; // Used for saving mechs to mechbays.
+	bool noItemSlots; // If true, prevents any items from being equipped.
+	
+	double prevThrottle; // Man I hate doing acceleration sounds...
+	
+	MechWeapon prevWeapFired;
+	MechArmor armorType;
+	Array<MechWeaponGroup> weaponGroups;
+	
+	// Sound logic
+	SoundQueue betty;
+	
+	// UI Stuff
+	string paperdoll_Background;
+	
+	// Shutdown stuff
+	uint shutdownTimer, powerupTimer;
+	bool shutdown, heatWarn, heatCritical, heatShutdown, overrideShutdown;
+	
+	// Locks aim such that only arms or torso can move.
+	bool armLock, torsoLock; 
+	bool centerToTorso, centerToLegs;
+	
+	// Targeting
+	double targetProgress; // 1.0 when tatget is locked.
+	Actor curTarget; // Targeted enemy, not necessarily locked.
+	
+	MechPart legs, hips; // Non-hardpoint parts.
+	MechHardpoint torso, leftTorso, rightTorso, leftArm, rightArm, head, leftLeg, rightLeg;
+	MechEngine engine;
+	
+	ThirdpersonCamera camDrone;
+	DrivableComponent camActive;
+	
+	// Used to specify if mech needs more specific data storage, when mech is saved to player Inventory.
+	class<MechSaveData> saveDataType;
+	
+	Property Acceleration : accelKPH, decelKPH;
+	Property MaxHeat : maxHeat, maxKelvin;
+	Property MaxWeight : maxWeight;
+	Property PaperdollBG : paperdoll_Background;
+	Property SaveDataFormat : saveDataType;
+	
+	enum MechBtns
+	{
+		BT_GROUPNEXT  = 1 << 0,
+		BT_GROUPPREV  = 1 << 1,
+		BT_WEAPNEXT   = 1 << 2,
+		BT_WEAPPREV   = 1 << 3,
+		BT_GROUPSET   = 1 << 4,
+		BT_GROUPCHF   = 1 << 5,
+		BT_STOPMECH   = 1 << 6,
+		BT_ALIGNLEGS  = 1 << 7,
+		BT_ALIGNTORSO = 1 << 8,
+		BT_TORSOLOCK  = 1 << 9,
+		BT_ARMLOCK    = 1 << 10,
+		BT_GETTARGET  = 1 << 11,   
+		BT_PEEKINV    = 1 << 12
+	};
+	
+	enum GroupBits
+	{
+		GROUPFLG_ONE   = 1,
+		GROUPFLG_TWO   = 1 << 1,
+		GROUPFLG_THREE = 1 << 2,
+		GROUPFLG_FOUR  = 1 << 3,
+		GROUPFLG_FIVE  = 1 << 4
+	};
+	
+	Default
+	{
+		-SHOOTABLE;
+		-SOLID;
+		
+		Radius 16;
+		Height 32;
+		Gravity 0.25;
+		Scale 1.0;
+		MaxStepHeight 36;
+		DrivableMech.Acceleration 25, 30; 
+		DrivableMech.MaxWeight 85; // In Tons.
+		DrivableMech.MaxHeat 200, 1050.0;
+		DrivableMech.PaperdollBG "Graphics/HUD/Paperdoll/paperdoll_background.png";
+		DrivableMech.SaveDataFormat "MechSaveData";
+	}
+	
+	/*
+	override void PreTravelled()
+	{
+		super.PreTravelled();
+		driver.GiveInventory("I_SaveMechData", 1);
+	}
+	
+	override void Travelled()
+	{
+		super.Travelled();
+		let tempData = driver.FindInventory("I_SaveMechData");
+		if(tempData) driver.RemoveInventory(tempData);
+	}
+	*/
+
+	override void PostBeginPlay()
+	{
+		// Setup sounds
+		betty = SoundQueue.Create();
+	
+		// Populate default arrays
+		for(int i = 0; i < 5; i++)
+			weaponGroups.Push(new("MechWeaponGroup"));
+		
+		super.PostBeginPlay();
+				
+		// Equip stuff
+		SetupItems();
+		
+	}
+	
+	virtual void AcquireTarget(bool requireSight = true)
+	{
+		let it = ThinkerIterator.Create();
+		Actor act;
+		double angleDist = double.infinity;
+		LookExParams look;
+		look.FOV = 30;
+		
+		while(act = Actor(it.Next()))
+		{
+			if(!act.bSHOOTABLE) continue;
+			if(!cam.IsVisible(act, false, look) && requireSight) continue;
+			if(act == driver) continue;
+			
+			let hardpoint = MechHardpoint(act);
+			let hitBox = MechHitBox(act);
+			if(hardpoint && hardpoint.mech == self || hitBox && MechHardpoint(hitBox.parent).mech == self) continue;
+			
+			// Redirect hitbox to source mech, if target candidate.
+			if(hardpoint) act = hardpoint.mech;
+			if(hitBox) act = MechHardpoint(hitbox.parent).mech;
+			
+			vector3 diff = level.vec3Diff(head.pos, act.pos);
+			double actualAngleTo = abs(Normalize180(atan2(diff.y, diff.x) - head.angle));
+			double curAnglesDist = actualAngleTo + abs( (act.pos.z+act.height*0.5) - head.lookingPos.z );
+			if(curAnglesDist < angleDist)
+			{
+				angleDist = curAnglesDist;
+				curTarget = act;
+			}
+		}
+	}
+	
+	virtual void HandleHoming(Array<MechWeapon> weaps)
+	{
+		double targetDecay = 0.80;
+		double targetSpeed = 0.03;
+		bool hasHomingWeapon = false;
+		
+		for(int i = 0; i < weaps.Size(); i++)
+		{
+			let curweap = weaps[i];
+			let proj = curweap.projType;
+			if(!proj) continue;
+			
+			let defs = GetDefaultByType(proj);
+			if(defs.hasHoming) hasHomingWeapon = true;
+		}
+
+		if(!hasHomingWeapon || !curTarget) 
+		{
+			targetProgress *= targetDecay;
+			return;
+		}
+	
+		// Check if aim is with-in target range.
+		vector3 diff = level.vec3Diff(head.pos, curTarget.pos);
+		double angTo = abs(Normalize180(atan2(diff.y, diff.x) - head.angle));
+		double zTo = abs( (curTarget.pos.z+curTarget.height*0.5) - head.lookingPos.z );
+		
+		if(angTo > 25 || zTo > 200) 
+		{
+			targetProgress *= targetDecay;
+			return;
+		}
+		else
+		{
+			targetProgress = min(1.0, targetProgress + targetSpeed); 
+		}
+	}
+	
+	override void TakePilot(Actor user)
+	{
+		super.TakePilot(user);
+		driverOffset.z = 60;
+		driver.A_SetScale(0,0);
+		driver.A_SetSize(8,8);
+		driver.angle = torso.angle;
+		
+		if(cam)
+		{
+			if(!camActive) camActive = cam;
+			SetDriverCamera(camActive);
+		}
+	}
+	override void RemovePilot()
+	{
+		driver.SetOrigin(OffsetPos(30,0,0), true);
+		driver.A_SetScale(driver.default.Scale.X, driver.default.Scale.Y);
+		driver.A_SetSize(driver.default.Radius, driver.default.Height);
+		if(camActive != cam) SetDriverCamera(driver);
+		camActive = NULL;
+		
+		super.RemovePilot();
+	}
+	
+	clearscope virtual void getAllWeapons(out Array<MechWeapon> weaps, uint grp = 0, bool sorted = true, bool readDeadHardpoints = false)
+	{
+		if(!sorted)
+		{
+			for(int p = 0; p < parts.Size(); p++)
+			{
+				let hardpoint = MechHardpoint(parts[p]);
+				if(!hardpoint || (hardpoint.healthPoints <= 0 && !readDeadHardpoints) ) continue;
+				
+				hardpoint.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+			}
+			return;
+		}
+		
+		// Get sorted weapons
+		if(leftArm) leftArm.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+		if(rightArm) rightArm.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+		if(head) head.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+		if(leftTorso) leftTorso.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+		if(torso) torso.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+		if(rightTorso) rightTorso.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
+	}
+	
+	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems)
+	{
+		for(int p = 0; p < parts.Size(); p++)
+		{
+			let hardpoint = MechHardpoint(parts[p]);
+			if(!hardpoint || hardpoint.healthPoints <= 0) continue;
+			
+			hardpoint.findAllItems(type, subclass, foundItems);
+		}
+	}
+		
+	clearscope virtual int countAllAmmo(class<MechAmmo> type)
+	{
+		Array<MechItem> ammos;
+		FindAllItems(type, false, ammos);
+		
+		int totalAmmo = 0;
+		for(int i = 0; i < ammos.Size(); i++)
+			totalAmmo += MechAmmo(ammos[i]).curAmmo;
+		
+		return totalAmmo;
+	}
+	
+	virtual void FireWeapons(uint grp = 0, bool instantFire = false)
+	{
+		Array<MechWeapon> weaps;
+		getAllWeapons(weaps, grp);
+		MechWeapon.FireWeapons(weaps, weaponGroups, grp, instantFire);
+	}
+	
+	// Wrappers for readability.
+	virtual MechPart AddMechPart(class<MechPart> part, double fw, double lr, double ud, DrivableComponent parent)
+	{
+		return MechPart(AddPart(part, fw,lr,ud, parent));
+	}
+	virtual MechHardpoint AddHardpoint(class<MechHardpoint> part, double fw, double lr, double ud, DrivableComponent parent)
+	{
+		return MechHardpoint(AddPart(part, fw,lr,ud, parent));
+	}
+	
+	clearscope virtual void getHardpoints(out Array<MechHardpoint> hardpoints)
+	{
+		for(int i = 0; i < parts.Size(); i++)
+		{	
+			let hardpoint = MechHardpoint(parts[i]);
+			if(!hardpoint || hardpoint.healthPoints <= 0) continue;
+			
+			hardpoints.Push(hardpoint);
+		}
+	}
+	
+	clearscope virtual MechItem FindItem(class<MechItem> item, bool subclass = false)
+	{
+		for(int i = 0; i < parts.Size(); i++)
+		{
+			let part = MechHardpoint(parts[i]);
+			if(!part) continue;
+			
+			let found = part.FindItem(item, subclass);
+			if(found) return found;
+		}
+		return NULL;
+	}
+		
+	override void SetupParts()
+	{
+		// Make this part invisible
+		bInvisible = true;
+		
+		// Camera(s)
+		camDrone = ThirdpersonCamera.Create(1,0,20, -100, 60);
+		AttachPart(camDrone, self);
+		
+		// Apply intrinsic weight.
+		weight += maxWeight / 10.;
+	}
+	
+	virtual void SetupItems()
+	{
+		
+	}
+	
+	void ToggleCamera()
+	{
+		if(camActive == camDrone) 
+		{
+			SetDriverCamera(cam);
+			camActive = cam;
+		}
+		else
+		{
+			camDrone.Set(driver);
+			camActive = camDrone;
+		}
+	}
+	
+	// FFS this is ugly...
+	virtual MechWeapon selectNextWeapon(Array<MechWeapon> weaps)
+	{
+		selectedWeapon++;
+		if(selectedWeapon > weaps.Size()) selectedWeapon = 1;
+		let weap = weaps[selectedWeapon-1];
+		
+		while(weap && weap.checkDestroyed()) 
+		{
+			selectedWeapon++;
+			if(selectedWeapon > weaps.Size()) selectedWeapon = 1;
+			weap = weaps[selectedWeapon-1];
+		}
+		return weap;
+	}
+		
+	virtual MechWeapon selectPrevWeapon(Array<MechWeapon> weaps)
+	{
+		selectedWeapon--;
+		if(selectedWeapon < 1) selectedWeapon = weaps.Size();
+		let weap = weaps[selectedWeapon-1];
+		
+		while(weap && weap.checkDestroyed()) 
+		{
+			selectedWeapon--;
+			if(selectedWeapon < 1) selectedWeapon = 1;
+			weap = weaps[selectedWeapon-1];
+		}
+		return weap;
+	}
+	
+	virtual void WeaponsInteraction()
+	{
+		Array<MechWeapon> weaps, filteredWeaps;
+		getAllWeapons(weaps, readDeadHardpoints:true);
+		getAllWeapons(filteredWeaps);
+		
+		// Handle targetting
+		HandleHoming(filteredWeaps);
+		
+		if(filteredWeaps.Size() <= 0) return;
+		
+		if(!selectedWeapon) selectedWeapon = 1;
+		MechWeapon weap = weaps[selectedWeapon-1];
+		
+		// Get next weapon if current is destroyed.
+		if(weap && weap.checkDestroyed()) 
+			weap = selectNextWeapon(weaps);
+
+		if( getExtBtn(BT_WEAPPREV, DriverBtns.BTS_PRESSED) )
+			weap = selectPrevWeapon(weaps);
+		if( getExtBtn(BT_WEAPNEXT, DriverBtns.BTS_PRESSED) )
+			weap = selectNextWeapon(weaps);
+			
+		if( getExtBtn(BT_GROUPPREV, DriverBtns.BTS_PRESSED) )
+			selectedGroup--;
+		if( getExtBtn(BT_GROUPNEXT, DriverBtns.BTS_PRESSED) )
+			selectedGroup++;	
+			
+		// Targeting
+		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
+			AcquireTarget();
+						
+		// Group customization
+		if(selectedGroup < 0) selectedGroup = 4;
+		if(selectedGroup > 4) selectedGroup = 0;
+		
+		let group = weaponGroups[selectedGroup];
+		uint gBit = (2**selectedGroup);
+				
+		if(weap && group) 
+		{
+			if( getExtBtn(BT_GROUPSET, DriverBtns.BTS_PRESSED) )
+				weap.group ^= gBit;  
+
+			if( getExtBtn(BT_GROUPCHF, DriverBtns.BTS_PRESSED) )
+				group.chainfire = !group.chainfire;
+		}
+	}
+	
+	virtual void DriverInteraction()
+	{
+		double fm, sm;
+		[fm, sm] = GetMoveInputs();
+				
+		if(driver.player)
+		{
+			UserCmd cmd = driver.player.cmd;
+		}
+		
+		if(getDriverBtn(BT_JUMP, DriverBtns.BTS_DOWN))
+			vel.z += 4;
+			
+		
+		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
+		{
+		/*	let it = torso.AddItem("MechDoubleHeatsink");
+			if(!it) it = leftTorso.AddItem("MechDoubleHeatsink");			
+			if(!it) it = rightTorso.AddItem("MechDoubleHeatsink");		
+			if(!it) it = leftArm.AddItem("MechDoubleHeatsink");
+			if(!it) it = rightArm.AddItem("MechDoubleHeatsink");			
+			if(!it) it = leftLeg.AddItem("MechDoubleHeatsink");
+			if(!it) it = rightLeg.AddItem("MechDoubleHeatsink"); */
+			A_SetScale(Scale.X * 1.1);
+		}
+		if(getDriverBtn(BT_USER4, DriverBtns.BTS_PRESSED))
+		{
+			//let it = torso.FindItem("MechDoubleHeatsink");
+			//if(it) it.TryDetach();
+			
+			A_SetScale(Scale.X * 0.9);
+		}
+		
+		
+		bool clicked = getDriverBtn(BT_ATTACK, DriverBtns.BTS_PRESSED);
+		if(getDriverBtn(BT_ATTACK, DriverBtns.BTS_DOWN)) 
+		{
+			FireWeapons(1, instantFire:clicked);
+		}
+		
+		clicked = getDriverBtn(BT_ALTATTACK, DriverBtns.BTS_PRESSED);
+		if(getDriverBtn(BT_ALTATTACK, DriverBtns.BTS_DOWN)) 
+		{
+			FireWeapons(2, instantFire:clicked);
+		}
+		
+		clicked = getDriverBtn(BT_USER1, DriverBtns.BTS_PRESSED);
+		if(getDriverBtn(BT_USER1, DriverBtns.BTS_DOWN)) 
+		{
+			FireWeapons(3, instantFire:clicked);
+		}
+		
+		clicked = getDriverBtn(BT_USER2, DriverBtns.BTS_PRESSED);
+		if(getDriverBtn(BT_USER2, DriverBtns.BTS_DOWN)) 
+		{
+			FireWeapons(4, instantFire:clicked);
+		}
+		
+		clicked = getDriverBtn(BT_USER3, DriverBtns.BTS_PRESSED);
+		if(getDriverBtn(BT_USER3, DriverBtns.BTS_DOWN)) 
+		{
+			FireWeapons(5, instantFire:clicked);
+		}
+								
+		torsoLock = getExtBtn(BT_TORSOLOCK, DriverBtns.BTS_DOWN);
+		armLock = getExtBtn(BT_ARMLOCK, DriverBtns.BTS_DOWN);
+		
+		if(getExtBtn(BT_ALIGNLEGS, DriverBtns.BTS_PRESSED))
+			centerToLegs = true;
+		
+		if(getExtBtn(BT_ALIGNTORSO, DriverBtns.BTS_PRESSED))
+			centerToTorso = true;
+			
+		if(getExtBtn(BT_STOPMECH, DriverBtns.BTS_PRESSED))
+			throttle = 0;
+				
+		// Stop leg centering if we start moving legs.
+		if(sm) centerToTorso = false;
+		
+		// UI controls.
+		WeaponsInteraction();
+		
+		// Movement Math
+		double throttleSpeed = 0.025;
+		double throttleMove = throttleSpeed * DrivablesMath.sign(fm);		
+		
+		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
+		throttle += throttleMove;
+		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
+		
+				
+		// Slow down while turning
+		if(vel.xy.length())
+		{
+			double dist = vel.xy.length() / 2.0;
+			double omega = angVel*angVel;
+			double pushBack = (dist * (omega*0.02));
+			vector2 dir = AngleToVector(angle);
+			angVel -= DrivablesMath.sign(angVel)*(pushBack * 3.0); 
+			vel.xy -= dir * pushBack;
+		}
+		
+		if(onground)
+		{
+			angVel -= MechLegs(legs).turnSpeed * DrivablesMath.sign(sm);
+			angle += angVel;
+		}
+		
+		if(centerToTorso && abs(angle - torso.angle) > 0.1)
+		{
+			double prev = angle;
+			DrivablesMath.AngleSlerp(angle, torso.angle, MechLegs(legs).turnSpeed*2.0);	
+			legVel = (angle - prev);
+		}
+		else if(centerToTorso) 
+			centerToTorso = false;
+			
+		if(centerToLegs && abs(angle - torso.angle) > 0.1)
+		{
+			double prev = torso.angle;
+			DrivablesMath.AngleSlerp(torso.angle, angle, MechTorso(torso).turnSpeed);
+			driver.angle += (torso.angle - prev);
+		}
+		else if(centerToLegs)
+			centerToLegs = false;
+					
+		driver.angle += angVel;
+		if(abs(throttle) < throttleSpeed) throttle = 0;
+		
+		// if(!fm) throttle *= 0.95;
+	}
+	
+	virtual void DoShutdown()
+	{
+		throttle = 0;
+		A_StartSound("Reactor/Shutdown", flags:CHANF_OVERLAP);
+		shutdown = true;
+		
+		torso.oldAngleOffs.y = 10;
+		head.oldAngleOffs.y = 5;
+	}
+	
+	virtual void DoPowerup()
+	{
+		A_StartSound("Reactor/Powerup", flags:CHANF_OVERLAP);
+		shutdown = false;
+		
+		torso.oldAngleOffs.y = 0;
+		head.oldAngleOffs.y  = 0;
+	}
+	
+	override void OnDrive()
+	{	
+		super.OnDrive();
+		
+		if(DriverBtns.Get(BT_RELOAD, DriverBtns.BTS_PRESSED, driver))
+			ToggleCamera();
+		
+		// Process timed power cycling.
+		if( shutdownTimer > 0 && !(--shutdownTimer) )
+		{
+			// Reset shutdown override, also do not shutdown on timer end.
+			if(!overrideShutdown)
+				DoShutdown();
+			else
+				overrideShutdown = false;
+				
+			shutdownTimer = 0;
+			if(heatShutdown)
+			{
+				powerupTimer = 35*4;
+				heatShutdown = false;
+			}
+		}
+				
+		if( powerupTimer > 0 && !(--powerupTimer) )
+		{
+			DoPowerup();
+			powerupTimer = 0;
+		}
+		
+		// More heat logic.
+		if(curHeat > kelvinToBHU(400.0) && !heatWarn)
+		{
+			// TODO: Play heat warn sound here.
+			betty.Push("Betty/Heat/Warn");
+			heatWarn = true;
+		}
+		
+		if(curHeat > kelvinToBHU(600.0) && !heatCritical)
+		{
+			betty.Push("Betty/Heat/Critical");
+			heatCritical = true;
+		}
+		
+		if(curHeat > kelvinToBHU(900.0) && !heatShutdown && !shutdown)
+		{
+			betty.Push("Betty/Heat/CriticalShutdown");
+			shutdownTimer = 35*3; // Three seconds till shutdown.
+			heatShutdown = true;
+		}
+		
+		if(curHeat <= kelvinToBHU(300.0)) 
+			heatWarn = false;
+		
+		if(curHeat <= kelvinToBHU(500.0)) 
+			heatCritical = false;
+		
+		// Movement code.
+		if(shutdown) return;
+		
+		// Get movement speed.
+		if(engine) 
+		{
+			moveSpeedKPH = engine.getKPH();
+			moveSpeed = MechEngine.getKPHSpeed(moveSpeedKPH);
+		}
+		else
+			moveSpeed = moveSpeedKPH = 0;
+		
+		DriverInteraction();
+	}
+	
+	virtual void modifyHeat(double amt)
+	{
+		// Double cooling while shutdown.
+		if(amt < 0 && shutdown) amt *= 2.0;
+		
+		curHeat += amt;
+		curHeat = clamp(curHeat, getAmbient(), maxHeat);	
+	}
+	
+	virtual double kelvinToBHU(double K)
+	{
+		double kelvinPerc = K / maxKelvin;
+		return kelvinPerc * maxHeat;
+	}
+	
+	virtual double getAmbient()
+	{
+		// Used to determine ambient temp.
+		return kelvinToBHU(20.0);
+	}
+	
+	override void DoPhysics()
+	{	
+		super.DoPhysics();
+		
+		// Movement
+		if(onground && moveSpeedKPH > 0)
+		{
+			bool decel = (throttle < accel);
+			double moveAmt = (decel ? decelKPH : accelKPH) / moveSpeedKPH;
+			moveAmt /= TICRATE;
+			
+			if(accel != throttle)
+			{
+				moveAmt *= (decel ? -1 : 1);
+				accel += moveAmt;
+				
+				if( abs(accel - throttle) < abs(moveAmt) ) accel = throttle;
+				accel = clamp(accel, -0.5, 1.0);
+			}
+		}
+		
+		vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * accel);
+		if(!onground) accel *= MECHFRICTION;
+				
+		// Friction
+		angVel *= 0.75;
+		legVel *= 0.75;
+		if(onground) 
+			vel *= MECHFRICTION;
+		else
+			vel.xy *= min(0.98, MECHFRICTION * 1.1);
+	}
+	
+	clearscope virtual double GetSpd()
+	{
+		return !onground ? 0 : vel.xy.length() + abs((angVel+legVel) * 0.5);
+	}
+		
+	clearscope static double unitsToKM(double units)
+	{
+		return ( units * UTOCM ) / 100000.0;
+	}
+	clearscope static double MetersToUnits(double meters)
+	{
+		double UTOM = UTOCM / 100.0;
+		return ( meters / UTOM );
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(!betty) 
+			betty = SoundQueue.Create(self);
+		else if(driver)
+			betty.local = driver;
+		
+		if( (throttle-prevThrottle) < -0.25 )
+		{
+			A_StartSound("Engine/Forward", CHAN_5, CHANF_OVERLAP);
+			prevThrottle = throttle;
+		}
+		if( (throttle-prevThrottle) >  0.25 )
+		{
+			A_StartSound("Engine/Back", CHAN_5, CHANF_OVERLAP);
+			prevThrottle = throttle;
+		}
+			
+		if(!shutdown && abs(throttle) > 0.1)
+		{
+			A_StartSound("Engine/Idle", CHAN_7, CHANF_LOOPING);
+		}
+		else
+		{
+			A_StopSound(CHAN_7);
+		}
+		
+		// Keep track of persistent items.
+		engine = MechEngine(FindItem("MechEngine", true));
+		if(!engine && !shutdown) DoShutdown();
+		if(armorType) armorType.DoEffect();
+		
+		// Weapon groups think too! This is needed for weapon cycle timing on Chainfire.
+		for(int i = 0; i < weaponGroups.Size(); i++)
+		{
+			let grp = weaponGroups[i];
+			if(grp) grp.DoEffect();
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			MECH A -1;
+		stop;
+	}
+}
+
+// Convert mechs into data so they can be saved between runs.
+class HardpointSaveData : Object
+{
+	Array<MechItem> items;
+	double armorPoints, healthPoints, maxArmor, maxHP;
+	
+	virtual void Save(MechHardpoint src, bool saveItems = true)
+	{
+		if(saveItems) items.Copy(src.items);
+		armorPoints = src.armorPoints;
+		healthPoints = src.healthPoints;
+		maxArmor = src.maxArmor;
+		maxHP = src.maxHP;
+	}
+	
+	play virtual void Load(MechHardpoint dest)
+	{
+		dest.armorPoints = armorPoints;
+		dest.healthPoints = healthPoints;
+		dest.maxArmor = maxArmor;
+		dest.maxHP = maxHP;
+		
+		// Item loading is done after this, as it needs to be done
+		// in a specific order.
+	}
+}
+class MechSaveData : Object
+{
+	class<MechEngine> engineType;
+	class<MechArmor> armorType;
+	class<DrivableMech> mechType;
+	Array<HardpointSaveData> hardpointData;
+	Array<MechWeaponGroup> weaponGroups;
+	
+	virtual void Cache(DrivableMech src)
+	{
+		// Used for implementing custom save data
+	}
+	
+	play virtual void RestoreCache(DrivableMech dest)
+	{
+		// Restore custom save data
+	}
+} 
+
+class MechLoader : Actor
+{
+	DrivableMech mech;
+	MechSaveData data;
+	
+	virtual void LoadMech()
+	{
+		if(!mech || !data) return;
+		mech.noItemSlots = false;
+		
+		Array<MechHardpoint> hardpoints;
+		mech.getHardpoints(hardpoints);
+
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpointData = data.hardpointData[i];
+			let hardpoint = hardpoints[i];
+			
+			// Restore vitals
+			hardpointData.Load(hardpoint);
+		}
+		
+		// We have to waste more time here to populate things in a specific order
+		// Annoying but, not really another option.
+		
+		// Firstly, move all critical structures.
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpointData = data.hardpointData[i];
+			let hardpoint = hardpoints[i];
+			
+			for(int x = 0; x < hardpointData.items.Size(); x++)
+			{
+				let item = hardpointData.items[x];
+				if(item.nosave || item.movable) continue; // Do not restore non-save-able items.
+				
+				item.TryAttach(hardpoint);
+			}
+		}
+		
+		// Attach engine and armor
+		mech.torso.addItem(data.engineType);
+		MechArmor.addToMech(mech, data.armorType);
+		
+		// Move non-critical structures
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpointData = data.hardpointData[i];
+			let hardpoint = hardpoints[i];
+			
+			for(int x = 0; x < hardpointData.items.Size(); x++)
+			{
+				let item = hardpointData.items[x];
+				if(item.nosave || !item.movable) continue; // Do not restore non-save-able items.
+				
+				item.TryAttach(hardpoint);
+			}
+		}
+		
+		// Restore misc fields
+		data.RestoreCache(mech);
+		
+		// Power it up!	
+		mech.shutdown = false;
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 4;
+			TNT1 A 0 LoadMech();
+		stop;
+	}
+}
+
+class I_SaveMechData : Inventory
+{
+	Array<MechSaveData> mechsData;
+
+	virtual void saveMechData(DrivableMech mech)
+	{	
+		// Save basic mech data.
+		let data = MechSaveData(new(mech.saveDataType));	
+		data.mechType = mech.getClass();
+		data.weaponGroups.Copy(mech.weaponGroups);
+		data.engineType = mech.engine.getClass();
+		data.armorType = mech.armorType.getClass();
+		data.Cache(mech);
+		
+		Array<MechHardpoint> hardpoints;
+		mech.getHardpoints(hardpoints);
+		
+		// Save hardpoint data
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpoint = hardpoints[i];
+			
+			HardpointSaveData hardpointData = new("HardpointSaveData");
+			hardpointData.Save(hardpoint, saveItems:true);
+			
+			data.hardpointData.push(hardpointData);
+		}
+		
+		// Add mech save data to mechbays
+		if(!mech.mechbayID)
+		{
+			mechsData.push(data);
+			mech.mechbayID = mechsData.Size();
+		}	
+		else
+		{
+			// If this mech has existing mechbay data, reload it.
+			if(mech.mechbayID <= mechsData.Size())
+			{
+				mechsData.Delete(mech.mechbayID-1);
+				mechsData.Insert(mech.mechbayID-1, data);
+			}
+		}	
+		console.printf("Saved to mechbay: %d", mech.mechbayID);
+	}
+	
+	virtual DrivableMech loadMechData(uint index, vector3 atPos)
+	{
+		let mechData = mechsData[index];
+		
+		// Destroy old mechs of this same type.
+		let it = ThinkerIterator.Create(mechData.mechType);
+		DrivableMech curMech;
+		while(curMech = DrivableMech(it.Next()))
+		{
+			if(curMech.mechbayID-1 == index)
+				curMech.Destroy();
+		}
+		
+		// Respawn mech.
+		let mech = DrivableMech(Spawn(mechData.mechType, atPos));
+		if(mech) 
+		{
+			mech.noItemSlots = true;
+			mech.mechbayID = index+1;
+			
+			// Mech loader needs to be spawned to ensure that mech is 
+			// properly initialized with noItemSlots before mech data is 
+			// actually loaded.
+			let loader = MechLoader(Spawn("MechLoader", atPos));
+			loader.mech = mech;
+			loader.data = mechData;
+		}
+		return mech;
+	}
+
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		let plr = Owner.player;
+		if(!plr) return;
+		
+		let btns = plr.cmd.buttons;
+		let obtns = plr.oldbuttons;
+		
+		if( (btns & BT_RELOAD) && !(obtns & BT_RELOAD) )
+		{
+			if(mechsData.Size() <= 0) return;
+			console.printf("Restoring mechbay 1...");
+
+			loadMechData(0, Owner.pos + (100,0,0));
+		}
+		
+		if( (btns & BT_ZOOM) && !(obtns & BT_ZOOM) )
+		{
+			let veh = I_DrivingObject.Get(Owner);
+			if(!veh) return;
+			
+			let mech = DrivableMech(veh.source);
+			if(!mech) return;
+			
+			saveMechData(mech);
+		}
+	}
+}

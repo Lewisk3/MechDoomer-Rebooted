@@ -1,0 +1,77 @@
+class DecoTree : EffectsActor
+{
+	int start, end;
+	Property Frames : start, end;
+
+	Default
+	{
+		+SOLID;
+		DecoTree.Frames 0, 4;
+	}
+	
+	override void BeginPlay()
+	{
+		frame = random[TreeTypes](start, end);
+		A_SetScale(default.Scale.X * frandom[TreeScale](0.75,1.15));
+		bXFLIP = random[TreeScale](0,1);
+		super.beginPlay();
+	}
+	
+	States
+	{
+		Spawn:
+			FTRE "#" -1;
+		stop;
+	}
+}
+
+class SmallTree : DecoTree
+{
+	Default
+	{
+		DecoTree.Frames 0, 4;
+		Radius 8;
+		Height 8;
+	}
+	
+	States
+	{
+		Spawn:
+			FTRE A -1;
+		stop;
+	}
+}
+
+class MediumTree : DecoTree
+{
+	Default
+	{
+		DecoTree.Frames 5, 9;
+		Radius 12;
+		Height 18;
+	}
+	
+	States
+	{
+		Spawn:
+			FTRE F -1;
+		stop;
+	}
+}
+
+class LargeTree : DecoTree
+{
+	Default
+	{
+		DecoTree.Frames 10, 13;
+		Radius 30;
+		Height 30;
+	}
+	
+	States
+	{
+		Spawn:
+			FTRE K -1;
+		stop;
+	}
+}

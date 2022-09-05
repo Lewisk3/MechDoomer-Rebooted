@@ -1,0 +1,118 @@
+class MechProjectile : FastProjectile
+{
+	vector3 spawnPos;
+	double curDist, minRange, maxRange;
+	double firePitch; // Initial pitch offset when fired.
+	double trueDamage;
+	double homingTics; // Time spent actively homing.
+	bool hasHoming;
+	Actor homingTarget;
+	Sound impactSnd;
+	
+	Property Ranges : minRange, maxRange;
+	Property FirePitch : firePitch;
+	Property Dmg : trueDamage;
+	Property Homing : hasHoming;
+	Property ImpactSound : impactSnd;
+	
+	Default
+	{
+		Scale 3.0;
+		Speed 10;
+		Projectile;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		// Determine geometric collision.
+		if( !bMISSILE || vel ~== (0,0,0) ) return;
+		
+		FLineTraceData lt;
+		LineTrace(angle, radius + vel.Length(), pitch, data:lt);
+		
+		let hitType = lt.HitType;
+		if(hitType == TRACE_HitWall || hitType == TRACE_HitFloor || hitType == TRACE_HitCeiling) 
+			PreGeometryHit(lt.HitLine, lt.HitSector); 
+	}
+	
+	virtual void PreGeometryHit(Line ln, Sector sec)
+	{
+		if(impactSnd) // Play Impact sound effect.
+			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
+	}
+	
+	override void PostBeginPlay()
+	{	
+		super.postBeginPlay();
+		spawnPos = pos;
+		pitch -= firePitch;
+		UpdateVelocity();
+	}
+	
+	virtual void UpdateVelocity()
+	{
+		vel = DrivablesMath.VecFromAngles(angle, pitch, Speed);
+	}
+	
+	override int SpecialMissileHit(Actor victim)
+	{	
+		let hardpoint = MechHardpoint(target);
+		let hitHardpoint = MechHardpoint(victim);
+		let hitMechBox = MechHitbox(victim);
+		
+		bool hitMechPart = hitHardpoint && hardpoint && hitHardpoint.mech == hardpoint.mech;
+		hitMechPart |= hitMechBox && hardpoint && MechHardpoint(hitMechBox.parent).mech == hardpoint.mech;
+		
+		if( victim == target || victim == master || hitMechPart )
+			return 1; // Ignore actor.
+		
+		if(impactSnd) // Play Impact sound effect.
+			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
+		
+		victim.DamageMobJ(self, master ? master : target, ceil(trueDamage), DamageType, 0, angle);
+		return super.SpecialMissileHit(victim);
+	}
+	
+	virtual Actor SpawnEffect(class<Actor> trail, vector3 spawnPos)
+	{
+		let trail = Spawn(trail, spawnPos);
+		if(trail) trail.A_SetScale(trail.default.Scale.X * scale.X);
+		
+		return trail;
+	}
+	
+	virtual void HandleRanges()
+	{
+		curDist = (pos - spawnPos).Length();
+		curDist = DrivableMech.unitsToKM(curDist) * 1000.0;
+		
+		if(!homingTarget && firePitch)
+		{
+			pitch += 1;
+			firePitch -= 1;
+			UpdateVelocity();
+		}
+	}
+	
+	virtual void HandleHoming(double spread = 0, double strength = 0.25)
+	{
+		if(!homingTarget || homingTics > TICRATE) return;
+		
+		// Target is too close.
+		double targetDist = Distance3DSquared(homingTarget);
+		if(targetDist < 128*128) return; 
+		
+		vector3 homAngles = level.SphericalCoords(
+			pos, homingTarget.pos + (spread,spread, (homingTarget.height * 0.5) + spread), 
+			(angle, pitch)
+		);
+		
+		angle -= homAngles.x * strength;
+		pitch -= homAngles.y * strength;
+		if(targetDist <= 512*512) homingTics++;
+		
+		UpdateVelocity();
+	}
+}

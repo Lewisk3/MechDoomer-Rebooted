@@ -1,0 +1,135 @@
+
+// Smoke
+class MWLaserSmoke : EffectsActor
+{
+	Default
+	{
+		+NOGRAVITY
+		+FLOORCLIP
+		+NOINTERACTION
+		+FORCEXYBILLBOARD
+		+CLIENTSIDEONLY
+		Speed 1;
+		RenderStyle "Add";
+		Alpha		0.14;
+		Scale		0.45;
+		Translation "0:255=@70[86,64,0]";  
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 AAA 1;
+			SMKE AABBCCDDEEFFGGHHIIJJK 1 A_FadeOut(0.001);
+		Spawn.Wait: 
+			SMKE K 1 A_FadeOut(0.02);
+		wait;
+	}
+}
+
+// Geometry Decals
+class MWLaserDecal : Actor
+{
+	bool aligned;
+	bool HitActors;
+	Actor onactor;
+	
+	Property DecalOnActors : HitActors;
+	Default
+	{
+		+NOINTERACTION;
+		+FLATSPRITE;
+		+BRIGHT;
+		Alpha 0.7;
+		Height 10;
+		
+		RenderStyle "AddShaded";
+		MWLaserDecal.DecalOnActors true;
+		Alpha 0.7;
+	}
+	
+	bool SetToSlope()
+	{
+		if(aligned) return true;
+		FLineTraceData lt;
+		if(pos.z != floorz)
+		{
+			LineTrace(angle, height*4, pitch, data:lt);
+			aligned = true;
+			if(lt.HitLine)
+			{
+				let ln = lt.HitLine;
+				angle = atan2(ln.delta.y, ln.delta.x)+90;
+				pitch = 90;
+				return true;
+			}
+			if(lt.HitActor && HitActors) 
+			{
+				pitch = 90;
+				onactor = lt.HitActor;
+				return true;
+			}
+			else if((lt.HitActor && !HitActors) || !lt.HitType)
+				return false;
+		
+			if(lt.HitType == FLineTraceData.TRACE_HitCeiling) 
+				SetOrigin((pos.x,pos.y,ceilingz),false);
+		}
+
+		// Credits: Marisa Kirisame
+        vector3 fnormal = CurSector.floorplane.Normal;
+        // find closest 3d floor for its normal
+        F3DFloor ff;
+        for ( int i=0; i<CurSector.Get3DFloorCount(); i++ )
+        {
+            if ( !(CurSector.Get3DFloor(i).top.ZAtPoint(pos.xy) ~== floorz) ) continue;
+            ff = CurSector.Get3DFloor(i);
+            break;
+        }
+        if ( ff ) fnormal = -ff.top.Normal;
+        vector2 fnormalp1 = ((fnormal.x != 0) || (fnormal.y != 0))?(fnormal.x,fnormal.y).Unit():(0,0);
+        vector2 fnormalp2 = ((fnormal.x,fnormal.y).Length(),fnormal.z);
+        double fang = atan2(fnormalp1.y,fnormalp1.x); // floor angle (not pitch!)
+        double fpitch = atan2(fnormalp2.x,fnormalp2.y); // floor pitch
+        double ddiff1 = sin(fang-angle);
+        double ddiff2 = cos(fang-angle);
+		pitch = fpitch*ddiff2;
+        roll = -fpitch*ddiff1;
+		return true;
+    }
+    
+	override void BeginPlay()
+	{
+		A_SetScale(frandom(0.3,1.5));
+		bSPRITEFLIP = random(0,1);
+	}
+	
+	override void Tick()
+	{
+		if(isFrozen()) return;
+		if(!SetToSlope()) Destroy();
+		if(target) SetShade(target.fillcolor);
+		if (tics > 0) 
+		{
+			tics--;
+			while (!tics) {
+				if(!SetState (CurState.NextState)) // mobj was removed
+					return;
+			}
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			LASH A 1 Bright 
+			{
+				A_FadeOut(onactor ? 0.1 : 0.008);
+				if(random(1,60)==60) 
+				{
+					EffectsHelper.SpawnFX("MWLaserSmoke", 5, pos, (angle+180, -pitch, roll), 3, (10,10,10));
+				}
+			}
+		wait;
+	}
+}

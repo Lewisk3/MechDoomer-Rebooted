@@ -1,0 +1,529 @@
+class I_DrivingObject : Inventory
+{
+	DrivableObject source;
+	bool disableWeapons, disableDamage, resetDriver;
+	uint oldscrBlocks;
+	State defaultWeaponState;
+	
+	/*
+	override void PreTravelled()
+	{
+		source.ChangeStatNum(STAT_TRAVELLING);
+		source.PreTravelled();
+	}
+	
+	override void Travelled()
+	{	
+		source.ChangeStatNum(STAT_DEFAULT);
+		source.Travelled();
+		source.SetOrigin(Owner.pos, false);
+		resetDriver = true;
+	}
+	*/
+	
+	override void ModifyDamage(int damage, Name damageType, out int newdamage, bool passive, Actor inflictor, Actor source, int flags)
+	{
+		// Don't allow the pilot to take damage while in a vehicle.
+		// bSHOOTABLE cannot simply be toggled off for the driver,
+		// otherwise monsters will ignore them.
+		
+		if(passive && disableDamage) newdamage = 0;
+	}
+	
+	clearscope static I_DrivingObject Get(Actor from)
+	{
+		return I_DrivingObject(from.FindInventory("I_DrivingObject"));
+	}
+	
+	static I_DrivingObject Setup(Actor to, DrivableObject source, bool disableWeapons = true, bool disableDamage = true)
+	{
+		if(!Get(to)) to.GiveInventoryType("I_DrivingObject");
+		let driving = I_DrivingObject(to.FindInventory("I_DrivingObject"));
+		if(driving) 
+		{
+			driving.source = source;
+			driving.disableWeapons = disableWeapons;
+			driving.disableDamage = disableDamage;
+		}
+		return driving;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if(!source)
+		{
+			Disable();
+			return;
+		}
+		
+		// Hold weapon if our driver is a player.
+		// Otherwise just freeze them.
+		if(!defaultWeaponState && Owner.player)
+		{
+			let weap = Owner.player.ReadyWeapon;
+			if(weap) defaultWeaponState = weap.FindState("Ready");
+		}
+		
+		if(disableWeapons)
+		{
+			if(Owner.player)
+				Owner.player.SetPSprite(PSP_WEAPON, FindState("NoNothing"));
+			else // Disable actor by other means
+				Owner.tics = -1;
+		}
+		
+		if(resetDriver) 
+		{	
+			source.RemovePilot();
+			source.TakePilot(Owner);
+			resetDriver = false;
+			return;
+		}
+	}
+	
+	void Disable()
+	{
+		if(resetDriver) return;
+		if(disableWeapons)
+		{
+			if(Owner.player) 
+				Owner.player.SetPSprite(PSP_WEAPON, defaultWeaponState);
+			else // Enable actor
+				Owner.tics = 1;
+		}
+		
+		Owner.RemoveInventory(self);
+		GoAwayAndDie();
+	}
+	
+	States(Weapon)
+	{
+		DoNothing:
+			TNT1 A 1;
+		loop;
+	}
+} 
+
+// Interaction
+class DriverBtns abstract
+{
+	enum ButtonStates
+	{
+		BTS_UP,
+		BTS_DOWN,
+		BTS_RELEASED,
+		BTS_PRESSED
+	};
+	
+	clearscope static bool Get(int btn, int bstate, Actor src, uint btnsrc = -1, uint oldbtnsrc = -1)
+	{
+		uint btns, oldbtns;
+		bool btnstatus;
+		
+		if(src.player)
+		{
+			btns = src.player.cmd.buttons;
+			oldbtns = src.player.oldbuttons;
+		}
+		
+		if(btnsrc != -1) 
+		{
+			btns = btnsrc;
+			oldbtns = oldbtnsrc;
+		}
+		
+		switch(bstate)
+		{
+			case BTS_UP:
+				btnstatus = !(btns & btn); break;
+			case BTS_DOWN:
+				btnstatus =  (btns & btn); break;
+			case BTS_PRESSED:
+				btnstatus =  (btns & btn) && !(oldbtns & btn); break;
+			case BTS_RELEASED:
+				btnstatus = !(btns & btn) && (oldbtns & btn); break;
+		}
+		return btnstatus;
+	}
+}
+
+class DrivableComponent : Actor 
+{	
+	DrivableComponent parent;
+	vector2 spawnSize;
+	
+	Default
+	{
+		+SOLID;
+		+INTERPOLATEANGLES;
+		+SLIDESONWALLS;
+		+NOBLOCKMONST;
+		+DONTTHRUST;
+		+CANPASS;
+		Scale 1.0;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		spawnSize = (radius, height);
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(parent) 
+		{
+			A_SetSize(spawnSize.x * parent.Scale.X, spawnSize.y * parent.Scale.Y);
+			A_SetScale(parent.scale.X);
+		}
+	}
+	
+	vector3 OffsetPos(double fw, double lr, double ud)
+	{
+		double sc = scale.X;
+		return level.vec3offset(pos, DrivablesMath.V3Offset(angle,pitch,roll, fw*sc,lr*sc,ud*sc, 1.0));
+	}
+		
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}
+
+// Interactive object source.
+class DrivableObject : DrivableComponent
+{
+	Actor driver;
+	vector3 driverOffset;
+	Array<Actor> passengers;	
+	Array<DrivableObjectPart> parts;
+	DrivableComponent cam;
+	bool onground;
+	uint extbtns; // More buttons.
+	uint extbtns_old;
+
+	Default
+	{
+		Radius 16;
+		Height 32;
+		+NOFRICTION; // Best to handle friction ourselves.
+		+DROPOFF;
+	}
+	
+	virtual void PreTravelled()
+	{
+		if(!driver) return;
+		for(int i = 0; i < parts.Size(); i++)
+		{
+			let part = parts[i];
+			if(part) part.ChangeStatNum(STAT_TRAVELLING);
+		}
+	}
+	
+	virtual void Travelled()
+	{
+		if(!driver) return;
+		for(int i = 0; i < parts.Size(); i++)
+		{
+			let part = parts[i];
+			if(part) part.ChangeStatNum(STAT_DEFAULT);
+		}
+	}
+	
+	void SetDriverCamera(Actor cam, double FOV = 0)
+	{
+		if(!driver || !driver.player) return;
+		cam.CameraFOV = !FOV ? driver.player.FOV : FOV;
+		driver.player.camera = cam;
+	}
+	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(other == driver) return false;
+		if(passengers.Find(other) != passengers.Size()) return false;
+		if(parts.Find(other) != parts.Size()) return false;
+		
+		return super.CanCollideWith(other, passive);
+	}
+	
+	virtual void AttachPart(DrivableObjectPart part, DrivableComponent parent)
+	{
+		part.parent = parent;
+		part.OnAttach();
+		parts.Push(part);
+	}
+	
+	virtual DrivableObjectPart AddPart(class<DrivableObjectPart> type, double fw, double lr, double ud, DrivableComponent parent)
+	{
+		let part = DrivableObjectPart(DrivableObjectPart.Create(fw,lr,ud, type));
+		AttachPart(part, parent);
+		return part;
+	}
+	
+	virtual void setExtBtn(uint btn, bool onOff)
+	{
+		if(onOff)
+			extbtns |= btn;
+		else
+			extbtns &= ~btn;
+	}
+	
+	clearscope virtual bool getDriverBtn(int btn, int btnstatus)
+	{
+		return DriverBtns.Get(btn, btnstatus, driver);
+	}
+		
+	clearscope virtual bool getExtBtn(int btn, int btnstatus)
+	{
+		return DriverBtns.Get(btn, btnstatus, driver, extbtns, extbtns_old);
+	}
+	
+	virtual void SetupParts()
+	{
+		
+	}
+	
+	virtual void TakePilot(Actor user)
+	{
+		I_DrivingObject.Setup(user, self, true, true);
+		driver = user;
+		if(cam) SetDriverCamera(cam);
+	}
+	virtual void RemovePilot()
+	{
+		SetDriverCamera(driver); // Reset camera
+		let drvObj = I_DrivingObject(driver.FindInventory("I_DrivingObject"));
+		if(drvObj) drvObj.Disable();
+		driver = NULL;
+	}
+	
+	virtual void TakePassenger(Actor user)
+	{
+	}
+	virtual void RemovePassenger(Actor user)
+	{	
+	}
+	
+	virtual void OnDrive()
+	{	
+	}
+	
+	virtual void DoPhysics()
+	{	
+		DrivablesMath.AlignToPlane(self);
+		onground = ((pos.z-floorz) < 5) || bOnMobj || waterlevel > 0;
+	}
+	
+	virtual void UpdateDriver()
+	{
+		driver.SetOrigin(OffsetPos(driverOffset.x,driverOffset.y,driverOffset.z), true);
+		
+		// Disable bobbing
+		driver.vel *= 0;
+		if(driver.player) 
+		{
+			driver.player.viewz = driver.pos.z + PlayerPawn(driver).viewheight;
+			driver.player.bob = 0;
+			driver.player.vel *= 0;			
+		}
+	}
+	
+	virtual void UpdatePassenger(int index)
+	{
+	}
+	
+	override bool Used(Actor user)
+	{
+		// Pilot
+		if(!driver) 
+			TakePilot(user);
+		else if(driver == user)
+			RemovePilot();
+		
+		// Passenger
+		if(passengers.Find(user) == passengers.Size())
+			TakePassenger(user);
+		else
+			RemovePassenger(user);
+	
+		return false;
+	}
+	
+	virtual double, double GetMoveInputs()
+	{
+		if(!driver.player) return 0, 0;
+		return driver.player.cmd.forwardmove, driver.player.cmd.sidemove;
+	}
+	
+	override void OnDestroy()
+	{
+		for(int i = 0; i < parts.Size(); i++)
+		{
+			parts[i].Destroy();
+		}
+	}
+	
+	override void Tick()
+	{	
+		super.Tick();
+		
+		// Update collider
+		A_SetSize(spawnSize.x * Scale.X, spawnSize.y * Scale.Y);
+		
+		// Driver and Passengers
+		if(driver) 
+		{
+			OnDrive();
+			UpdateDriver();
+		}
+		if(passengers.Size() > 0)
+		{
+			for(int i = passengers.Size()-1; i >= 0; i--)
+				UpdatePassenger(i);
+		}
+		
+		// Parts
+		for(int i = parts.Size()-1; i >= 0; i--)
+		{
+			let part = parts[i];
+			if(!part) 
+			{
+				parts.Delete(i);
+				continue;
+			}
+		}
+		
+		// Physics
+		DoPhysics();
+		extbtns_old = extbtns;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		SetupParts();
+	}
+	
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}
+
+class DrivableObjectPart : DrivableComponent
+{
+	DrivableObject base;
+	double animSpeed;
+	vector3 followPos;
+	vector3 animOffsets;
+	vector3 parentOffset;
+	vector3 angles;
+	
+	Property AnimationSpeed : animSpeed;
+	
+	Default
+	{
+		+NOGRAVITY;
+
+		Radius 10;
+		Height 10;
+		
+		DrivableObjectPart.AnimationSpeed 0.97;
+	}
+	
+	virtual void OnAttach()
+	{
+		// When part is attached to parent.
+	}
+	
+	static DrivableObjectPart Create(double fw, double lr, double ud, class<DrivableObjectPart> type)
+	{
+		let part = DrivableObjectPart(Spawn(type, (0,0,0)));
+		if(part) part.parentOffset = (fw,lr,ud);
+		return part;
+	}
+	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(other is "DrivableObjectPart" || other == parent || other == getDriver()) return false;
+		return super.CanCollideWith(other, passive);
+	}
+
+	clearscope Actor getDriver()
+	{
+		for(let p = parent; p; p = p.parent)
+		{				
+			let drivableParent = DrivableObject(p);
+			if(drivableParent) return drivableParent.driver;
+		}
+		return NULL;
+	}
+	
+	clearscope DrivableObject getBaseDrivable()
+	{
+		for(let p = parent; p; p = p.parent)
+		{				
+			let drivableParent = DrivableObject(p);
+			if(drivableParent) return drivableParent;
+		}
+		return NULL;
+	}
+	
+	override void Tick()
+	{	
+		if(!base) base = getBaseDrivable();
+		if(parent) 
+		{
+			UpdatePos();
+			UpdateAngles();
+			if(base && base.driver)
+				DriverUpdate(base.driver);
+			
+			if( !(followPos ~== (0,0,0)) )
+				SetOrigin(followPos, true);
+		}
+		super.Tick();
+		
+		animOffsets *= animSpeed;
+	}
+	
+	virtual void UpdatePos()
+	{
+		if(!parent) return;
+		
+		vector3 offs = parentOffset + animOffsets;
+		followPos = parent.OffsetPos(offs.x,offs.y,offs.z);	
+	}
+		
+	clearscope vector3 OffsetPos(double fw, double lr, double ud)
+	{
+		return level.vec3offset(pos, DrivablesMath.V3Offset(angle,pitch,roll, fw,lr,ud));
+	}
+	
+	virtual void UpdateAngles()
+	{
+		A_SetAngle(parent.angle + angles.x, SPF_INTERPOLATE);
+		A_SetPitch(parent.pitch + angles.y, SPF_INTERPOLATE);
+		A_SetRoll(parent.roll + angles.z, SPF_INTERPOLATE);
+	}
+
+	virtual void DriverUpdate(Actor driver)
+	{
+		// Only called when there's a valid driver.
+		
+	}	
+	
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}

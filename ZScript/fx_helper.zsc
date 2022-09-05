@@ -1,0 +1,136 @@
+// For various effects to use for best performance.
+class EffectsActor : Actor
+{
+	Default
+	{
+		Radius 1;
+		+NOINTERACTION;
+	}
+	
+	override void Tick()
+	{			
+		if (alpha <= 0)
+		{
+			destroy();
+			return;
+		}
+		if (isFrozen()) return;
+			
+		//animation:
+		if (tics != -1) 
+		{
+			if(tics > 0) tics--;
+			while (!tics) 
+				if(!SetState(CurState.NextState)) return;
+		}
+	}
+}
+
+// For spawning in various effects.
+class EffectsHelper Abstract
+{
+	play static void SpawnFX( class<Actor> type, double amt, vector3 pos, vector3 angles, double vel, 
+							  vector3 randPos = (0,0,0), vector3 randAngles = (0,0,0), double randVel = 0, 
+							  out Array<Actor> spawnedActors = NULL )
+	{
+		for(int i = 0; i < amt; i++)
+		{
+			vector3 angleOffs = (
+				frandom[FXRandom](-randAngles.x, randAngles.x),
+				frandom[FXRandom](-randAngles.y, randAngles.y),
+				frandom[FXRandom](-randAngles.z, randAngles.z)
+			);
+			angles += angleOffs;
+			
+			vector3 posOffs = (
+				frandom[FXRandom](-randPos.x, randPos.x),
+				frandom[FXRandom](-randPos.y, randPos.y),
+				frandom[FXRandom](-randPos.z, randPos.z)
+			);
+			pos = level.vec3offset(pos, DrivablesMath.V3Offset(angles.x, angles.y, angles.z, posOffs.x, posOffs.y, posOffs.z));
+			
+			double speed = vel + frandom[FXRandom](-randVel, randVel);
+			
+			let act = Actor.Spawn(type, pos);
+			if(act)
+			{
+				act.vel = DrivablesMath.getAxes(angles.x, angles.y, angles.z) * speed;
+				act.angle = angles.x;
+				act.pitch = angles.y;
+				act.roll = angles.z;
+				if(spawnedActors) spawnedActors.Push(act);
+			}
+		}
+	}
+	
+	// Spawn helpers
+	play static Actor Fire3DProjectile(Actor shooter, vector3 aimTo, class<Actor> proj, double forward, double leftright, double updown, bool crosshairConverge = true, double angleoffs = 0, double pitchoffs = 0)
+	{
+		double a = shooter.angle + angleoffs;
+		double p = shooter.pitch + pitchoffs;
+		double r = shooter.roll;
+		let mat = DrivablesMatrix.fromEulerAngles(a, p, r);
+		mat = mat.multiplyVector3((forward, -leftright, updown));
+		vector3 offsetPos = mat.asVector3(false);
+		
+		vector3 shooterPos = (shooter.pos.xy, shooter.pos.z + shooter.height * 0.5);
+		if(shooter.player) shooterPos.z = shooter.player.viewz;
+		offsetPos = level.vec3offset(offsetPos, shooterPos);
+		
+		// Get velocity
+		if(crosshairConverge)
+		{
+			FLineTraceData lt;
+			vector3 aimAngles = level.SphericalCoords(offsetPos, aimTo, (a, p));
+			
+			a -= aimAngles.x;
+			p -= aimAngles.y;
+		}
+		
+		mat = DrivablesMatrix.fromEulerAngles(a, p, r);
+		mat = mat.multiplyVector3((1.0,0,0));
+		
+		vector3 projVel = mat.asVector3(false) * GetDefaultByType(proj).Speed;
+		
+		// Spawn projectile
+		let proj = Actor.Spawn(proj, offsetPos);
+		if(proj)
+		{
+			proj.A_SetScale(proj.Scale.X * shooter.scale.X, proj.scale.Y * shooter.scale.Y);
+			proj.A_SetSize(proj.radius * shooter.scale.X, proj.height * shooter.scale.Y);
+			proj.angle = a;
+			proj.pitch = p;
+			proj.roll = r;
+			proj.vel = level.vec3offset(shooter.vel, projVel);
+			proj.target = shooter;
+		}
+		return proj;
+	}
+		
+	play static void ExplodeEx(Actor src, double pow, double dist, double dmgfalloffmod = 1.0, double thrustMod = 1.0, Name damageType = "Explosive", double selfDamage = 0, bool damageBosses = true)
+	{
+		let it = ThinkerIterator.Create("Actor");
+		Actor act;
+		let shooter = src.target ? src.target : src;
+		while(act = Actor(it.Next()))
+		{
+			if(!act.bSHOOTABLE || !src.IsVisible(act, true)) continue;
+			if(!damageBosses && act.bBOSS) continue; 
+			if(act is "MechHardpoint" || act is "MechHitbox") continue; // Do not apply explosive damage to mechs.
+			
+			double todist = src.Distance2DSquared(act) - act.radius;
+			double dmgfalloff = pow * (1. - (1./(todist - (dist*dist))));
+			if(todist > dist*dist) continue; 
+			dmgfalloff *= dmgfalloffmod;
+			
+			vector3 forceDir = (src.pos - act.pos).Unit();
+			if(act == shooter) forceDir = DrivablesMath.VecFromAngles(shooter.angle, shooter.pitch, 0.5);
+			forceDir *= dmgfalloff * thrustMod;
+			act.vel -= (forceDir * 0.15);
+			
+			if(act == shooter) dmgfalloff *= selfDamage;
+			if(dmgfalloff > 0)
+				act.DamageMobJ(src, shooter, dmgfalloff, damageType, 0, src.angle); 
+		}
+	}
+}

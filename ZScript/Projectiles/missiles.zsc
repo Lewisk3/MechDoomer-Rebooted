@@ -1,0 +1,285 @@
+class MechMissile : MechProjectile
+{
+	double missileSpread;
+	double homingSpread;
+	
+	Property HomingInaccuracy : homingSpread;
+
+	override void Tick()
+	{
+		super.Tick();	
+		if(level.isFrozen()) return;
+		
+		if(curDist < maxRange) 
+		{
+			if(curDist > minRange || !(GetAge() % 3))
+			{
+				SpawnEffect("MissileTrail", pos + (vel * 0.5));	
+				if(hasHoming) 
+				{
+					if(!missileSpread) missileSpread = frandom[MissileHomingOffs](-homingSpread,homingSpread);
+					HandleHoming(missileSpread);
+				}
+			}
+		}
+		if(bMISSILE) HandleRanges();
+		
+		if(curDist < minRange || curDist >= maxRange) 
+			trueDamage = 0;
+		else 
+			trueDamage = default.trueDamage;
+	}
+	
+	override void HandleRanges()
+	{
+		super.HandleRanges();
+		
+		// Missile ran out of fuel.
+		if(curDist > maxRange)
+		{
+			vel.z -= 0.25;
+			if(pitch < 90) pitch += 1;
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			MODL A 2 
+			{
+				SpawnEffect("MissileSmokeTrail", pos);
+				SpawnEffect("MissileSmokeTrail", pos - vel);
+			}
+		loop;
+		
+		Crash:
+		XDeath:
+		Death:
+			TNT1 A 10
+			{
+				if(curDist > minRange)
+				{
+					EffectsHelper.SpawnFX("MissileEmber", 50, pos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);
+					SpawnEffect("MissileExplosion", pos);
+					EffectsHelper.ExplodeEx(self, 64, 128);
+				}
+				else 
+					A_StartSound("Generic/Impact", flags:CHANF_OVERLAP, pitch:frandom[ExplosionPitch](-0.8, 1.2));
+			//	A_Quake(3,8,0,512, "");
+			}
+		stop;
+	}
+}
+
+class MechSRM : MechMissile
+{
+	Default
+	{
+		Radius 8;
+		Height 4;
+		Speed 25;
+		MechProjectile.Dmg 2 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 270;
+		MechProjectile.FirePitch 0;
+		MechProjectile.Homing false;
+	}
+}
+class MechSSRM : MechSRM
+{
+	Default
+	{
+		Speed 20;
+		MechProjectile.Ranges 0, 360;
+		MechProjectile.Homing true;
+		MechMissile.HomingInaccuracy 20;
+	}
+}
+
+class MechLRM : MechMissile
+{
+	Default
+	{
+		Radius 8;
+		Height 4;
+		Speed 20;
+		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 120, 900;
+		MechProjectile.FirePitch 45;
+		MechProjectile.Homing true;
+		MechMissile.HomingInaccuracy 30;
+	}
+}
+
+class MissileExplosion : EffectsActor
+{
+	Default
+	{
+		Scale 0.05;
+		+BRIGHT;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		
+		// I would use NoDelay, but it doesn't work...
+		A_StartSound("Missile/Explosion", flags:CHANF_OVERLAP, attenuation:0.7, pitch:frandom[ExplosionPitch](-0.8, 1.2) );
+	}
+	
+	States
+	{
+		Spawn: 
+			MXP1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 1;
+			MXP2 ABCDEFGHIJKLMNOPQRSTUV 1;
+			TNT1 A 70;
+			TNT1 A 0 A_StopSound(CHAN_BODY);
+		stop;
+	}
+}
+
+class MissileTrail : EffectsActor
+{
+	Default
+	{
+		Scale 0.02;
+		+BRIGHT;
+		+ROLLSPRITE;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		roll = random(0,360);
+	}
+
+	States
+	{
+		Spawn:
+			TNT1 A 0 NoDelay A_Jump(255, random(1, 5));
+			MTRL ACEGIKMOQR 1;
+			MTRL S 1 A_FadeOut(0.1);
+		wait;
+	}
+}
+
+class MissileEmber : EffectsActor
+{
+	double darkness;
+	int bounceCount;
+	
+	Property BounceCount : bounceCount;
+	
+	Default
+	{
+		Scale 0.02;
+		-SOLID;
+		+BRIGHT;
+		+ROLLSPRITE;
+		+INTERPOLATEANGLES;
+		Projectile;
+		MissileEmber.BounceCount 5;
+		
+		Speed 3;
+		Gravity 0.5;
+		
+		RenderStyle "Shaded";
+		Alpha 1.0;
+		//StencilColor "Yellow";
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(level.isFrozen()) return;
+		SetShade(MWDrawerColor.hslToRgb(19 / 360.0,1.0,0.48 - darkness));
+		
+		if( bounceCount <= 0 || getAge() > (TICRATE*5) ) alpha *= 0.8;
+		if(alpha <= 0.1)
+		{
+			Destroy();
+			return;
+		}
+		
+		darkness += 0.005;
+		if(darkness >= 0.24) bBRIGHT = false;
+		
+		vel.z -= 0.35 * gravity;
+		
+		if(pos.z <= floorz) 
+		{
+			SetOrigin((pos.xy, floorz), true);
+			vel.xy *= 0.9;
+			vel.z *= 0;
+		}
+		
+		SetOrigin(level.vec3offset(pos, vel), true);
+		
+		if( bounceCount <= 0 ) 
+		{
+			vel.xy *= 0.90;
+			return;
+		}
+		
+		FLineTraceData lt;
+		vector2 velDir = (
+			atan2( vel.y, vel.x),
+			-atan( max(0.000001, vel.z) / max(0.0000001, sqrt(vel.x*vel.x + vel.y*vel.y)) ) 
+		);
+		
+		LineTrace( velDir.x, vel.Length() + 8, velDir.y, data:lt);
+		if(lt.HitType != TRACE_HitNone)
+		{
+			vector3 anglesTo = level.SphericalCoords(pos, lt.HitLocation, (0,0));
+			vector3 hitDir = (
+				cos(anglesTo.x) * cos(anglesTo.y),
+				sin(anglesTo.x) * cos(anglesTo.y),
+				-sin(anglesTo.y)
+			);
+			
+			vel = hitDir*(vel.Length()*0.7);
+			bounceCount--;
+		}
+	}
+
+	States
+	{
+		Spawn:
+			SPRK A 1;
+		loop;
+	}
+}
+
+class MissileSmokeTrail : EffectsActor
+{
+	Default
+	{
+		RenderStyle "Add";
+		Scale 0.03;
+		+ROLLSPRITE;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		alpha = frandom(0.5, 0.8);
+		roll = random(0, 360);
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(level.isFrozen()) return;
+		
+		A_SetScale(scale.X * 0.97);
+		alpha *= 0.97;
+		
+		if(alpha <= 0.01) Destroy();
+	}
+	
+	States
+	{
+		Spawn:
+			MSMK A -1;
+		stop;
+	}
+}

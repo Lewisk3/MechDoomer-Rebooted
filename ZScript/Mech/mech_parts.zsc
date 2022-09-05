@@ -1,0 +1,814 @@
+class MechPart : DrivableObjectPart
+{
+	vector3 lookingPos;
+	DrivableMech mech;
+	
+	Default
+	{
+		-SOLID;
+		-SHOOTABLE;
+		+DONTTHRUST;
+		Radius 0;
+		Height 0;
+	}
+	
+	override void OnAttach()
+	{
+		mech = getMech();
+	}
+
+	clearscope virtual DrivableMech GetMech()
+	{	
+		for(let p = parent; p; p = p.parent)
+		{				
+			let mech = DrivableMech(p);
+			if(mech) return mech;
+		}
+		return NULL;
+	}
+}
+
+class MechHitbox : DrivableObjectPart
+{	
+	Default
+	{
+		+SHOOTABLE;
+	}
+	
+	override void Tick()
+	{
+		let hardpoint = MechHardpoint(parent);
+		if(hardpoint && hardpoint.healthPoints <= 0)
+			bSOLID = bSHOOTABLE = false;
+		else
+			bSOLID = bSHOOTABLE = true;
+			
+		super.Tick();
+	}
+
+	// Pass damage over to parent.
+	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
+	{
+		parent.DamageMobJ(inflictor, source, damage, mod, flags, angle);
+		return 0;
+	}
+}
+
+// Hardpoints
+class HardpointMount : Object
+{
+	MechHardpoint hardpoint;
+	string type;
+	vector3 pos;
+	MechItem mountedItem;
+	
+	static HardpointMount Create(MechHardpoint hp, vector3 pos, string type)
+	{	
+		let mnt = new("HardpointMount");
+		if(mnt)
+		{
+			mnt.hardpoint = hp;
+			mnt.pos = pos;
+			mnt.type = type;
+		}
+		return mnt;
+	}
+	
+	virtual void mountItem(MechItem item)
+	{
+		mountedItem = item;
+	}
+	virtual void unmountItem()
+	{
+		mountedItem = NULL;
+	}
+	
+	virtual vector3 getPos(bool absolute = false)
+	{
+		vector3 adjustedPos = pos * hardpoint.scale.X;
+		return absolute ? hardpoint.OffsetPos(adjustedPos.x,adjustedPos.y,adjustedPos.z) : adjustedPos;
+	}
+}
+
+class MechHardpoint : MechPart
+{
+	bool hasRearArmor;
+	double healthPoints, maxHP;
+	double armorPoints, rearArmor, maxArmor, maxRearArmor;
+	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
+	
+	vector3 oldAngles, oldAngleOffs;
+	
+	uint slots, maxslots;
+	Array<HardpointMount> mountPoints;
+	
+	Property Slots : maxslots;
+	Property Vitals : maxArmor, healthPoints;
+	Property SetupArmor : armorPoints, rearArmor;
+	Property RearArmor : hasRearArmor; 
+	
+	Array<MechItem> items;	
+	
+	// Discrete hitbox
+	double hitboxRadius, hitboxHeight;
+	double hitboxPos_FW, hitboxPos_LR, hitboxPos_UD;
+	
+	Property HitBox : hitboxRadius, hitboxHeight, hitboxPos_FW, hitboxPos_LR, hitboxPos_UD;
+	
+	Property UIGraphics : paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
+	
+	// Hardpoint damage scalar.
+	const DMGSCALE = 0.025;
+	
+	Default
+	{
+		+SHOOTABLE;
+		+SOLID;
+		Radius 10;
+		Height 10;
+		
+		MechHardpoint.Slots 12;
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+		MechHardpoint.RearArmor false;
+	}
+	
+	virtual void SetupMounts()
+	{
+		// Setup weapon mount points here.
+		
+	}
+	
+	bool adjustArmor(double front, double rear = 0)
+	{
+		double frontArmorTo = armorPoints + front;
+		double rearArmorTo = rearArmor + rear;
+		
+		if( frontArmorTo+rearArmorTo > maxArmor || 
+		    frontArmorTo < 0 || rearArmorTo < 0 ) return false;
+		
+		armorPoints = frontArmorTo;
+		rearArmor = rearArmorTo;
+		return true;
+	}
+		
+	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)
+	{
+		if(ratio <= 0) return MWDrawerColor.HSLtoRGB(0,1.0,0.0,1.0);
+		return MWDrawerColor.HSLtoRGB(0.28*(ratio-0.3), 1.0, 0.5, tintalpha);
+	}
+	clearscope double, double getVitals()
+	{
+		double adjustedMaxArmor = maxArmor - maxRearArmor;
+		return adjustedMaxArmor > 0 ? (armorPoints / adjustedMaxArmor) : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
+	}
+	clearscope double getRearVitals()
+	{
+		return maxRearArmor > 0 ? (rearArmor / maxRearArmor) : 1.0;
+	}
+
+	ui virtual void DrawPaperdoll(vector2 dollPos, double dollAlpha = 1.0, vector2 dollScale = (1.0,1.0), uint drawFlags = 0, double deltaTime = 1.0)
+	{
+		double armorPerc, healthPerc;
+		[armorPerc, healthPerc] = getVitals();
+		string armorGraphic = String.Format("Graphics/HUD/Paperdoll/%s", paperdoll_ArmorGraphic);
+		string internalsGraphic = String.Format("Graphics/HUD/Paperdoll/%s", paperdoll_InternalGraphic);
+		
+		if(armorPerc > 0) MWDrawer.DrawImage(armorGraphic, dollPos, drawFlags, dollAlpha, scale:dollScale, tint:getHealthyColor(armorPerc));
+		if(healthPerc > 0) MWDrawer.DrawImage(internalsGraphic, dollPos, drawFlags, dollAlpha, scale:dollScale, tint:getHealthyColor(healthPerc));
+	}
+	
+	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
+	{	
+		double trueDamage = double(damage) * DMGSCALE;
+		double hpDmg = 0;
+		
+		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);
+		
+		if(abs(hitAngle) > 100 && hasRearArmor)
+		{
+			if(mech && mech.armorType && rearArmor > 0) 
+				trueDamage = mech.armorType.ProcessDamage(trueDamage);
+				
+			if(rearArmor > 0)
+				rearArmor = max(0, rearArmor-trueDamage);
+				
+			hpDmg = max(0, trueDamage - rearArmor);
+		}
+		else 
+		{
+			if(mech && mech.armorType && armorPoints > 0) 
+				trueDamage = mech.armorType.ProcessDamage(trueDamage);
+				
+			if(armorPoints > 0)
+				armorPoints = max(0, armorPoints-trueDamage);
+				
+			hpDmg = max(0, trueDamage - armorPoints);
+		}
+		
+		healthPoints -= hpDmg;
+		
+		// console.printf("Damaged: %s for %d damage. [%d :> %d]", getClassName(), trueDamage, armorPoints, healthPoints);
+		return 0;
+	}
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
+		maxHP = healthPoints;
+		maxRearArmor = rearArmor;
+		SetupMounts();
+		if(mech) angle = mech.angle;
+		
+		if(hitboxRadius > 0) 
+			AddHitBox(hitboxPos_FW, hitboxPos_LR, hitboxPos_UD, hitboxRadius, hitboxHeight);
+	}
+	
+	virtual void AddHitBox(double fw, double lr, double ud, double r, double h)
+	{	
+		if(!mech) return;
+		
+		let part = MechHitBox.Create(fw, lr, ud, "MechHitBox");
+		if(part) 
+		{
+			part.A_SetSize(r, h);
+			mech.AttachPart(part, self);
+		}
+	}
+	
+	virtual void addMountPoint(string type, double fw, double lr, double ud)
+	{
+		mountPoints.Push( 
+			HardpointMount.Create(self, (fw,lr,ud), type)
+		);
+	}
+	
+	clearscope virtual HardpointMount findMountPoint(string type)
+	{
+		for(int i = 0; i < mountPoints.Size(); i++)
+		{
+			let mp = mountPoints[i];
+			
+			// Mounts with "" typing are "wildcard".
+			if(mp && !mp.mountedItem && (mp.type ~== type || mp.type == "") ) return mp;
+		}
+		return NULL;
+	}
+	
+	clearscope virtual void getMountPoints(out Array<HardpointMount> mounts, string type = "")
+	{
+		for(int i = 0; i < mountPoints.Size(); i++)
+		{
+			let mp = mountPoints[i];
+			if(!mp || ( !(mp.type ~== type) && type != "" ) ) continue;
+			
+			mounts.Push(mp);
+		}
+	}
+	
+	clearscope virtual int getWeaponID(MechWeapon weap)
+	{
+		uint index = items.Find(weap);
+		return index >= items.Size() ? -1 : index;
+	}
+	
+	clearscope virtual void getWeapons(out Array<MechWeapon> weaps, uint grp = 0, bool ignoreDead = false)
+	{
+		if(healthPoints <= 0 && !ignoreDead) return;
+		grp = (grp > 0) ? (2**(grp-1)) : grp;
+		
+		for(int i = 0; i < items.Size(); i++)
+		{
+			let weap = MechWeapon(items[i]);
+			if( !weap || (weap.checkDestroyed() && !ignoreDead) ) continue;
+			if( grp > 0 && !(weap.group & grp) ) continue;
+			
+			weaps.Push(weap);
+		}
+	}
+		
+	virtual void FireWeapons(uint grp = 0, bool instantFire = false)
+	{
+		Array<MechWeapon> weaps;
+		getWeapons(weaps, grp);
+		MechWeapon.FireWeapons(weaps, mech.weaponGroups, grp, instantFire);
+	}
+	
+	virtual void Repair(double armorAmt, double healthAmt)
+	{
+		armorPoints += armorAmt;
+		healthPoints += healthAmt;
+		if(healthPoints > 0) bInvisible = false; 
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(!mech) mech = getMech();
+		if(!mech || !parent) return;
+		if(!mech.shutdown) oldAngles = (angle, pitch, roll);
+		
+		bool isCamera = mech.driver && mech.driver.player && mech.driver.player.Camera == self;
+		if(mech.shutdown && !isCamera) 
+		{
+			angle = oldAngles.x + oldAngleOffs.x;
+			pitch = oldAngles.y + oldAngleOffs.y;
+			roll  = oldAngles.z + oldAngleOffs.z;
+		}
+		
+		if(healthPoints <= 0) 
+		{
+			bSOLID = bSHOOTABLE = false;
+			bInvisible = true;
+		}
+		else
+		{
+			bSOLID = default.bSOLID;
+			bSHOOTABLE = default.bSHOOTABLE;
+		}
+	
+		// If we have no armor type, don't have armor.
+		if(!mech.armorType) armorPoints = 0;
+		
+		// Keep maximum values non-negative.
+		maxArmor = max(0, maxArmor);
+		maxHP = max(0, maxHP);
+		
+		// Ajust current armor to max armor.
+		if(armorPoints > maxArmor) 
+			armorPoints = maxArmor;
+		
+		// loop through items
+		if(items.Size())
+		{
+			for(int i = items.Size()-1; i >= 0; i--)
+			{
+				let item = items[i];
+				if(!item) 
+				{
+					items.Delete(i);
+					continue;
+				}
+				if(!item.parent) continue;
+				
+				if(healthPoints > 0 && !item.disabled) 
+					item.DoEffect();
+			}
+		}
+	}
+	
+	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false)
+	{	
+		if(healthPoints <= 0) return NULL;
+		for(int i = 0; i < items.Size(); i++)
+		{
+			let item = items[i];
+			if( ((item is type) && subclass) || item.getClass() == type) 
+				return item;
+		}
+		return NULL;
+	}
+	
+	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems)
+	{
+		if(healthPoints <= 0) return;
+		for(int i = 0; i < items.Size(); i++)
+		{
+			let item = items[i];
+			if( ((item is type) && subclass) || item.getClass() == type) 
+				foundItems.Push(item);
+		}
+	}
+	
+	clearscope virtual int countItems(class<MechItem> type, bool subclass = false)
+	{
+		if(healthPoints <= 0) return 0;
+		int typeCount = 0;
+		for(int i = 0; i < items.Size(); i++)
+		{
+			let item = items[i];
+			if( ((item is type) && subclass) || item.getClass() == type) 
+				typeCount++;
+		}
+		return typeCount;
+	}
+	
+	virtual MechAmmo AddAmmo(class<MechAmmo> type, uint amt)
+	{	
+		let am = MechAmmo(FindItem(type, false));
+		if(am) 
+		{
+			am.curAmmo = min(am.maxAmmo, am.curAmmo+amt);
+			return am;
+		}
+		
+		let item = MechAmmo(AddItem(type));
+		if(item) item.curAmmo = amt;
+		return item;
+	}
+	
+	virtual MechWeapon AddWeapon(class<MechWeapon> weap, uint groupFlags = 1)
+	{
+		let weap = MechWeapon(AddItem(weap));
+		if(weap) weap.group = groupFlags;
+		return weap;
+	}
+	
+	virtual MechItem AddItem(class<MechItem> type)
+	{
+		let item = MechItem.Init(type);
+		bool success = item.TryAttach(self);
+		if(!success) 
+		{	
+			item.Destroy();	
+			return NULL;
+		}
+		
+		return item;
+	}
+	
+	virtual MechItem TakeItem(int index)
+	{
+		if(index < 0 || index >= items.Size()) return NULL;
+		let item = items[index];
+		bool success = item.TryDetach();
+		
+		return success ? item : NULL;
+	}
+	
+	virtual void DestroyItem(int index)
+	{
+		let item = TakeItem(index);
+		if(item) item.Destroy();
+	}
+}
+
+// Mech pieces base
+class MechLeg : MechHardpoint
+{
+	// Non-cosmetic leg, with hardpoint slots.
+	
+	Default
+	{
+		MechHardpoint.Slots 6;
+	}
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
+		AddItem("MechHipStructure");
+		AddItem("MechUpperLegActuator");
+		AddItem("MechLowerLegActuator");
+		AddItem("MechFootActuator");
+	}
+}
+class MechLeftLeg : MechLeg
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_LL.png", "paperdoll_SK_LL.png";
+	}
+}
+class MechRightLeg : MechLeg
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_RL.png", "paperdoll_SK_RL.png";;
+	}
+}
+
+class MechLegs : MechPart
+{	
+	uint gear, prevSpd;
+	double turnSpeed;		
+	Property TurnSpeed : turnSpeed;
+	
+	Default
+	{
+		MechLegs.TurnSpeed 0.5;
+	}
+
+	State DoIdle(double walkSpeed = 0.08)
+	{
+		return A_JumpIf(mech.GetSpd() > walkSpeed, "Walk");
+	}
+	
+	virtual State DoSteppingAnim(double lowSpeed = 0.08, double runSpeed = 5, StateLabel fallBack = "Idle", bool stepSound = true)
+	{	
+		if( (frame == 5 || frame == 16) && stepSound )
+		{
+			A_StartSound("Legs/Footstep", CHAN_BODY, CHANF_OVERLAP, pitch:frandom[FootstepPitch](0.8, 1.2));
+			if(mech.head) mech.head.animOffsets.z -= 3;
+		}
+		else if(mech.head)
+			mech.head.animOffsets.z *= 0.8;
+			
+		double spd = mech.GetSpd();
+		tics = max(1, 5 - DrivablesMath.fmap(spd, 0, 8, 1, 6));
+		if(runSpeed > 0 && spd >= runSpeed) return ResolveState("Run");
+		
+		return A_JumpIf(spd < lowSpeed, fallBack);
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		double spd = mech.accel;
+		if( (spd-prevSpd) >  0.25 && gear < 1) 
+		{
+			gear++; 
+			A_StartSound("Legs/Accel", CHAN_VOICE, CHANF_OVERLAP);
+			prevSpd = spd;
+		}
+		if( (spd-prevSpd) <  0.25 && gear > 0) 
+		{
+			gear--;
+			A_StartSound("Legs/Decel", CHAN_BODY, CHANF_OVERLAP);
+			prevSpd = spd;
+		}
+	}
+
+	States
+	{
+		Spawn:
+			TLE1 A 1;
+		Idle:
+			"####" "#" 1 DoIdle();
+		loop;
+		
+		Walk:
+			TLE1 BCDEFGHIJKLMNOPQRSTUVWXYZ 4 DoSteppingAnim();
+			TLE2 ABCDEFG 4 DoSteppingAnim(stepSound:false);
+		goto Walk;
+		
+		Run:
+			TLE3 BCDEFGHIJKLMNOPQRSTUVWXYZ 1 DoSteppingAnim(3, -1, "Walk");
+			TLE4 ABCDEF 1 DoSteppingAnim(3, -1, "Walk", stepSound:false);
+		goto Run;
+	}
+}
+
+class MechHips : MechPart
+{
+	override void UpdateAngles()
+	{
+		// Do not update to parent angles.
+		A_SetAngle(parent.angle, SPF_INTERPOLATE);
+	}
+	
+	override void DriverUpdate(Actor driver)
+	{
+		if(!mech) return;
+		
+		let torso = MechTorso(mech.torso);
+		A_SetPitch(torso.pitch + (torso.roll * torso.turnDir), SPF_INTERPOLATE);
+	}
+}
+
+class MechTorso : MechHardpoint
+{
+	double turnMax, pitchMin, pitchMax, turnSpeed, pitchSpeed;
+	double pitchBob, pitchBobVel;
+	double turnDir;
+	double prevAngle, prevPitch;
+	
+	Property TurnRange : turnMax;
+	Property PitchRange : pitchMin, pitchMax;
+	Property TurnSpeed : turnSpeed, pitchSpeed;
+	
+	Default
+	{
+		MechTorso.TurnSpeed 6, 4;
+		MechTorso.TurnRange 90;
+		MechTorso.PitchRange 40, 40;
+		MechHardpoint.Slots 12;
+		MechHardpoint.UIGraphics "paperdoll_CT.png", "paperdoll_SK_CT.png";
+	}
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
+		AddItem("MechGyro");
+	}
+	
+	override void UpdateAngles()
+	{
+		// Do not update to parent angles.
+		if(!mech) return;
+		lookingPos = mech.head.lookingPos;
+		
+		let localPlayer = players[consoleplayer].mo;
+		bInvisible = healthPoints > 0 && (mech.camActive == mech.cam) && (mech.driver == localPlayer);
+	}
+		
+	override void DriverUpdate(Actor driver)
+	{				
+		// Bobbing
+		if(!mech) return;
+				
+		if(mech.getSpd() >= 0.1 && mech.onground)
+		{
+			double str = 0.07;
+			pitchBobVel += mech.legs.frame >= 12 ? (str*1.50) : -str;
+		}
+		pitchBob = clamp(pitchBobVel, -15, 15);
+
+		double toAngle = driver.angle;
+		double toPitch = driver.pitch + pitchBob;
+		
+		if(mech.centerToLegs) toAngle = angle;
+		if(mech.armLock)
+		{
+			toAngle = angle;
+			toPitch = pitch;
+		}
+
+		// Set angles
+		DrivablesMath.AngleSlerp(angle, toAngle, turnSpeed);
+		DrivablesMath.AngleSlerp(pitch, toPitch, pitchSpeed);
+				
+		// Angle ranges
+		double LegAng = parent.angle;
+		turnDir = cos((angle-LegAng)-90);
+		double rolldistort = ( turnDir * pitch );
+		
+		pitch = clamp(pitch, -pitchMin, pitchMax);
+		DrivablesMath.ClampAngles(angle, LegAng, turnMax);
+		
+		// Turn sound
+		if( abs(angle-prevAngle) >= 2 || abs(pitch-prevPitch) >= 2 )
+			A_StartSound("Torso/Twist", CHAN_BODY, CHANF_LOOPING);
+		else
+			A_StopSound(CHAN_BODY);
+
+		// Roll distortion
+		A_SetRoll(rolldistort, SPF_INTERPOLATE);
+		A_SetPitch(pitch + ((rolldistort * -turnDir) * 0.05), SPF_INTERPOLATE);
+		
+		// Keep track of angular change.
+		prevAngle = angle;
+		prevPitch = pitch;
+		
+		if(!mech.shutdown) pitchBobVel *= 0.97;
+	}
+}
+
+class MechSideTorso : MechHardpoint
+{
+	Default
+	{
+		MechHardpoint.Slots 12;
+	}
+	
+	override void UpdateAngles()
+	{
+		super.UpdateAngles();
+		
+		lookingPos = mech.head.lookingPos;
+	}
+}
+
+class MechLeftTorso : MechSideTorso
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+	}
+}
+class MechRightTorso : MechSideTorso
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";;
+	}
+}
+
+class MechCockpit : MechHardpoint
+{
+	Default
+	{
+		Radius 4;
+		Height 4;
+		MechHardpoint.Slots 6;
+		MechHardpoint.UIGraphics "paperdoll_HD.png", "paperdoll_SK_HD.png";
+	}
+		
+	override void OnAttach()
+	{
+		super.OnAttach();
+		AddItem("MechLifeSupport");
+		AddItem("MechSensors");
+		AddItem("MechCockpitStructure");
+	}
+
+	override void UpdateAngles()
+	{	
+		if(!mech) return;
+		
+		let torso = MechTorso(mech.torso);
+		lookingPos = DrivablesMath.getActorAim(self, true, torso.angle, torso.pitch);
+		
+		// Become invisible if we're not currently looking through the cockpit.
+		let localPlayer = players[consoleplayer].mo;
+		bInvisible = (mech.camActive is "ThirdpersonCamera") || localPlayer != mech.driver;
+		
+		A_SetAngle(torso.angle, SPF_INTERPOLATE);
+		A_SetPitch(torso.pitch + (torso.pitchBob * 5.0), SPF_INTERPOLATE);
+		A_SetRoll(torso.roll, SPF_INTERPOLATE);
+	}
+}
+
+class MechArm : MechHardpoint
+{
+	double aimMax;
+	double pitchMin, pitchMax;
+	Property ActuationRange : aimMax;
+	property PitchRange : pitchMin, pitchMax;
+	
+	Default
+	{
+		-SOLID;
+		Radius 0;
+		Height 0;
+		MechHardpoint.Slots 12;
+	}
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
+		AddItem("MechShoulder");
+		AddItem("MechUpperArmActuator");
+		if(aimMax > 0) AddItem("MechLowerArmActuator");
+	}
+		
+	override void UpdateAngles()
+	{
+		A_SetRoll(parent.roll, SPF_INTERPOLATE);
+		if( !mech.driver || mountPoints.Size() <= 0 ) return;
+		
+		vector3 aimingPos = DrivablesMath.getActorAim(mech.cam);
+		if(mech.torsoLock) aimingPos = mech.head.lookingPos;
+		
+		vector3 shootPos = mountPoints[0].getPos(true);	
+		
+		vector2 aimAngles = (mech.driver.angle, mech.driver.pitch);
+		if(mech.torsoLock) aimAngles = (mech.torso.angle, mech.torso.pitch);
+		vector3 sphere = level.SphericalCoords(shootPos, aimingPos, (angle, pitch));
+	
+		aimAngles -= sphere.xy;
+		
+		DrivablesMath.ClampAngles(aimAngles.x, parent.angle, aimMax);
+		lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
+	}
+	
+	override void DriverUpdate(Actor driver)
+	{
+		if(!mech.torsoLock)
+		{
+			DrivablesMath.AngleSlerp(angle, driver.angle, aimMax);
+			DrivablesMath.AngleSlerp(pitch, driver.pitch, 0.5 * (abs(pitchMin)+abs(pitchMax)) );
+		}
+		else
+		{
+			A_SetAngle(parent.angle, SPF_INTERPOLATE);
+			A_SetPitch(parent.pitch, SPF_INTERPOLATE);
+		}
+				
+		// Angle ranges
+		DrivablesMath.ClampAngles(angle, parent.angle, aimMax);
+		let torso = MechTorso(parent);
+		if(torso) pitch = clamp(pitch, -pitchMin-torso.pitchMin, pitchMax+torso.pitchMax);
+	}
+}
+class MechArm_Left : MechArm 
+{
+	Default
+	{
+		MechArm.ActuationRange 30;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+	}
+}
+class MechArm_Right : MechArm 
+{
+	Default
+	{
+		MechArm.ActuationRange 30;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+	}
+}
+
+class CockpitCamera : MechPart
+{		
+	override void UpdateAngles()
+	{
+		if(!mech || !mech.driver) return;
+
+		lookingPos = DrivablesMath.getActorAim(self);
+		double pitchBob = MechTorso(mech.torso).pitchBob;
+				
+		A_SetAngle(mech.driver.angle, SPF_INTERPOLATE);
+		A_SetPitch(mech.driver.pitch + (pitchBob), SPF_INTERPOLATE);
+		A_SetRoll(parent.roll, SPF_INTERPOLATE);
+	}
+}

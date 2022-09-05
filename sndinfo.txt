@@ -1,0 +1,77 @@
+
+// Betty
+Betty/Nav/Alpha "Sounds/Betty/nav_alpha.wav"
+Betty/Nav/Beta  "Sounds/Betty/nav_beta.wav"
+Betty/Nav/Chi   "Sounds/Betty/nav_chi.wav"
+Betty/Nav/Delta "Sounds/Betty/nav_delta.wav"
+
+Betty/Heat/Warn "Sounds/Betty/heat_warn.wav"
+Betty/Heat/Critical "Sounds/Betty/heat_crit.wav"
+Betty/Heat/CriticalShutdown "Sounds/Betty/heat_shutdown.wav"
+
+// Ambient mech sounds
+Torso/Twist     "Sounds/Ambient/torso_twist.wav"
+Engine/Idle		"Sounds/Ambient/engine_idle.wav"
+Engine/Forward  "Sounds/Ambient/engine_accel.wav"
+Engine/Back		"Sounds/Ambient/engine_decel.wav"
+Legs/Accel		"Sounds/Ambient/accel.wav"
+Legs/Decel		"Sounds/Ambient/decel.wav"
+Legs/Footstep	"Sounds/Ambient/footstep.ogg"
+$volume Legs/Footstep 0.25;
+$limit Legs/Footstep 0;
+
+Reactor/Powerup "Sounds/Reactor/powerup.wav"
+Reactor/Shutdown "Sounds/Reactor/shutdown.wav"
+
+// Weapons
+Laser/Loop "Sounds/Weapons/laser_loop.wav"
+Laser/Small "Sounds/Weapons/laser_small.wav"
+Laser/Medium "Sounds/Weapons/laser_medium.wav"
+Laser/Large "Sounds/Weapons/laser_large.wav"
+Laser/Impact "Sounds/Weapons/laser_hit.wav"
+Laser/Pulse "Sounds/Weapons/pulselaser.wav"
+Laser/Pulse/Impact "Sounds/Weapons/pulselaser_hit.wav"
+
+Missile/SRM2 "Sounds/Weapons/missile_srm2.wav"
+Missile/SRM4 "Sounds/Weapons/missile_srm4.wav"
+Missile/SRM6 "Sounds/Weapons/missile_srm6.wav"
+Missile/LRM5  "Sounds/Weapons/missile_lrm5.wav"
+Missile/LRM10 "Sounds/Weapons/missile_lrm10.wav"
+Missile/LRM15 "Sounds/Weapons/missile_lrm15.wav" 
+Missile/LRM20 "Sounds/Weapons/missile_lrm20.wav"
+Missile/Explosion "Sounds/Weapons/missile_explosion.wav"
+
+Ballistic/Autocannon2  "Sounds/Weapons/ac2_fire.wav"
+Ballistic/Autocannon5  "Sounds/Weapons/ac5_fire.wav"
+Ballistic/Autocannon10 "Sounds/Weapons/ac10_fire.wav"
+Ballistic/Autocannon20 "Sounds/Weapons/ac20_fire.wav"
+
+IMPACT1 "Sounds/Weapons/impact1.wav"
+IMPACT2 "Sounds/Weapons/impact2.wav"
+IMPACT3 "Sounds/Weapons/impact3.wav"
+IMPACT4 "Sounds/Weapons/impact4.wav"
+$random Generic/Impact { IMPACT1 IMPACT2 IMPACT3 IMPACT4 }
+
+// Volume
+$volume Laser/Loop 0.5;
+$volume Missile/Explosion 0.5;
+$volume Generic/Impact 0.5;
+$volume Ballistic/Autocannon2  0.75;
+$volume Ballistic/Autocannon5  0.75;
+$volume Ballistic/Autocannon10 0.75;
+$volume Ballistic/Autocannon20 0.75;
+
+// Limits
+$limit Laser/Loop   0;
+$limit Laser/Small  0;
+$limit Laser/Medium 0;
+$limit Laser/Large  0;
+$limit Laser/Pulse 0;
+$limit Laser/Pulse/Impact 0;
+
+$limit Generic/Impact 0;
+
+$limit Missile/SRM2 0;
+$limit Missile/SRM4 0;
+$limit Missile/SRM6 0;
+$limit Missile/Explosion 0;

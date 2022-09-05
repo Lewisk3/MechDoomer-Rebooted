@@ -1,0 +1,158 @@
+class ThirdpersonCamera : DrivableObjectPart
+{
+	Actor viewer;
+	vector2 camdist;
+	double dist;
+	
+	// Zoom
+	double desired_zoom;
+	double zoom_interp;
+	
+	// Quake
+	vector3 quake_desiredI;
+	double quakeperc;
+	double quakefric;
+	bool quakedown;
+
+	double default_fov;
+	vector3 relposoffs;
+	
+	Default
+	{
+		-SOLID;
+	}
+	
+	void SetZoom(double desired, double interpolation = 1.0)
+	{
+		desired_zoom = desired;
+		zoom_interp = interpolation;
+	}
+	
+	void Quake(double xi, double yi, double zi, double spd)
+	{
+		quake_desiredI = (xi, yi, zi);
+		quakefric = spd;
+	}
+	
+	virtual void Adjust(double fw, double lr, double ud)
+	{
+		parentOffset = (fw, lr, ud);
+	}	
+	
+	static ThirdpersonCamera Create(double forward, double leftright, double updown, double distance, double height, double FOV = 0, class<ThirdpersonCamera> type = "ThirdpersonCamera")
+	{
+		let cam = ThirdpersonCamera(Spawn(type, (0,0,0)));
+		if(cam)
+		{
+			cam.parentOffset = (forward, leftright, updown);
+			cam.camdist = (distance, height);
+		}
+		return cam;
+	}
+	
+	virtual void Unset()
+	{
+		if(!viewer || !viewer.player) return;
+		viewer.player.camera = viewer;
+		self.viewer = NULL;
+	}
+	
+	virtual void Set(Actor viewer)
+	{
+		self.viewer = viewer;
+		if(!CameraFOV) 
+			CameraFOV = viewer.player ? viewer.player.FOV : 90; 
+		
+		if(!viewer || !viewer.player) return;
+		viewer.player.camera = self;
+	}
+	
+	override void UpdatePos()
+	{
+		double maxdist = camdist.x;
+
+		if(viewer)
+		{
+			FLineTraceData lndata;
+			parent.LineTrace(
+				viewer.angle, maxdist, viewer.pitch, 
+				TRF_THRUACTORS|TRF_THRUBLOCK|TRF_ABSOFFSET, 
+				camdist.y + sin(viewer.pitch), 0, 0, lndata
+			);
+			
+			if( lndata.HitType == lndata.TRACE_HitWall    || 
+				lndata.HitType == lndata.TRACE_HitCeiling || 
+				lndata.HitType == TRACE_HitFloor			  ) 
+			{
+				maxdist = lndata.Distance;
+			}	
+		}
+		
+		vector3 offs = parentOffset + animOffsets;
+		vector3 offsPos = parent.OffsetPos(offs.x,offs.y,offs.z); 
+		vector3 toPos = DrivablesMath.V3Offset(
+			angle, pitch, roll, 1.0, 0, 0, maxdist
+		);
+		toPos = level.vec3offset(
+			toPos, (offsPos.x, offsPos.y, camdist.y+offsPos.z + parent.GetBobOffset())
+		);
+		toPos = level.vec3offset(toPos, parent.vel);
+	
+		vector3 curPos = DrivablesMath.Lerp3D(pos, toPos, 0.65);
+		if(pos ~== (0,0,0)) curPos = toPos;
+		
+		followPos = curPos;
+	}
+
+	override void UpdateAngles()
+	{
+		if(!viewer) return;
+		
+		A_SetAngle(viewer.angle, SPF_INTERPOLATE);
+		A_SetPitch(viewer.pitch, SPF_INTERPOLATE);
+		A_SetRoll(parent.roll, SPF_INTERPOLATE);
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		
+		if(!default_fov) default_fov = CameraFOV;
+		if(!desired_zoom) desired_zoom = 1.0;
+		if(!zoom_interp) zoom_interp = 1.0;
+		
+		// Do zoom effects.
+		if(abs(CameraFOV-desired_zoom) >= 0.001)
+		{
+			CameraFOV = DrivablesMath.Lerp(CameraFOV, default_fov / desired_zoom, zoom_interp);
+		}
+		
+		// Do quake effects
+		if(quake_desiredI.Length())
+		{
+			quakeperc = clamp(quakeperc, 0, 1.0);	
+			if(!quakedown)
+			{
+				quakeperc += quakefric;		
+				if(quakeperc >= 1.0) quakedown = true;
+			}
+			else
+			{
+				quakeperc -= quakefric;
+				if(quakeperc <= 0) 
+				{
+					quake_desiredI *= 0;
+					relposoffs *= 0;
+					quakedown = false;
+					quakeperc = 0;
+				}
+			}
+		
+			vector3 q = quake_desiredI * quakeperc;
+			vector3 quakeoffs = ( frandom(-q.y, q.y),
+								  frandom(-q.x, q.x),
+								  frandom(-q.z, q.z) );			
+			relposoffs += quakeoffs;
+		}
+	}
+}

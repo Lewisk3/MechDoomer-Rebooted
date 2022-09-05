@@ -1,0 +1,12 @@
+GameInfo
+{
+	AddEventHandlers = "MechHUD_Handler", "MechButtons_Handler"
+}
+
+DoomEdNums 
+{
+	15420 = "MechHellbringer"
+	15421 = "SmallTree"
+	15422 = "MediumTree"
+	15423 = "LargeTree"
+}

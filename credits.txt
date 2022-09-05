@@ -1,0 +1,10 @@
+
+Trees
+{
+	Tree sprites are from Jimmy, osjclatchford, mediocreguy, Nmn and the Small Tree and Bushes Realm667 resource:
+	https://forum.zdoom.org/viewtopic.php?f=4&t=15080&p=1086296&hilit=tree#p1086296
+	https://forum.zdoom.org/viewtopic.php?f=4&t=15080&p=995604&hilit=tree#p995604
+	https://forum.zdoom.org/viewtopic.php?f=37&t=69433
+	https://www.realm667.com/index.php/en/prop-stop-mainmenu-163-64831/vegetation-mainmenu-165-65318/1122-small-trees-a-bushes
+	The other two tree sprites are from Freedoom.
+}

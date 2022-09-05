@@ -1,0 +1,75 @@
+class SoundInfo : Object
+{
+	Sound snd;
+	bool playing;
+	double lengthTics;
+	
+	static SoundInfo Init(Sound snd)
+	{	
+		let sndinfo = new("SoundInfo");
+		if(sndinfo)
+		{
+			sndinfo.snd = snd;
+			sndinfo.lengthTics = S_GetLength(snd) * 36.0;
+		}
+		return sndinfo;
+	}
+}
+
+class SoundQueue : Thinker 
+{
+	Actor local;
+	Array<SoundInfo> sounds;
+	
+	static SoundQueue Create(Actor local = NULL)
+	{
+		let sndq = new("SoundQueue");
+		if(sndq)
+		{
+			sndq.local = local;
+		}
+		return sndq;
+	}	
+	
+	void Push(Sound snd, uint delay = 0)
+	{
+		let snd = SoundInfo.Init(snd);
+		if(snd) snd.lengthTics += delay;
+		
+		sounds.Push(snd);
+	}
+	
+	bool isEmpty()
+	{
+		return sounds.Size() <= 0;
+	}
+	
+	void Clear()
+	{
+		if(sounds.Size() <= 0) return;
+		if(local) local.A_StopSound(CHAN_VOICE);
+		
+		sounds.Clear();
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+	
+		if(sounds.Size() > 0)
+		{
+			if(!sounds[0].playing)
+			{
+				if(!local)
+					S_StartSound(sounds[0].snd, CHAN_VOICE, CHANF_LOCAL | CHANF_NOSTOP);
+				else
+					local.A_StartSound(sounds[0].snd, CHAN_VOICE, CHANF_LOCAL | CHANF_NOSTOP);
+					
+				sounds[0].playing = true;
+			}
+				
+			if( (sounds[0].lengthTics--) < 0 )
+				sounds.Delete(0);
+		}
+	}
+}

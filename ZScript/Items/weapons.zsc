@@ -1,0 +1,561 @@
+
+// Lasers
+class SmallLaser : MechWeapon
+{
+	MechLaser laser;
+	double laserHeat;
+	double laserRange;
+	class<MechLaser> laserType;
+	Color laserColor;
+
+	override void Defaults()
+	{	
+		DisplayName = "SMALLLASER";
+		mountType = "Energy";
+		heat = 0; // Initial heat.
+		weight = 0.5;
+				
+		fireTime     = floor(0.75 * TICRATE);
+		cooldownTime = 1 * TICRATE;
+		
+		range = 150; // Meters
+		laserRange = 300; // Maximum laser range.
+		damage = convertDMG(3.25, fireTime);
+		laserHeat = convertHeat(1.10, fireTime); // Laserbeam heat.
+		
+		fireSound = "Laser/Small";
+		laserType = "MechLaser";
+		laserColor = "Red";
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		WeapSound(fireSound);
+		laser = MechLaser.FireLaser(parent, firePos, damage, fireTime, range, laserRange, laserType);
+		laser.shade = laserColor;
+		return true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(laser) mech.modifyHeat(laserHeat);
+	}
+}
+
+class MechPulseLaser : MechLaser
+{
+	Default
+	{
+		MechLaser.FiringSound "Laser/Loop", "PulseLaser/Impact";
+	}
+}
+class SmallPulseLaser : SmallLaser
+{
+	double pulseSpeed;
+
+	override void Defaults()
+	{	
+		DisplayName = "SMLPULSELASER";
+		mountType = "Energy";
+		heat = 0; // Initial heat.
+		weight =1.0;
+				
+		fireTime     = floor(0.50 * TICRATE);
+		cooldownTime = floor(0.75 * TICRATE);
+		
+		laserRange = 220; // Meters
+		range = 110;
+		damage = convertDMG(3.50, fireTime);
+		laserHeat = convertHeat(1.35, fireTime); // Laserbeam heat.
+		pulseSpeed = 70;
+		
+		fireSound = "Laser/Small";
+		laserType = "MechPulseLaser";
+		laserColor = "Red";
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(laser) 
+		{	
+			laser.alpha = (sin(laser.getAge()*pulseSpeed));
+			bool prevInvisible = laser.bInvisible;
+			laser.bInvisible = laser.alpha <= 0;
+			if(laser.bInvisible != prevInvisible) 
+				WeapSound("Laser/Pulse");
+		}
+	}
+}
+
+class MediumLaser : SmallLaser
+{
+	override void Defaults()
+	{	
+		DisplayName = "MEDIUMLASER";
+		mountType = "Energy";
+		weight = 1;
+		
+		fireTime     = floor(0.90 * TICRATE);
+		cooldownTime = 2 * TICRATE;
+		
+		laserRange = 540; // Meters
+		range = 270;
+		damage = convertDMG(5.0, fireTime);
+		laserHeat = convertHeat(3.40, fireTime); // Laserbeam heat.
+		
+		fireSound = "Laser/Medium";
+		laserType = "MechLaser";
+		laserColor = "Green";
+	}
+}
+class MediumPulseLaser : SmallPulseLaser
+{
+	override void Defaults()
+	{	
+		DisplayName = "MEDPULSELASER";
+		mountType = "Energy";
+		heat = 0; // Initial heat.
+		weight = 2.0;
+				
+		fireTime     = floor(0.60 * TICRATE);
+		cooldownTime = floor(1.50 * TICRATE);
+		
+		laserRange = 440; // Meters
+		range = 220;
+		damage = convertDMG(6.0, fireTime);
+		laserHeat = convertHeat(3.80, fireTime); // Laserbeam heat.
+		pulseSpeed = 50;
+		
+		fireSound = "Laser/Medium";
+		laserType = "MechPulseLaser";
+		laserColor = "Green";
+	}
+}
+
+class LargeLaser : SmallLaser
+{
+	override void Defaults()
+	{	
+		DisplayName = "LARGELASER";
+		mountType = "Energy";
+		weight = 5.0;
+		size = 2;
+		
+		fireTime     = floor(1.10 * TICRATE);
+		cooldownTime = 3 * TICRATE;
+		
+		laserRange = 900; // Meters
+		range = 450;
+		damage = convertDMG(9.0, fireTime);
+		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
+		
+		fireSound = "Laser/Large";
+		laserType = "MechLaser";
+		laserColor = "Blue";
+	}
+}
+class LargePulseLaser : SmallPulseLaser
+{
+	override void Defaults()
+	{	
+		DisplayName = "LRGPULSELASER";
+		mountType = "Energy";
+		heat = 0; // Initial heat.
+		weight = 7.0;
+		size = 2;
+				
+		fireTime     = floor(0.67 * TICRATE);
+		cooldownTime = floor(2.50 * TICRATE);
+		
+		laserRange = 740; // Meters
+		range = 370;
+		damage = convertDMG(10.0, fireTime);
+		laserHeat = convertHeat(7.25, fireTime); // Laserbeam heat.
+		pulseSpeed = 40;
+		
+		fireSound = "Laser/Large";
+		laserType = "MechPulseLaser";
+		laserColor = "Blue";
+	}
+}
+
+// Missiles
+class SRM2 : MechWeapon
+{
+	bool doConverge;
+	double spread;
+	
+	override void Defaults()
+	{	
+		DisplayName = "SRM2";
+		mountType = "Missile";
+		heat = 2;
+		weight = 1.0;
+		refireCount = 2;
+		spread = 2.0;
+		doConverge = false;
+		ammoUse = 1;
+		refireDelay = 4;
+				
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = 1 * TICRATE;
+		
+		projType = "MechSRM";
+		ammoType = "SRMAmmo";
+		fireSound = "Missile/SRM2";
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		// Setup weapon refire on the first Fire call.
+		if(!refire) return DoRefire();
+		
+		double slotNum = refireCount - refire;
+		double row = floor(slotNum / 3.0);
+		
+		double xoffs = 4 * (slotNum - (row*3.0));
+		double yoffs = 4 * row;
+
+		// Adjust to scale. Y Scale is unsupported.
+		vector2 mslSpread = (
+			frandom[MissileSpread](-spread, spread),
+			frandom[MissileSpread](-spread, spread)
+		) * parent.scale.X;
+		xoffs *= parent.Scale.X;
+		yoffs *= parent.Scale.X;
+		
+		// Only play weapon Fire sound on the first true Fire call.
+		if(refire == refireCount) WeapSound(fireSound);
+		
+		// Shoot projectile.
+		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y + xoffs, firePos.z - yoffs, doConverge, mslSpread.x, mslSpread.y));
+		proj.master = mech.driver;
+		proj.homingTarget = homingTarget;
+		
+		mech.modifyHeat(heat);
+		depleteAmmo(ammoUse);
+		return true;
+	}
+}
+
+class SRM4 : SRM2
+{
+	override void Defaults()
+	{	
+		DisplayName = "SRM4";
+		mountType = "Missile";
+		spread = 2.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		heat = 3.50;
+		weight = 2.0;
+		refireCount = 4;
+		refireDelay = 4;
+				
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = ceil(1.50 * TICRATE);
+		
+		projType = "MechSRM";
+		ammoType = "SRMAmmo";
+		fireSound = "Missile/SRM4";
+	}
+}
+class SRM6 : SRM2
+{
+	override void Defaults()
+	{	
+		DisplayName = "SRM6";
+		mountType = "Missile";
+		spread = 2.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		heat = 5;
+		weight = 3.0;
+		refireCount = 6;
+		refireDelay = 4;
+		size = 2;
+				
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = 2.0 * TICRATE;
+		
+		projType = "MechSRM";
+		ammoType = "SRMAmmo";
+		fireSound = "Missile/SRM6";
+	}
+}
+
+class SSRM2 : SRM2
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "SSRM2";
+		projType = "MechSSRM";
+		ammoType = "SSRMAmmo";
+		cooldownTime += TICRATE;
+		weight = 1.0;
+	}
+	
+	override bool CanFire()
+	{
+		return super.canFire() && homingTarget;
+	}
+}
+class SSRM4 : SRM4
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "SSRM4";
+		projType = "MechSSRM";
+		ammoType = "SSRMAmmo";
+		cooldownTime += TICRATE;
+		weight = 2.0;
+	}
+	
+	override bool CanFire()
+	{
+		return super.canFire() && homingTarget;
+	}
+}
+class SSRM6 : SRM6
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "SSRM6";
+		projType = "MechSSRM";
+		ammoType = "SSRMAmmo";
+		cooldownTime += TICRATE;
+		weight = 3.0;
+		size = 2.0;
+	}
+	
+	override bool CanFire()
+	{
+		return super.canFire() && homingTarget;
+	}
+}
+
+// LRM 5,10,15,20
+class LRM5 : SRM2
+{
+	override void Defaults()
+	{	
+		DisplayName = "LRM5";
+		mountType = "Missile";
+		spread = 1.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		weight = 2.0;
+		refireCount = 5;
+		refireDelay = 4;
+		heat = 2.20;
+		size = 1;
+		
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = ceil(2.0 * TICRATE);
+		
+		projType = "MechLRM";
+		ammoType = "LRMAmmo";
+		fireSound = "Missile/LRM5";
+	}
+	
+	override bool canFire()
+	{
+		// Only fire if we've got a lock.
+		return super.canFire() && homingTarget;
+	}
+}
+class LRM10 : LRM5
+{
+	override void Defaults()
+	{	
+		DisplayName = "LRM10";
+		mountType = "Missile";
+		spread = 1.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		weight = 5.0;
+		refireCount = 10;
+		refireDelay = 4;
+		heat = 3.60;
+		size = 2;
+		
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = ceil(3.70 * TICRATE);
+		
+		projType = "MechLRM";
+		ammoType = "LRMAmmo";
+		fireSound = "Missile/LRM10";
+	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.1, 0);
+		return super.Fire(firePos);
+	}
+}
+class LRM15 : LRM5
+{
+	override void Defaults()
+	{	
+		DisplayName = "LRM15";
+		mountType = "Missile";
+		spread = 1.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		weight = 7.0;
+		refireCount = 15;
+		refireDelay = 4;
+		heat = 4.50;
+		size = 3;
+		
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = ceil(3.70 * TICRATE);
+		
+		projType = "MechLRM";
+		ammoType = "LRMAmmo";
+		fireSound = "Missile/LRM15";
+	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.15, 0);
+		return super.Fire(firePos);
+	}
+}
+class LRM20 : LRM5
+{
+	override void Defaults()
+	{	
+		DisplayName = "LRM20";
+		mountType = "Missile";
+		spread = 1.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		weight = 10.0;
+		refireCount = 20;
+		refireDelay = 4;
+		heat = 5.60;
+		size = 5;
+		
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = ceil(4.0 * TICRATE);
+		
+		projType = "MechLRM";
+		ammoType = "LRMAmmo";
+		fireSound = "Missile/LRM20";
+	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.25, 0);
+		return super.Fire(firePos);
+	}
+}
+
+// Ballistics
+class AC2 : MechWeapon
+{
+	override void Defaults()
+	{	
+		DisplayName = "AC/2";
+		mountType = "Ballistic";
+		heat = 0.50;
+		weight = 5.0;
+		size = 3.0;
+		
+		ammoUse = 1;
+		fireTime     = 8;
+		cooldownTime = ceil(0.7 * TICRATE);
+		
+		projType = "Autocannon2";
+		ammoType = "AC2Ammo";
+		fireSound = "Ballistic/Autocannon2";
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		WeapSound(fireSound);
+		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true);
+		proj.master = mech.driver;
+
+		mech.modifyHeat(heat);
+		depleteAmmo(ammoUse);
+		
+		return true;
+	}
+}
+class AC5 : AC2
+{
+	override void Defaults()
+	{	
+		DisplayName = "AC/5";
+		mountType = "Ballistic";
+		heat = 1.40;
+		weight = 7.0;
+		size = 4.0;
+		
+		ammoUse = 1;
+		fireTime     = 8;
+		cooldownTime = ceil(1.5 * TICRATE);
+		
+		projType = "Autocannon5";
+		ammoType = "AC5Ammo";
+		fireSound = "Ballistic/Autocannon5";
+	}
+}
+class AC10 : AC2
+{
+	override void Defaults()
+	{	
+		DisplayName = "AC/10";
+		mountType = "Ballistic";
+		heat = 2.0;
+		weight = 10.0;
+		size = 5.0;
+		
+		ammoUse = 1;
+		fireTime     = 8;
+		cooldownTime = ceil(2.0 * TICRATE);
+		
+		projType = "Autocannon10";
+		ammoType = "AC10Ammo";
+		fireSound = "Ballistic/Autocannon10";
+	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.8, 0.8);
+		return super.Fire(firePos);
+	}
+}
+class AC20 : AC2
+{
+	override void Defaults()
+	{	
+		DisplayName = "AC/20";
+		mountType = "Ballistic";
+		heat = 6.0;
+		weight = 12.0;
+		size = 9.0;
+		
+		ammoUse = 1;
+		fireTime     = 8;
+		cooldownTime = ceil(4.0 * TICRATE);
+		
+		projType = "Autocannon20";
+		ammoType = "AC20Ammo";
+		fireSound = "Ballistic/Autocannon20";
+	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-2, 4);
+		return super.Fire(firePos);
+	}
+}

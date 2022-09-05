@@ -1,0 +1,307 @@
+class MechHeatsink : MechItem
+{
+	double buffer;
+	double heatEff;
+	
+	override void Defaults()
+	{	
+		damagable = true;
+		weight = 1;
+		heatEff = 0.26 / TICRATE;
+		buffer = 2.6;
+		displayName = "Heatsink";
+	}
+	
+	override void OnAttach()
+	{	
+		super.OnAttach();
+		mech.maxHeat += buffer;
+	}
+	
+	override void OnDetach()
+	{
+		super.OnAttach();
+		mech.maxHeat -= buffer;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(!mech) 
+		{
+			mech = parent.GetMech();
+			return;
+		}
+		
+		// Dissipate heat.
+		mech.modifyHeat(-heatEff*3.0);
+		// console.printf("Removing heat -%f  [%d]", heatEff, level.mapTime);
+	}
+}
+
+class MechDoubleHeatsink : MechHeatsink
+{
+	override void Defaults()
+	{	
+		damagable = true;
+		size = 2;
+		weight = 1;
+		heatEff = 0.40 / TICRATE;
+		buffer = 4;
+		displayName = "Double Heatsink";
+	}
+}
+
+// Ammo
+class SRMAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "SRM Ammo";
+		maxAmmo = 120;
+		weight = 1.0;
+		size = 1.0;
+		
+		SetupAmmo();
+	}
+}
+class SSRMAmmo : SRMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "SSRM Ammo";
+	}
+}
+
+class LRMAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "LRM Ammo";
+		maxAmmo = 240;
+		weight = 1.0;
+		size = 1.0;
+		
+		SetupAmmo();
+	}
+}
+
+class AC2Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/2 Ammo";
+		maxAmmo = 50;
+		weight = 1.0;
+		size = 1.0;
+		
+		SetupAmmo();
+	}
+}
+class AC5Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/5 Ammo";
+		maxAmmo = 25;
+		weight = 1.0;
+		size = 1.0;
+		
+		SetupAmmo();
+	}
+}
+class AC10Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/10 Ammo";
+		maxAmmo = 10;
+		weight = 1.0;
+		size = 1.0;
+		
+		SetupAmmo();
+	}
+}
+class AC20Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/20 Ammo";
+		maxAmmo = 5;
+		weight = 1.0;
+		size = 1.0;
+		
+		SetupAmmo();
+	}
+}
+
+// Armor types
+class MechArmor_Standard : MechArmor
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 0;
+		armorWeight = 0.05;
+		damageMod = 1.0;
+		displayName = "Standard";
+	}
+}
+
+class MechFerroStructure : MechDynamicStructure
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Armor";
+	}
+} 
+
+class MechArmor_Ferro : MechArmor
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structType = "MechFerroStructure";
+		structureSlots = 14;
+		
+		armorWeight = 0.03;
+		damageMod = 1.0;
+		displayName = "Ferro-fibrous";
+	}
+}
+
+// Engines
+class MechEngine_STD100 : MechEngine
+{
+	override void Defaults()
+	{
+		rating = 100;
+		size = 5;
+		type = Type_STD;
+		SetupEngine();
+	}
+}
+
+class MechEngine_XL325 : MechEngine
+{
+	override void Defaults()
+	{
+		rating = 325;
+		size = 6;
+		blocks = 1;
+		type = Type_XL;
+		SetupEngine();
+	}
+}
+
+// Chassis structures
+
+// Arm structures
+class MechShoulder : MechItem
+{
+	override void Defaults()
+	{
+		Movable = false;	
+		Damagable = false;
+		size = 1;
+		weight = 0;
+		displayName = "Shoulder";
+	}
+}
+class MechUpperArmActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Upper Arm";
+	}
+}
+class MechLowerArmActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Lower Arm";
+	}
+}
+
+// Leg structures
+class MechHipStructure : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Hip";
+	}
+}
+class MechUpperLegActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Upper Leg";
+	}
+}
+class MechLowerLegActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Lower Leg";
+	}
+}
+class MechFootActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Foot";
+	}
+}
+
+// Torso structure(s)
+class MechGyro : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		size = 3;
+		displayName = "Gyro";
+	}
+}
+
+// Cockpit structures
+class MechLifeSupport : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		size = 2;
+		displayName = "Life Support";
+	}
+}
+class MechSensors : MechLifeSupport
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Sensors";
+	}
+}
+class MechCockpitStructure : MechLifeSupport
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		size = 1;
+		displayName = "Cockpit";
+	}
+}

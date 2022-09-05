@@ -1,0 +1,128 @@
+class MechLaser : MechLaserBeam
+{
+	bool hitSomething;
+	double laserdamage;
+	double time;
+	double dropoff_range;
+	Sound fireSound, impactSound;
+	
+	Property FiringSound : fireSound, impactSound;
+
+	Default
+	{
+		Scale 4.0;
+		RenderStyle "AddShaded";
+		
+		MechLaser.FiringSound "Laser/Loop", "Laser/Impact";
+		MechLaserBeam.LaserColor "Red";
+	}
+	
+	void aimAtPos(vector3 aimPos)
+	{
+		vector3 aimAngles = level.SphericalCoords(curPos, aimPos, (angle,pitch - 90));
+		angleOffsets.x -= aimAngles.x;
+		angleOffsets.y -= aimAngles.y;
+	}
+
+	static MechLaser, MechLaser FireLaser(Actor shooter, vector3 pos, double dmg, double lifetime, double dropoff_range, double maxrange, class<MechLaser> type, double scale = 1.0, class<MechLaser> core = "MechLaserCore")
+	{
+		// Get range in units.
+		maxrange = DrivableMech.MetersToUnits(maxrange);
+		dropoff_range = DrivableMech.MetersToUnits(dropoff_range);
+		
+		let laser = MechLaser(MechLaserBeam.Create(shooter, pos.x, pos.y, pos.z, maxDist:maxrange, type:type));
+		MechLaser laserCore;
+		
+		if(laser) 
+		{
+			laser.laserdamage = dmg;
+			laser.time = lifetime;
+			laser.dropoff_range = dropoff_range;
+			laser.A_SetScale(laser.scale.X * shooter.Scale.X * scale, laser.scale.Y * shooter.Scale.Y * scale);
+			laser.SetEnabled(true);
+		}
+		if(core && laser)
+		{
+			laserCore = MechLaser(MechLaserBeam.Create(shooter, pos.x, pos.y, pos.z, maxDist:maxrange, type:core));
+			if(laserCore)
+			{
+				laserCore.time = lifetime;
+				laserCore.master = laser;
+				laserCore.A_SetScale(laser.scale.X * 0.5, laser.scale.Y * 0.5);
+				laserCore.SetEnabled(true);
+			}
+		}
+		return laser, laserCore;
+	}
+
+	override void BeamTick()
+	{
+		A_StartSound(fireSound, flags:CHANF_LOOPING);
+		if(master) 
+		{
+			alpha = master.alpha;
+			bInvisible = master.bInvisible;
+		}
+		
+		// Implement custom laser logic here.		
+		let hardpoint = MechHardpoint(source);
+		if(hardpoint)
+		{	
+			aimAtPos(hardpoint.lookingPos);
+		}
+		
+		if( hitData.hitType != TRACE_HitNone && laserdamage > 0 ) 
+			OnImpact(hitData.HitLocation, hitData.hitActor);
+	
+		if(time-- <= 0)
+		{
+			alpha -= 0.15;
+			A_SetScale(Scale.X * 0.87, Scale.Y);
+	
+			if(alpha <= 0.1 || Scale.X <= 0.05) Destroy();
+		}
+	}
+	
+	override void OnImpact(vector3 hitPos, Actor hitActor)
+	{
+		// On impact with something
+		if(bInvisible) return;
+		let hardpoint = MechPart(source);
+		if(!hardpoint) return;
+		
+		let part = MechPart(hitActor);
+		if(part && part.mech == hardpoint.mech) return;
+		
+		double curDist = hitData.Distance;
+		double trueDamage = laserdamage * min(1.0, 1.0 - ((curDist - dropoff_range) / (maxDist - dropoff_range)) );
+
+		if(hitActor) 
+		{
+			hitActor.DamageMobJ(hardpoint.mech.driver, self, trueDamage, "Fire");
+			if(!hitSomething)
+			{
+				A_StartSound(impactSound, flags:CHANF_OVERLAP);
+				hitSomething = true;
+			}
+		}
+		else
+			hitSomething = false;
+
+		let lasdec = Spawn("MWLaserDecal", hitPos);
+		lasdec.angle = angle;
+		lasdec.pitch = pitch;
+		lasdec.target = self;
+	}
+}
+
+class MechLaserCore : MechLaser
+{
+	Default
+	{
+		Scale 1.5;
+		RenderStyle "AddShaded";
+		
+		MechLaserBeam.LaserColor "White";
+	}
+}
+	

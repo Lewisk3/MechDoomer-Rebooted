@@ -1,0 +1,592 @@
+// Credits: https://gist.github.com/itsmrpeck/be41d72e9d4c72d2236de687f6f53974
+class DrivablesMath Abstract
+{	
+	const PI = 3.14159265358;
+	const RAD = 180.0/PI;
+	const TWOPI = 2*PI;
+
+	play static void AlignToPlane(Actor a, double pitchAdjust = 0, double rollAdjust = 0, bool ceiling = false, double adjustSpeed = 2, bool ignorepitch = false, bool ignoreroll = false)
+	{
+		//Original code by ZZYZX & Nash Muhandes
+		if (!a) return;
+		double ceilingAdjust = 0;
+		Vector3 fnormal;
+		if (!ceiling)
+		{
+			fnormal = a.CurSector.FloorPlane.Normal;
+		}
+		else
+		{
+			fnormal = a.CurSector.CeilingPlane.Normal;
+			ceilingAdjust = 180.0;
+		}
+		Vector2 fnormalp1 = (fnormal.x != 0 || fnormal.y != 0) ? (fnormal.x, fnormal.y).Unit() : (0, 0);
+		Vector2 fnormalp2 = ((fnormal.x, fnormal.y).Length(), fnormal.z);
+		double dang = a.Angle;
+		double fang = atan2(fnormalp1.y, fnormalp1.x);
+		double fpitch = atan2(fnormalp2.x, fnormalp2.y);
+		double ddiff1 = sin(fang - (dang - pitchAdjust));
+		double ddiff2 = cos(fang - (dang - rollAdjust));
+		
+		double pitchTarget = (fpitch * ddiff2 - pitchAdjust) + ceilingAdjust;
+		double rollTarget = (-fpitch * ddiff1 - rollAdjust) + ceilingAdjust;
+		double angleTarget = dang + ceilingAdjust;
+		
+		if(adjustSpeed == 0)
+		{
+			adjustSpeed = 180;
+		}
+		
+		if(!ignorepitch)
+		{
+			if(a.Pitch < pitchTarget)
+			{
+				a.A_SetPitch(Clamp(a.pitch + adjustSpeed, a.pitch, pitchTarget));
+			}
+			else if(a.Pitch > pitchTarget)
+			{
+				a.A_SetPitch(Clamp(a.pitch - adjustSpeed, pitchTarget, a.pitch));
+			}
+		}
+		
+		if(!ignoreroll)
+		{
+			if(a.Roll < rollTarget)
+			{
+				a.A_SetRoll(Clamp(a.roll + adjustSpeed, a.roll, rollTarget));
+			}
+			else if(a.Roll > rollTarget)
+			{
+				a.A_SetRoll(Clamp(a.roll - adjustSpeed, rollTarget, a.roll));
+			}
+		}
+
+		if(a.Angle < angleTarget)
+		{
+			a.A_SetAngle(Clamp(a.angle + adjustSpeed, a.angle, angleTarget));
+		}
+		else if(a.Angle > angleTarget)
+		{
+			a.A_SetAngle(Clamp(a.angle - adjustSpeed, angleTarget, a.angle));
+		}
+	}
+	
+	// Generate forward facing vector from angle/pitch.
+	static vector3 VecFromAngles(double angle, double pitch, double mag = 1.)
+	{
+		double cosp = cos(pitch);
+		return (cos(angle)*cosp, sin(angle)*cosp, -sin(pitch)) * mag;
+	}
+	
+	static double sign(double num)
+	{
+		if(!num) return 0;
+		return num > 0 ? 1 : -1;
+	}
+
+	// Linear interpolate
+	static double Lerp(double a, double b, double lerpFactor)
+	{
+		double result = ((1.f - lerpFactor) * a) + (lerpFactor * b);
+		return result;
+	}
+	
+	// Linear interpolate 3D vectors
+	static vector3 Lerp3D(vector3 a, vector3 b, double lerpfactor)
+	{
+		vector3 result = a;
+		result.x = Lerp(result.x,b.x,lerpfactor);
+		result.y = Lerp(result.y,b.y,lerpfactor);
+		result.z = Lerp(result.z,b.z,lerpfactor);
+		return result;
+	}
+	
+	// Lerps from angle a to b (both between 0.f and 360.f), taking the shortest path
+	static double LerpDegrees(double a, double b, double lerpFactor) 
+	{
+		double result;
+		double diff = b - a;
+		if (diff < -180.f)
+		{
+			// lerp upwards past 360
+			b += 360.f;
+			result = Lerp(a, b, lerpFactor);
+			if (result >= 360.f)
+			{
+				result -= 360.f;
+			}
+		}
+		else if (diff > 180.f)
+		{
+			// lerp downwards past 0
+			b -= 360.f;
+			result = Lerp(a, b, lerpFactor);
+			if (result < 0.f)
+			{
+				result += 360.f;
+			}
+		}
+		else
+		{
+			// straight lerp
+			result = Lerp(a, b, lerpFactor);
+		}
+
+		return result;
+	}
+	
+	static void AngleSlerp(out double a, double b, double speed)
+	{
+		double angDiff = DrivablesMath.AngleDiff(a, b);
+		if(abs(angDiff) < speed) 
+		{
+			a += angDiff;
+			return;
+		}
+		a += speed * DrivablesMath.Sign(angDiff);
+	}
+	
+	static void ClampAngles(out double a, double baseAngle, double range)
+	{
+		if(range < 360)
+		{
+			double angDiff = DrivablesMath.AngleDiff(a, baseAngle);
+			if(angDiff >  range) a = baseAngle - range;
+			if(angDiff < -range) a = baseAngle + range;
+		}	
+	}
+	
+	// Pitch between 2 vectors.
+	static double getPitchBetween(Vector3 one, Vector3 two)
+	{	
+		vector3 delta = ( one.x - two.x, one.y - two.y, one.z - two.z );
+		double pitchto = VectorAngle( sqrt(delta.y * delta.y + delta.x * delta.x), delta.z );
+		return pitchto;
+	}
+	
+	// Distance 3D on vectors, not actors.
+	static double Distance3D(vector3 one, vector3 two)
+	{
+		return (one-two).Length();
+	}
+	
+	// Distance 2D on vectors, not actors.
+	static double Distance2D(Vector2 one, Vector2 two)
+	{
+		return (one-two).Length();
+	}
+	
+	// Distance 2D on vectors, not actors.
+	static double Distance2DSquared(Vector2 one, Vector2 two)
+	{
+		return ( ((two.x-one.x)**2) + ((two.y-one.y)**2) ); 
+	}
+
+	// Thanks to: Boondorl for the math here! 
+	static vector3 DiffToLocal(vector3 one, vector3 two, vector2 angles)
+	{
+		vector3 forward = (Actor.AngleToVector(angles.x, cos(angles.y)), -sin(angles.y));
+		vector3 right   = (Actor.AngleToVector(angles.x-90),0);
+		vector3 up      = (Actor.AngleToVector(angles.x, cos(angles.y-90)), -sin(angles.y-90));
+		
+		vector3 diff = level.Vec3Diff(two, one);
+		vector3 rel  = (diff dot forward, diff dot right, diff dot up);
+	
+		return rel;
+	}
+	
+	static vector3 getAxes(double angle, double pitch, double roll)
+	{
+		return V3Offset(angle, pitch, roll, 1.0,0,0);
+	}
+	
+	// 3D Vector offset. Utilizes Gutamatrix matrixes
+	static vector3 V3Offset(double fromangle, double frompitch, double fromroll, double forward, double leftright, double updown, double distance = 1.0)
+    {	
+		let mat = DrivablesMatrix.fromEulerAngles(fromangle, frompitch, fromroll);
+		mat = mat.multiplyVector3((forward, -leftright, updown));
+		
+		return mat.asVector3(false) * distance;
+    }
+	
+	static vector3 RelativeV3Offset(Actor source, double angleoffs, double pitchoffs, double rolloffs, double forward, double leftright, double updown, double distance = 1.0)
+    {
+		double a = source.angle + angleoffs;
+		double p = source.pitch + pitchoffs;
+		double r = source.roll  + rolloffs;
+		vector3 vec = V3Offset(a, p, r, forward, leftright, updown, distance);
+		
+		vector3 frompos = (source.pos.xy, source.pos.z + source.height * 0.5);
+		if(source.player) frompos.z = source.player.viewz;
+		
+		return level.vec3offset(frompos, vec);
+    }
+	
+	// Intertial calculations for thrust on monsters.
+	static double GetInertia(double emass, double smallmass = 200)
+	{
+		// Deviation from small weight, 0 means no deviation.
+		double m = smallmass; // Base mass
+		double d = 0.15; // Mass dropoff
+		double x = (1. - (emass/m));
+		double y = -d*(x**2) + 1;
+		return clamp(y*0.75,0.1,1.0);
+	}
+	
+	// Credits: https://www.arduino.cc/reference/en/language/functions/math/map/
+	static double fmap(double x, double in_min, double in_max, double out_min, double out_max) 
+	{
+		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
+	
+	// Credits: https://stackoverflow.com/a/28037434
+	static double AngleDiff( double angle1, double angle2 )
+	{
+		double diff = ( angle2 - angle1 + 180 ) % 360 - 180;
+		return diff < -180 ? diff + 360 : diff;
+	}
+
+	play static vector3, Actor getActorAim(Actor source, bool absolute = false, double absAngle = 0, double absPitch = 0)
+	{
+		double toAngle = source.angle;
+		double toPitch = source.pitch;
+		if(absolute) 
+		{	
+			toAngle = absAngle;
+			toPitch = absPitch;
+		}
+	
+		FLineTraceData lt;
+		double aimZ = source.player ? source.player.viewz-source.pos.z : source.height * 0.5;
+		source.LineTrace(toAngle, 1024*1024, toPitch, 0, aimZ, 64, data:lt);
+		return lt.HitLocation, lt.HitActor;
+	}
+	
+	play static vector3, Actor aimFrom(Actor src, vector3 pos, double angle, double pitch)
+	{
+		FLineTraceData lt;
+		src.LineTrace(angle, 1024*1024, pitch, TRF_ABSPOSITION, pos.z, pos.x, pos.y, data:lt);
+		return lt.HitLocation, lt.HitActor;
+	}
+	
+	clearscope static vector3 SphereBetween(vector3 one, vector3 two, bool getDist = true)
+	{
+		vector3 diff = level.Vec3Diff(one, two);
+		return (
+			atan2(diff.y, diff.x),
+			atan2(diff.z, sqrt((diff.x*diff.x) + (diff.y*diff.y))),
+			getDist ? diff.Length() : 0 // Saves on performance.
+		);
+	}
+	
+	/* Summary:
+    **  Simulates a damped spring.
+    **
+    ** Arguments:
+    **  p: Current position
+    **  r: Rest position
+    **  v: Current velocity
+    **  k: Spring coefficient
+    **  d: Damping coefficient
+    **
+    ** Returns:
+    **  The new velocity.
+    */
+    static double DampedSpring (double p, double r, double v, double k, double d) 
+	{
+        return -(d * v) - (k * (p - r));
+    }
+}
+
+// Matrix library from Gutamatics (https://gitlab.com/Gutawer/gzdoom-gutamatics/-/blob/master/Gutamatics/Matrix.zsc)
+enum DrivablesVectorType {
+	DrivablesVector_Position,
+	DrivablesVector_Direction
+}
+
+class DrivablesMatrix {
+	private Array<double> values;
+	private int columns;
+	int rows;
+
+	/// Initialises a new Matrix.
+	DrivablesMatrix init(int columns, int rows) {
+		if (columns <= 0 || rows <= 0) {
+			throwAbortException("Error: <%p>.init(%d, %d) - Matrix needs to be at least 1 * 1", self, columns, rows);
+		}
+
+		self.rows = rows;
+		self.columns = columns;
+		values.resize(columns * rows);
+		for (int i = 0; i < values.size(); i++) {
+			values[i] = 0;
+		}
+
+		return self;
+	}
+
+	/// Initialises a new Matrix in a static context.
+	static DrivablesMatrix create(int columns, int rows) {
+		return new("DrivablesMatrix").init(columns, rows);
+	}
+
+	/// Returns an identity matrix.
+	static DrivablesMatrix identity(int dimension) {
+		DrivablesMatrix ret = DrivablesMatrix.create(dimension, dimension);
+		for (int i = 0; i < dimension; i++) {
+			ret.set(i, i, 1);
+		}
+		return ret;
+	}
+
+	/// Returns a rotation matrix from euler angles.
+	static DrivablesMatrix fromEulerAngles(double yaw, double pitch, double roll) {
+		DrivablesMatrix rYaw = DrivablesMatrix.identity(4);
+		double sYaw = sin(yaw);
+		double cYaw = cos(yaw);
+		rYaw.set(0, 0,  cYaw);
+		rYaw.set(0, 1, -sYaw);
+		rYaw.set(1, 0,  sYaw);
+		rYaw.set(1, 1,  cYaw);
+
+		DrivablesMatrix rPitch = DrivablesMatrix.identity(4);
+		double sPitch = sin(pitch);
+		double cPitch = cos(pitch);
+		rPitch.set(0, 0,  cPitch);
+		rPitch.set(2, 0, -sPitch);
+		rPitch.set(0, 2,  sPitch);
+		rPitch.set(2, 2,  cPitch);
+
+		DrivablesMatrix rRoll = DrivablesMatrix.identity(4);
+		double sRoll = sin(roll);
+		double cRoll = cos(roll);
+		rRoll.set(1, 1,  cRoll);
+		rRoll.set(1, 2, -sRoll);
+		rRoll.set(2, 1,  sRoll);
+		rRoll.set(2, 2,  cRoll);
+
+		// concatenate ypr to get the final matrix
+		DrivablesMatrix ret = rYaw.multiplyMatrix(rPitch);
+		ret = ret.multiplyMatrix(rRoll);
+		return ret;
+	}
+
+	/// Returns a rotation matrix from an axis and an angle.
+	static DrivablesMatrix fromAxisAngle(Vector3 axis, double angle) {
+		DrivablesMatrix ret = DrivablesMatrix.identity(4);
+		double c = cos(angle);
+		double s = sin(angle);
+		double x = axis.x;
+		double y = axis.y;
+		double z = axis.z;
+
+		ret.set(0, 0, (x * x * (1.0 - c) + c));
+		ret.set(0, 1, (x * y * (1.0 - c) - z * s));
+		ret.set(0, 2, (x * z * (1.0 - c) + y * s));
+		ret.set(1, 0, (y * x * (1.0 - c) + z * s));
+		ret.set(1, 1, (y * y * (1.0 - c) + c));
+		ret.set(1, 2, (y * z * (1.0 - c) - x * s));
+		ret.set(2, 0, (x * z * (1.0 - c) - y * s));
+		ret.set(2, 1, (y * z * (1.0 - c) + x * s));
+		ret.set(2, 2, (z * z * (1.0 - c) + c));
+
+		return ret;
+	}
+	
+	static DrivablesMatrix createTRSEuler(Vector3 translate, double yaw, double pitch, double roll, Vector3 scale) {
+		DrivablesMatrix translateMat = DrivablesMatrix.identity(4);
+		translateMat.set(0, 3, translate.x);
+		translateMat.set(1, 3, translate.y);
+		translateMat.set(2, 3, translate.z);
+		
+		DrivablesMatrix rotateMat = DrivablesMatrix.fromEulerAngles(yaw, pitch, roll);
+		
+		DrivablesMatrix scaleMat = DrivablesMatrix.identity(4);
+		scaleMat.set(0, 0, scale.x);
+		scaleMat.set(1, 1, scale.y);
+		scaleMat.set(2, 2, scale.z);
+		
+		DrivablesMatrix ret = translateMat.multiplyMatrix(rotateMat);
+		ret = ret.multiplyMatrix(scaleMat);
+		return ret;
+	}
+	
+	static DrivablesMatrix createTRSAxisAngle(Vector3 translate, Vector3 axis, double angle, Vector3 scale) {
+		DrivablesMatrix translateMat = DrivablesMatrix.identity(4);
+		translateMat.set(0, 3, translate.x);
+		translateMat.set(1, 3, translate.y);
+		translateMat.set(2, 3, translate.z);
+		
+		DrivablesMatrix rotateMat = DrivablesMatrix.fromAxisAngle(axis, angle);
+		
+		DrivablesMatrix scaleMat = DrivablesMatrix.identity(4);
+		scaleMat.set(0, 0, scale.x);
+		scaleMat.set(1, 1, scale.y);
+		scaleMat.set(2, 2, scale.z);
+		
+		DrivablesMatrix ret = translateMat.multiplyMatrix(rotateMat);
+		ret = ret.multiplyMatrix(scaleMat);
+		return ret;
+	}
+
+	/// Returns a view matrix.
+	static DrivablesMatrix view(Vector3 camPos, double yaw, double pitch, double roll) {
+		// all of this is basically lifted and converted from PolyRenderer::SetupPerspectiveMatrix(),
+		// so credit goes to Graf Zahl/dpJudas/whoever else
+		// pitch needs to be adjusted by the pixel ratio
+		float pixelRatio = level.pixelstretch;
+		double angx = cos(pitch);
+		double angy = sin(pitch) * pixelRatio;
+		double alen = sqrt(angx * angx + angy * angy);
+		double adjustedPitch = asin(angy / alen);
+		double adjustedYaw = yaw - 90;
+
+		// rotations
+		DrivablesMatrix rotR = DrivablesMatrix.fromAxisAngle((0, 0, 1), roll);
+		DrivablesMatrix rotP = DrivablesMatrix.fromAxisAngle((1, 0, 0), adjustedPitch);
+		DrivablesMatrix rotY = DrivablesMatrix.fromAxisAngle((0, -1, 0), adjustedYaw);
+		// pixel ratio scaling
+		DrivablesMatrix scale = DrivablesMatrix.identity(4);
+		scale.set(1, 1, pixelRatio);
+		// swapping y and z
+		DrivablesMatrix swapYZ = DrivablesMatrix.create(4, 4);
+		swapYZ.set(0, 0, 1);
+		swapYZ.set(1, 2, 1);
+		swapYZ.set(2, 1, -1);
+		swapYZ.set(3, 3, 1);
+		// translation
+		DrivablesMatrix translate = DrivablesMatrix.identity(4);
+		translate.set(0, 3, -camPos.x);
+		translate.set(1, 3, -camPos.y);
+		translate.set(2, 3, -camPos.z);
+
+		// concatenate them all to get a final matrix
+		DrivablesMatrix ret = rotR.multiplyMatrix(rotP);
+		ret = ret.multiplyMatrix(rotY);
+		ret = ret.multiplyMatrix(scale);
+		ret = ret.multiplyMatrix(swapYZ);
+		ret = ret.multiplyMatrix(translate);
+
+		return ret;
+	}
+
+	/// Returns a perspective matrix (same format as gluPerspective).
+	static DrivablesMatrix perspective(double fovy, double aspect, double zNear, double zFar) {
+		DrivablesMatrix ret = DrivablesMatrix.create(4, 4);
+		double f = 1 / tan(fovy / 2.0);
+		// x coord
+		ret.set(0, 0, f / aspect);
+		// y coord
+		ret.set(1, 1, f);
+		// z buffer coord
+		ret.set(2, 2, (zFar + zNear) / (zNear - zFar));
+		ret.set(2, 3, (2 * zFar * zNear) / (zNear - zFar));
+		// w (homogeneous coordinates)
+		ret.set(3, 2, -1);
+		return ret;
+	}
+
+	/// Gets the value at row, col.
+	double get(int row, int col) const {
+		return values[columns * row + col];
+	}
+
+	/// Sets the value at row, col.
+	void set(int row, int col, double val) {
+		values[columns * row + col] = val;
+	}
+
+	/// Adds two matrices and returns the result.
+	DrivablesMatrix addMatrix(DrivablesMatrix other) const {
+		if (rows != other.rows || columns != other.columns) {
+			throwAbortException("Error: <%p>.addMatrix(<%p>) - Matrices need to be equal size", self, other);
+		}
+		DrivablesMatrix ret = DrivablesMatrix.create(columns, rows);
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < columns; col++) {
+				ret.set(row, col, get(row, col) + other.get(row, col));
+			}
+		}
+		return ret;
+	}
+
+	/// Multiplies the matrix by a scalar and returns the result.
+	DrivablesMatrix multiplyScalar(double scalar) const {
+		DrivablesMatrix ret = DrivablesMatrix.create(rows, columns);
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < columns; col++) {
+				ret.set(row, col, get(row, col) * scalar);
+			}
+		}
+		return ret;
+	}
+
+	/// Multiplies two matrices and returns the result.
+	DrivablesMatrix multiplyMatrix(DrivablesMatrix other) const {
+		if (columns != other.rows) {
+			throwAbortException("Error: <%p>.multiplyMatrix(<%p>) - Matrix A columns needs to equal Matrix B rows", self, other);
+		}
+		DrivablesMatrix ret = DrivablesMatrix.create(other.columns, rows);
+		for (int row = 0; row < ret.rows; row++) {
+			for (int col = 0; col < ret.columns; col++) {
+				double val = 0;
+				for (int i = 0; i < columns; i++) {
+					val += get(row, i) * other.get(i, col);
+				}
+				ret.set(row, col, val);
+			}
+		}
+		return ret;
+	}
+
+	/// Multiplies this Matrix by a 2D vector.
+	DrivablesMatrix multiplyVector2(Vector2 vec, DrivablesVectorType type = DrivablesVector_Position) const {
+		DrivablesMatrix vec2Matrix = DrivablesMatrix.create(1, 3);
+		vec2Matrix.set(0, 0, vec.x);
+		vec2Matrix.set(1, 0, vec.y);
+		if (type == DrivablesVector_Position)       vec2Matrix.set(2, 0, 1);
+		else if (type == DrivablesVector_Direction) vec2Matrix.set(2, 0, 0);
+		else throwAbortException("Error: Invalid vector type for multiplyVector2 (%d)", type);
+		return multiplyMatrix(vec2Matrix);
+	}
+
+	/// Multiplies this Matrix by a 3D vector.
+	DrivablesMatrix multiplyVector3(Vector3 vec, DrivablesVectorType type = DrivablesVector_Position) const {
+		DrivablesMatrix vec3Matrix = DrivablesMatrix.create(1, 4);
+		vec3Matrix.set(0, 0, vec.x);
+		vec3Matrix.set(1, 0, vec.y);
+		vec3Matrix.set(2, 0, vec.z);
+		if (type == DrivablesVector_Position)       vec3Matrix.set(3, 0, 1);
+		else if (type == DrivablesVector_Direction) vec3Matrix.set(3, 0, 0);
+		else throwAbortException("Error: Invalid vector type for multiplyVector3 (%d)", type);
+		return multiplyMatrix(vec3Matrix);
+	}
+
+	/// Returns the Matrix in Vector2 form, optionally dividing by z.
+	Vector2 asVector2(bool divideZ = true) const {
+		if (columns != 1 || rows != 3) {
+			throwAbortException("Error: <%p>.asVector2() - Matrix needs to be 1 * 3", self);
+		}
+		if (divideZ) return (get(0, 0), get(1, 0)) / get(2, 0);
+		else         return (get(0, 0), get(1, 0));
+	}
+
+	/// Returns the Matrix in Vector3 form, optionally dividing by w.
+	Vector3 asVector3(bool divideW = true) const {
+		if (columns != 1 || rows != 4) {
+			throwAbortException("Error: <%p>.asVector3() - Matrix needs to be 1 * 4", self);
+		}
+		if (divideW) return (get(0, 0), get(1, 0), get(2, 0)) / get(3, 0);
+		else         return (get(0, 0), get(1, 0), get(2, 0));
+	}
+
+	/// Returns the number of columns.
+	int getColumns() const {
+		return columns;
+	}
+
+	/// Returns the number of rows.
+	int getRows() const {
+		return rows;
+	}
+}

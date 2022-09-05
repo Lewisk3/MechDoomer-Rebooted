@@ -1,0 +1,144 @@
+
+class FXLightning : Actor abstract
+{
+	static void Sparks(Actor from)
+	{
+		vector3 pvel = GetDir(from.angle, from.pitch) * frandom(-2,2);
+		from.A_SpawnParticle(
+			0xFFFFB8, SPF_FULLBRIGHT, 
+			35, 1, velx: pvel.x, pvel.y, pvel.z,
+			startalphaf: 1.0,
+			fadestepf:0.1
+		);
+	}
+	
+	private static vector3 GetDir(double a, double p)
+	{
+		return (cos(a)*cos(p), sin(a)*cos(p), -sin(p));
+	}
+	
+	static void DoLightning(vector3 pos, vector2 angles, class<FXLightningBolt> type = "LightningPart", double dist = 200, double stepsize = 1.0, double strength = 2.0, double roughness = 20.0, double variance = 30, double branchchance = 80)
+	{
+		// Initialize
+		FXLightningBolt prev;
+		double str = strength;
+		double boltalpha = frandom(0.08, 1.0);
+		double pitchmov;
+		
+		for(double len = 0; len < dist; len+=stepsize)
+		{	
+			// Get Lightning spawn position.
+			vector3 spawnpos;
+			
+			vector3 src_pos    = pos;
+			vector2 src_angles = angles;
+
+			if(prev) 
+			{
+				src_angles = (prev.angle, prev.pitch-90);
+				src_pos    =  prev.pos;
+			}
+			
+			vector3 dir = GetDir( src_angles.x, src_angles.y );
+			spawnpos = level.vec3offset(src_pos, dir*stepsize);
+			
+			// Spawn Lightning
+			let biri = FXLightningBolt(Actor.Spawn(type, spawnpos));
+			if(biri)
+			{
+				biri.angle = src_angles.x;
+				biri.pitch = src_angles.y + 90;
+				biri.alpha = boltalpha;
+				biri.bInvisible = true;
+			}
+			
+			// Connect current lightning to previous lightning.
+			if(prev && biri)
+			{
+				// Make current face previous.
+				vector3 tobiri = level.SphericalCoords(biri.pos, prev.pos, (biri.angle, biri.pitch+90));
+				biri.angle -= tobiri.x;
+				biri.pitch -= tobiri.y;
+				prev.pitch += frandom(0, roughness);
+				
+				// Update Lightning direction.
+				double movedir = frandom[LightningPitch](-str,str);
+				if( pitchmov >  variance && movedir > 0 ||
+				    pitchmov < -variance && movedir < 0   ) 
+					movedir = -movedir;
+
+				pitchmov += movedir;				
+	   		    biri.pitch += movedir;
+				
+				// Adjust scale so that current connects to previous' position.
+				double scalequanta = (stepsize*biri.scale.x);
+				double newscale = biri.scale.x * (tobiri.z / scalequanta);
+				biri.Scale.Y = newscale;
+				
+				// Random change to branch into smaller bolt
+				if( branchchance && (random(0,branchchance) == branchchance) )				
+				{
+					vector2 newangs = (biri.angle + frandom(-45,45), biri.pitch + frandom(-90,90));
+					DoLightning(biri.pos, newangs, type, dist*0.25, stepsize, strength*2.0, roughness*1.5, variance*0.50, 0);
+				}
+				
+			}
+			prev = biri;
+		}
+	}
+}
+
+class TestLightning : EffectsActor
+{
+	States
+	{
+		Spawn:
+			PLSS A 1
+			{
+				vector2 angles = (frandom(0,360), frandom(-20,20));
+				FXLightning.DoLightning(pos, angles, dist:100, 0.5, 10.0, 0, 50, 180); 
+			}
+		loop;
+	}
+}
+
+// Cheap actor intended to be used for custom Lightning objects.
+class FXLightningBolt : Actor abstract
+{
+	uint lnflags;
+	int flashtics;
+	
+	Property FlashTic : flashtics;
+	flagdef DOFLASH : lnflags, 0;
+
+	Default
+	{
+		Radius 1;
+		+NOINTERACTION;
+		RenderStyle "Add";
+		Alpha 1.0;
+	}
+	
+	override void Tick()
+	{			
+		if (alpha < 0.01)
+		{
+			destroy();
+			return;
+		}
+		if (isFrozen()) return;
+		
+		if(!bDOFLASH || flashtics == 0) 
+			bInvisible = false;
+		else if(!(level.time%flashtics))
+			bInvisible = !bInvisible;
+		
+		//animation:
+		if (tics != -1) 
+		{
+			if(tics > 0) tics--;
+			while (!tics) 
+				if(!SetState(CurState.NextState)) return;
+		}
+	}
+}

@@ -1,0 +1,1 @@
+cameratexture HideHUD 4096 2160

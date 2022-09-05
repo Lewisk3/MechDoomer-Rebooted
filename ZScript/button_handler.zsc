@@ -1,0 +1,36 @@
+class MechButtons_Handler : EventHandler
+{
+	// Moar keys
+	override void NetworkProcess(ConsoleEvent e)
+	{
+		PlayerInfo plr = players[e.Player];
+		if(!plr || !plr.mo) return;
+		
+		let drvObj = I_DrivingObject.Get(plr.mo);
+		if(drvObj && drvObj.source) 
+		{
+			string cmd = e.Name;
+			bool btnState = cmd.IndexOf("+") != -1 ? true : false; 
+			cmd.Remove(0,1);
+			cmd = cmd.MakeLower();
+			
+			if(cmd ~== "mw_groupprev" ) drvObj.source.setExtBtn(DrivableMech.BT_GROUPPREV, btnState);
+			if(cmd ~== "mw_groupnext" ) drvObj.source.setExtBtn(DrivableMech.BT_GROUPNEXT, btnState);
+			if(cmd ~== "mw_weaponprev") drvObj.source.setExtBtn(DrivableMech.BT_WEAPPREV,  btnState);
+			if(cmd ~== "mw_weaponnext") drvObj.source.setExtBtn(DrivableMech.BT_WEAPNEXT,  btnState);
+			
+			if(cmd ~== "mw_grouptoggle"   ) drvObj.source.setExtBtn(DrivableMech.BT_GROUPSET,  btnState);
+			if(cmd ~== "mw_groupchainfire") drvObj.source.setExtBtn(DrivableMech.BT_GROUPCHF,  btnState);
+			
+			if(cmd ~== "mw_armlock"   ) drvObj.source.setExtBtn(DrivableMech.BT_ARMLOCK,    btnState);
+			if(cmd ~== "mw_torsolock" ) drvObj.source.setExtBtn(DrivableMech.BT_TORSOLOCK,  btnState);
+			if(cmd ~== "mw_alignlegs" ) drvObj.source.setExtBtn(DrivableMech.BT_ALIGNLEGS,  btnState);
+			if(cmd ~== "mw_aligntorso") drvObj.source.setExtBtn(DrivableMech.BT_ALIGNTORSO, btnState);
+			if(cmd ~== "mw_stopmech"  ) drvObj.source.setExtBtn(DrivableMech.BT_STOPMECH,   btnState);
+			if(cmd ~== "mw_peekinventory") drvObj.source.setExtBtn(DrivableMech.BT_PEEKINV, btnState);
+			
+			if(cmd ~== "mw_gettarget")  drvObj.source.setExtBtn(DrivableMech.BT_GETTARGET, btnState);
+			
+		}	
+	}
+}

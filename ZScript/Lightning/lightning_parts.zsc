@@ -1,0 +1,18 @@
+class LightningPart : FXLightningBolt
+{
+	Default
+	{
+		+FXLightningBolt.DOFLASH;
+		FXLightningBolt.FlashTic 2;
+
+		Scale 0.05;
+		Translation "0:255=@80[4,8,76]";
+	}
+	
+	States
+	{
+		Spawn:
+			MODL A 1 Bright A_FadeOut(0.04); // 0.14
+		wait;
+	}
+}

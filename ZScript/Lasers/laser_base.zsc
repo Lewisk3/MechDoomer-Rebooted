@@ -1,0 +1,206 @@
+class MechLaserBeam : Actor
+{
+	Color shade;
+
+	double maxDist;
+	int ontics;
+	bool enabled;
+	Actor source;
+	vector3 curPos;
+	vector3 offsets;
+	vector2 angleOffsets;
+	vector3 curOffs;
+	transient FLineTraceData hitData;
+	
+	bool trackingPos;
+	vector3 targetPos;
+	
+	bool aimWithWeapon;
+	bool trackPSprite;
+	uint trackPSLayer;
+	
+	bool followAngles;
+	Property TrackAngles : followAngles;
+	Property TrackWeapon : trackPSprite, trackPSLayer;
+	Property AimFromWeapon : aimWithWeapon; 
+	Property LaserColor : shade;
+	
+	Default
+	{
+		Scale 1.0;
+		+NOINTERACTION;
+		+INTERPOLATEANGLES;
+		RenderStyle "AddShaded";
+		
+		MechLaserBeam.LaserColor "Blue";
+		MechLaserBeam.TrackAngles true;			// Update with player's view.
+		MechLaserBeam.TrackWeapon false, 0; 	// Offset by PSprite offsets.
+		MechLaserBeam.AimFromWeapon false;		// Fire from weapon "muzzle", only used if TrackWeapon is enabled.
+	}
+	
+	static MechLaserBeam Create(Actor source, double fw, double lr, double ud, double angleOffs = 0, double pitchOffs = 0, double maxDist = 2048, class<MechLaserBeam> type = "MechLaserBeam")
+	{
+		let laser = MechLaserBeam(Spawn(type, source.pos));
+		if(laser) 
+		{
+			laser.source = source;
+			laser.maxDist = maxDist;
+			laser.offsets = (fw, lr, ud);
+			laser.angleOffsets = (angleOffs, pitchOffs);
+		}
+		
+		return laser;
+	}
+	
+	void setEnabled(bool set)
+	{
+		enabled = set;
+	}
+	
+	void startTracking(vector3 toPos)
+	{
+		trackingPos = true;
+		targetPos = toPos;
+	}
+	
+	void aimAtCrosshair(Actor ptr = NULL, bool invert = false)
+	{
+		if(!ptr) ptr = source;
+		double zoffs = ptr.height*0.5;
+		if(ptr.player) zoffs = ptr.player.viewz - ptr.pos.z;
+		
+	
+		FLineTraceData lt;
+		ptr.LineTrace(ptr.angle, maxDist, ptr.pitch, 0, offsetz:zoffs, offsetforward:64, data:lt);
+		if(lt.HitType != TRACE_HitNone) 
+		{
+			vector3 aimAngles = level.SphericalCoords(curPos, lt.HitLocation, (ptr.angle,ptr.pitch));
+			if(invert) aimAngles *= -1;
+			angleOffsets.x = aimAngles.x;
+			angleOffsets.y = aimAngles.y;
+		}
+	}
+	
+	void stopTracking()
+	{
+		if(trackingPos) ontics = 0;
+		trackingPos = false;
+	}
+	
+	bool isTracking()
+	{
+		return trackingPos;
+	}
+	
+	virtual vector3 getSourcePos()
+	{
+		vector3 srcPos = (source.pos.xy, source.pos.z + (source.height * 0.5));
+		if(source.player) srcPos.z = source.player.viewz;
+		
+		return srcPos;
+	}
+	
+	virtual void BeamTick()
+	{
+		// Implement custom laser logic here.
+	}
+	
+	virtual void OnImpact(vector3 hitPos, Actor hitActor)
+	{
+		// On impact with something
+	}
+	
+	override void Tick()
+	{
+		if(isFrozen()) return;
+		if(!enabled || !source) 
+		{
+			ontics = 0;
+			bInvisible = true;
+			return;
+		}
+		ontics++;
+		bInvisible = ontics < 3;
+		if(shade) SetShade(shade);
+						
+		// PSprite tracking?
+		vector2 bob = (0,0);
+		if(trackPSprite && PlayerPawn(source))
+		{
+			let psp = source.player.GetPSprite(trackPSLayer);
+			bob = PlayerPawn(source).BobWeapon(1.0);
+			
+			bob.x += psp.x;
+			bob.y += (psp.y - 32);
+			bob.x *= 0.031;
+			bob.y *= 0.035;
+		}
+		
+		// Update laser and tracking.
+		curOffs = DrivablesMath.V3Offset(
+			source.angle, source.pitch, source.roll,
+			offsets.x, offsets.y + bob.x, offsets.z - bob.y
+		);
+		
+		vector3 finalPos = level.vec3offset(getSourcePos(), curOffs);
+		SetOrigin(finalPos, true);
+		curPos = finalPos;
+		
+		double toAngle = source.angle + angleOffsets.x;
+		double toPitch = source.pitch + angleOffsets.y;
+		if(aimWithWeapon) 
+		{
+			toAngle -= (bob.x * 10);
+			toPitch += (bob.y * 10);  
+		}	
+		
+		// Track target and source's angles.
+		if(trackingPos)
+		{
+			vector3 diff = level.vec3diff(finalPos, targetPos);
+			vector3 dir = diff.Unit();
+			
+			toAngle = angleOffsets.x + atan2(dir.y, dir.x) + 180; 
+			toPitch = angleOffsets.y + asin(dir.z);
+			A_SetAngle(toAngle, SPF_INTERPOLATE);
+			A_SetPitch(toPitch - 90, SPF_INTERPOLATE);		
+		} 
+		else if(followAngles)
+		{
+			A_SetAngle(toAngle, SPF_INTERPOLATE);
+			A_SetPitch(toPitch+90, SPF_INTERPOLATE);
+		}
+		
+		// Credits: This interpolation magic was gleaned from Kodi's KLazer library
+		// code available in PainSlayer 
+		// (https://github.com/jekyllgrim/Painslayer/blob/master/ZPainkiller/klazer/KLAZ_Beam.zsc#L114)
+		
+		// Odd interpolation magic.
+		double prevAngle = source.angle;
+		source.A_SetAngle(source.angle + 0.001, SPF_INTERPOLATE);
+		source.A_SetAngle(prevAngle, SPF_INTERPOLATE);
+		
+		// Do linetrace to determine aim distance.
+		double zoffs = source.player ? (source.player.viewz-source.pos.z) : source.height * 0.5;
+		source.LineTrace(angle, maxDist, pitch - 90, 0, zoffs+offsets.z-bob.y, offsets.x, offsets.y-bob.x, data:hitData);
+		
+		// Scale to Distance.
+		double dist = min(hitData.Distance, maxDist);
+		double dirPitch = pitch - 90;
+		scale.y = dist * level.pixelstretch;
+		
+		if(ontics == 2)
+		{
+			OnImpact(hitData.hitLocation, hitdata.hitActor);
+		}
+		
+		BeamTick();
+	}
+	
+	States
+	{
+		Spawn:
+			MODL A -1 Bright;
+		stop;
+	}
+}

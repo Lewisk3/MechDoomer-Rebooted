@@ -1,0 +1,761 @@
+class MechItem : Object
+{
+	MechHardpoint parent;
+	DrivableMech mech;
+	int hp, size;
+	bool movable, damagable, disabled, nosave; // No Save means this item is not saved into mech data.
+	string displayName;
+	uint amount;
+	double weight;
+	
+	clearscope static MechItem Init(class<MechItem> type)
+	{
+		let item = MechItem(new(type));
+		if(item) 
+		{
+			item.Movable = true;
+			item.hp = 100;
+			item.size = 1; 
+			item.amount = 1;
+			item.Defaults();
+		}
+		return item;
+	}
+	
+	play virtual bool TryAttach(MechHardpoint part)
+	{
+		if(part.mech.noItemSlots) return false;
+		if (size > 0)
+		{
+			if( (part.slots + size) > part.maxslots || 
+				(part.mech.weight + weight) > part.mech.maxWeight ) 
+				return false;	
+				
+			int freeSlots = MechDynamicStructure.getTotalFreeslots(part.mech);
+			if( (freeSlots - size) < 0 ) return false;
+		}
+		
+		parent = part;
+		part.items.Push(self);
+		OnAttach();
+		
+		part.slots += size;
+		part.mech.weight += weight;
+		return true;
+	}
+	
+	play virtual bool TryDetach(bool forced = false)
+	{
+		if(!movable && !forced) return false;
+		uint id = parent.items.Find(self);
+		OnDetach();
+		
+		parent.items.Delete(id);
+		parent.slots -= size;
+		parent.mech.weight -= weight;
+		parent = NULL;
+		
+		return true;
+	}
+	
+	clearscope virtual void Defaults()
+	{
+		// Used to set defaults as we cannot otherwise.
+	}
+	
+	play virtual void OnAttach()
+	{	
+		mech = parent.GetMech();
+	}
+	
+	play virtual void OnDetach()
+	{
+		// When detached from parent.
+	}
+	
+	clearscope virtual string GetDesc()
+	{
+		return "Unknown Item";
+	}
+	
+	play virtual void OnDamaged(double dmg)
+	{
+		// Do stuff when damaged.
+	}
+	
+	play virtual void OnDestroyed()
+	{
+		// Do stuff when destroyed.
+		Destroy();
+	}
+	
+	virtual bool checkDestroyed()
+	{
+		return hp <= 0 || parent.healthPoints <= 0;
+	}
+	
+	play virtual void DoEffect()
+	{
+		if(!mech) mech = parent.getMech();
+		
+		// Process destruction.
+		if(!parent) return;
+		if(damagable && hp <= 0) 
+		{
+			OnDestroyed();
+			return;
+		}
+	}
+}
+
+class MechAmmo : MechItem
+{
+	int curAmmo;
+	int maxAmmo;
+	
+	override void Defaults()
+	{
+		damagable = true;
+	}
+	
+	virtual void SetupAmmo()
+	{
+		curAmmo = maxAmmo;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		// Discard when depleted.
+		if(curAmmo <= 0) 
+			TryDetach(forced:true);
+	}
+}
+
+class MechDynamicStructure : MechItem
+{
+	override void Defaults()
+	{
+		movable = false;
+		weight = 0;
+		size = 0;
+		nosave = true;
+		displayName = "Structure";
+	}
+	
+	clearscope virtual int getFreeslots()
+	{
+		int curSlots = parent.slots;
+		int maxSlots = parent.maxSlots;
+		curSlots += parent.countItems("MechDynamicStructure", true);
+		
+		return (maxSlots-curSlots);
+	}
+	
+	clearscope static int getTotalFreeslots(DrivableMech mech)
+	{
+		int maxSlots;
+		int curSlots;
+		Array<MechHardpoint> hardpoints;
+		mech.getHardPoints(hardpoints);
+		
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpoint = hardpoints[i];
+					
+			for(int x = 0; x < hardpoint.items.Size(); x++)
+			{
+				let item = hardpoint.items[x];
+				if(item is "MechDynamicStructure") continue;
+				curSlots += item.size;
+			}
+			
+			curSlots += hardpoint.countItems("MechDynamicStructure", true);
+			maxSlots += hardpoint.maxSlots;
+		}
+		
+		return (maxSlots-curSlots);
+	}
+	
+	clearscope static MechHardpoint findFreeslots(DrivableMech mech)
+	{
+		Array<MechHardpoint> hardpoints;
+		mech.getHardPoints(hardpoints);
+		
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpoint = hardpoints[i];
+			int curSlots = 0;
+			
+			for(int x = 0; x < hardpoint.items.Size(); x++)
+			{
+				let item = hardpoint.items[x];
+				if(item is "MechDynamicStructure") continue;
+				curSlots += item.size;
+			}
+			curSlots += hardpoint.countItems("MechDynamicStructure", true);
+			
+			if(curSlots < hardpoint.maxSlots)
+				return hardpoint;
+		}
+		
+		return NULL;
+	}
+	
+	play virtual void ReAttach()
+	{
+		let freeHardpoint = findFreeslots(mech);
+		if(freeHardpoint)
+		{
+			TryDetach(true);
+			TryAttach(freeHardpoint);
+		}
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if(parent.healthPoints <= 0) return; // Do not move if we're in a dead hardpoint.
+		if( (getFreeslots() <= 1 && !findFreeslots(mech)) && size < 1 )
+		{
+			size = 1;
+			parent.slots++;
+		} 
+		
+		if(findFreeslots(mech) && size > 0)
+		{
+			size = 0;
+			parent.slots--;
+		}
+		
+		if(getFreeslots() < 0 || findFreeslots(mech) != parent)
+		{
+			ReAttach();
+		}
+	}
+}
+
+class MechArmor : MechItem
+{
+	double armorWeight;
+	double armorAmount;
+	double damageMod;
+	class<MechDynamicStructure> structType;
+	int structureSlots;
+
+	override void Defaults()
+	{
+		hp = 100;
+		size = 0; 
+		structType = "MechDynamicStructure";
+		structureSlots = 0;
+		armorWeight = 0.05;
+	}
+	
+	play static bool addToMech(DrivableMech mech, class<MechArmor> type = "MechArmor")
+	{
+		let ar = MechItem.Init(type);
+		if(ar) return ar.TryAttach(mech.torso);
+		return false;
+	}
+	
+	virtual double ProcessDamage(double amt)
+	{
+		return amt * damageMod;
+	}
+	
+	static double getArmorPoints(DrivableMech mech)
+	{
+		double fullArmorPts = 0;
+		Array<MechHardpoint> hardpoints;
+		mech.getHardPoints(hardpoints);
+		
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpoint = hardpoints[i];
+			fullArmorPts += hardpoint.maxArmor;
+		}
+		return fullArmorPts;
+	}
+	
+	override void DoEffect()
+	{
+		// Keep armor weight stable.
+		double fullArmorPts = getArmorPoints(mech);
+		if(armorAmount != fullArmorPts) 
+		{
+			mech.weight -= (armorAmount * armorWeight);
+			armorAmount = fullArmorPts;	
+			mech.weight += (armorAmount * armorWeight);
+		}
+	}
+	
+	override bool TryAttach(MechHardpoint part)
+	{
+		let mech = part.mech;
+		if(!mech) return false;
+		if(mech.noItemSlots) return false;
+		
+		double weight = armorWeight*getArmorPoints(mech);
+		if( (mech.weight + weight) > mech.maxWeight ) return false; 
+		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
+			return false;
+		
+		let prevArmor = mech.armorType;
+		mech.armorType = self;
+		self.mech = part.mech;
+		if(prevArmor) prevArmor.OnDetach();
+		OnAttach();
+		
+		return true;
+	}
+	
+	override bool TryDetach(bool forced)
+	{
+		OnDetach();
+		return true;
+	}
+	
+	override void OnAttach()
+	{
+		DoEffect(); // Setup tonnage.
+		for(int i = 0; i < structureSlots; i++)
+			mech.torso.AddItem(structType);
+	}
+		
+	override void OnDetach()
+	{
+		// Remove armor weight from mech.
+		mech.weight -= (armorAmount * armorWeight);
+		
+		MechItem structSlot;
+		while(structSlot = mech.findItem(structType))
+			structSlot.TryDetach(forced:true);
+	}
+}
+
+class MechEngineBlock : MechItem
+{
+	override void Defaults()
+	{
+		movable = false;
+		weight = 0;
+		size = 2;
+		nosave = true; 
+		displayName = "??? ENGINE";
+	}
+}
+
+class MechEngine : MechItem
+{
+	double baseHeatEff;
+	int rating, type;
+	uint blocks; // How many engine blocks to add to both side torsos.
+	Array<MechItem> engineBlocks;
+	Array<MechHeatsink> heatSinks;
+	
+	enum EngineType 
+	{
+		Type_STD,
+		Type_Light,
+		Type_XL,
+		Type_XXL
+	}
+	
+	double roundTons(double value)
+	{	
+		return ceil(value*2.0)/2.0;
+	}
+	
+	double GetTonnage()
+	{
+		double std_index_tons[99] =
+		{
+			0.5,0.5,0.5,0.5,1.0,1.0,1.0,1.0,
+			1.5,1.5,1.5,2.0,2.0,2.0,
+			2.5,2.5,3.0,3.0,3.0,
+			3.5,3.5,4.0,4.0,4.0,
+			4.5,4.5,5.0,5.0,
+			5.5,5.5,6.0,6.0,6.0,
+			7.0,7.0,7.5,7.5,8.0,
+			8.5,8.5,9.0,
+			9.5,10.0,10.0,
+			10.5,11.0,
+			11.5,12.0,
+			12.5,13.0,
+			13.5,14.0,
+			14.5,15.5,
+			16.0,16.5,
+			17.5,18.0,
+			19.0,19.5,20.5,
+			21.5,22.5,
+			23.5,24.5,
+			25.5,27.0,
+			28.5,29.5,
+			31.5,33.0,
+			34.5,36.5,
+			38.5,41.0,
+			43.5,46.0,
+			49.0,52.5,
+			56.5,61.0,66.5,72.5,79.5,97.0,
+			107.5,119.5,133.5,150.0,168.5,190.0,
+			214.5,243.0,313.0,356.0,405.5,462.5
+		};
+		double tons = std_index_tons[floor(rating/5)-2];
+		if(type == Type_STD    		) return tons;
+		if(type == Type_Light  		) return roundTons(tons*0.75);
+		if(type == Type_XL	   		) return roundTons(tons*0.50);
+		if(type == Type_XXL    		) return roundTons(tons*0.33);
+		return tons;
+	}
+	
+	virtual string getTypeStr()
+	{
+		switch(type)
+		{
+			case Type_STD:     return "STD";
+			case Type_Light:   return "LIGHT";
+			case Type_XL:      return "XL";
+			case Type_XXL:     return "XXL";	
+			default: return "STD";
+		}
+		
+	}
+	
+	clearscope double getKPH()
+	{
+		double baserating = 187.5; 
+		return (32.4*(100./parent.mech.maxWeight)) / (baserating/rating); 
+	}
+		
+	clearscope static double speedToKPH(double spd)
+	{
+		double unitsPerSecond = spd * TICRATE;
+		double unitsPerHour = unitsPerSecond * 3600.0;
+		return ( unitsPerHour * (UTOCM / level.pixelStretch) ) / 100000.0;
+	}
+	
+	clearscope static double getKPHSpeed(double KPH)
+	{
+		double unitsPerHour = (KPH*100000.0) / (UTOCM / level.pixelStretch);
+		double unitsPerSecond = unitsPerHour / 3600.0;
+		
+		// Divide by magic constants.
+		unitsPerSecond /= (15.66666564814815) * (0.94/DrivableMech.MECHFRICTION);
+		
+		return unitsPerSecond / TICRATE;
+	}
+		
+	override void Defaults()
+	{	
+		rating = 100;
+		type = Type_STD;
+		SetupEngine();
+	}
+	
+	void SetupEngine()
+	{
+		nosave = true;
+		weight = GetTonnage();
+		displayName = String.Format("%s ENGINE %d", getTypeStr(), rating);
+	}
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
+		
+		// Add engine blocks.
+		let lt = parent.mech.leftTorso;
+		let rt = parent.mech.rightTorso;  
+		for(int i = 0; i < blocks; i++) 
+		{
+			let block = lt.AddItem("MechEngineBlock");
+			block.displayName = displayName;
+			engineBlocks.push(block);
+			
+			block = rt.AddItem("MechEngineBlock");
+			block.displayName = displayName;
+			engineBlocks.push(block);
+		}
+		
+		// Add heatsinks to Engine
+		int heatsinkAmt = floor(rating*0.04);
+		
+		for(int i = 0; i < heatsinkAmt; i++)
+		{
+			let heatsink = MechHeatsink(Init("MechDoubleHeatsink"));
+			heatsink.parent = parent;
+			heatsink.mech = mech;
+			heatsink.OnAttach();
+			heatSinks.Push(heatsink);
+		}
+	}
+	
+	override void OnDetach()
+	{
+		super.OnDetach();
+		
+		// Remove engine blocks.
+		for(int i = 0; i < engineBlocks.Size(); i++)
+			engineBlocks[i].TryDetach(forced:true);
+			
+		// Remove heatsinks
+		for(int i = 0; i < heatsinks.Size(); i++)
+		{
+			let heatsink = heatsinks[i];
+			heatsink.OnDetach();
+			heatsink.Destroy();
+		}
+	}
+	
+	override bool TryAttach(MechHardpoint part)
+	{
+		if(part.mech.FindItem("MechEngine", true))
+			return false;
+
+		let engBlock = MechItem.Init("MechEngineBlock");
+		int eblockSlots = blocks * engBlock.size;
+		engBlock.Destroy();
+		
+		let lt = part.mech.leftTorso;
+		let rt = part.mech.rightTorso;
+		if( (lt.slots +  eblockSlots) > lt.maxslots ||
+			(rt.slots +  eblockSlots) > rt.maxslots    ) return false;
+		
+		return super.TryAttach(part.mech.torso);
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		double power = abs(mech.throttle);
+		mech.modifyHeat(0.16 * power);
+		
+		for(int i = 0; i < heatsinks.Size(); i++)
+		{
+			let heatsink = heatsinks[i];
+			heatsink.DoEffect();
+		}
+	}
+}
+
+class MechWeapon : MechItem
+{
+	int group;
+	int fireTime;
+	int cooldown;
+	int cooldownTime;
+	int ammoUse;
+	int refire, refireCount, refireDelay, refireTimer; // Used for weapons which fire multiple times.
+	bool firing;
+	double minrange, range;
+	double damage;
+	double heat;
+	string mountType;
+	Sound fireSound;
+	Actor homingTarget;
+	HardpointMount mount;
+	class<MechAmmo> ammoType;
+	class<MechProjectile> projType;
+	
+	// Convert from spreadsheet data.
+	virtual double convertHeat(double amt, double delta)
+	{
+		return (amt * 6.5) / delta;
+	}
+		
+	virtual double convertDMG(double dmg, double delta)
+	{
+		return (dmg / MechHardpoint.DMGSCALE) / delta;
+	}
+	// --------------------------- \\
+	
+	play virtual void A_Recoil(double pitchAmt, double pushBack = 0)
+	{
+		if( !mech || !MechTorso(mech.torso) ) return;
+		MechTorso(mech.torso).pitchBobVel -= pitchAmt;
+		
+		if(pushBack)
+		{
+			pushBack *= cos(mech.angle-mech.torso.angle); // Adjust recoil so it's facing the torso direction.
+			mech.vel -= DrivablesMath.VecFromAngles(mech.angle, mech.pitch, pushBack);
+		}
+	}
+	
+	virtual void WeapSound(Sound snd, double vol = 1.0)
+	{
+		if(parent) parent.A_StartSound(snd, CHAN_WEAPON, flags:CHANF_OVERLAP, volume:vol);
+	}
+	
+	clearscope virtual int checkAmmo()
+	{
+		if(!ammoType) return int.max;
+		let am = parent.FindItem(ammoType, false);
+		if(!am) am = parent.mech.FindItem(ammoType, false);
+		return am ? MechAmmo(am).curAmmo : 0;
+	}
+	
+	clearscope virtual bool canFire()
+	{
+		bool ammoCheck = ammoUse <= 0 || checkAmmo() >= ammoUse;
+		return ammoCheck;
+	}
+	
+	play virtual void depleteAmmo(int amt)
+	{
+		if(!ammoType) return;
+		let am = MechAmmo(parent.FindItem(ammoType, false));
+		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType, false));
+		
+		if(am) am.curAmmo -= amt;
+	}
+	
+	play virtual void SetGroup(uint grp, bool onoff)
+	{
+		uint gBit = 2**(grp-1);
+		if(onoff) 
+			group |= gBit;
+		else
+			group &= ~gBit;
+	}
+	
+	override bool TryAttach(MechHardpoint part)
+	{
+		// Attempt to find position to mount weapon to.
+		let mnt = part.findMountPoint(mountType);
+		if(!mnt) return false;
+		mnt.mountItem(self);
+		mount = mnt;
+		
+		return super.TryAttach(part);
+	}
+	
+	override void OnDetach()
+	{
+		if(mount) mount.unmountItem();
+	}
+	
+	play static void FireWeapons(Array<MechWeapon> weaps, Array<MechWeaponGroup> groups, uint grp = 0, bool instantFire = false)
+	{		
+		let group = grp > 0 ? groups[grp-1] : NULL;
+		bool chainfire = grp > 0 ? groups[grp-1].chainfire : false;
+		
+		// If weapon was removed from the group, discard reference to it.
+		if(group.prevWeapFired && weaps.Find(group.prevWeapFired) == weaps.Size())
+			group.prevWeapFired = NULL;
+		
+		for(int i = 0; i < weaps.Size(); i++)
+		{	
+			let weap = weaps[i];
+			let hardpoint = weap.parent;
+			if(!hardpoint || !weap) continue;
+			if(weap.checkDestroyed()) continue; // Cannot fire destroyed weapons.
+			
+			// Fire in chainfire.
+			if( chainfire && group ) 
+			{
+				bool fireWait = !instantFire && group.weapCycle > 0;
+				if( (!group.prevWeapFired || group.prevWeapFired == weap) && !fireWait )
+				{
+					int curIndex = i;
+					let nextWeap = weaps[(i+1)%weaps.Size()];
+					
+					if(group.prevWeapFired)
+					{
+						weap = nextWeap;
+						hardpoint = weap.parent;
+						curIndex++;
+					}
+					// console.printf("Firing (Chainfire): %s on %s (%d)", weap.getClassName(), weap.parent.getClassName(), curIndex);
+					
+					if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.mount.getPos()) )
+					{
+						weap.mech.modifyHeat(weap.heat);
+						weap.cooldown += (weap.cooldownTime + weap.fireTime);
+						group.weapCycle = weap.fireTime;
+						group.prevWeapFired = weap;
+					}
+					
+					break;
+				}
+				continue;
+			}
+			
+			// Fire normally
+			if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.mount.getPos()))
+			{
+				weap.mech.modifyHeat(weap.heat);
+				weap.cooldown += (weap.cooldownTime + weap.fireTime);
+				group.weapCycle = weap.fireTime;
+			}
+		}
+	}
+	
+	override void Defaults()
+	{
+		super.Defaults();
+		group = 1;
+	}
+	
+	virtual bool DoRefire()
+	{
+		refire = refireCount;
+		refireTimer = refireDelay;
+		return true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(cooldown) cooldown--;
+		
+		// Refire logic
+		if(--refireTimer <= 0 && refire > 0)
+		{
+			if(canFire() && Fire(mount.getPos()) )
+			{
+				refireTimer = refireDelay;
+				refire--;
+			}
+			else
+				refire = 0;
+		}
+		
+		// Update target
+		if(mech.targetProgress >= 1.0) 
+			homingTarget = mech.curTarget; 
+		else if(mech.targetProgress <= 0.1 && homingTarget)
+			homingTarget = NULL;
+	}
+	
+	// Weapons shouldn't get removed from the game once destroyed.
+	override void OnDestroyed()
+	{
+		// Do not remove item.
+	}
+	
+	// Note: firePos is ALWAYS relative offsets from the parent's position
+	// to get absolute positions, use parent.OffsetPos(firePos.x,firePos.y,firePos.z)
+	play virtual bool Fire(vector3 firePos)
+	{
+		if(cooldown) return false;
+		// Pew pew pew
+		return true;
+	}
+}
+
+// Info about this weapon grouping.
+class MechWeaponGroup : Object
+{
+	MechWeapon prevWeapFired;
+	uint weapCycle; // Timer for weapon cycling.
+	bool chainfire;
+	
+	virtual void DoEffect()
+	{
+		if(weapCycle) weapCycle--;
+	}
+}
