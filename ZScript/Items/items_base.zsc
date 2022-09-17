@@ -22,6 +22,12 @@ class MechItem : Object
 		return item;
 	}
 	
+	// Called to check if new item should be added to `amount` or physically differentiated.
+	virtual bool CanStack(MechItem other)
+	{
+		return (other.getClass() == getClass()) && (other.hp == hp && movable);
+	}
+	
 	play virtual bool TryAttach(MechHardpoint part)
 	{
 		if(part.mech.noItemSlots) return false;
@@ -430,20 +436,21 @@ class MechEngine : MechItem
 		return (32.4*(100./parent.mech.maxWeight)) / (baserating/rating); 
 	}
 		
-	clearscope static double speedToKPH(double spd)
+	clearscope static double speedToKPH(double spd, double scalar = 1.0)
 	{
 		double unitsPerSecond = spd * TICRATE;
 		double unitsPerHour = unitsPerSecond * 3600.0;
-		return ( unitsPerHour * (UTOCM / level.pixelStretch) ) / 100000.0;
+		return scalar * (( unitsPerHour * (UTOCM / level.pixelStretch) ) / 100000.0);
 	}
 	
-	clearscope static double getKPHSpeed(double KPH)
+	clearscope static double getKPHSpeed(double KPH, double scalar = 1.0)
 	{
 		double unitsPerHour = (KPH*100000.0) / (UTOCM / level.pixelStretch);
 		double unitsPerSecond = unitsPerHour / 3600.0;
 		
 		// Divide by magic constants.
 		unitsPerSecond /= (15.66666564814815) * (0.94/DrivableMech.MECHFRICTION);
+		unitsPerSecond *= scalar;
 		
 		return unitsPerSecond / TICRATE;
 	}

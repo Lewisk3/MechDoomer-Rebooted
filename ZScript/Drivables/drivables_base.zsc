@@ -204,8 +204,10 @@ class DrivableObject : DrivableComponent
 	Array<DrivableObjectPart> parts;
 	DrivableComponent cam;
 	bool onground;
+	bool driverShouldExit; // If true and holding `Use`, the driver exits the vehicle.
 	uint extbtns; // More buttons.
 	uint extbtns_old;
+	uint useholdtics; // Tics driver has been holding `Use` key.
 
 	Default
 	{
@@ -299,6 +301,7 @@ class DrivableObject : DrivableComponent
 		SetDriverCamera(driver); // Reset camera
 		let drvObj = I_DrivingObject(driver.FindInventory("I_DrivingObject"));
 		if(drvObj) drvObj.Disable();
+		driverShouldExit = false;
 		driver = NULL;
 	}
 	
@@ -331,6 +334,26 @@ class DrivableObject : DrivableComponent
 			driver.player.bob = 0;
 			driver.player.vel *= 0;			
 		}
+		
+		// Hold `Use` to exit
+		if(driver.player)
+		{
+			uint cmds = driver.player.cmd.buttons;
+			if(cmds & BT_USE)
+			{
+				useholdtics++;
+				if(driverShouldExit && useholdtics > 8)
+				{
+					RemovePilot();
+					return;
+				}
+			}
+			else
+			{
+				useholdtics = 0;
+				driverShouldExit = false;
+			}
+		}
 	}
 	
 	virtual void UpdatePassenger(int index)
@@ -338,12 +361,12 @@ class DrivableObject : DrivableComponent
 	}
 	
 	override bool Used(Actor user)
-	{
+	{	
 		// Pilot
 		if(!driver) 
 			TakePilot(user);
 		else if(driver == user)
-			RemovePilot();
+			driverShouldExit = true;
 		
 		// Passenger
 		if(passengers.Find(user) == passengers.Size())
@@ -381,6 +404,11 @@ class DrivableObject : DrivableComponent
 			OnDrive();
 			UpdateDriver();
 		}
+		else
+		{
+			driverShouldExit = false;
+		}
+		
 		if(passengers.Size() > 0)
 		{
 			for(int i = passengers.Size()-1; i >= 0; i--)

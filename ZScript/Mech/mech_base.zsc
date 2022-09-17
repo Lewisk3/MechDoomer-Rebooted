@@ -141,6 +141,26 @@ class DrivableMech : DrivableObject
 		
 	}
 	
+	virtual double getAutoFitScale()
+	{
+		// Determine mech's maximum height
+		double maxHeight = height;
+		for(int i = 0; i < parts.Size(); i++)
+		{
+			let part = parts[i];
+			let hp = MechHardpoint(parts[i]);
+			double curHeight = part.pos.z + part.height;
+			if(hp && hp.hitboxHeight > 0)
+				 curHeight = max(curHeight, hp.pos.z + hp.hitboxPos_UD + hp.hitboxHeight);
+			
+			if(curHeight > maxHeight) maxHeight = curHeight;
+		}
+		
+		// Attempt to determine desired mech scale, in reference to default player height.
+		double doomguyHeight = 56 * level.pixelstretch;
+		return doomguyHeight / maxHeight;
+	}
+	
 	virtual void AcquireTarget(bool requireSight = true)
 	{
 		let it = ThinkerIterator.Create();
@@ -225,6 +245,9 @@ class DrivableMech : DrivableObject
 			if(!camActive) camActive = cam;
 			SetDriverCamera(camActive);
 		}
+		
+		// Update UseRange
+		if(PlayerPawn(driver)) PlayerPawn(driver).UseRange = 128;
 	}
 	override void RemovePilot()
 	{
@@ -233,6 +256,9 @@ class DrivableMech : DrivableObject
 		driver.A_SetSize(driver.default.Radius, driver.default.Height);
 		if(camActive != cam) SetDriverCamera(driver);
 		camActive = NULL;
+		
+		let driverPlr = PlayerPawn(driver);
+		if(driverPlr) driverPlr.UseRange = driverPlr.Default.UseRange;
 		
 		super.RemovePilot();
 	}
@@ -440,7 +466,7 @@ class DrivableMech : DrivableObject
 	{
 		double fm, sm;
 		[fm, sm] = GetMoveInputs();
-				
+		
 		if(driver.player)
 		{
 			UserCmd cmd = driver.player.cmd;
@@ -459,14 +485,14 @@ class DrivableMech : DrivableObject
 			if(!it) it = rightArm.AddItem("MechDoubleHeatsink");			
 			if(!it) it = leftLeg.AddItem("MechDoubleHeatsink");
 			if(!it) it = rightLeg.AddItem("MechDoubleHeatsink"); */
-			A_SetScale(Scale.X * 1.1);
+			A_SetScale(1.0);
 		}
 		if(getDriverBtn(BT_USER4, DriverBtns.BTS_PRESSED))
 		{
 			//let it = torso.FindItem("MechDoubleHeatsink");
 			//if(it) it.TryDetach();
 			
-			A_SetScale(Scale.X * 0.9);
+			A_SetScale(Scale.X * getAutoFitScale());
 		}
 		
 		
@@ -685,6 +711,7 @@ class DrivableMech : DrivableObject
 		super.DoPhysics();
 		
 		// Movement
+		double adjustedMoveSpeed = moveSpeed * Scale.X;
 		if(onground && moveSpeedKPH > 0)
 		{
 			bool decel = (throttle < accel);
@@ -701,7 +728,7 @@ class DrivableMech : DrivableObject
 			}
 		}
 		
-		vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * accel);
+		vel += DrivablesMath.VecFromAngles(angle, pitch, adjustedMoveSpeed * accel);
 		if(!onground) accel *= MECHFRICTION;
 				
 		// Friction
