@@ -1,6 +1,7 @@
 GameInfo
 {
 	AddEventHandlers = "MechHUD_Handler", "MechButtons_Handler"
+	CursorPic = "Graphics/Mechlab/menuCursor_HD.png"
 }
 
 DoomEdNums 

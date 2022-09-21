@@ -10,6 +10,9 @@ version "4.7.0"
 #include "ZScript/UI/mechhud_handler.zsc"
 #include "ZScript/button_handler.zsc"
 
+#include "ZScript/UI/Menus/menus_base.zsc"
+#include "ZScript/UI/Menus/mechlab.zsc"
+
 // Vehicle System
 #include "ZScript/drivables/drivables_math.zsc"
 #include "ZScript/drivables/drivables_base.zsc"

@@ -1,0 +1,195 @@
+class MechLabCursor : MenuCursor {}
+
+class MechItemSlot : MenuElement
+{
+	vector2 defaultPos;
+	MechItem slotItem;
+	double slotHeight;
+	double scale;
+
+	override void Init()
+	{
+		super.Init();
+		defaultPos = pos;
+		slotHeight = size.y;
+		scale = 0.5;
+	}
+	
+	override void Draw(double dT)
+	{
+		Font itemFont = "SmallFont"; 
+		
+		Color slotColor = 0;
+		uint itemFontColor = Font.CR_WHITE;
+		if(slotItem) 
+		{	
+			if(!slotItem.movable)
+			{
+				itemFontColor = Font.CR_BLACK;
+			}
+			else
+			{
+				let weap = MechWeapon(slotItem);
+				if(weap)
+				{
+					if(weap.mountType ~== "energy"   ) slotColor = 0xA0FFFF00;
+					if(weap.mountType ~== "ballistic") slotColor = 0xA00000FF;
+					if(weap.mountType ~== "missile"  ) slotColor = 0xA000FF00;
+				}				
+			}
+		}
+		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, scale:(scale,scale), tint:slotColor, texoffs:(0,0));
+		
+		if(slotItem)
+		{
+			double scaledSlotHeight = slotHeight * scale;
+			for(int i = 0; i < slotItem.size-1; i++)
+			{
+				MWDrawer.DrawImage(
+					"Graphics/Mechlab/itemBottom.png", 
+					pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
+					scale:(scale,scale), tint:slotColor, texoffs:(0,0)
+				);
+			}
+			
+			// Draw item data
+			double fontScale = scale * 1.75;
+			vector2 centerPos = pos + (
+				(size.x / 2.0),
+				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
+			);
+			
+			MWDrawer.DrawString(
+				itemFont, slotItem.displayName, 
+				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor, 
+				scale:(fontScale, fontScale)
+			);
+		}
+		
+		drawCollider();
+	}
+	
+	override bool checkDraggable()
+	{
+		return slotItem && slotItem.movable;
+	}
+	
+	override void updateDragPos(MenuCursor cursor)
+	{
+		pos = cursor.pos - (
+			(size.x / 2.0) - (cursor.size.x / 2.0), 
+			(size.y / 2.0) + 4
+		);
+	}
+	
+	override void OnDrop(MenuCursor cursor)
+	{
+		pos = defaultPos;
+	}
+	
+	override void Update(double dT)
+	{
+		// Update size to item slot size.
+		double scaledSlotHeight = slotHeight * scale;
+		size.y = slotItem ? scaledSlotHeight * slotItem.size : scaledSlotHeight;
+	}
+}
+
+class MechHardpointContainer : MenuElement
+{
+	MechMenu_Mechlab mechlab;
+	MechHardpoint hardpoint;
+	Array<MechItemSlot> slots;
+	double slotsWidth, slotsHeight;
+		
+	virtual void Setup(MechHardpoint hardpoint, double slotsWidth, double slotsHeight)
+	{
+		self.hardpoint = hardpoint;
+		self.slotsHeight = slotsHeight;
+		self.slotsWidth = slotsWidth;
+		mechlab = MechMenu_Mechlab(parentMenu);
+		
+		// Create all slots
+		for(int i = 0; i < hardpoint.maxslots; i++)
+		{
+			let menuSlot = MechItemSlot(MenuElement.Create(
+				"MechItemSlot", String.Format("Slot#%d", i), 
+				parentMenu, pos, (slotsWidth,slotsHeight)
+			));
+			slots.Push(menuSlot);
+		}
+	}
+	
+	override void Update(double dT)
+	{	
+		// Update all slot item pointers.
+		for(int i = 0; i < hardpoint.items.Size(); i++)
+		{
+			slots[i].slotItem = hardpoint.items[i];
+			slots[i].Update(dT);
+			
+			// Mouse collisions
+			mechlab.cursor.CheckCollision(slots[i]);
+		}	
+	}
+	
+	override void Draw(double dT)
+	{
+		if(!mechlab) return;
+		
+		// Update slot draw positions
+		double drawY = 0;
+		for(int i = 0; i < hardpoint.items.Size(); i++)
+		{
+			let slot = slots[i];
+			// Skip if item is being dragged.
+			if(mechlab.cursor.draggingElement == slot) continue;
+			
+			if(slot.slotItem)
+			{
+				slot.pos.y = pos.y + drawY;
+				slot.Draw(dT);
+				drawY += slot.size.y;
+			}
+		}
+	}
+}
+
+class MechMenu_Mechlab : MechMenu 
+{
+	MechLabCursor cursor;
+	DrivableMech mech;
+	
+	override void InitElements() 
+	{
+		// Get active mech.
+		let drvObj = I_DrivingObject.Get(players[consoleplayer].mo);
+		if(drvObj && drvObj.source) mech = DrivableMech(drvObj.source);
+		
+		let leftArmSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_LeftArm", (200,200), (256,256))
+		);
+		
+		leftArmSlots.Setup(mech.leftArm, 256, 34);
+		
+		
+		// Cursor is added last, to keep always on-top.
+		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (16,16))); 
+		
+		/*
+		let testSlot = MechItemSlot(AddElement("MechItemSlot", "TestSlot", (200,400), (256,34)));
+		testSlot.slotItem = mech.FindItem("LRM20");
+		*/
+	}
+	
+	override void processNetworkEvent(ConsoleEvent e)
+	{
+		// Used as a callback from NetworkProcess, primarily to keep
+		// code functionality organized and more readable.
+	}
+	
+	override void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)
+	{
+		// MenuElements can call this function if they wish to relay behavior to their parent menu.
+	}
+}
