@@ -123,7 +123,7 @@ class MWDrawer Abstract ui
 		return _ProcessCoords(pos, flags);
 	}
 	
-	static void DrawTexture(TextureID texture, Vector2 pos, int flags = 0, double Alpha = 1., Vector2 scale = (1, 1), double rotation = 0, Color tint=Color(0,0,0,0), vector2 texoffs = (1,1), vector2 rotoffs = (1,1), bool absolute=false)
+	static void DrawTexture(TextureID texture, Vector2 pos, int flags = SS_NOASPECTCORRECTION, double Alpha = 1., Vector2 scale = (1, 1), double rotation = 0, Color tint=Color(0,0,0,0), vector2 texoffs = (1,1), vector2 rotoffs = (1,1), bool absolute=false)
 	{
 		vector2 texsize;
 		[texsize.x, texsize.y] = TexMan.GetSize(texture);
@@ -174,13 +174,13 @@ class MWDrawer Abstract ui
 		}
 	}
 
-	static void DrawImage(String graphic, Vector2 pos, int flags = 0, double Alpha = 1., Vector2 scale = (1, 1), double rotation = 0, Color tint=Color(0,0,0,0), vector2 texoffs = (1,1), vector2 rotoffs = (1,1), bool absolute=false)
+	static void DrawImage(String graphic, Vector2 pos, int flags = SS_NOASPECTCORRECTION, double Alpha = 1., Vector2 scale = (1, 1), double rotation = 0, Color tint=Color(0,0,0,0), vector2 texoffs = (1,1), vector2 rotoffs = (1,1), bool absolute=false)
 	{
 		TextureID texture = TexMan.CheckForTexture(graphic, TexMan.Type_Any);
 		DrawTexture(texture, pos, flags, alpha, scale, rotation, tint, texoffs, rotoffs, absolute);
 	}
 	
-	static void DrawMugshot( int accuracy, vector2 pos, int drawflags = 0, int mugshotflags = 0, 
+	static void DrawMugshot( int accuracy, vector2 pos, int drawflags = SS_NOASPECTCORRECTION, int mugshotflags = SS_NOASPECTCORRECTION, 
 							 double alpha = 1.0, vector2 scale=(5.0,5.0), double rotation = 0, string default_face="STF",
 							 Color tint=Color(0,0,0,0), bool absolute=false)
 	{
@@ -197,7 +197,7 @@ class MWDrawer Abstract ui
 		return texsize;
 	}
 	
-	static void DrawString( Font fnt, String str, Vector2 pos, int flags = 0, int translation = Font.CR_UNTRANSLATED, 
+	static void DrawString( Font fnt, String str, Vector2 pos, int flags = SS_NOASPECTCORRECTION, int translation = Font.CR_UNTRANSLATED, 
 							double Alpha = 1., Vector2 scale = (1, 1), Color tint = Color(0,0,0,0), int charspacing = 0, int linespacing = 20 )
 	{
 		Array<String> lines;
@@ -232,7 +232,7 @@ class MWDrawer Abstract ui
 		}		
 	}
 	
-	static void Fill(Color col, double x, double y, double w, double h, double alpha = 1.0, int flags = 0, bool absolute = false)
+	static void Fill(Color col, double x, double y, double w, double h, double alpha = 1.0, int flags = SS_NOASPECTCORRECTION, bool absolute = false)
 	{
 		vector2 pos = (x, y);
 		double sc_xres = Screen.getWidth()/GetBaseWidth();
@@ -315,7 +315,7 @@ class MWDrawer Abstract ui
 	}
 	
 	// Lines
-	static void DrawThickLine(double x0, double y0, double x1, double y1, int thickness, Color col, double alpha = 1.0, int flags = 0)
+	static void DrawThickLine(double x0, double y0, double x1, double y1, int thickness, Color col, double alpha = 1.0, int flags = SS_NOASPECTCORRECTION)
 	{
 		vector2 posFrom = (x0, y0);
 		vector2 posTo = (x1, y1);

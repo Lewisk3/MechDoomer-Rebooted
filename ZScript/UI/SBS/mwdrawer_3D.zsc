@@ -243,7 +243,7 @@ extend class MWDrawer
 	}
 	
 		
-	static void DrawString3D( Font fnt, String str, Vector2 pos, int flags = 0, int translation = Font.CR_UNTRANSLATED, 
+	static void DrawString3D( Font fnt, String str, Vector2 pos, int flags = SS_NOASPECTCORRECTION, int translation = Font.CR_UNTRANSLATED, 
 							double Alpha = 1., Vector2 scale = (1, 1), Color tint = Color(0,0,0,0), int charspacing = 0, int linespacing = 20, 
 							float distance=0 )
 	{

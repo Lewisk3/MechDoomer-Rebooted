@@ -50,7 +50,7 @@ class MenuElement : Object abstract ui
 		MWDrawer.DrawRect(pos, size);
 	}
 	
-	virtual bool canCollide()
+	virtual bool canCollide(MenuElement other)
 	{
 		return size.x > 0 && size.y > 0;
 	}
@@ -60,6 +60,20 @@ class MenuElement : Object abstract ui
 		if(collides) OnCollision(other);
 		
 		return collides;
+	}
+	
+	virtual MenuElement getCollidingWithType(class<MenuElement> type)
+	{
+		if(!parentMenu) return NULL;
+		for(int i = 0; i < parentMenu.elements.Size(); i++)
+		{
+			let element = parentMenu.elements[i];
+			if( !(element is type) ) continue;
+			
+			if(CheckCollision(element))
+				return element;
+		}
+		return NULL;
 	}
 	
 	virtual void OnCollision(MenuElement other) {}
@@ -134,7 +148,7 @@ class MenuCursor : MenuElement
 	{
 		if( draggingElement || !obj.checkDraggable() ) 
 			return false;
-			
+		
 		draggingElement = obj;
 		obj.OnDrag(self);
 		return true;
@@ -239,11 +253,11 @@ class MechMenu : GenericMenu
 		for(int i = 0; i < elements.Size(); i++)
 		{
 			let srcElement = elements[i];
-			if(!srcElement.canCollide()) continue;
+			if(!srcElement.canCollide(null)) continue;
 			for(int k = 0; k < elements.Size(); k++)
 			{
 				let otherElement = elements[k];
-				if(otherElement == srcElement || !otherElement.canCollide()) continue;
+				if(otherElement == srcElement || !otherElement.canCollide(srcElement)) continue;
 				
 				srcElement.CheckCollision(otherElement);
 			}

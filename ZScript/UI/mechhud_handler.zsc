@@ -529,7 +529,7 @@ class MechHUD_Handler : EventHandler
 			if(armSlot == 1) 
 			{
 				prefix = "\c[Red]O";
-				if(i > 0) offs.y += yoff;
+				//if(i > 0) offs.y += yoff;
 			}
 			if(torsoSlot == 1) 
 			{

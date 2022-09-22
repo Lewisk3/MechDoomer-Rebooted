@@ -349,6 +349,22 @@ class DrivableMech : DrivableObject
 		}
 		return NULL;
 	}
+	
+	clearscope string getMechItemIndex(MechItem item)
+	{
+		for(int i = 0; i < parts.Size(); i++)
+		{
+			let hardpoint = MechHardpoint(parts[i]);
+			if(!hardpoint) continue;
+			
+			for(int x = 0; x < hardpoint.items.Size(); x++)
+			{
+				if(hardpoint.items[x] == item)
+					return String.Format("%d:%d", i, x);
+			}
+		}
+		return "";
+	}
 		
 	override void SetupParts()
 	{
@@ -757,7 +773,9 @@ class DrivableMech : DrivableObject
 	
 	override void Tick()
 	{
+		engine = MechEngine(FindItem("MechEngine", true));
 		super.Tick();
+		
 		if(!betty) 
 			betty = SoundQueue.Create(self);
 		else if(driver)
@@ -784,7 +802,6 @@ class DrivableMech : DrivableObject
 		}
 		
 		// Keep track of persistent items.
-		engine = MechEngine(FindItem("MechEngine", true));
 		if(!engine && !shutdown) DoShutdown();
 		if(armorType) armorType.DoEffect();
 		
