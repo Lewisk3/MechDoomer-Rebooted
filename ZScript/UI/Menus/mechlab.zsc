@@ -24,6 +24,7 @@ class MechItemSlot : MenuElement
 		
 		Color slotColor = 0;
 		uint itemFontColor = Font.CR_WHITE;
+		double wScale = size.x / 256;
 		if(slotItem) 
 		{	
 			bool isDynamic = slotItem is "MechDynamicStructure";
@@ -54,7 +55,7 @@ class MechItemSlot : MenuElement
 					slotColor = 0xA0FF0000;
 			}
 		}
-		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale,scale), tint:slotColor, texoffs:(0,0));
+		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, texoffs:(0,0));
 		
 		if(slotItem)
 		{
@@ -65,7 +66,7 @@ class MechItemSlot : MenuElement
 				MWDrawer.DrawImage(
 					"Graphics/Mechlab/itemBottom.png", 
 					pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
-					alpha:alpha, scale:(scale,scale), tint:slotColor, 
+					alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, 
 					texoffs:(0,0)
 				);
 			}
@@ -255,7 +256,7 @@ class MechHardpointContainer : MenuElement
 				slot.pos.y = pos.y + drawY;
 				slot.Draw(dT);
 				drawY += (slotSpacing * max(1, slot.slotItem.size));
-				if(drawY < size.y) 
+				if(drawY < size.y-12) 
 					MWDrawer.DrawThickLine(pos.x, pos.y + drawY, pos.x + size.x, pos.y + drawY, 4, "Black", slot.alpha); 
 			}
 		}
@@ -273,32 +274,54 @@ class MechMenu_Mechlab : MechMenu
 		// Get active mech.
 		let drvObj = I_DrivingObject.Get(players[consoleplayer].mo);
 		if(drvObj && drvObj.source) mech = DrivableMech(drvObj.source);
-		
+	
+		vector2 hpSlotsPos = (850,300);
+		double slotsWidth = 196;
+		double spacing = 205;
+	
+		// Head
+		let headSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_HD", hpSlotsPos - (0,25), (slotsWidth,256))
+		);
+		headSlots.Setup(mech.head, slotsWidth, 34);
+	
+		// Arms
 		let leftArmSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LA", (200,200), (256,256))
+			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos + (spacing*2,  50), (slotsWidth,256))
 		);
-		leftArmSlots.Setup(mech.leftArm, 256, 34);
-		
-		let leftTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LT", (500,200), (256,256))
-		);
-		leftTorsoSlots.Setup(mech.leftTorso, 256, 34);
-		
-		let centerTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_CT", (800,200), (256,256))
-		);
-		centerTorsoSlots.Setup(mech.torso, 256, 34);
-		
-		let rightTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RT", (1100,200), (256,256))
-		);
-		rightTorsoSlots.Setup(mech.rightTorso, 256, 34);
+		leftArmSlots.Setup(mech.leftArm, slotsWidth, 34);
 		
 		let rightArmSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RA", (1400,200), (256,256))
+			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
 		);
-		rightArmSlots.Setup(mech.rightArm, 256, 34);
+		rightArmSlots.Setup(mech.rightArm, slotsWidth, 34);
 		
+		// Torso(s)
+		let leftTorsoSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_LT", hpSlotsPos + (spacing,0), (slotsWidth,256))
+		);
+		leftTorsoSlots.Setup(mech.leftTorso, slotsWidth, 34);
+		
+		let centerTorsoSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_CT", hpSlotsPos + (0,175), (slotsWidth,256))
+		);
+		centerTorsoSlots.Setup(mech.torso, slotsWidth, 34);
+		
+		let rightTorsoSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_RT", hpSlotsPos - (spacing,0), (slotsWidth,256))
+		);
+		rightTorsoSlots.Setup(mech.rightTorso, slotsWidth, 34);
+		
+		// Legs
+		let leftLegSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_LL", hpSlotsPos + (-spacing, 300), (slotsWidth,256))
+		);
+		leftLegSlots.Setup(mech.leftLeg, slotsWidth, 34);
+		
+		let rightLegSlots = MechHardpointContainer(
+			AddElement("MechHardpointContainer", "Hardpoint_RL", hpSlotsPos + (spacing,300), (slotsWidth,256))
+		);
+		rightLegSlots.Setup(mech.rightLeg, slotsWidth, 34);
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (16,16))); 
