@@ -117,7 +117,7 @@ class Hellbringer_CenterTorso : MechTorso
 	
 	override void SetupMounts()
 	{
-		AddMountPoint("", 30, 0, 10);
+		//AddMountPoint("", 30, 0, 10);
 	}
 }
 
@@ -154,7 +154,7 @@ class Hellbringer_RightTorso : MechSideTorso
 	
 	override void SetupMounts()
 	{
-		AddMountPoint("", 30, 0, -10);
+		//AddMountPoint("", 30, 0, -10);
 	}
 }
 

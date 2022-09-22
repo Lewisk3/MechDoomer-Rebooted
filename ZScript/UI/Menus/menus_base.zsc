@@ -54,10 +54,10 @@ class MenuElement : Object abstract ui
 	{
 		return size.x > 0 && size.y > 0;
 	}
-	virtual bool CheckCollision(MenuElement other) 
+	virtual bool CheckCollision(MenuElement other, bool callOnCollide = true) 
 	{
 		bool collides = AABBCollision(pos, size, other.pos, other.size); 
-		if(collides) OnCollision(other);
+		if(collides && callOnCollide) OnCollision(other);
 		
 		return collides;
 	}
@@ -70,7 +70,7 @@ class MenuElement : Object abstract ui
 			let element = parentMenu.elements[i];
 			if( !(element is type) ) continue;
 			
-			if(CheckCollision(element))
+			if(CheckCollision(element, false))
 				return element;
 		}
 		return NULL;

@@ -15,6 +15,21 @@ class MechButtons_Handler : EventHandler
 		
 		if(menuArgs[0] ~== "mechlab" && argc >= 4)
 		{
+			if(menuArgs[1] ~== "armor")
+			{
+				let srcHardpoint = MechHardpoint(mech.parts[menuArgs[4].ToInt()]);
+				double amt = menuArgs[5].ToInt();
+				
+				bool front = menuArgs[2] ~== "front";
+				bool rear = menuArgs[2] ~== "rear";
+				
+				if(menuArgs[3] ~== "add")
+					srcHardpoint.adjustArmor(front ? amt : 0, rear ? amt : 0);
+				
+				if(menuArgs[3] ~== "remove")
+					srcHardpoint.adjustArmor(front ? -amt : 0, rear ? -amt : 0);		
+			}
+				
 			if(menuArgs[1] ~== "item")
 			{
 				string indexArgs = menuArgs[3];
@@ -48,7 +63,7 @@ class MechButtons_Handler : EventHandler
 					srcItem.TryDetach();
 				}
 			}
-		}	
+		}
 	}
 	
 	// Moar keys

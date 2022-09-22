@@ -104,22 +104,23 @@ class MechItemSlot : MenuElement
 	override void OnDrop(MenuCursor cursor)
 	{
 		let mechlab = MechMenu_MechLab(parentMenu);
-		if(!mechlab) return;
+		if(!mechlab || !cursor) return;
 		
 		let dropContainer = MechHardpointContainer(getCollidingWithType("MechHardpointContainer"));
+		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));
 		string itemIDs = mechlab.mech.getMechItemIndex(slotItem);
 				
-		if(dropContainer == container) 
+		if(mouseOverContainer == container) 
 		{
 			// Drop
 			pos = defaultPos; 
 			return;
 		}
-		else if(dropContainer)
+		else if(mouseOverContainer)
 		{
 			// Move
 			pos = defaultPos; 
-			EventHandler.SendNetworkEvent(String.Format("mechlab.item.move.%s.%d", itemIDs, dropContainer.partID));
+			EventHandler.SendNetworkEvent(String.Format("mechlab.item.move.%s.%d", itemIDs, mouseOverContainer.partID));
 			return;
 		}
 		else
@@ -145,12 +146,16 @@ class MechHardpointContainer : MenuElement
 	Array<MechItemSlot> slots;
 	double slotsWidth, slotsHeight;
 	double itemSpacing;
+	string containerName;
+	
+	Array<MechlabSquareButton> buttons;
 		
-	virtual void Setup(MechHardpoint hardpoint, double slotsWidth, double slotsHeight)
+	virtual void Setup(string title, MechHardpoint hardpoint, double slotsWidth, double slotsHeight)
 	{
 		self.hardpoint = hardpoint;
 		self.slotsHeight = slotsHeight;
 		self.slotsWidth = slotsWidth;
+		self.containerName = title;
 		mechlab = MechMenu_Mechlab(parentMenu);
 		itemSpacing = 0; //slotsHeight * (1/8.);
 		
@@ -166,6 +171,41 @@ class MechHardpointContainer : MenuElement
 				break;
 			}
 		}
+		
+		vector2 btnPos = pos + (0,-94);
+		double btnSize = 12;
+		double btnDist = 20;
+		
+		double xPos = hardpoint.hasRearArmor ? size.x*0.45 : size.x*0.60;
+		btnPos.x = pos.x+xPos;
+		
+		let armorPlusButton = MechlabSquareButton(
+			MenuElement.Create("MechlabSquareButton", "ArmorUP", parentMenu, btnPos, (btnSize,btnSize))
+		);
+		let armorMinusButton = MechlabSquareButton(
+			MenuElement.Create("MechlabSquareButton", "ArmorDOWN", parentMenu, btnPos + (0,btnDist), (btnSize,btnSize))
+		);
+		
+		if(hardpoint.hasRearArmor)
+		{
+			btnPos.x = pos.x + (size.x*0.80);
+			let rearArmorPlusButton = MechlabSquareButton(
+				MenuElement.Create("MechlabSquareButton", "rearArmorUP", parentMenu, btnPos, (btnSize,btnSize))
+			);
+			let rearArmorMinusButton = MechlabSquareButton(
+				MenuElement.Create("MechlabSquareButton", "rearArmorDOWN", parentMenu, btnPos + (0,btnDist), (btnSize,btnSize))
+			);
+			
+			rearArmorPlusButton.Setup("+");
+			rearArmorMinusButton.Setup("-");
+			buttons.push(rearArmorPlusButton);
+			buttons.push(rearArmorMinusButton);
+		}
+		
+		armorPlusButton.Setup("+");
+		armorMinusButton.Setup("-");
+		buttons.push(armorPlusButton);
+		buttons.push(armorMinusButton);
 		
 		// Create all slots
 		for(int i = 0; i < hardpoint.maxslots; i++)
@@ -222,13 +262,64 @@ class MechHardpointContainer : MenuElement
 			// Mouse collisions
 			mechlab.cursor.CheckCollision(curSlot);
 		}
-		
+				
 		size.y = 1 + (((slotsHeight*slots[0].scale) + itemSpacing) * slots.Size());
 	}
 	
 	override void Draw(double dT)
 	{
 		if(!mechlab) return;
+		
+		double wScale = slotsWidth / 256.;
+		
+		// Draw top-bar
+		vector2 topBarPos = pos - (0,130);
+		double topBarHeight = 120;
+		
+		MWDrawer.DrawImage(
+			"Graphics/Mechlab/itemTop.png", 
+			topBarPos - (0,3), scale:(-wScale*0.45, 0.6), 
+			tint:0, texoffs:(2,1)
+		);
+		
+		MWDrawer.DrawString("SmallFont", containerName, topBarPos + (5,-10), translation:Font.CR_BLACK, scale:(0.8,1.0)); 
+		
+		Array<HardpointMount> energyPoints, ballisticPoints, missilePoints;
+		hardpoint.getMountPoints(energyPoints, "Energy");
+		hardpoint.getMountPoints(ballisticPoints, "Ballistic");
+		hardpoint.getMountPoints(missilePoints, "Missile");
+		
+		double frontArmor = floor(hardpoint.armorPoints);
+		double rearArmor = floor(hardpoint.hasRearArmor ? hardpoint.rearArmor : -1);
+		
+		MWDrawer.Fill("Black", topBarPos.x,topBarPos.y + 8, size.x, topBarHeight);
+		MWDrawer.DrawRect(topBarPos + (0,8), (size.x,topBarHeight), "Gray");
+		
+		MWDrawer.Fill("DarkGray", topBarPos.x,topBarPos.y + 9, size.x, 20);
+		MWDrawer.DrawString("ConsoleFont", "ARMOR", topBarPos + (5,9), translation:Font.CR_GRAY); 
+		
+		// Armor Points
+		double reserveArmorPoints = ceil(hardpoint.maxArmor - (max(0,frontArmor) + max(0, rearArmor)));
+		MWDrawer.DrawString("ConsoleFont", ""..int(reserveArmorPoints), topBarPos + (160,9), translation:Font.CR_BLUE); 
+		
+		MWDrawer.DrawString("ConsoleFont", ""..int(frontArmor), topBarPos + (rearArmor >= 0 ? size.x*0.25 : size.x*0.4,45));
+		if(rearArmor >= 0)
+			MWDrawer.DrawString("ConsoleFont", ""..int(rearArmor), topBarPos + (size.x*0.6,45));
+		
+		// Weapon types
+		MWDrawer.Fill("DarkGray", topBarPos.x,topBarPos.y + 80, size.x, 20);
+		MWDrawer.DrawString("ConsoleFont", "STRUCTURE", topBarPos + (5,80), translation:Font.CR_GRAY); 
+		MWDrawer.DrawString("ConsoleFont", ""..int(ceil(hardpoint.healthPoints)), topBarPos + (160,80), translation:Font.CR_RED); 
+		
+		double iconScale = 0.60;
+		MWDrawer.DrawImage("Graphics/mechlab/energyIcon.png", topBarPos + (30,113), scale:(iconScale,iconScale));
+		MWDrawer.DrawString("ConsoleFont", ""..int(energyPoints.Size()), topBarPos + (45,105), translation:Font.CR_GREEN); 
+		
+		MWDrawer.DrawImage("Graphics/mechlab/ballisticIcon.png", topBarPos + (95,113), scale:(iconScale,iconScale));
+		MWDrawer.DrawString("ConsoleFont", ""..int(ballisticPoints.Size()), topBarPos + (105,105), translation:Font.CR_GREEN); 
+		
+		MWDrawer.DrawImage("Graphics/mechlab/missileIcon.png", topBarPos + (155,113), scale:(iconScale,iconScale));
+		MWDrawer.DrawString("ConsoleFont", ""..int(missilePoints.Size()), topBarPos + (170,105), translation:Font.CR_GREEN); 
 		
 		// Background
 		MWDrawer.Fill("Black", pos.x,pos.y, size.x, size.y);
@@ -242,7 +333,56 @@ class MechHardpointContainer : MenuElement
 			MWDrawer.DrawThickLine(pos.x, pos.y + drawY + slotSpacing, pos.x + size.x, pos.y + drawY + slotSpacing, 2, "Gray"); 
 			drawY += slotSpacing;
 		}
+		
+		// Buttons
+		for(int i = 0; i < buttons.Size(); i++)
+		{
+			let btn = buttons[i];	
+			
+			if( btn.Tag.IndexOf("UP") != -1 )
+				btn.disabled = reserveArmorPoints <= 0;
 				
+			if( btn.Tag ~== "ArmorDOWN")
+				btn.disabled = hardpoint.armorPoints <= 0;
+			if( btn.Tag ~== "rearArmorDOWN")
+				btn.disabled = hardpoint.rearArmor <= 0;
+				
+			if(btn.pressed)
+			{
+				if(btn.Tag ~== "ArmorUP")
+				{
+					EventHandler.SendNetworkEvent(
+						String.Format("mechlab.armor.front.add.%d.%d", partID, 1)
+					);
+				}
+				else if(btn.Tag ~== "rearArmorUP")
+				{
+					EventHandler.SendNetworkEvent(
+						String.Format("mechlab.armor.rear.add.%d.%d", partID, 1)
+					);
+				}
+				else if(btn.Tag ~== "ArmorDOWN")
+				{
+					EventHandler.SendNetworkEvent(
+						String.Format("mechlab.armor.front.remove.%d.%d", partID, 1)
+					);
+				}
+				else if(btn.Tag ~== "rearArmorDOWN")
+				{
+					EventHandler.SendNetworkEvent(
+						String.Format("mechlab.armor.rear.remove.%d.%d", partID, 1)
+					);
+				}
+				btn.pressed = false;
+			}
+			
+			btn.Draw(dT);
+			btn.Update(dT);
+			
+			// Mouse collisions
+			mechlab.cursor.CheckCollision(btn);
+		}
+		
 		// Update slot draw positions
 		drawY = 0;
 		for(int i = 0; i < hardpoint.items.Size(); i++)
@@ -264,6 +404,63 @@ class MechHardpointContainer : MenuElement
 	}
 }
 
+class MechlabSquareButton : MenuElement
+{
+	string btnChar;
+	bool btnDown;
+	bool pressed;
+	bool disabled;
+	double heldTime;
+	
+	virtual void Setup(string btnChar = "+")
+	{
+		self.btnChar = btnChar;
+	}
+
+	override void Draw(double dT)
+	{
+		let cursor = MenuCursor(getCollidingWithType("MenuCursor"));
+		
+		if(btnDown)
+			heldTime += dT;
+		else
+			heldTime = 0;
+			
+		if(!disabled)
+		{
+			if(heldTime > 5)
+			{
+				pressed = true;
+				OnPressed();
+				heldTime = 0;
+			}
+		
+			if(cursor && btnDown && !cursor.leftDown && !pressed) 
+			{
+				pressed = true;
+				OnPressed();
+			}
+		}
+		btnDown = (cursor ? cursor.leftDown : false);
+	
+		double txtScale = size.x / 16.;
+		if(!btnDown && !disabled)
+		{
+			MWDrawer.DrawRect(pos, size + (2,2), "DarkGray");
+			MWDrawer.Fill("White", pos.x,pos.y, size.x,size.y);
+			MWDrawer.DrawString("ConsoleFont", btnChar, pos - (0.5,2), translation:Font.CR_GRAY, scale:(txtScale,txtScale));
+		}
+		else
+		{
+			MWDrawer.DrawRect(pos, size + (2,2), "DarkGray");
+			MWDrawer.Fill("White", pos.x,pos.y, size.x + 2,size.y + 2);
+			MWDrawer.DrawString("ConsoleFont", btnChar, pos - (0,0), translation:Font.CR_BLACK, scale:(txtScale,txtScale));
+		}
+	}
+	
+	virtual void OnPressed() {}
+}
+
 class MechMenu_Mechlab : MechMenu 
 {
 	MechLabCursor cursor;
@@ -283,53 +480,49 @@ class MechMenu_Mechlab : MechMenu
 		let headSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_HD", hpSlotsPos - (0,25), (slotsWidth,256))
 		);
-		headSlots.Setup(mech.head, slotsWidth, 34);
+		headSlots.Setup("Head", mech.head, slotsWidth, 34);
 	
 		// Arms
 		let leftArmSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos + (spacing*2,  50), (slotsWidth,256))
 		);
-		leftArmSlots.Setup(mech.leftArm, slotsWidth, 34);
+		leftArmSlots.Setup("Left Arm", mech.leftArm, slotsWidth, 34);
 		
 		let rightArmSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
 		);
-		rightArmSlots.Setup(mech.rightArm, slotsWidth, 34);
+		rightArmSlots.Setup("Right Arm", mech.rightArm, slotsWidth, 34);
 		
 		// Torso(s)
 		let leftTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LT", hpSlotsPos + (spacing,0), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_LT", hpSlotsPos - (spacing,0), (slotsWidth,256))
 		);
-		leftTorsoSlots.Setup(mech.leftTorso, slotsWidth, 34);
+		leftTorsoSlots.Setup("Left Torso", mech.leftTorso, slotsWidth, 34);
 		
 		let centerTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_CT", hpSlotsPos + (0,175), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_CT", hpSlotsPos + (0,230), (slotsWidth,256))
 		);
-		centerTorsoSlots.Setup(mech.torso, slotsWidth, 34);
+		centerTorsoSlots.Setup("Center Torso", mech.torso, slotsWidth, 34);
 		
 		let rightTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RT", hpSlotsPos - (spacing,0), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_RT", hpSlotsPos + (spacing,0), (slotsWidth,256))
 		);
-		rightTorsoSlots.Setup(mech.rightTorso, slotsWidth, 34);
+		rightTorsoSlots.Setup("Right Torso", mech.rightTorso, slotsWidth, 34);
 		
 		// Legs
 		let leftLegSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LL", hpSlotsPos + (-spacing, 300), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_LL", hpSlotsPos + (-spacing, 355), (slotsWidth,256))
 		);
-		leftLegSlots.Setup(mech.leftLeg, slotsWidth, 34);
+		leftLegSlots.Setup("Left Leg", mech.leftLeg, slotsWidth, 34);
 		
 		let rightLegSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RL", hpSlotsPos + (spacing,300), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_RL", hpSlotsPos + (spacing,355), (slotsWidth,256))
 		);
-		rightLegSlots.Setup(mech.rightLeg, slotsWidth, 34);
+		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
 		
 		// Cursor is added last, to keep always on-top.
-		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (16,16))); 
+		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 
 		
-		/*
-		let testSlot = MechItemSlot(AddElement("MechItemSlot", "TestSlot", (200,400), (256,34)));
-		testSlot.slotItem = mech.FindItem("LRM20");
-		*/
 	}
 	
 	override void processNetworkEvent(ConsoleEvent e)
