@@ -81,7 +81,8 @@ class DrivableMech : DrivableObject
 		BT_TORSOLOCK  = 1 << 9,
 		BT_ARMLOCK    = 1 << 10,
 		BT_GETTARGET  = 1 << 11,   
-		BT_PEEKINV    = 1 << 12
+		BT_PEEKINV    = 1 << 12,
+		BT_POWERCYCLE = 1 << 13
 	};
 	
 	enum GroupBits
@@ -685,6 +686,15 @@ class DrivableMech : DrivableObject
 		
 		if(curHeat <= kelvinToBHU(500.0)) 
 			heatCritical = false;
+		
+		// System buttons (Active regardless of power-state)
+		if(getExtBtn(BT_POWERCYCLE, DriverBtns.BTS_PRESSED))
+		{
+			if(shutdown) 
+				DoPowerup();
+			else
+				DoShutDown();
+		}
 		
 		// Movement code.
 		if(shutdown) return;

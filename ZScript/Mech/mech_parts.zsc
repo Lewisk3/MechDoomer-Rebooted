@@ -141,12 +141,12 @@ class MechHardpoint : MechPart
 	
 	bool adjustArmor(double front, double rear = 0)
 	{
-		double frontArmorTo = armorPoints + front;
-		double rearArmorTo = rearArmor + rear;
+		double frontArmorTo = floor(armorPoints) + front;
+		double rearArmorTo = floor(rearArmor) + rear;
 		
 		if( frontArmorTo+rearArmorTo > maxArmor || 
 		    frontArmorTo < 0 || rearArmorTo < 0 ) return false;
-		
+			
 		armorPoints = frontArmorTo;
 		rearArmor = rearArmorTo;
 		return true;
@@ -159,8 +159,7 @@ class MechHardpoint : MechPart
 	}
 	clearscope double, double getVitals()
 	{
-		double adjustedMaxArmor = maxArmor - maxRearArmor;
-		return adjustedMaxArmor > 0 ? (armorPoints / adjustedMaxArmor) : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
+		return maxArmor > 0 ? ( (armorPoints+rearArmor) / maxArmor ) : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
 	}
 	clearscope double getRearVitals()
 	{

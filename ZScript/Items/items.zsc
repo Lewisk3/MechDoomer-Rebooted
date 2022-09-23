@@ -11,7 +11,7 @@ class MechHeatsink : MechItem
 		buffer = 2.6;
 		displayName = "Heatsink";
 	}
-	
+
 	override void OnAttach()
 	{	
 		super.OnAttach();

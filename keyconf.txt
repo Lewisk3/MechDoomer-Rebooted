@@ -37,12 +37,16 @@ Alias -mw_gettarget "netevent -mw_gettarget"
 Alias +mw_peekinventory "netevent +mw_peekinventory";
 Alias -mw_peekinventory "netevent -mw_peekinventory";
 
+Alias +mw_powercycle "netevent +mw_powercycle";
+Alias -mw_powercycle "netevent -mw_powercycle";
+
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK
 addmenukey "Fire Group 2" +ALTATTACK
 addmenukey "Fire Group 3" +USER1
 addmenukey "Fire Group 4" +USER2
 addmenukey "Fire Group 5" +USER3
+addmenukey "Power Cycle" +mw_powercycle
 addmenukey "Toggle Camera" +RELOAD
 addmenukey "Jump Jets" +JUMP
 addmenukey "Arm Lock" +mw_armlock

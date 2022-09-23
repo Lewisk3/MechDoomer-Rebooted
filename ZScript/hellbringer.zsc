@@ -49,6 +49,7 @@ class MechHellbringer : DrivableMech
 		rightArm.AddItem("AC2Ammo");
 		rightArm.AddItem("AC5Ammo");
 		rightArm.AddItem("AC10Ammo");
+		rightArm.AddItem("AC10Ammo");
 		rightArm.AddItem("AC20Ammo");
 		
 		leftTorso.AddWeapon("LRM20", GROUPFLG_FOUR);

@@ -1,143 +1,6 @@
 class MechLabCursor : MenuCursor {}
 
-class MechItemSlot : MenuElement
-{
-	MechHardpointContainer container;
-	vector2 defaultPos;
-	MechItem slotItem;
-	double slotHeight;
-	double scale;
-	double alpha;
-
-	override void Init()
-	{
-		super.Init();
-		defaultPos = pos;
-		slotHeight = size.y;
-		scale = 0.5;
-		alpha = 1.0;
-	}
-	
-	override void Draw(double dT)
-	{
-		Font itemFont = "SmallFont"; 
-		
-		Color slotColor = 0;
-		uint itemFontColor = Font.CR_WHITE;
-		double wScale = size.x / 256;
-		if(slotItem) 
-		{	
-			bool isDynamic = slotItem is "MechDynamicStructure";
-			if(!slotItem.movable && !isDynamic)
-			{
-				itemFontColor = Font.CR_BLACK;
-			}
-			else
-			{
-				let weap = MechWeapon(slotItem);
-				if(weap)
-				{
-					if(weap.mountType ~== "energy"   ) slotColor = 0xA0FFFF00;
-					if(weap.mountType ~== "ballistic") slotColor = 0xA00000FF;
-					if(weap.mountType ~== "missile"  ) slotColor = 0xA000FF00;
-				}
-				
-				if(isDynamic)
-				{
-					itemFontColor = Font.CR_BLACK;
-					slotColor = 0xB2000000;
-				}
-				
-				if(slotItem is "MechAmmo")
-					slotColor = 0xA0FF00FF;
-				
-				if(slotItem is "MechEngine")
-					slotColor = 0xA0FF0000;
-			}
-		}
-		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, texoffs:(0,0));
-		
-		if(slotItem)
-		{
-			int itemSize = max(1,slotItem.size);
-			double scaledSlotHeight = slotHeight * scale;
-			for(int i = 0; i < itemSize-1; i++)
-			{
-				MWDrawer.DrawImage(
-					"Graphics/Mechlab/itemBottom.png", 
-					pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
-					alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, 
-					texoffs:(0,0)
-				);
-			}
-			
-			// Draw item data
-			double fontScale = scale * 1.75;
-			vector2 centerPos = pos + (
-				(size.x / 2.0),
-				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
-			);
-			
-			MWDrawer.DrawString(
-				itemFont, slotItem.displayName, 
-				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor,
-				alpha, scale:(fontScale, fontScale)
-			);
-		}
-		
-		// drawCollider();
-	}
-	
-	override bool checkDraggable()
-	{
-		return slotItem && slotItem.movable;
-	}
-	
-	override void updateDragPos(MenuCursor cursor)
-	{
-		pos = cursor.pos - (
-			(size.x / 2.0) - (cursor.size.x / 2.0), 
-			(size.y / 2.0) + 4
-		);
-	}
-	
-	override void OnDrop(MenuCursor cursor)
-	{
-		let mechlab = MechMenu_MechLab(parentMenu);
-		if(!mechlab || !cursor) return;
-		
-		let dropContainer = MechHardpointContainer(getCollidingWithType("MechHardpointContainer"));
-		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));
-		string itemIDs = mechlab.mech.getMechItemIndex(slotItem);
-				
-		if(mouseOverContainer == container) 
-		{
-			// Drop
-			pos = defaultPos; 
-			return;
-		}
-		else if(mouseOverContainer)
-		{
-			// Move
-			pos = defaultPos; 
-			EventHandler.SendNetworkEvent(String.Format("mechlab.item.move.%s.%d", itemIDs, mouseOverContainer.partID));
-			return;
-		}
-		else
-		{
-			// Dequip
-			EventHandler.SendNetworkEvent(String.Format("mechlab.item.dequip.%s", itemIDs));
-		}
-	}
-	
-	override void Update(double dT)
-	{
-		// Update size to item slot size.
-		double scaledSlotHeight = slotHeight * scale;
-		size.y = slotItem ? scaledSlotHeight * max(1,slotItem.size) : scaledSlotHeight;
-	}
-}
-
+// Hardpoint Container
 class MechHardpointContainer : MenuElement
 {
 	int partID;
@@ -230,12 +93,8 @@ class MechHardpointContainer : MenuElement
 			let curSlot = slots[fillSlot];
 			let prevItem = curSlot.slotItem;
 			curSlot.slotItem = hardpoint.items[i];
-			
-			// Update slot position(s)
-			if(prevItem != curSlot.slotItem)
-				curSlot.pos.x = pos.x;
-				
 			curSlot.Update(dT);
+			
 			fillSlot++;
 			
 			// Mouse collisions
@@ -250,11 +109,6 @@ class MechHardpointContainer : MenuElement
 			let curSlot = slots[fillSlot];
 			let prevItem = curSlot.slotItem;
 			curSlot.slotItem = hardpoint.items[i];
-			
-			// Update slot position(s)
-			if(prevItem != curSlot.slotItem)
-				curSlot.pos.x = pos.x;
-			
 			curSlot.Update(dT);
 			
 			fillSlot++;
@@ -393,6 +247,7 @@ class MechHardpointContainer : MenuElement
 			
 			if(slot.slotItem)
 			{
+				slot.pos.x = pos.x;
 				slot.pos.y = pos.y + drawY;
 				slot.Draw(dT);
 				drawY += (slotSpacing * max(1, slot.slotItem.size));
@@ -404,6 +259,335 @@ class MechHardpointContainer : MenuElement
 	}
 }
 
+class MechItemSlot : MenuElement
+{
+	MechHardpointContainer container;
+	vector2 defaultPos;
+	MechItem slotItem;
+	double slotHeight;
+	double scale;
+	double alpha;
+
+	override void Init()
+	{
+		super.Init();
+		defaultPos = pos;
+		slotHeight = size.y;
+		scale = 0.5;
+		alpha = 1.0;
+	}
+	
+	static Color, Color GetItemColors(MechItem item)
+	{
+		Color slotColor = 0;
+		uint itemFontColor = Font.CR_WHITE;
+		if(!item) return itemFontColor, slotColor;
+		
+		bool isDynamic = item is "MechDynamicStructure";
+		if(!item.movable && !isDynamic)
+		{
+			itemFontColor = Font.CR_BLACK;
+		}
+		else
+		{
+			let weap = MechWeapon(item);
+			if(weap)
+			{
+				if(weap.mountType ~== "energy"   ) slotColor = 0xA0FFFF00;
+				if(weap.mountType ~== "ballistic") slotColor = 0xA00000FF;
+				if(weap.mountType ~== "missile"  ) slotColor = 0xA000FF00;
+			}
+			
+			if(isDynamic)
+			{
+				itemFontColor = Font.CR_BLACK;
+				slotColor = 0xB2000000;
+			}
+			
+			if(item is "MechAmmo")
+				slotColor = 0xA0FF00FF;
+			
+			if(item is "MechEngine")
+				slotColor = 0xA0FF0000;
+		}
+		
+		return itemFontColor, slotColor;
+	}
+	
+	override void Draw(double dT)
+	{
+		Font itemFont = "SmallFont"; 
+		
+		Color slotColor = 0;
+		uint itemFontColor = Font.CR_WHITE;
+		double wScale = size.x / 256;
+		
+		[itemFontColor, slotColor] = GetItemColors(slotItem);
+		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, texoffs:(0,0));
+		
+		if(slotItem)
+		{
+			int itemSize = max(1,slotItem.size);
+			double scaledSlotHeight = slotHeight * scale;
+			for(int i = 0; i < itemSize-1; i++)
+			{
+				MWDrawer.DrawImage(
+					"Graphics/Mechlab/itemBottom.png", 
+					pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
+					alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, 
+					texoffs:(0,0)
+				);
+			}
+			
+			// Draw item data
+			double fontScale = scale * 1.75;
+			vector2 centerPos = pos + (
+				(size.x / 2.0),
+				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
+			);
+			
+			MWDrawer.DrawString(
+				itemFont, slotItem.displayName, 
+				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor,
+				alpha, scale:(fontScale, fontScale)
+			);
+		}
+		
+		// drawCollider();
+	}
+	
+	override bool checkDraggable()
+	{
+		return slotItem && slotItem.movable;
+	}
+	
+	override void updateDragPos(MenuCursor cursor)
+	{
+		pos = cursor.pos - (
+			(size.x / 2.0) - (cursor.size.x / 2.0), 
+			(size.y / 2.0) + 4
+		);
+	}
+	
+	override void OnDrop(MenuCursor cursor)
+	{
+		let mechlab = MechMenu_MechLab(parentMenu);
+		if(!mechlab || !cursor) return;
+		
+		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));
+		string itemIDs = mechlab.mech.getMechItemIndex(slotItem);
+				
+		if(mouseOverContainer == container) 
+		{
+			// Drop
+			pos = defaultPos; 
+			return;
+		}
+		else if(mouseOverContainer)
+		{
+			// Move
+			pos = defaultPos; 
+			EventHandler.SendNetworkEvent(String.Format("mechlab.item.move.%s.%d", itemIDs, mouseOverContainer.partID));
+			return;
+		}
+		else
+		{
+			// Dequip
+			EventHandler.SendNetworkEvent(String.Format("mechlab.item.dequip.%s", itemIDs));
+		}
+	}
+	
+	override void Update(double dT)
+	{
+		// Update size to item slot size.
+		double scaledSlotHeight = slotHeight * scale;
+		size.y = slotItem ? scaledSlotHeight * max(1,slotItem.size) : scaledSlotHeight;
+	}
+}
+
+// Inventory container
+class MenuItemsInvContainer : MenuElement
+{
+	MechMenu_Mechlab mechlab;
+	Actor driver;
+	Array<MechInvItem> invItems;
+	
+	override void Init()
+	{
+		mechlab = MechMenu_Mechlab(parentMenu);
+		if(!mechlab || !mechlab.mech) return;
+		
+		driver = mechlab.mech.driver;
+	}
+	
+	override void Draw(double dT)
+	{
+		if(!driver) return;
+		
+		let inv = I_MechItemStorage(driver.FindInventory("I_MechItemStorage"));
+		if(!inv) return;
+		
+		if(invItems.Size() != inv.items.Size())
+			invItems.Resize(inv.items.Size());
+		
+		double itemSpacing = 16;
+		double curY = pos.y + 20;
+		
+		MWDrawer.SetClipRect(pos.x,pos.y,size.x,size.y);
+		for(int i = 0; i < invItems.Size(); i++)
+		{
+			let item = invItems[i];
+			if(!item)
+			{	
+				item = MechInvItem(MenuElement.Create(
+					"MechInvItem", 
+					String.Format("InvItem#%d",i), 
+					parentMenu, pos + (size.x*0.30, 0), (size.x * 0.5, 16)
+				));
+				
+				item.item = inv.items[i];
+				item.itemID = i;
+				invItems[i] = item;
+			}
+			
+			bool dragging = mechlab.cursor.draggingElement == item;
+			bool outOfBounds = !item.CheckCollision(self, false);
+			item.outOfBounds = outOfBounds;
+			
+			if(!dragging)
+			{
+				item.pos.y = curY;			
+				if(!outOfBounds) item.Draw(dT);
+			}
+			else
+			{	
+				// Redraw item but, grayed out.
+				vector2 oldPos = item.pos;
+				item.grayed = true;
+				item.pos.x = item.defaultPos.x;
+				item.pos.y = curY;
+				item.Draw(dT);
+				item.grayed = false;
+				item.pos = oldPos;
+			}
+			
+			// Needs to be called after Draw
+			curY += (item.size.y + itemSpacing);
+			
+			if(!outOfBounds) item.Update(dT);
+			mechlab.cursor.CheckCollision(item);
+		}
+		MWDrawer.ClearClipRect();
+		
+		drawCollider();
+	}
+}
+
+class MechInvItem : MenuElement
+{
+	MechItem item;
+	int itemID;
+	bool grayed;
+	bool outOfBounds;
+	bool dragging;
+	vector2 defaultPos;
+	
+	override void Init()
+	{
+		super.Init();
+		defaultPos = pos;
+	}
+	
+	override bool checkDraggable()
+	{
+		return !outOfBounds;
+	}	
+	override void updateDragPos(MenuCursor cursor)
+	{
+		pos = cursor.pos - (
+			(size.x / 2.0) - (cursor.size.x / 2.0), 
+			(size.y / 2.0) + 4
+		);
+		dragging = true;
+	}
+	
+	override void OnDrop(MenuCursor cursor)
+	{
+		pos = defaultPos;
+		dragging = false;
+		
+		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));		
+		if(mouseOverContainer)
+		{
+			// Equip
+			EventHandler.SendNetworkEvent(String.Format("mechlab.item.equip.%d.%d", itemID, mouseOverContainer.partID));
+		}
+	}
+	
+	override void Draw(double dT)
+	{
+		Font itemFont = "SmallFont"; 
+		
+		Color slotColor = 0;
+		uint itemFontColor = Font.CR_WHITE;
+		[itemFontColor, slotColor] = MechItemSlot.GetItemColors(item);
+		if(grayed) 
+		{
+			itemFontColor = Font.CR_BLACK;
+			slotColor = "Gray";
+		}
+		
+		double scale = 0.5;
+		double yscale = 1.1;
+		double slotHeight = 32 * scale;
+		double wScale = size.x / 256.0;
+		vector2 amtOffs = (size.x * 0.5, -(size.y*0.25));
+		
+		size.y = item ? slotHeight * max(1,item.size) * yscale : slotHeight;
+		
+		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, scale:(scale*wScale,scale*yscale), tint:slotColor, texoffs:(0,0));
+		
+		if(item)
+		{
+			int itemSize = max(1,item.size);
+			for(int i = 0; i < itemSize-1; i++)
+			{
+				MWDrawer.DrawImage(
+					"Graphics/Mechlab/itemBottom.png", 
+					pos + (0, slotHeight + (i * slotHeight*yscale)), 
+					scale:(scale*wScale,scale*yscale), tint:slotColor, 
+					texoffs:(0,0)
+				);
+			}
+			
+			// Draw item data
+			double fontScale = wScale*1.0;
+			vector2 centerPos = pos + (
+				(size.x / 2.0),
+				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
+			);
+			
+			MWDrawer.DrawString(
+				itemFont, item.displayName, 
+				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor,
+				scale:(fontScale, fontScale)
+			);
+			
+			// Quantity
+			if(!dragging || grayed)
+			{
+				int itemAmount = grayed ? item.amount - 1: item.amount; 
+				MWDrawer.DrawString(
+					itemFont, String.Format("%d x ", itemAmount), 
+					centerPos - amtOffs, MWDrawer.SS_TEXT_RIGHT, Font.CR_WHITE,
+					scale:(fontScale, fontScale)*1.2
+				);
+			}
+		}
+	}
+}
+
+// Buttons
 class MechlabSquareButton : MenuElement
 {
 	string btnChar;
@@ -461,6 +645,7 @@ class MechlabSquareButton : MenuElement
 	virtual void OnPressed() {}
 }
 
+// Mechlab Menu
 class MechMenu_Mechlab : MechMenu 
 {
 	MechLabCursor cursor;
@@ -471,8 +656,9 @@ class MechMenu_Mechlab : MechMenu
 		// Get active mech.
 		let drvObj = I_DrivingObject.Get(players[consoleplayer].mo);
 		if(drvObj && drvObj.source) mech = DrivableMech(drvObj.source);
+		if(!mech) return;
 	
-		vector2 hpSlotsPos = (850,300);
+		vector2 hpSlotsPos = (750,325);
 		double slotsWidth = 196;
 		double spacing = 205;
 	
@@ -484,12 +670,12 @@ class MechMenu_Mechlab : MechMenu
 	
 		// Arms
 		let leftArmSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos + (spacing*2,  50), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
 		);
 		leftArmSlots.Setup("Left Arm", mech.leftArm, slotsWidth, 34);
 		
 		let rightArmSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos + (spacing*2, 50), (slotsWidth,256))
 		);
 		rightArmSlots.Setup("Right Arm", mech.rightArm, slotsWidth, 34);
 		
@@ -519,6 +705,9 @@ class MechMenu_Mechlab : MechMenu
 			AddElement("MechHardpointContainer", "Hardpoint_RL", hpSlotsPos + (spacing,355), (slotsWidth,256))
 		);
 		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
+		
+		// Items inventory
+		AddElement("MenuItemsInvContainer", "InventoryContainer", (1380,170), (480,800));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 

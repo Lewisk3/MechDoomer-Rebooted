@@ -28,6 +28,16 @@ class MechItem : Object
 		return (other.getClass() == getClass()) && (other.hp == hp && movable);
 	}
 	
+	// Called when item is added to inventory (Not attached to a mech)
+	virtual void OnInventoryAdd() {}
+	
+	virtual MechItem MakeCopy()
+	{
+		let item = MechItem.Init(getClass());
+		item.hp = hp;
+		return item;
+	}
+	
 	play virtual bool TryAttach(MechHardpoint part)
 	{
 		if(part.mech.noItemSlots) return false;
@@ -52,7 +62,7 @@ class MechItem : Object
 	
 	play virtual bool TryDetach(bool forced = false)
 	{
-		if(!movable && !forced) return false;
+		if(!movable && !forced || !parent) return false;
 		uint id = parent.items.Find(self);
 		OnDetach();
 		
@@ -127,6 +137,20 @@ class MechAmmo : MechItem
 	virtual void SetupAmmo()
 	{
 		curAmmo = maxAmmo;
+	}
+	
+	override bool CanStack(MechItem other)
+	{
+		bool res = super.CanStack(other);
+		return res && MechAmmo(other).curAmmo == curAmmo;
+	}
+	
+	override MechItem MakeCopy()
+	{
+		let item = MechAmmo(super.MakeCopy());
+		item.curAmmo = curAmmo;
+		item.maxAmmo = maxAmmo;
+		return item;
 	}
 	
 	override void DoEffect()
@@ -281,7 +305,7 @@ class MechArmor : MechItem
 		for(int i = 0; i < hardpoints.Size(); i++)
 		{
 			let hardpoint = hardpoints[i];
-			fullArmorPts += hardpoint.maxArmor;
+			fullArmorPts += (hardpoint.armorPoints + hardpoint.rearArmor);
 		}
 		return fullArmorPts;
 	}
@@ -503,10 +527,13 @@ class MechEngine : MechItem
 	override void OnDetach()
 	{
 		super.OnDetach();
-		
+	
 		// Remove engine blocks.
 		for(int i = 0; i < engineBlocks.Size(); i++)
-			engineBlocks[i].TryDetach(forced:true);
+		{
+			let block = engineBlocks[i];
+			if(block) block.TryDetach(forced:true);
+		}
 			
 		// Remove heatsinks
 		for(int i = 0; i < heatsinks.Size(); i++)
@@ -515,6 +542,9 @@ class MechEngine : MechItem
 			heatsink.OnDetach();
 			heatsink.Destroy();
 		}
+		
+		engineBlocks.Resize(0);
+		heatsinks.Resize(0);
 	}
 	
 	override bool TryAttach(MechHardpoint part)
@@ -544,7 +574,7 @@ class MechEngine : MechItem
 		for(int i = 0; i < heatsinks.Size(); i++)
 		{
 			let heatsink = heatsinks[i];
-			heatsink.DoEffect();
+			if(heatsink) heatsink.DoEffect();
 		}
 	}
 }
@@ -579,6 +609,13 @@ class MechWeapon : MechItem
 		return (dmg / MechHardpoint.DMGSCALE) / delta;
 	}
 	// --------------------------- \\
+	
+	override MechItem MakeCopy()
+	{
+		let item = MechWeapon(super.MakeCopy());
+		item.group = group;
+		return item;
+	}
 	
 	play virtual void A_Recoil(double pitchAmt, double pushBack = 0)
 	{
@@ -640,9 +677,13 @@ class MechWeapon : MechItem
 		return super.TryAttach(part);
 	}
 	
+	override void OnInventoryAdd()
+	{
+		group = 1; // Reset weapon groupings
+	}
 	override void OnDetach()
 	{
-		if(mount) mount.unmountItem();
+		if(mount) mount.unmountItem(); // Clear mech mount point.
 	}
 	
 	play static void FireWeapons(Array<MechWeapon> weaps, Array<MechWeaponGroup> groups, uint grp = 0, bool instantFire = false)
@@ -743,7 +784,7 @@ class MechWeapon : MechItem
 	{
 		// Do not remove item.
 	}
-	
+		
 	// Note: firePos is ALWAYS relative offsets from the parent's position
 	// to get absolute positions, use parent.OffsetPos(firePos.x,firePos.y,firePos.z)
 	play virtual bool Fire(vector3 firePos)
@@ -764,5 +805,78 @@ class MechWeaponGroup : Object
 	virtual void DoEffect()
 	{
 		if(weapCycle) weapCycle--;
+	}
+}
+
+// Inventory item for storing mechitems
+class I_MechItemStorage : Inventory
+{
+	Array<MechItem> items;
+	
+	Default
+	{
+		Inventory.MaxAmount 1;
+		+INVENTORY.UNDROPPABLE;
+	}
+	
+	void FindItems(class<MechItem> itemCls, Array<MechItem> result, bool subclass = false)
+	{
+		for(int i = 0; i < items.Size(); i++)
+		{
+			let item = items[i];
+			if( ((item is itemCls) && subclass) || item.getClass() == itemCls )
+				result.Push(item);
+		}
+	}
+	
+	MechItem takeItem(int index)
+	{
+		let item = items[index];
+		MechItem output = (item.amount > 1) ? item.MakeCopy() : item;	
+		depleteItem(item);
+		
+		return output;
+	}	
+	
+	void depleteItem(MechItem item)
+	{	
+		if(item.amount > 1)
+			item.amount--;
+		else
+		{
+			int index = items.Find(item);
+			if(index != items.Size()) items.Delete(index);
+		}
+	}
+	
+	void AddItem(MechItem item)
+	{
+		Array<MechItem> validItems;
+		FindItems(item.getClass(), validItems);
+		
+		for(int i = 0; i < validItems.Size(); i++)
+		{
+			let stackItem = validItems[i];
+			if(stackItem && stackItem.CanStack(item))
+			{
+				stackItem.amount++;
+				return; // Successfully stacked item.
+			}
+		}
+		
+		item.OnInventoryAdd();
+		items.Push(item);
+	}
+	
+	static I_MechItemStorage Get(Actor from, bool give = true)
+	{
+		let itm = I_MechItemStorage(from.FindInventory("I_MechItemStorage"));
+		if(!itm && give)
+		{
+			from.GiveInventory("I_MechItemStorage", 1);
+			itm = I_MechItemStorage(from.FindInventory("I_MechItemStorage"));
+		}
+		
+		return itm;
 	}
 }

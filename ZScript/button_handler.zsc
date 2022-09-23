@@ -1,5 +1,18 @@
 class MechButtons_Handler : EventHandler
 {
+	// Setup MechItems for players
+	
+	override void WorldTick()
+	{
+		for(int i = 0; i < MAXPLAYERS; i++)
+		{
+			PlayerInfo plrInfo = players[i];
+			if(!plrInfo || !playerInGame[i]) continue;
+			let plr = players[i].mo;
+			I_MechItemStorage.Get(plr);
+		}
+	}
+
 	virtual void ProcessMechMenuEvents(ConsoleEvent e, DrivableObject veh)
 	{
 		// Menu events
@@ -31,15 +44,32 @@ class MechButtons_Handler : EventHandler
 			}
 				
 			if(menuArgs[1] ~== "item")
-			{
+			{	
 				string indexArgs = menuArgs[3];
 				Array<String> indices;
 				indexArgs.Split(indices, ":");
-				
-				int partID = indices[0].ToInt();
-				int itemID = indices[1].ToInt();
-								
-				if(menuArgs[2] ~== "equip") {}
+				int partID, itemID;
+				if(indices.Size() >= 2)
+				{
+					partID = indices[0].ToInt();
+					itemID = indices[1].ToInt();
+				}
+			
+				if(menuArgs[2] ~== "equip") 
+				{
+					let itemInv = I_MechItemStorage.Get(mech.driver);
+					if(!itemInv) return;
+					
+					int toHardpointID = menuArgs[4].toInt();
+					let toHardpoint = MechHardpoint(mech.parts[toHardpointID]);
+					if(!toHardpoint) return;
+					
+					let item = itemInv.takeItem(menuArgs[3].ToInt());
+					if(!item) return;
+
+					item.TryAttach(toHardpoint);
+					return;
+				}								
 				if(menuArgs[2] ~== "move") 
 				{
 					let srcHardpoint = MechHardpoint(mech.parts[partID]);
@@ -60,7 +90,11 @@ class MechButtons_Handler : EventHandler
 					let srcItem = MechHardpoint(mech.parts[partID]).items[itemID];
 					if(!srcItem) return;
 					
-					srcItem.TryDetach();
+					srcItem.TryDetach();			
+					let itemInv = I_MechItemStorage.Get(mech.driver);
+					if(!itemInv) return;
+					
+					itemInv.AddItem(srcItem);
 				}
 			}
 		}
@@ -96,8 +130,9 @@ class MechButtons_Handler : EventHandler
 			if(cmd ~== "mw_peekinventory") drvObj.source.setExtBtn(DrivableMech.BT_PEEKINV, btnState);
 			
 			if(cmd ~== "mw_gettarget")  drvObj.source.setExtBtn(DrivableMech.BT_GETTARGET, btnState);
+			if(cmd ~== "mw_powercycle") drvObj.source.setExtBtn(DrivableMech.BT_POWERCYCLE, btnState);
 			
-			if(cmd ~== "mw_openmechlab")
+			if(cmd ~== "mw_openmechlab" && e.Player == consoleplayer)
 			{
 				console.printf("Menu?");
 				Menu.SetMenu("MechMenu_Mechlab");
