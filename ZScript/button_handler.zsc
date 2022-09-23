@@ -61,13 +61,15 @@ class MechButtons_Handler : EventHandler
 					if(!itemInv) return;
 					
 					int toHardpointID = menuArgs[4].toInt();
+					int itemID = menuArgs[3].ToInt();
+					
 					let toHardpoint = MechHardpoint(mech.parts[toHardpointID]);
 					if(!toHardpoint) return;
-					
-					let item = itemInv.takeItem(menuArgs[3].ToInt());
+					let item = itemInv.takeItem(itemID, deplete:false);
 					if(!item) return;
 
-					item.TryAttach(toHardpoint);
+					bool success = item.TryAttach(toHardpoint);
+					if(success) itemInv.depleteItem(itemInv.items[itemID]);
 					return;
 				}								
 				if(menuArgs[2] ~== "move") 

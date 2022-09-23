@@ -411,6 +411,8 @@ class MenuItemsInvContainer : MenuElement
 	MechMenu_Mechlab mechlab;
 	Actor driver;
 	Array<MechInvItem> invItems;
+	double scroll, scrollVel, scrollMax;
+	MechContainerScrollBar scrollBar;
 	
 	override void Init()
 	{
@@ -418,6 +420,10 @@ class MenuItemsInvContainer : MenuElement
 		if(!mechlab || !mechlab.mech) return;
 		
 		driver = mechlab.mech.driver;
+		scrollBar = MechContainerScrollBar(
+			MenuElement.Create("MechContainerScrollBar", "invScrollBar", parentMenu, pos+(425,0), (32,0))
+		);
+		scrollBar.Setup(self);
 	}
 	
 	override void Draw(double dT)
@@ -426,12 +432,20 @@ class MenuItemsInvContainer : MenuElement
 		
 		let inv = I_MechItemStorage(driver.FindInventory("I_MechItemStorage"));
 		if(!inv) return;
-		
-		if(invItems.Size() != inv.items.Size())
-			invItems.Resize(inv.items.Size());
-		
+			
 		double itemSpacing = 16;
-		double curY = pos.y + 20;
+		double startY = 20;
+		double curY = (pos.y + startY) - scroll;
+		bool doScrollEnd = false; // If true, scrolls to the end of items list.
+		
+		// Update items list
+		int curSize = invItems.Size();
+		int newSize = inv.items.Size();
+		if(curSize != newSize)
+		{
+			if(newSize > curSize) doScrollEnd = true;
+			invItems.Resize(inv.items.Size());
+		}
 		
 		MWDrawer.SetClipRect(pos.x,pos.y,size.x,size.y);
 		for(int i = 0; i < invItems.Size(); i++)
@@ -444,11 +458,11 @@ class MenuItemsInvContainer : MenuElement
 					String.Format("InvItem#%d",i), 
 					parentMenu, pos + (size.x*0.30, 0), (size.x * 0.5, 16)
 				));
-				
-				item.item = inv.items[i];
-				item.itemID = i;
 				invItems[i] = item;
 			}
+			
+			item.item = inv.items[i];
+			item.itemID = i;
 			
 			bool dragging = mechlab.cursor.draggingElement == item;
 			bool outOfBounds = !item.CheckCollision(self, false);
@@ -479,7 +493,100 @@ class MenuItemsInvContainer : MenuElement
 		}
 		MWDrawer.ClearClipRect();
 		
+		// Find scroll height
+		double pageHeight = size.y;
+		double maxY = pos.y + startY;
+		for(int i = 0; i < invItems.Size(); i++)
+		{
+			let item = invItems[i];
+			if(!item) continue;
+			
+			maxY += (item.size.y + itemSpacing);
+		}
+		
+		// Scrollbar Element
+		scrollBar.Update(dt);
+		mechlab.cursor.CheckCollision(scrollBar);
+		
+		scrollMax = maxY - pageHeight - pos.y;
+		scroll = scrollMax <= 0 ? 0 : clamp(scroll, 0, scrollMax);
+		scrollBar.disabled = scrollMax <= 0;
+		
+		if(doScrollEnd) scroll = scrollMax;
+		scrollBar.barSize = (size.y - scrollMax);
+		if(mechlab.cursor.draggingElement != scrollBar)
+		{
+			scrollBar.Draw(dT);
+			double scrollPerc = scroll / scrollMax;
+			double toScrollY = pos.y + ( (size.y - scrollBar.size.y) * scrollPerc );
+			scrollBar.pos.y = toScrollY;
+		}
+		else
+		{
+			scroll = scrollBar.scrollPos * scrollMax;
+		}
+		
+		if(mechlab.cursor.scrollDir > 0) scrollVel += (dT);
+		if(mechlab.cursor.scrollDir < 0) scrollVel -= (dT);
+		
+		scroll += scrollVel;
+		scrollVel *= 0.9;
+				
 		drawCollider();
+	}
+}
+class MechContainerScrollBar : MenuElement
+{
+	MenuElement parentElement;
+	bool disabled;
+	double scrollPos;
+	double dragYOffs;
+	double barSize;
+	double maxY;
+	
+	virtual void Setup(MenuElement parentContainer)
+	{
+		self.parentElement = parentContainer;
+	}
+	
+	override void OnDrag(MenuCursor cursor)
+	{
+		dragYOffs = cursor.pos.y - pos.y;
+	}
+	override bool checkDraggable()
+	{
+		return !disabled;
+	}
+	override void updateDragPos(MenuCursor cursor)
+	{
+		pos.y = cursor.pos.y - dragYOffs;
+	}
+	
+	override void Draw(double dT)
+	{
+		if(!parentElement) return;
+		double minSize = 8;
+		barSize = clamp(barSize, minSize, parentElement.size.y);
+		size.y  = barSize;
+		
+		maxY = (parentElement.pos.y+parentElement.size.y) - (size.y);
+		pos.y = clamp(pos.y, parentElement.pos.y, maxY);
+
+		double relY = (pos.y-parentElement.pos.y);
+		scrollPos = relY / max(1, parentElement.size.y-size.y);
+		
+		if(!disabled)
+		{
+			MWDrawer.Fill("Gray", pos.x+4, pos.y+4, size.x, size.y);
+			MWDrawer.Fill("White", pos.x , pos.y  , size.x, size.y);
+		}
+		else
+		{
+			MWDrawer.Fill("Black", pos.x+4, pos.y+4, size.x, size.y);
+			MWDrawer.Fill("Gray", pos.x , pos.y  , size.x, size.y);
+		}
+		
+		DrawCollider();
 	}
 }
 

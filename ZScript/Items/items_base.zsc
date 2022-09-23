@@ -829,11 +829,11 @@ class I_MechItemStorage : Inventory
 		}
 	}
 	
-	MechItem takeItem(int index)
+	MechItem takeItem(int index, bool deplete = true)
 	{
 		let item = items[index];
 		MechItem output = (item.amount > 1) ? item.MakeCopy() : item;	
-		depleteItem(item);
+		if(deplete) depleteItem(item);
 		
 		return output;
 	}	
@@ -841,7 +841,10 @@ class I_MechItemStorage : Inventory
 	void depleteItem(MechItem item)
 	{	
 		if(item.amount > 1)
+		{
 			item.amount--;
+			console.printf("Depleting?");
+		}
 		else
 		{
 			int index = items.Find(item);
@@ -875,6 +878,23 @@ class I_MechItemStorage : Inventory
 		{
 			from.GiveInventory("I_MechItemStorage", 1);
 			itm = I_MechItemStorage(from.FindInventory("I_MechItemStorage"));
+			
+			// Debug; populate inventory
+			
+			class<MechItem> arr[] = {
+				"AC2Ammo",
+				"AC5Ammo",
+				"AC10Ammo",
+				"AC20Ammo",
+				"MechHeatsink"
+			};
+			
+			for(int i = 0; i < 20; i++)
+			{
+				uint pick = random[DebugItems](0,4);
+				let item = MechItem.Init(arr[pick]);
+				itm.items.Push(item);
+			}
 		}
 		
 		return itm;
