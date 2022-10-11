@@ -2,6 +2,7 @@
 class MenuElement : Object abstract ui
 {
 	string Tag; // Unique Element Tag
+	bool disabled;
 	MechMenu parentMenu;
 	vector2 pos;
 	vector2 size;
@@ -62,12 +63,14 @@ class MenuElement : Object abstract ui
 		return collides;
 	}
 	
-	virtual MenuElement getCollidingWithType(class<MenuElement> type)
+	virtual MenuElement getCollidingWithType(class<MenuElement> type, MechMenu fromMenu = NULL)
 	{
-		if(!parentMenu) return NULL;
-		for(int i = 0; i < parentMenu.elements.Size(); i++)
+		if(!fromMenu) fromMenu = parentMenu;
+		if(!fromMenu) return NULL;
+		
+		for(int i = 0; i < fromMenu.elements.Size(); i++)
 		{
-			let element = parentMenu.elements[i];
+			let element = fromMenu.elements[i];
 			if( !(element is type) ) continue;
 			
 			if(CheckCollision(element, false))
@@ -184,6 +187,42 @@ class MenuCursor : MenuElement
 		if(tmpBtnTimer    >  5) leftPressed = rightPressed = false;
 		if(tmpScrollTimer > 10) scrollDir = 0;
 	}
+}
+
+class MenuButton : MenuElement
+{
+	bool btnDown;
+	bool pressed;
+	bool hovered;
+	double heldTime;
+	
+	override void Update(double dT)
+	{
+		let cursor = MenuCursor(getCollidingWithType("MenuCursor"));
+		hovered = !!cursor;
+	
+		if(disabled)
+		{
+			pressed = false;
+			btnDown = true;
+			heldTime = 0;
+			return;
+		}
+
+		if(btnDown)
+			heldTime += dT;
+		else
+			heldTime = 0;
+			
+		if(cursor && btnDown && !cursor.leftDown && !pressed) 
+		{
+			pressed = true;
+			OnPressed();
+		}
+		btnDown = (cursor ? cursor.leftDown : false);
+	}
+	
+	virtual void OnPressed() {}
 }
 
 class MechMenu : GenericMenu 

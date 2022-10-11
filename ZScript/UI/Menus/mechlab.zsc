@@ -118,6 +118,19 @@ class MechHardpointContainer : MenuElement
 		}
 				
 		size.y = 1 + (((slotsHeight*slots[0].scale) + itemSpacing) * slots.Size());
+		disabled = hardpoint.healthPoints <= 0;
+	}
+	
+	void filterMountpoints(out Array<HardpointMount> mounts)
+	{
+		// Filter used mount points, process used mount points by dragged item as unusued.
+		let draggingItem = MechItemSlot(mechlab.cursor.draggingElement);
+		for(int i = mounts.size()-1; i >= 0; i--)
+		{
+			let mnt = mounts[i];
+			if( mnt.mountedItem && (!draggingItem || mnt.mountedItem != draggingItem.slotItem) )
+				mounts.Delete(i);
+		}
 	}
 	
 	override void Draw(double dT)
@@ -142,6 +155,9 @@ class MechHardpointContainer : MenuElement
 		hardpoint.getMountPoints(energyPoints, "Energy");
 		hardpoint.getMountPoints(ballisticPoints, "Ballistic");
 		hardpoint.getMountPoints(missilePoints, "Missile");
+		filterMountpoints(energyPoints);
+		filterMountpoints(ballisticPoints);
+		filterMountpoints(missilePoints);
 		
 		double frontArmor = floor(hardpoint.armorPoints);
 		double rearArmor = floor(hardpoint.hasRearArmor ? hardpoint.rearArmor : -1);
@@ -163,7 +179,7 @@ class MechHardpointContainer : MenuElement
 		// Weapon types
 		MWDrawer.Fill("DarkGray", topBarPos.x,topBarPos.y + 80, size.x, 20);
 		MWDrawer.DrawString("ConsoleFont", "STRUCTURE", topBarPos + (5,80), translation:Font.CR_GRAY); 
-		MWDrawer.DrawString("ConsoleFont", ""..int(ceil(hardpoint.healthPoints)), topBarPos + (160,80), translation:Font.CR_RED); 
+		MWDrawer.DrawString("ConsoleFont", ""..max(0,int(ceil(hardpoint.healthPoints))), topBarPos + (160,80), translation:Font.CR_RED); 
 		
 		double iconScale = 0.60;
 		MWDrawer.DrawImage("Graphics/mechlab/energyIcon.png", topBarPos + (30,113), scale:(iconScale,iconScale));
@@ -192,14 +208,14 @@ class MechHardpointContainer : MenuElement
 		for(int i = 0; i < buttons.Size(); i++)
 		{
 			let btn = buttons[i];	
-			
+				
 			if( btn.Tag.IndexOf("UP") != -1 )
 				btn.disabled = reserveArmorPoints <= 0;
-				
 			if( btn.Tag ~== "ArmorDOWN")
 				btn.disabled = hardpoint.armorPoints <= 0;
 			if( btn.Tag ~== "rearArmorDOWN")
-				btn.disabled = hardpoint.rearArmor <= 0;
+				btn.disabled = hardpoint.rearArmor <= 0;	
+			if(disabled) btn.disabled = true;
 				
 			if(btn.pressed)
 			{
@@ -318,11 +334,18 @@ class MechItemSlot : MenuElement
 	{
 		Font itemFont = "SmallFont"; 
 		
+		
 		Color slotColor = 0;
 		uint itemFontColor = Font.CR_WHITE;
 		double wScale = size.x / 256;
 		
 		[itemFontColor, slotColor] = GetItemColors(slotItem);
+		if(disabled)
+		{
+			slotColor = 0xFFFF0000;
+			itemFontColor = Font.CR_BLACK;
+		}
+		
 		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, texoffs:(0,0));
 		
 		if(slotItem)
@@ -358,7 +381,7 @@ class MechItemSlot : MenuElement
 	
 	override bool checkDraggable()
 	{
-		return slotItem && slotItem.movable;
+		return !disabled && slotItem && slotItem.movable;
 	}
 	
 	override void updateDragPos(MenuCursor cursor)
@@ -377,7 +400,7 @@ class MechItemSlot : MenuElement
 		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));
 		string itemIDs = mechlab.mech.getMechItemIndex(slotItem);
 				
-		if(mouseOverContainer == container) 
+		if( mouseOverContainer && (mouseOverContainer == container || mouseOverContainer.disabled) ) 
 		{
 			// Drop
 			pos = defaultPos; 
@@ -390,7 +413,7 @@ class MechItemSlot : MenuElement
 			EventHandler.SendNetworkEvent(String.Format("mechlab.item.move.%s.%d", itemIDs, mouseOverContainer.partID));
 			return;
 		}
-		else
+		else 
 		{
 			// Dequip
 			EventHandler.SendNetworkEvent(String.Format("mechlab.item.dequip.%s", itemIDs));
@@ -402,6 +425,7 @@ class MechItemSlot : MenuElement
 		// Update size to item slot size.
 		double scaledSlotHeight = slotHeight * scale;
 		size.y = slotItem ? scaledSlotHeight * max(1,slotItem.size) : scaledSlotHeight;
+		disabled = container ? container.disabled : false;
 	}
 }
 
@@ -410,7 +434,11 @@ class MenuItemsInvContainer : MenuElement
 {
 	MechMenu_Mechlab mechlab;
 	Actor driver;
+	
 	Array<MechInvItem> invItems;
+	Array<int> itemIndexes;
+	Array<MechItemSortTab> tabs;
+	
 	double scroll, scrollVel, scrollMax;
 	MechContainerScrollBar scrollBar;
 	
@@ -421,9 +449,134 @@ class MenuItemsInvContainer : MenuElement
 		
 		driver = mechlab.mech.driver;
 		scrollBar = MechContainerScrollBar(
-			MenuElement.Create("MechContainerScrollBar", "invScrollBar", parentMenu, pos+(425,0), (32,0))
+			MenuElement.Create("MechContainerScrollBar", "invScrollBar", parentMenu, pos+(440,0), (16,0))
 		);
 		scrollBar.Setup(self);
+		
+		vector2 tabPos = (36, -125);
+		vector2 tabOffs = (0, 0);
+		vector2 tabSize = (132,42);
+		double tabSpacing = 140;
+		double tabTextScale = 0.75;
+		
+		let energyTab = MechWeaponSortTab(
+			MenuElement.Create("MechWeaponSortTab", "tabEnergy", parentMenu, pos+tabPos+tabOffs, tabSize)
+		);
+		energyTab.Setup("Energy", "", textScale:(tabTextScale,tabTextScale));
+		energyTab.weapType = "Energy";
+		tabOffs.x += tabSpacing;
+		
+		let ballisticsTab = MechWeaponSortTab(
+			MenuElement.Create("MechWeaponSortTab", "tabBallistic", parentMenu, pos+tabPos+tabOffs, tabSize)
+		);
+		ballisticsTab.Setup("Ballistics", "", textScale:(tabTextScale,tabTextScale));
+		ballisticsTab.weapType = "Ballistic";
+		tabOffs.x += tabSpacing;
+		
+		let missileTab = MechWeaponSortTab(
+			MenuElement.Create("MechWeaponSortTab", "tabMissile", parentMenu, pos+tabPos+tabOffs, tabSize)
+		);
+		missileTab.Setup("Missiles", "", textScale:(tabTextScale,tabTextScale));
+		missileTab.weapType = "Missile";
+		tabOffs.x = 0;
+		tabOffs.y += tabSpacing * (0.05+(tabSize.y/tabSize.x));	
+		
+		let ammoTab = MechItemSortTab(
+			MenuElement.Create("MechItemSortTab", "tabAmmo", parentMenu, pos+tabPos+tabOffs, tabSize)
+		);
+		ammoTab.Setup("Ammo", "", textScale:(tabTextScale,tabTextScale));
+		ammoTab.sortCls = "MechAmmo";
+		tabOffs.x += tabSpacing;
+		
+		let equipmentTab = MechEquipmentSortTab(
+			MenuElement.Create("MechEquipmentSortTab", "tabEquipment", parentMenu, pos+tabPos+tabOffs, tabSize)
+		);
+		equipmentTab.Setup("Equipment", "", textScale:(tabTextScale,tabTextScale));
+		tabOffs.x += tabSpacing;
+		
+		let armorTab = MechArmorSortTab(
+			MenuElement.Create("MechArmorSortTab", "tabArmor", parentMenu, pos+tabPos+tabOffs, tabSize)
+		);
+		armorTab.Setup("Armor Parts", "", textScale:(tabTextScale,tabTextScale));
+		tabOffs.x += tabSpacing;
+		
+		tabs.Push(energyTab);
+		tabs.Push(ballisticsTab);
+		tabs.Push(missileTab);
+		tabs.Push(ammoTab);
+		tabs.Push(equipmentTab);
+		tabs.Push(armorTab);
+	}
+	
+	static void DrawItemStats(MechItem invItem, vector2 pos, double width)
+	{
+		string itemName = invItem.displayName;
+		
+		string itemFlavorText;
+		Array<string> itemStatName, itemStatValue;
+		invItem.getDescription(itemFlavorText, itemStatName, itemStatValue);
+		if(itemStatValue.Size() < itemStatName.Size()) 
+			itemStatValue.Resize(itemStatName.Size() - itemStatValue.Size());
+		
+		Font descFont = "ConsoleFont";
+		double descFontScale = 0.9;
+		double descSpacing = 10;
+		double boxHeight = 60. + (itemStatName.Size() * ((descFont.getHeight()*2.0*descFontScale) + (descSpacing*1.2)));
+		double boxWidth = width;
+		
+		string formattedFlavorText = MWStringHelper.formatLnBreaks(
+			itemFlavorText, 
+			(boxWidth*0.9) / (descFont.getCharWidth(0) * 2.0 * (descFontScale*0.8))
+		);
+		double flavorTextLn = (10*(descFontScale*0.8));
+		double flavorTextHeight = MWStringHelper.countLnBreaks(formattedFlavorText) * (descFont.getHeight()+flavorTextLn);
+		boxHeight += flavorTextHeight;
+		
+		Color itFntCol, itemColor;
+		[itFntCol, itemColor] = MechItemSlot.GetItemColors(invItem);
+		if(!itemColor) itemColor = 0xA07F7F7F;
+		
+		vector2 descPos = pos + (-310, 20);
+		MWDrawer.Fill("Gray",  descPos.x,   descPos.y,    boxWidth,      boxHeight);
+		MWDrawer.Fill("Black", descPos.x+3, descPos.y+3, boxWidth - 6, boxHeight - 6);
+		
+		double itemNameSize = boxWidth * 0.8;
+		MWDrawer.Fill(itemColor, descPos.x + ((boxWidth - itemNameSize) * 0.5), descPos.y + 20., itemNameSize, 20);
+		
+		// Text Shadow
+		MWDrawer.DrawString(descFont, invItem.displayName,
+			(descPos.x+(boxWidth*0.5) + 2, descPos.y + (descFont.getHeight()*2.0) + 7), 
+			MWDrawer.SS_TEXT_CENTER, Font.CR_BLACK
+		);
+		MWDrawer.DrawString(descFont, invItem.displayName,
+			(descPos.x+(boxWidth*0.5), descPos.y + (descFont.getHeight()*2.0) + 5), 
+			MWDrawer.SS_TEXT_CENTER, Font.CR_WHITE
+		);
+		
+		// Flavor text
+		MWDrawer.DrawString(descFont, formattedFlavorText,
+			(descPos.x+10, descPos.y + 50), translation:Font.CR_GRAY,
+			scale:(descFontScale,descFontScale)*0.8, 
+			linespacing:flavorTextLn
+		);
+		
+		// Stats
+		vector2 lnPos = descPos + (10, 50 + flavorTextHeight);
+		for(int s = 0; s < itemStatName.Size(); s++)
+		{
+			string ln = itemStatName[s];
+			string val = itemStatValue[s];
+			MWDrawer.DrawString(
+				descFont, ln, lnPos, translation:Font.CR_WHITE,
+				scale:(descFontScale,descFontScale)
+			);
+			MWDrawer.DrawString(
+				descFont, val, lnPos + (boxWidth-20, 0), flags:MWDrawer.SS_TEXT_RIGHT,
+				translation:Font.CR_WHITE,
+				scale:(descFontScale,descFontScale)
+			);
+			lnPos.y += (descFont.getHeight()*2.0*descFontScale) + descSpacing;
+		}
 	}
 	
 	override void Draw(double dT)
@@ -432,19 +585,61 @@ class MenuItemsInvContainer : MenuElement
 		
 		let inv = I_MechItemStorage(driver.FindInventory("I_MechItemStorage"));
 		if(!inv) return;
-			
+		
+		// Background
+		Color edgeColor = 0xFF7A7A7A; //0xFF0074ea;
+		MWDrawer.Fill(0xFF151515, pos.x,pos.y-20, size.x,size.y+40);
+		MWDrawer.DrawRect(pos + (0,-20), size + (0,40), edgeColor);
+		
+		// Tab Background
+		MWDrawer.Fill(0xFFAAAAAA, pos.x,pos.y-135, size.x,115);
+		MWDrawer.DrawRect(pos + (0,-135), (size.x,115), edgeColor);
+		
+		// Scrollbar Background
+		double xoffs = scrollBar.size.x * 0.35;
+		double yoffs = 10;
+		MWDrawer.Fill(0xFF000000, scrollBar.pos.x-xoffs, pos.y-yoffs+5, scrollBar.size.x * 1.7, size.y+yoffs);
+		MWDrawer.DrawRect(
+			(scrollBar.pos.x-xoffs, pos.y-yoffs+5), 
+			(scrollBar.size.x * 1.7, size.y+yoffs), 
+			edgeColor
+		);
+		
 		double itemSpacing = 16;
 		double startY = 20;
 		double curY = (pos.y + startY) - scroll;
 		bool doScrollEnd = false; // If true, scrolls to the end of items list.
 		
+		Array<MechItem> filteredItems;
+		bool skipItem;
+		
+		if(itemIndexes.Size() != inv.items.Size())
+			itemIndexes.Resize(inv.items.Size());
+			
+		for(int i = 0; i < inv.items.Size(); i++)
+		{
+			let item = inv.items[i];
+			
+			skipItem = false;
+			for(int x = 0; x < tabs.Size(); x++)
+			{
+				if(tabs[x].doFilterItem(item)) 
+					skipItem = true;
+			}
+			if(!skipItem) 
+			{
+				filteredItems.Push(item);
+				itemIndexes[filteredItems.Size()-1] = i;
+			}
+		}
+		
 		// Update items list
 		int curSize = invItems.Size();
-		int newSize = inv.items.Size();
+		int newSize = filteredItems.Size();
 		if(curSize != newSize)
 		{
 			if(newSize > curSize) doScrollEnd = true;
-			invItems.Resize(inv.items.Size());
+			invItems.Resize(filteredItems.Size());
 		}
 		
 		MWDrawer.SetClipRect(pos.x,pos.y,size.x,size.y);
@@ -461,8 +656,8 @@ class MenuItemsInvContainer : MenuElement
 				invItems[i] = item;
 			}
 			
-			item.item = inv.items[i];
-			item.itemID = i;
+			item.item = filteredItems[i];
+			item.itemID = itemIndexes[i];
 			
 			bool dragging = mechlab.cursor.draggingElement == item;
 			bool outOfBounds = !item.CheckCollision(self, false);
@@ -484,12 +679,12 @@ class MenuItemsInvContainer : MenuElement
 				item.grayed = false;
 				item.pos = oldPos;
 			}
-			
+						
 			// Needs to be called after Draw
 			curY += (item.size.y + itemSpacing);
 			
 			if(!outOfBounds) item.Update(dT);
-			mechlab.cursor.CheckCollision(item);
+			
 		}
 		MWDrawer.ClearClipRect();
 		
@@ -502,6 +697,18 @@ class MenuItemsInvContainer : MenuElement
 			if(!item) continue;
 			
 			maxY += (item.size.y + itemSpacing);
+		
+			// Draw item stats if hovering over item.
+			if(mechlab.cursor.CheckCollision(item) && item.item)
+				DrawItemStats(item.item, pos, size.x*0.65);
+		}
+		
+		// Draw stats of dragged item.
+		if(MechItemSlot(mechlab.cursor.draggingElement))
+		{
+			let draggingItem = MechItemSlot(mechlab.cursor.draggingElement);
+			if(draggingItem.slotItem) 
+				DrawItemStats(draggingItem.slotItem, (350,20), size.x*0.65);
 		}
 		
 		// Scrollbar Element
@@ -531,14 +738,22 @@ class MenuItemsInvContainer : MenuElement
 		
 		scroll += scrollVel;
 		scrollVel *= 0.9;
-				
-		drawCollider();
+		
+		// Tabs
+		for(int i = 0; i < tabs.Size(); i++)
+		{
+			let tab = tabs[i];
+			
+			tab.Draw(dT);
+			tab.Update(dT);
+		}
+		
+		console.printf("Tonnage: %.2f", mechlab.mech.weight);
 	}
 }
 class MechContainerScrollBar : MenuElement
 {
 	MenuElement parentElement;
-	bool disabled;
 	double scrollPos;
 	double dragYOffs;
 	double barSize;
@@ -577,16 +792,113 @@ class MechContainerScrollBar : MenuElement
 		
 		if(!disabled)
 		{
-			MWDrawer.Fill("Gray", pos.x+4, pos.y+4, size.x, size.y);
+			MWDrawer.Fill("Gray", pos.x-2, pos.y-2, size.x+4, size.y+4);
 			MWDrawer.Fill("White", pos.x , pos.y  , size.x, size.y);
 		}
 		else
 		{
-			MWDrawer.Fill("Black", pos.x+4, pos.y+4, size.x, size.y);
+			MWDrawer.Fill("Black", pos.x-2, pos.y-2, size.x+4, size.y+4);
 			MWDrawer.Fill("Gray", pos.x , pos.y  , size.x, size.y);
 		}
+	}
+}
+
+class MechContainerTab : MenuButton
+{
+	string tabText;
+	string tabIcon;
+	vector2 iconScale;
+	vector2 textScale;
+	bool active;
+	
+	void Setup(string txt, string icon, vector2 iconScale = (1,1), vector2 textScale = (1,1))
+	{
+		self.tabText = txt;
+		self.tabIcon = icon;
+		self.iconScale = iconScale;
+		self.textScale = textScale;
+	}
+
+	override void Draw(double dT)
+	{
+		Color bgColor = 0xFF111111;
+		uint fontColor = Font.CR_WHITE;
+		if(hovered) bgColor = 0xFF555555; //0xFF0A0A7A;
+		if(active ) 
+		{
+			bgColor = 0xFFFFFFFF; //0xFF1C1CBC;
+			fontColor = Font.CR_BLACK;
+		}
 		
-		DrawCollider();
+		MWDrawer.Fill(bgColor, pos.x,pos.y, size.x,size.y);
+		MWDrawer.DrawRect(pos, size, 0xFF7A7A7A);
+		MWDrawer.SetClipRect(pos.x,pos.y, size.x,size.y);
+		
+		vector2 center = (
+			pos.x + (size.x / 2.),
+			pos.y + (size.y / 2.)
+		);
+		
+		Font textFont = "ConsoleFont";
+		double textHeight = textFont.getHeight() * (1.75*textScale.y);
+		MWDrawer.DrawString(
+			textFont, tabText, center - (0, textHeight*0.5), MWDrawer.SS_TEXT_CENTER,
+			fontColor, scale:textScale
+		);
+		MWDrawer.DrawImage(tabIcon, center, scale:iconScale);
+		
+		MWDrawer.ClearClipRect();
+	}
+	
+	override void OnPressed()
+	{
+		active = !active;
+		pressed = false;
+	}
+}
+
+class MechItemSortTab : MechContainerTab
+{
+	class<MechItem> sortCls;
+	
+	override void Init()
+	{
+		super.Init();
+		active = true;
+	}
+	
+	// Return true to sort item out of list 
+	virtual bool doFilterItem(MechItem item)
+	{
+		return (!active && (item is sortCls));
+	}
+}
+class MechWeaponSortTab : MechItemSortTab
+{
+	string weapType;
+	
+	override bool doFilterItem(MechItem item)
+	{
+		let weap = MechWeapon(item);
+		if(!weap) return false;
+	
+		return (!active && weap.mountType == weapType);
+	}
+}
+class MechEquipmentSortTab : MechItemSortTab
+{
+	override bool doFilterItem(MechItem item)
+	{
+		bool filter = (item is "MechHeatsink") || (item is "MechEngine");
+		return (!active && filter);
+	}
+}
+class MechArmorSortTab : MechItemSortTab
+{
+	override bool doFilterItem(MechItem item)
+	{
+		bool filter = (item is "MechArmor");
+		return (!active && filter);
 	}
 }
 
@@ -624,7 +936,7 @@ class MechInvItem : MenuElement
 		dragging = false;
 		
 		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));		
-		if(mouseOverContainer)
+		if(mouseOverContainer && !mouseOverContainer.disabled)
 		{
 			// Equip
 			EventHandler.SendNetworkEvent(String.Format("mechlab.item.equip.%d.%d", itemID, mouseOverContainer.partID));
@@ -695,13 +1007,9 @@ class MechInvItem : MenuElement
 }
 
 // Buttons
-class MechlabSquareButton : MenuElement
+class MechlabSquareButton : MenuButton
 {
 	string btnChar;
-	bool btnDown;
-	bool pressed;
-	bool disabled;
-	double heldTime;
 	
 	virtual void Setup(string btnChar = "+")
 	{
@@ -710,30 +1018,6 @@ class MechlabSquareButton : MenuElement
 
 	override void Draw(double dT)
 	{
-		let cursor = MenuCursor(getCollidingWithType("MenuCursor"));
-		
-		if(btnDown)
-			heldTime += dT;
-		else
-			heldTime = 0;
-			
-		if(!disabled)
-		{
-			if(heldTime > 5)
-			{
-				pressed = true;
-				OnPressed();
-				heldTime = 0;
-			}
-		
-			if(cursor && btnDown && !cursor.leftDown && !pressed) 
-			{
-				pressed = true;
-				OnPressed();
-			}
-		}
-		btnDown = (cursor ? cursor.leftDown : false);
-	
 		double txtScale = size.x / 16.;
 		if(!btnDown && !disabled)
 		{
@@ -749,7 +1033,17 @@ class MechlabSquareButton : MenuElement
 		}
 	}
 	
-	virtual void OnPressed() {}
+	override void Update(double dT)
+	{
+		super.Update(dT);
+		
+		if(heldTime > 5)
+		{
+			pressed = true;
+			OnPressed();
+			heldTime = 0;
+		}
+	}
 }
 
 // Mechlab Menu

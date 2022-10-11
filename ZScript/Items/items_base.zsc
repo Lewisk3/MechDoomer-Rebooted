@@ -31,6 +31,15 @@ class MechItem : Object
 	// Called when item is added to inventory (Not attached to a mech)
 	virtual void OnInventoryAdd() {}
 	
+	clearscope virtual void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue)
+	{
+		flavorText = "";
+		statName.Push("SLOTS");
+		statName.Push("TONS");
+		statValue.Push(String.Format("%d", size));
+		statValue.Push(String.Format("%.2f", weight));
+	}
+	
 	virtual MechItem MakeCopy()
 	{
 		let item = MechItem.Init(getClass());
@@ -143,6 +152,16 @@ class MechAmmo : MechItem
 	{
 		bool res = super.CanStack(other);
 		return res && MechAmmo(other).curAmmo == curAmmo;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		statName.Push("AMMO");
+		statValue.Push(String.Format("%d / %d", curAmmo, maxAmmo));
 	}
 	
 	override MechItem MakeCopy()
@@ -284,6 +303,21 @@ class MechArmor : MechItem
 		armorWeight = 0.05;
 	}
 	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue)
+	{
+		statName.Push("ARMOR WEIGHT");
+		statValue.Push(String.Format("%.2f", armorWeight));
+		
+		statName.Push("CRITICALS");
+		statValue.Push(String.Format("%d", structureSlots));
+		
+		if(damageMod < 1.0)
+		{
+			statName.Push("ABSORBTION");
+			statValue.Push(String.Format("%d\%", 1.0-damageMod));
+		}
+	}
+	
 	play static bool addToMech(DrivableMech mech, class<MechArmor> type = "MechArmor")
 	{
 		let ar = MechItem.Init(type);
@@ -318,6 +352,7 @@ class MechArmor : MechItem
 		{
 			mech.weight -= (armorAmount * armorWeight);
 			armorAmount = fullArmorPts;	
+			console.printf("Adding: %f * %f (%f)", armorAmount, armorWeight, armorAmount * armorWeight);
 			mech.weight += (armorAmount * armorWeight);
 		}
 	}
@@ -327,17 +362,28 @@ class MechArmor : MechItem
 		let mech = part.mech;
 		if(!mech) return false;
 		if(mech.noItemSlots) return false;
-		
-		double weight = armorWeight*getArmorPoints(mech);
-		if( (mech.weight + weight) > mech.maxWeight ) return false; 
-		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
-			return false;
+		self.mech = part.mech;
 		
 		let prevArmor = mech.armorType;
-		mech.armorType = self;
-		self.mech = part.mech;
+		mech.armorType = NULL;
 		if(prevArmor) prevArmor.OnDetach();
-		OnAttach();
+		
+		bool fail = false;
+		double weight = armorWeight*getArmorPoints(mech);
+		if( (mech.weight + weight) > mech.maxWeight ) fail = true; 
+		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
+			fail = true;
+			
+		if(fail)
+		{
+			prevArmor.TryAttach(part);
+			return false;
+		}
+		else
+		{
+			mech.armorType = self;
+			OnAttach();
+		}
 		
 		return true;
 	}
@@ -359,7 +405,8 @@ class MechArmor : MechItem
 	{
 		// Remove armor weight from mech.
 		mech.weight -= (armorAmount * armorWeight);
-		
+		armorAmount = 0;
+
 		MechItem structSlot;
 		while(structSlot = mech.findItem(structType))
 			structSlot.TryDetach(forced:true);
@@ -671,10 +718,15 @@ class MechWeapon : MechItem
 		// Attempt to find position to mount weapon to.
 		let mnt = part.findMountPoint(mountType);
 		if(!mnt) return false;
-		mnt.mountItem(self);
-		mount = mnt;
 		
-		return super.TryAttach(part);
+		bool success = super.TryAttach(part);
+		if(success)
+		{
+			mnt.mountItem(self);
+			mount = mnt;
+		}
+		
+		return success;
 	}
 	
 	override void OnInventoryAdd()
@@ -841,10 +893,7 @@ class I_MechItemStorage : Inventory
 	void depleteItem(MechItem item)
 	{	
 		if(item.amount > 1)
-		{
 			item.amount--;
-			console.printf("Depleting?");
-		}
 		else
 		{
 			int index = items.Find(item);
@@ -889,12 +938,14 @@ class I_MechItemStorage : Inventory
 				"MechHeatsink"
 			};
 			
-			for(int i = 0; i < 20; i++)
+			for(int i = 0; i < 30; i++)
 			{
 				uint pick = random[DebugItems](0,4);
-				let item = MechItem.Init(arr[pick]);
-				itm.items.Push(item);
+				itm.AddItem(MechItem.Init(arr[pick]));
 			}
+			
+			itm.items.Push(MechItem.Init("MechArmor_Standard"));
+			itm.items.Push(MechItem.Init("MechArmor_Ferro"));
 		}
 		
 		return itm;

@@ -33,7 +33,7 @@ class MechHellbringer : DrivableMech
 	{
 		// Armor and Engine
 		torso.AddItem("MechEngine_XL325");
-		MechArmor.addToMech(self, "MechArmor_Ferro");
+		MechArmor.addToMech(self, "MechArmor_Standard");
 		
 		// Weapons
 		leftArm.AddWeapon("SmallLaser",  GROUPFLG_ONE);

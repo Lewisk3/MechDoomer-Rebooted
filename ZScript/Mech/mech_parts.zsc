@@ -254,12 +254,13 @@ class MechHardpoint : MechPart
 		return NULL;
 	}
 	
-	clearscope virtual void getMountPoints(out Array<HardpointMount> mounts, string type = "")
+	clearscope virtual void getMountPoints(out Array<HardpointMount> mounts, string type = "", bool onlyFreeMounts = false)
 	{
 		for(int i = 0; i < mountPoints.Size(); i++)
 		{
 			let mp = mountPoints[i];
 			if(!mp || ( !(mp.type ~== type) && type != "" ) ) continue;
+			if(onlyFreeMounts && mp.mountedItem) continue;
 			
 			mounts.Push(mp);
 		}
@@ -327,8 +328,8 @@ class MechHardpoint : MechPart
 		}
 	
 		// If we have no armor type, don't have armor.
-		if(!mech.armorType) armorPoints = 0;
-		
+		if(!mech.armorType) armorPoints = rearArmor = 0;
+
 		// Keep maximum values non-negative.
 		maxArmor = max(0, maxArmor);
 		maxHP = max(0, maxHP);
