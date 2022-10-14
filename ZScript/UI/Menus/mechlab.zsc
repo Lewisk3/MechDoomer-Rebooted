@@ -449,15 +449,15 @@ class MenuItemsInvContainer : MenuElement
 		
 		driver = mechlab.mech.driver;
 		scrollBar = MechContainerScrollBar(
-			MenuElement.Create("MechContainerScrollBar", "invScrollBar", parentMenu, pos+(440,0), (16,0))
+			MenuElement.Create("MechContainerScrollBar", "invScrollBar", parentMenu, pos+(size.x-32,0), (16,0))
 		);
 		scrollBar.Setup(self);
 		
 		vector2 tabPos = (36, -125);
 		vector2 tabOffs = (0, 0);
-		vector2 tabSize = (132,42);
-		double tabSpacing = 140;
-		double tabTextScale = 0.75;
+		double tabSpacing = size.x * 0.3;
+		vector2 tabSize = (size.x/4.,42);
+		double tabTextScale = 0.70 * (size.x/480.);
 		
 		let energyTab = MechWeaponSortTab(
 			MenuElement.Create("MechWeaponSortTab", "tabEnergy", parentMenu, pos+tabPos+tabOffs, tabSize)
@@ -497,7 +497,7 @@ class MenuItemsInvContainer : MenuElement
 		let armorTab = MechArmorSortTab(
 			MenuElement.Create("MechArmorSortTab", "tabArmor", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
-		armorTab.Setup("Armor Parts", "", textScale:(tabTextScale,tabTextScale));
+		armorTab.Setup("ArmorParts", "", textScale:(tabTextScale,tabTextScale));
 		tabOffs.x += tabSpacing;
 		
 		tabs.Push(energyTab);
@@ -508,13 +508,13 @@ class MenuItemsInvContainer : MenuElement
 		tabs.Push(armorTab);
 	}
 	
-	static void DrawItemStats(MechItem invItem, vector2 pos, double width)
+	static void DrawItemStats(MechMenu_Mechlab mechlab, MechItem invItem, vector2 pos, double width)
 	{
 		string itemName = invItem.displayName;
 		
 		string itemFlavorText;
 		Array<string> itemStatName, itemStatValue;
-		invItem.getDescription(itemFlavorText, itemStatName, itemStatValue);
+		invItem.getDescription(itemFlavorText, itemStatName, itemStatValue, mechlab.mech);
 		if(itemStatValue.Size() < itemStatName.Size()) 
 			itemStatValue.Resize(itemStatName.Size() - itemStatValue.Size());
 		
@@ -700,7 +700,7 @@ class MenuItemsInvContainer : MenuElement
 		
 			// Draw item stats if hovering over item.
 			if(mechlab.cursor.CheckCollision(item) && item.item)
-				DrawItemStats(item.item, pos, size.x*0.65);
+				DrawItemStats(mechlab, item.item, pos, size.x*0.75);
 		}
 		
 		// Draw stats of dragged item.
@@ -708,7 +708,7 @@ class MenuItemsInvContainer : MenuElement
 		{
 			let draggingItem = MechItemSlot(mechlab.cursor.draggingElement);
 			if(draggingItem.slotItem) 
-				DrawItemStats(draggingItem.slotItem, (350,20), size.x*0.65);
+				DrawItemStats(mechlab, draggingItem.slotItem, (350,20), size.x*0.75);
 		}
 		
 		// Scrollbar Element
@@ -747,8 +747,6 @@ class MenuItemsInvContainer : MenuElement
 			tab.Draw(dT);
 			tab.Update(dT);
 		}
-		
-		console.printf("Tonnage: %.2f", mechlab.mech.weight);
 	}
 }
 class MechContainerScrollBar : MenuElement
@@ -1006,6 +1004,101 @@ class MechInvItem : MenuElement
 	}
 }
 
+class MechInfoContainer : MenuElement
+{
+	Mechmenu_Mechlab mechlab;
+	DrivableMech mech;
+	
+	override void Init()
+	{
+		super.Init();
+		mechlab = Mechmenu_Mechlab(parentMenu);
+		if(!mechlab) return;
+		
+		mech = mechlab.mech;
+	}
+	
+	override void Draw(double dT)
+	{
+		Color bgColor = 0xFF151515;
+		Color edgeColor = 0xFF7A7A7A;
+		MWDrawer.Fill(edgeColor, pos.x-2, pos.y-2, size.x+4, size.y+4);
+		MWDrawer.Fill(bgColor, pos.x, pos.y, size.x, size.y);
+		MWDrawer.Fill("Blue", pos.x+1, pos.y+1, size.x-2, 40);
+		MWDrawer.Fill("DarkGray", pos.x, pos.y+42, size.x, 24);
+		
+		string mechName = mech.mechChassisName;
+		string mechVariant = mech.mechVariantName;
+		string mechTonnage = String.Format(
+			"\c[%s] %.2f \c[White]/ %.1f", 
+			(mech.maxWeight-mech.weight) < 1 ? "Red" : "White", 
+			mech.weight, mech.maxWeight
+		);
+		
+		uint curSlots, maxSlots;
+		[curSlots, maxSlots] = mech.getSlotCount();
+		
+		string slots = String.Format(
+			"\c[%s] %d \c[White]/ %d", 
+			(maxSlots-curSlots) < 1 ? "Red" : "White", 
+			curSlots, maxSlots
+		);
+		
+		double textSize = 1.00;
+		vector2 textPos = pos + (10,10);
+		Font textFont = "ConsoleFont";
+		
+		MWDrawer.DrawString(textFont, mechName, pos + (size.x*0.5, 10), flags:MWDrawer.SS_TEXT_CENTER, scale:(textSize, textSize)*1.15);
+		MWDrawer.DrawString(textFont, mechVariant, textPos + (1, 35), translation:Font.CR_BLACK, scale:(textSize, textSize));
+		MWDrawer.DrawString(textFont, mechVariant, textPos + (0, 34), translation:Font.CR_SAPPHIRE, scale:(textSize, textSize));
+		
+		textPos.y += 100;
+		MWDrawer.DrawString(textFont, "\c[Teal]Tonnage", textPos, scale:(textSize, textSize));
+		MWDrawer.DrawString(textFont, mechTonnage, textPos + (size.x - 30, 20), flags:MWDrawer.SS_TEXT_RIGHT, scale:(textSize, textSize)*1.15);
+		
+		textPos.y += 70;
+		MWDrawer.DrawString(textFont, "\c[Teal]Slots", textPos, scale:(textSize, textSize));
+		MWDrawer.DrawString(textFont, slots, textPos + (size.x - 30, 20), flags:MWDrawer.SS_TEXT_RIGHT, scale:(textSize, textSize)*1.15);
+		
+		textPos.y += 80;
+		MWDrawer.Fill(edgeColor, pos.x, textPos.y, size.x, 3);
+		
+		double engineSpeed = mech.engine ? mech.engine.getKPH(mech) : 0;
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]SPEED    \c[White] %.1f / %.1f", engineSpeed, engineSpeed*0.5), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		
+		textPos.y += 30;
+		string engineType = mech.engine ? String.Format("\c[DarkGray]%s \c[White]%d", mech.engine.getTypeStr(), mech.engine.rating) : "NONE";
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]ENGINE    \c[White]" .. engineType, mech.moveSpeedKPH, mech.moveSpeedKPH*0.5), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		
+		textPos.y += 30;
+		string armorRating = "0 / 0";
+		if(mech.armorType)
+		{
+			int curArmor = mech.armorType.getArmorPoints(mech);
+			int maxArmor = mech.armorType.getMaxArmorPoints(mech);
+			armorRating = String.Format("\c[%s]%d / %d",
+				curArmor == maxArmor ? "Green" : "White",
+				curArmor,
+				maxArmor
+			);
+		}
+		
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]ARMOR     " .. armorRating, mech.moveSpeedKPH, mech.moveSpeedKPH*0.5), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+	}
+}
+
 // Buttons
 class MechlabSquareButton : MenuButton
 {
@@ -1059,7 +1152,7 @@ class MechMenu_Mechlab : MechMenu
 		if(drvObj && drvObj.source) mech = DrivableMech(drvObj.source);
 		if(!mech) return;
 	
-		vector2 hpSlotsPos = (750,325);
+		vector2 hpSlotsPos = (840,325);
 		double slotsWidth = 196;
 		double spacing = 205;
 	
@@ -1107,8 +1200,11 @@ class MechMenu_Mechlab : MechMenu
 		);
 		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
 		
+		// Mech info screen
+		AddElement("MechInfoContainer", "MechInfoScreen", (15,25), (380,1000));
+		
 		// Items inventory
-		AddElement("MenuItemsInvContainer", "InventoryContainer", (1380,170), (480,800));
+		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,170), (400,800));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 

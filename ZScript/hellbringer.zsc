@@ -5,6 +5,8 @@ class MechHellbringer : DrivableMech
 		Radius 46;
 		Height 92;
 		DrivableMech.MaxWeight 65; // In Tons.
+		DrivableMech.ChassisName "Hellbringer";
+		DrivableMech.VariantName "Prime";
 	}
 	
 	override void SetupParts()
@@ -33,7 +35,7 @@ class MechHellbringer : DrivableMech
 	{
 		// Armor and Engine
 		torso.AddItem("MechEngine_XL325");
-		MechArmor.addToMech(self, "MechArmor_Standard");
+		MechArmor.addToMech(self, "MechArmor_Ferro");
 		
 		// Weapons
 		leftArm.AddWeapon("SmallLaser",  GROUPFLG_ONE);

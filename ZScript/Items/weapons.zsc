@@ -28,6 +28,36 @@ class SmallLaser : MechWeapon
 		laserColor = "Red";
 	}
 	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (damage * fireTime * MechHardpoint.DMGSCALE) ));
+		statName.Push("HEAT");
+		statValue.Push(String.Format("%.2f", (laserHeat/6.5) * fireTime) );
+		statName.Push("COOLDOWN");
+		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", laserRange));
+		statName.Push("OPTIMAL RANGE");
+		statValue.Push(String.Format("%d", range));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("DPS");
+		statValue.Push(String.Format("%.2f", damage*TICRATE));
+		statName.Push("HPS");
+		statValue.Push(String.Format("%.2f", laserHeat*TICRATE));
+		statName.Push("DPH");
+		statValue.Push(String.Format("%d", damage / laserHeat));
+	}
+	
 	override bool Fire(vector3 firePos)
 	{
 		WeapSound(fireSound);
@@ -205,6 +235,49 @@ class SRM2 : MechWeapon
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM2";
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		let projDefs = GetDefaultByType(projType);
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE) * refireCount ));
+		statName.Push("HEAT");
+		statValue.Push(String.Format("%.2f", heat * refireCount));
+		statName.Push("FIRE RATE");
+		statValue.Push(String.Format("%.1f/s", 1.0 / (refireDelay / double(TICRATE))));
+		statName.Push("COOLDOWN");
+		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange));
+		if(projDefs.minRange > 0)
+		{
+			statName.Push("MIN RANGE");
+			statValue.Push(String.Format("%d", projDefs.minRange));
+		}
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("DPS");
+		statValue.Push(
+			String.Format(
+				"%.2f", 
+				(projDefs.trueDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
+			) 
+		);
+		statName.Push("HPS");
+		statValue.Push(String.Format("%.2f", (heat*refireCount) / cooldownSeconds) );
+		statName.Push("DPH");
+		statValue.Push(String.Format("%d", (projDefs.trueDamage*refireCount) / (heat*refireCount)) );
 	}
 	
 	override bool Fire(vector3 firePos)
@@ -479,6 +552,44 @@ class AC2 : MechWeapon
 		ammoType = "AC2Ammo";
 		fireSound = "Ballistic/Autocannon2";
 	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		let projDefs = GetDefaultByType(projType);
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE)));
+		statName.Push("HEAT");
+		statValue.Push(String.Format("%.2f", heat));
+		statName.Push("FIRE RATE");
+		statValue.Push(String.Format("%.1f/s", 1.0 / cooldownSeconds));
+		statName.Push("COOLDOWN");
+		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange));
+		statName.Push("OPTIMAL RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange * 0.5));
+		statName.Push("PROJ SPEED");
+		statValue.Push( String.Format("%d m/s", (MechEngine.speedToKPH(projDefs.Speed) / 3600) * 1000) );
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("DPS");
+		statValue.Push(String.Format("%.2f", projDefs.trueDamage * (1.0 / cooldownSeconds) ));
+		statName.Push("HPS");
+		statValue.Push(String.Format("%.2f", heat / cooldownSeconds));
+		statName.Push("DPH");
+		statValue.Push(String.Format("%d", projDefs.trueDamage / heat));
+	}
+	
 	
 	override bool Fire(vector3 firePos)
 	{

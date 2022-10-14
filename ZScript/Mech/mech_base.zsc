@@ -38,6 +38,7 @@ class DrivableMech : DrivableObject
 	
 	// UI Stuff
 	string paperdoll_Background;
+	string mechChassisName, mechVariantName;
 	
 	// Shutdown stuff
 	uint shutdownTimer, powerupTimer;
@@ -66,6 +67,8 @@ class DrivableMech : DrivableObject
 	Property MaxWeight : maxWeight;
 	Property PaperdollBG : paperdoll_Background;
 	Property SaveDataFormat : saveDataType;
+	Property ChassisName : mechChassisName;
+	Property VariantName : mechVariantName;
 	
 	enum MechBtns
 	{
@@ -296,6 +299,21 @@ class DrivableMech : DrivableObject
 			
 			hardpoint.findAllItems(type, subclass, foundItems);
 		}
+	}
+	
+	clearscope virtual uint, uint getSlotCount()
+	{
+		uint usedSlots, maxSlots;
+		for(int p = 0; p < parts.Size(); p++)
+		{
+			let hardpoint = MechHardpoint(parts[p]);
+			if(!hardpoint || hardpoint.healthPoints <= 0) continue;
+			
+			usedSlots += hardpoint.slots;
+			maxSlots += hardpoint.maxSlots;
+		}
+		
+		return usedSlots, maxSlots;
 	}
 		
 	clearscope virtual int countAllAmmo(class<MechAmmo> type)
@@ -702,7 +720,7 @@ class DrivableMech : DrivableObject
 		// Get movement speed.
 		if(engine) 
 		{
-			moveSpeedKPH = engine.getKPH();
+			moveSpeedKPH = engine.getKPH(self);
 			moveSpeed = MechEngine.getKPHSpeed(moveSpeedKPH);
 		}
 		else
@@ -737,7 +755,7 @@ class DrivableMech : DrivableObject
 		super.DoPhysics();
 		
 		// Movement
-		double adjustedMoveSpeed = moveSpeed * Scale.X;
+		double adjustedMoveSpeed = moveSpeed; // * Scale.X;
 		if(onground && moveSpeedKPH > 0)
 		{
 			bool decel = (throttle < accel);

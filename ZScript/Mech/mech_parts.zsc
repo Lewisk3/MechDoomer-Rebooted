@@ -141,11 +141,15 @@ class MechHardpoint : MechPart
 	
 	bool adjustArmor(double front, double rear = 0)
 	{
+		if(!mech || !mech.armorType) return false;
+		
 		double frontArmorTo = floor(armorPoints) + front;
 		double rearArmorTo = floor(rearArmor) + rear;
+		bool overWeight = mech.weight + (mech.armorType.armorWeight * (front + rear)) > mech.maxWeight;
 		
 		if( frontArmorTo+rearArmorTo > maxArmor || 
-		    frontArmorTo < 0 || rearArmorTo < 0 ) return false;
+		    frontArmorTo < 0 || rearArmorTo < 0 || 
+			overWeight ) return false;
 			
 		armorPoints = frontArmorTo;
 		rearArmor = rearArmorTo;

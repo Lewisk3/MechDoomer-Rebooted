@@ -11,7 +11,17 @@ class MechHeatsink : MechItem
 		buffer = 2.6;
 		displayName = "Heatsink";
 	}
-
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		statName.Push("COOLING");
+		statValue.Push(String.Format("\c[Green]+%.2f hu/s",heatEff*double(TICRATE)));
+	}
+	
 	override void OnAttach()
 	{	
 		super.OnAttach();
@@ -197,6 +207,7 @@ class MechEngine_XL325 : MechEngine
 		rating = 325;
 		size = 6;
 		blocks = 1;
+		blockSize = 2;
 		type = Type_XL;
 		SetupEngine();
 	}
