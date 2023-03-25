@@ -371,7 +371,7 @@ class MechHUD_Handler : EventHandler
 		vector2 kelvinPos = heatPos + (-(barSize.x), barSize.y+10);
 		txtPos = heatPos + (10, -15);
 		
-		MWDrawer.DrawString("ConsoleFont", GetHeatString('P'), kelvinPos, flags:flags, scale:txtScale);
+		MWDrawer.DrawString("ConsoleFont", GetHeatString('K'), kelvinPos, flags:flags, scale:txtScale);
 		MWDrawer.DrawString("ConsoleFont", "Heat", txtPos, flags:flags | MWDrawer.SS_TEXT_CENTER, scale:txtScale);
 		
 	}

@@ -235,7 +235,7 @@ class MechDynamicStructure : MechItem
 		for(int i = 0; i < hardpoints.Size(); i++)
 		{
 			let hardpoint = hardpoints[i];
-			int curSlots = 0;
+			uint curSlots = 0;
 			
 			for(int x = 0; x < hardpoint.items.Size(); x++)
 			{
@@ -577,7 +577,7 @@ class MechEngine : MechItem
 		// Add engine blocks.
 		let lt = parent.mech.leftTorso;
 		let rt = parent.mech.rightTorso;  
-		for(int i = 0; i < blocks; i++) 
+		for(uint i = 0; i < blocks; i++) 
 		{
 			let block = lt.AddItem("MechEngineBlock");
 			block.displayName = displayName;

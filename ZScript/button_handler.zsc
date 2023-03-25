@@ -10,7 +10,7 @@ class MechButtons_Handler : EventHandler
 			if(!plrInfo || !playerInGame[i]) continue;
 			let plr = players[i].mo;
 			I_MechItemStorage.Get(plr);
-		}
+		}		
 	}
 
 	virtual void ProcessMechMenuEvents(ConsoleEvent e, DrivableObject veh)

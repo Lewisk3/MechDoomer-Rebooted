@@ -171,14 +171,8 @@ class MechLaserBeam : Actor
 			A_SetPitch(toPitch+90, SPF_INTERPOLATE);
 		}
 		
-		// Credits: This interpolation magic was gleaned from Kodi's KLazer library
-		// code available in PainSlayer 
-		// (https://github.com/jekyllgrim/Painslayer/blob/master/ZPainkiller/klazer/KLAZ_Beam.zsc#L114)
-		
-		// Odd interpolation magic.
-		double prevAngle = source.angle;
-		source.A_SetAngle(source.angle + 0.001, SPF_INTERPOLATE);
-		source.A_SetAngle(prevAngle, SPF_INTERPOLATE);
+		// View Interpolation
+		if(source.player) source.player.cheats |= CF_INTERPVIEW;
 		
 		// Do linetrace to determine aim distance.
 		double zoffs = source.player ? (source.player.viewz-source.pos.z) : source.height * 0.5;

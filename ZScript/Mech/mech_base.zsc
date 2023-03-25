@@ -738,10 +738,16 @@ class DrivableMech : DrivableObject
 		curHeat = clamp(curHeat, getAmbient(), maxHeat);	
 	}
 	
-	virtual double kelvinToBHU(double K)
+	clearscope virtual double kelvinToBHU(double K)
 	{
 		double kelvinPerc = K / maxKelvin;
 		return kelvinPerc * maxHeat;
+	}
+	
+	clearscope virtual double BHUtoKelvin(double bhu)
+	{
+		double bhuPerc = bhu / maxHeat;
+		return bhuPerc * maxKelvin;
 	}
 	
 	virtual double getAmbient()

@@ -69,9 +69,8 @@ class EffectsHelper Abstract
 		double a = shooter.angle + angleoffs;
 		double p = shooter.pitch + pitchoffs;
 		double r = shooter.roll;
-		let mat = DrivablesMatrix.fromEulerAngles(a, p, r);
-		mat = mat.multiplyVector3((forward, -leftright, updown));
-		vector3 offsetPos = mat.asVector3(false);
+		let dir = Quat.FromAngles(a, p, r);
+		vector3 offsetPos = dir * (forward, -leftright, updown);
 		
 		vector3 shooterPos = (shooter.pos.xy, shooter.pos.z + shooter.height * 0.5);
 		if(shooter.player) shooterPos.z = shooter.player.viewz;
@@ -87,10 +86,8 @@ class EffectsHelper Abstract
 			p -= aimAngles.y;
 		}
 		
-		mat = DrivablesMatrix.fromEulerAngles(a, p, r);
-		mat = mat.multiplyVector3((1.0,0,0));
-		
-		vector3 projVel = mat.asVector3(false) * GetDefaultByType(proj).Speed;
+		dir = Quat.FromAngles(a, p, r);
+		vector3 projVel = (dir * (1.0,0,0)) * GetDefaultByType(proj).Speed;
 		
 		// Spawn projectile
 		let proj = Actor.Spawn(proj, offsetPos);

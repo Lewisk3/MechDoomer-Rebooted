@@ -71,7 +71,7 @@ class MechHardpointContainer : MenuElement
 		buttons.push(armorMinusButton);
 		
 		// Create all slots
-		for(int i = 0; i < hardpoint.maxslots; i++)
+		for(uint i = 0; i < hardpoint.maxslots; i++)
 		{
 			let menuSlot = MechItemSlot(MenuElement.Create(
 				"MechItemSlot", String.Format("Slot#%d", i), 
@@ -82,6 +82,19 @@ class MechHardpointContainer : MenuElement
 		}
 	}
 	
+	void updateSlotItem(double dT, int fillslot, int itemIndex)
+	{
+		let curSlot = slots[fillSlot];
+		let prevItem = curSlot.slotItem;
+		curSlot.slotItem = hardpoint.items[itemIndex];
+		curSlot.Update(dT);
+			
+		fillSlot++;
+			
+		// Mouse collisions
+		mechlab.cursor.CheckCollision(curSlot);
+	}
+	
 	override void Update(double dT)
 	{	
 		// Update all slot item pointers.
@@ -89,32 +102,15 @@ class MechHardpointContainer : MenuElement
 		for(int i = 0; i < hardpoint.items.Size(); i++)
 		{
 			if(hardpoint.items[i] is "MechDynamicStructure") continue;
-			
-			let curSlot = slots[fillSlot];
-			let prevItem = curSlot.slotItem;
-			curSlot.slotItem = hardpoint.items[i];
-			curSlot.Update(dT);
-			
-			fillSlot++;
-			
-			// Mouse collisions
-			mechlab.cursor.CheckCollision(curSlot);
+			updateSlotItem(dT, fillslot++, i); 
 		}	
 		
 		// Setup slots for dynamic structures
+		// Has to be processed last
 		for(int i = 0; i < hardpoint.items.Size(); i++)
 		{
 			if( !(hardpoint.items[i] is "MechDynamicStructure") ) continue;
-			
-			let curSlot = slots[fillSlot];
-			let prevItem = curSlot.slotItem;
-			curSlot.slotItem = hardpoint.items[i];
-			curSlot.Update(dT);
-			
-			fillSlot++;
-			
-			// Mouse collisions
-			mechlab.cursor.CheckCollision(curSlot);
+			updateSlotItem(dT, fillslot++, i); 
 		}
 				
 		size.y = 1 + (((slotsHeight*slots[0].scale) + itemSpacing) * slots.Size());
@@ -197,7 +193,7 @@ class MechHardpointContainer : MenuElement
 				
 		double drawY = 0;
 		double slotSpacing = (slotsHeight*slots[0].scale) + itemSpacing;
-		for(int i = 0; i < hardpoint.maxslots; i++)
+		for(uint i = 0; i < hardpoint.maxslots; i++)
 		{
 			MWDrawer.DrawString("ConsoleFont", "-", (pos.x + 8, pos.y + drawY));
 			MWDrawer.DrawThickLine(pos.x, pos.y + drawY + slotSpacing, pos.x + size.x, pos.y + drawY + slotSpacing, 2, "Gray"); 
@@ -1095,6 +1091,87 @@ class MechInfoContainer : MenuElement
 			String.Format("\c[Teal]ARMOR     " .. armorRating, mech.moveSpeedKPH, mech.moveSpeedKPH*0.5), 
 			textPos + (0,15), 
 			scale:(textSize, textSize)
+		);
+		
+		textPos.y += 50;
+		double heatDissipation = 0;
+		uint heatsinkCount;
+		Array<MechItem> heatSinks;
+		mech.FindAllItems("MechHeatsink", true, heatSinks);
+		
+		for(int i = 0; i < heatSinks.Size(); i++)
+		{
+			let hs = MechHeatsink(heatSinks[i]);
+			if(!hs) continue;
+			
+			heatDissipation += (hs.heatEff * TICRATE);
+			heatsinkCount++;
+		}
+		
+		if(mech.engine)
+		{
+			for(int i = 0; i < mech.engine.heatsinks.Size(); i++)
+			{
+				heatDissipation += (mech.engine.heatsinks[i].heatEff * TICRATE);
+				heatsinkCount++;
+			}
+		}
+			
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]HEATSINKS \c[White]%d", heatsinkCount), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		textPos.y += 30;
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]HEATDISP  \c[White]%.2f K/s", mech.BHUtoKelvin(heatDissipation)), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		textPos.y += 30;
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]HEATMAX   \c[White]%.2f K", mech.maxKelvin), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		
+		double heatGen = 0;
+		double damageOut = 0;
+		Array<MechItem> weapons;
+		mech.FindAllItems("MechWeapon", true, weapons);
+		for(int i = 0; i < weapons.Size(); i++)
+		{
+			let weap = MechWeapon(weapons[i]);
+			if(!weap) continue;
+			
+			heatGen += (weap.heat * max(1,weap.refireCount));
+			damageOut += weap.damage * max(1,weap.fireTime);
+			
+			let laserweap = SmallLaser(weap);
+			if(laserweap) heatGen += laserweap.laserHeat * max(1,weap.fireTime);
+			if(weap.projType) 
+			{
+				let defs = GetDefaultByType(weap.projType);
+				damageOut += defs.truedamage * max(1,weap.refireCount);
+			}
+		}
+		
+		textPos.y += 50;
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]HEATGEN   \c[White]%.2f K/s", mech.BHUtoKelvin(heatGen) / TICRATE), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		textPos.y += 30;
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[Teal]FIREPOWER \c[White]%.2f", damageOut * MechHardpoint.DMGSCALE), 
+			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[DARKGRAY](%.2f)", damageOut), 
+			textPos + (270,15), 
+			scale:(textSize, textSize)*0.7
 		);
 	}
 }

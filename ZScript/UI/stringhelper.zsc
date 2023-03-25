@@ -9,16 +9,17 @@ class MWStringHelper Abstract
 	{
 		tokens.Clear();
 		int foundat = -1;
-		for(int i = 0; i <= src.Length(); i++)
+		int strLen = src.Length();
+		for(int i = 0; i <= strLen; i++)
 		{
 			if(MWStringHelper.IsUpper(src.ByteAt(i)))
 			{
 				if(foundat >= 0) tokens.Push(src.Mid(foundat, i-foundat));
 				foundat = i;
 			}
-			else if(i >= src.Length() && foundat >= 0) 
+			else if(i >= strLen && foundat >= 0) 
 			{
-				tokens.Push(src.Mid(foundat, src.Length()));
+				tokens.Push(src.Mid(foundat, strLen));
 				break;
 			}
 		}
@@ -28,7 +29,7 @@ class MWStringHelper Abstract
 	{
 		int lnBreaks = 0;
 		string newln = "\n";
-		for(int i = 0; i < str.Length(); i++)
+		for(int i = 0; i < int(str.Length()); i++)
 			if(str.byteAt(i) == newln.byteAt(0)) lnBreaks++;
 		return lnBreaks;
 	}

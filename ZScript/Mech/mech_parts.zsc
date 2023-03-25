@@ -272,7 +272,7 @@ class MechHardpoint : MechPart
 	
 	clearscope virtual int getWeaponID(MechWeapon weap)
 	{
-		uint index = items.Find(weap);
+		int index = items.Find(weap);
 		return index >= items.Size() ? -1 : index;
 	}
 	

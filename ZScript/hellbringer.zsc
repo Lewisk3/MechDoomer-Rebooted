@@ -38,13 +38,13 @@ class MechHellbringer : DrivableMech
 		MechArmor.addToMech(self, "MechArmor_Ferro");
 		
 		// Weapons
-		leftArm.AddWeapon("SmallLaser",  GROUPFLG_ONE);
-		leftArm.AddWeapon("SmallLaser", GROUPFLG_ONE);		
+		//leftArm.AddWeapon("SmallLaser",  GROUPFLG_ONE);
+		//leftArm.AddWeapon("SmallLaser", GROUPFLG_ONE);		
 		leftArm.AddWeapon("AC10", GROUPFLG_THREE);
 		//leftArm.AddWeapon("AC2", GROUPFLG_THREE);
 		//leftArm.AddWeapon("AC2", GROUPFLG_THREE);
-		//rightArm.AddWeapon("LargePulseLaser", GROUPFLG_TWO);
-		//rightArm.AddWeapon("LargePulseLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("LargePulseLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("LargePulseLaser", GROUPFLG_TWO);
 		
 		rightLeg.AddItem("SRMAmmo");
 		leftLeg.AddItem("LRMAmmo");
