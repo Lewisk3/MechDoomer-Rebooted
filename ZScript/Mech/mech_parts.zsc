@@ -418,17 +418,17 @@ class MechHardpoint : MechPart
 		return weap;
 	}
 	
-	virtual MechItem AddItem(class<MechItem> type)
+	virtual MechItem, int AddItem(class<MechItem> type)
 	{
 		let item = MechItem.Init(type);
-		bool success = item.TryAttach(self);
-		if(!success) 
+		int success = item.TryAttach(self);
+		if(success != MechItem.IAE_SUCCESS) 
 		{	
 			item.Destroy();	
-			return NULL;
+			return NULL, success;
 		}
 		
-		return item;
+		return item, success;
 	}
 	
 	virtual MechItem TakeItem(int index)

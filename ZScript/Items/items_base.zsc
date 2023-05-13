@@ -8,6 +8,16 @@ class MechItem : Object
 	uint amount;
 	double weight;
 	
+	enum ItemActionError 
+	{
+		IAE_FAIL 		= 0,
+		IAE_NOSLOTS 	= 1,
+		IAE_OVERWEIGHT  = 2,
+		IAE_INVALID 	= 3,
+		IAE_EXCLUSIVE	= 4,
+		IAE_SUCCESS 	= 0xFF
+	};
+	
 	clearscope static MechItem Init(class<MechItem> type)
 	{
 		let item = MechItem(new(type));
@@ -21,6 +31,23 @@ class MechItem : Object
 		}
 		return item;
 	}
+	
+	virtual string GetItemErrorMessage(int ERR_TYPE)	
+	{
+		switch(ERR_TYPE)
+		{
+			case IAE_FAIL	   : return String.Format("Failed to equip item.");
+			case IAE_NOSLOTS   : return String.Format("Not enough slots!");
+			case IAE_OVERWEIGHT: return String.Format("Overtonnage!");
+			case IAE_INVALID   : return String.Format("This item cannot be equipped here.");
+			case IAE_EXCLUSIVE : return String.Format("Only one of these items may be equipped.");
+			
+			// No Error message.
+			case IAE_SUCCESS:
+			default: return "";
+		}
+	}
+	
 	
 	// Called to check if new item should be added to `amount` or physically differentiated.
 	virtual bool CanStack(MechItem other)
@@ -47,17 +74,17 @@ class MechItem : Object
 		return item;
 	}
 	
-	play virtual bool TryAttach(MechHardpoint part)
+	play virtual int TryAttach(MechHardpoint part)
 	{
 		if(part.mech.noItemSlots) return false;
 		if (size > 0)
 		{
-			if( (part.slots + size) > part.maxslots || 
-				(part.mech.weight + weight) > part.mech.maxWeight ) 
-				return false;	
+			if( (part.slots + size) > part.maxslots ) return IAE_NOSLOTS;
+			if( (part.mech.weight + weight) > part.mech.maxWeight ) 
+				return IAE_OVERWEIGHT;	
 				
 			int freeSlots = MechDynamicStructure.getTotalFreeslots(part.mech);
-			if( (freeSlots - size) < 0 ) return false;
+			if( (freeSlots - size) < 0 ) return IAE_NOSLOTS;
 		}
 		
 		parent = part;
@@ -66,7 +93,7 @@ class MechItem : Object
 		
 		part.slots += size;
 		part.mech.weight += weight;
-		return true;
+		return IAE_SUCCESS;
 	}
 	
 	play virtual bool TryDetach(bool forced = false)
@@ -321,7 +348,7 @@ class MechArmor : MechItem
 	play static bool addToMech(DrivableMech mech, class<MechArmor> type = "MechArmor")
 	{
 		let ar = MechItem.Init(type);
-		if(ar) return ar.TryAttach(mech.torso);
+		if(ar) return ar.TryAttach(mech.torso) == IAE_SUCCESS;
 		return false;
 	}
 	
@@ -368,35 +395,33 @@ class MechArmor : MechItem
 		}
 	}
 	
-	override bool TryAttach(MechHardpoint part)
+	override int TryAttach(MechHardpoint part)
 	{
 		let mech = part.mech;
-		if(!mech) return false;
-		if(mech.noItemSlots) return false;
+		if(!mech) return IAE_FAIL;
+		if(mech.noItemSlots) return IAE_NOSLOTS;
 		self.mech = part.mech;
 		
 		let prevArmor = mech.armorType;
 		mech.armorType = NULL;
 		if(prevArmor) prevArmor.OnDetach();
 		
-		bool fail = false;
+		int fail = IAE_SUCCESS;
 		double weight = armorWeight*getArmorPoints(mech);
-		if( (mech.weight + weight) > mech.maxWeight ) fail = true; 
+		if( (mech.weight + weight) > mech.maxWeight ) fail = IAE_OVERWEIGHT; 
 		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
-			fail = true;
+			fail = IAE_NOSLOTS;
 			
-		if(fail)
+		if(fail != IAE_SUCCESS)
 		{
 			prevArmor.TryAttach(part);
-			return false;
 		}
 		else
 		{
 			mech.armorType = self;
 			OnAttach();
 		}
-		
-		return true;
+		return fail;
 	}
 	
 	override bool TryDetach(bool forced)
@@ -626,10 +651,10 @@ class MechEngine : MechItem
 		heatsinks.Resize(0);
 	}
 	
-	override bool TryAttach(MechHardpoint part)
+	override int TryAttach(MechHardpoint part)
 	{
 		if(part.mech.FindItem("MechEngine", true))
-			return false;
+			return IAE_EXCLUSIVE;
 
 		let engBlock = MechItem.Init("MechEngineBlock");
 		int eblockSlots = blocks * (blockSize ? blockSize : engBlock.size);
@@ -638,7 +663,7 @@ class MechEngine : MechItem
 		let lt = part.mech.leftTorso;
 		let rt = part.mech.rightTorso;
 		if( (lt.slots +  eblockSlots) > lt.maxslots ||
-			(rt.slots +  eblockSlots) > rt.maxslots    ) return false;
+			(rt.slots +  eblockSlots) > rt.maxslots    ) return IAE_NOSLOTS;
 		
 		return super.TryAttach(part.mech.torso);
 	}
@@ -745,14 +770,14 @@ class MechWeapon : MechItem
 			group &= ~gBit;
 	}
 	
-	override bool TryAttach(MechHardpoint part)
+	override int TryAttach(MechHardpoint part)
 	{
 		// Attempt to find position to mount weapon to.
 		let mnt = part.findMountPoint(mountType);
-		if(!mnt) return false;
+		if(!mnt) return IAE_INVALID;
 		
-		bool success = super.TryAttach(part);
-		if(success)
+		int success = super.TryAttach(part);
+		if(success == IAE_SUCCESS)
 		{
 			mnt.mountItem(self);
 			mount = mnt;

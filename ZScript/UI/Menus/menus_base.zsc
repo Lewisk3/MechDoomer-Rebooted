@@ -303,12 +303,11 @@ class MechMenu : GenericMenu
 		}	
 	}	
 	
-	play virtual void processNetworkEvent(ConsoleEvent e)
+	ui virtual void processPlayEvent(int playerNumber, string event) 
 	{
-		// Used as a callback from NetworkProcess, primarily to keep
-		// code functionality organized and more readable.
+		 // Process interface events sent from play scope to UI	
 	}
-	
+		
 	virtual void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)
 	{
 		// MenuElements can call this function if they wish to relay behavior to their parent menu.
