@@ -247,6 +247,7 @@ class MechHardpointContainer : MenuElement
 			
 			// Mouse collisions
 			mechlab.cursor.CheckCollision(btn);
+		
 		}
 		
 		// Update slot draw positions
@@ -254,6 +255,11 @@ class MechHardpointContainer : MenuElement
 		for(int i = 0; i < hardpoint.items.Size(); i++)
 		{	
 			let slot = slots[i];
+			
+			// Draw Item stats
+				if(mechlab.cursor.CheckCollision(slot, false))
+					MenuItemsInvContainer.DrawItemStats(mechlab, slot.slotItem, (340,570), 350);
+			
 			// Skip if item is being dragged.
 			if(mechlab.cursor.draggingElement == slot) continue;
 			
@@ -371,9 +377,10 @@ class MechItemSlot : MenuElement
 				alpha, scale:(fontScale, fontScale)
 			);
 		}
-		
+				
 		// drawCollider();
 	}
+	
 	
 	override bool checkDraggable()
 	{
@@ -703,11 +710,7 @@ class MenuItemsInvContainer : MenuElement
 			if(hovering && itemBox.item && !draggingInvItem)
 				DrawItemStats(mechlab, itemBox.item, pos, size.x*0.75);
 		}
-		
-		// Draw stats of equipped item being dragged.
-		if(draggingHPItem && draggingHPItem.slotItem) 
-			DrawItemStats(mechlab, draggingHPItem.slotItem, (350,20), size.x*0.75);
-		
+						
 		// Scrollbar Element
 		scrollBar.Update(dt);
 		mechlab.cursor.CheckCollision(scrollBar);
@@ -1233,6 +1236,9 @@ class MechMenu_Mechlab : MechMenu
 		vector2 hpSlotsPos = (840,325);
 		double slotsWidth = 196;
 		double spacing = 205;
+		
+		// Mech info screen
+		AddElement("MechInfoContainer", "MechInfoScreen", (15,25), (380,1000));
 	
 		// Head
 		let headSlots = MechHardpointContainer(
@@ -1277,9 +1283,6 @@ class MechMenu_Mechlab : MechMenu
 			AddElement("MechHardpointContainer", "Hardpoint_RL", hpSlotsPos + (spacing,355), (slotsWidth,256))
 		);
 		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
-		
-		// Mech info screen
-		AddElement("MechInfoContainer", "MechInfoScreen", (15,25), (380,1000));
 		
 		// Items inventory
 		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,170), (400,800));

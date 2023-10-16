@@ -992,12 +992,37 @@ class I_MechItemStorage : Inventory
 				"AC5Ammo",
 				"AC10Ammo",
 				"AC20Ammo",
-				"MechHeatsink"
+				"MechHeatsink",
+				"LRM5",
+				"LRM10",
+				"LRM15",
+				"LRM20",
+				"LRMAmmo",
+				"LRMAmmo",
+				"LRMAmmo",
+				"SRM2",
+				"SRM4",
+				"SRM6",
+				"SRMAmmo",
+				"SSRM2",
+				"SSRM4",
+				"SSRM6",
+				"SSRMAmmo",
+				"AC2",
+				"AC5",
+				"AC10",
+				"AC20",
+				"SmallLaser",
+				"MediumLaser",
+				"LargeLaser",
+				"SmallPulseLaser",
+				"MediumPulseLaser",
+				"LargePulseLaser"
 			};
 			
 			for(int i = 0; i < 30; i++)
 			{
-				uint pick = random[DebugItems](0,4);
+				uint pick = random[DebugItems](0,28);
 				itm.AddItem(MechItem.Init(arr[pick]));
 			}
 			

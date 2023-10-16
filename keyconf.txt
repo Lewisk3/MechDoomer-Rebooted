@@ -39,6 +39,8 @@ Alias -mw_peekinventory "netevent -mw_peekinventory";
 
 Alias +mw_powercycle "netevent +mw_powercycle";
 Alias -mw_powercycle "netevent -mw_powercycle";
+Alias +mw_overrideshutdown "netevent +mw_overrideshutdown";
+Alias -mw_overrideshutdown "netevent -mw_overrideshutdown";
 
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK
@@ -48,6 +50,7 @@ addmenukey "Fire Group 4" +USER2
 addmenukey "Fire Group 5" +USER3
 addmenukey "Target Nearest" +mw_gettarget
 addmenukey "Power Cycle" +mw_powercycle
+addmenukey "Override Shutdown" +mw_overrideshutdown
 addmenukey "Toggle Camera" +RELOAD
 addmenukey "Jump Jets" +JUMP
 addmenukey "Arm Lock" +mw_armlock
@@ -62,3 +65,4 @@ addmenukey "Set Throttle to 0" +mw_stopmech
 addmenukey "Align Legs to Torso" +mw_alignlegs
 addmenukey "Align Torso to Legs" +mw_aligntorso
 addmenukey "View Mech Inventory" +mw_peekinventory;
+addmenukey "Open Mechlab" "netevent +mw_openmechlab";

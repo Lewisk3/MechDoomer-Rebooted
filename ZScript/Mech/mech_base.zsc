@@ -85,7 +85,8 @@ class DrivableMech : DrivableObject
 		BT_ARMLOCK    = 1 << 10,
 		BT_GETTARGET  = 1 << 11,   
 		BT_PEEKINV    = 1 << 12,
-		BT_POWERCYCLE = 1 << 13
+		BT_POWERCYCLE = 1 << 13,
+		BT_OVRSHUTDWN = 1 << 14
 	};
 	
 	enum GroupBits
@@ -142,7 +143,9 @@ class DrivableMech : DrivableObject
 				
 		// Equip stuff
 		SetupItems();
-		
+			
+		// Autoscale
+		A_SetScale(Scale.X * getAutoFitScale());
 	}
 	
 	virtual double getAutoFitScale()
@@ -457,6 +460,9 @@ class DrivableMech : DrivableObject
 		// Handle targetting
 		HandleHoming(filteredWeaps);
 		
+		// Lose target if target is dead.
+		if(curTarget && curTarget.bCORPSE) curTarget = NULL;
+		
 		if(filteredWeaps.Size() <= 0) return;
 		
 		if(!selectedWeapon) selectedWeapon = 1;
@@ -475,7 +481,7 @@ class DrivableMech : DrivableObject
 			selectedGroup--;
 		if( getExtBtn(BT_GROUPNEXT, DriverBtns.BTS_PRESSED) )
 			selectedGroup++;	
-			
+		
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
 			AcquireTarget();
@@ -522,14 +528,6 @@ class DrivableMech : DrivableObject
 			if(!it) it = rightLeg.AddItem("MechDoubleHeatsink"); */
 			A_SetScale(1.0);
 		}
-		if(getDriverBtn(BT_USER4, DriverBtns.BTS_PRESSED))
-		{
-			//let it = torso.FindItem("MechDoubleHeatsink");
-			//if(it) it.TryDetach();
-			
-			A_SetScale(Scale.X * getAutoFitScale());
-		}
-		
 		
 		bool clicked = getDriverBtn(BT_ATTACK, DriverBtns.BTS_PRESSED);
 		if(getDriverBtn(BT_ATTACK, DriverBtns.BTS_DOWN)) 
@@ -658,11 +656,11 @@ class DrivableMech : DrivableObject
 		// Process timed power cycling.
 		if( shutdownTimer > 0 && !(--shutdownTimer) )
 		{
-			// Reset shutdown override, also do not shutdown on timer end.
-			if(!overrideShutdown)
+			// If overriden, don't shutdown.
+			if(!overrideShutdown) 
 				DoShutdown();
 			else
-				overrideShutdown = false;
+				heatShutdown = false;
 				
 			shutdownTimer = 0;
 			if(heatShutdown)
@@ -699,11 +697,9 @@ class DrivableMech : DrivableObject
 			heatShutdown = true;
 		}
 		
-		if(curHeat <= kelvinToBHU(300.0)) 
-			heatWarn = false;
+		if(curHeat <= kelvinToBHU(300.0)) heatWarn = false;
 		
-		if(curHeat <= kelvinToBHU(500.0)) 
-			heatCritical = false;
+		if(curHeat <= kelvinToBHU(500.0)) heatCritical = false;
 		
 		// System buttons (Active regardless of power-state)
 		if(getExtBtn(BT_POWERCYCLE, DriverBtns.BTS_PRESSED))
@@ -712,6 +708,13 @@ class DrivableMech : DrivableObject
 				DoPowerup();
 			else
 				DoShutDown();
+		}
+			
+		// Override shutdown
+		if ( getExtBtn(BT_OVRSHUTDWN, DriverBtns.BTS_PRESSED) )
+		{
+			overrideShutdown = !overrideShutdown;
+			if(overrideShutdown) betty.Push("Betty/Shutdown/Override");
 		}
 		
 		// Movement code.

@@ -349,6 +349,10 @@ class MechHUD_Handler : EventHandler
 		MWDrawer.DrawString("ConsoleFont", String.Format("[%3d KPH]", round(KPH)), kphPos, flags:flags, scale:txtScale);
 		MWDrawer.DrawString("ConsoleFont", "Throttle", txtPos, flags:flags | MWDrawer.SS_TEXT_CENTER, scale:txtScale);
 		
+		// Override shutdown overlay
+		if(mech.overrideShutdown)
+			MWDrawer.DrawImage("Graphics/HUD/shutdownOverlay.png", (0,400), MWDrawer.SS_SCREEN_TOP_CENTER, 0.5 + (cos(uiTics * 5) * 0.5), scale:(1.0,1.0));
+		
 		// Draw heat.
 		vector2 heatPos = (1190, 800);
 
@@ -491,7 +495,7 @@ class MechHUD_Handler : EventHandler
 		
 		vector2 offs = (0,0);
 		vector2 drawPos = (1600,50);
-		double yoff = 20;
+		double yoff = 35;
 		double xoff = 20;
 		Color selColor = 0xAA0ba600;
 		double infoScale = 0.75;
@@ -505,8 +509,8 @@ class MechHUD_Handler : EventHandler
 		if(!weapCount) return;
 		
 		double ymax = weapCount * 10;
-		double boxScale = 0.10 * (weapCount + 1);
-		MWDrawer.DrawImage("Graphics/HUD/weaponsBG.png", drawPos + (70,ymax+10), flags, 1.0, scale:(0.90, boxScale));
+		// double boxScale = 0.10 * (weapCount + 1);
+		// MWDrawer.DrawImage("Graphics/HUD/weaponsBG2.png", drawPos + (70,ymax+10), flags, 1.0, scale:(0.90, boxScale));
 		
 		chainBlink += deltaTime;
 		if( chainBlink >= 20 )
@@ -520,6 +524,8 @@ class MechHUD_Handler : EventHandler
 		{
 			let weap = weaps[i];
 			if(!weap) continue;
+			
+			MWDrawer.DrawImage("Graphics/HUD/weaponBar.png", drawPos+offs + (75,12), flags, 0.85, scale:(0.9,1.0));
 			
 			string prefix = "";
 			if(weap.parent is "MechArm") armSlot++;
@@ -597,6 +603,7 @@ class MechHUD_Handler : EventHandler
 			
 			string weapName = String.Format("%-13s", weap.DisplayName);
 			weapName = weapName.MakeUpper();
+			
 			if(prefix) MWDrawer.DrawString("ConsoleFont", prefix, drawPos+offs - (140,0), flags, translation:tint, scale:(infoScale,infoScale));
 			MWDrawer.DrawString("ConsoleFont", weapName, drawPos+offs+(0,3), flags, translation:tint, scale:(infoScale,infoScale));
 			MWDrawer.DrawString("ConsoleFont", ammoCount, drawPos+offs + (285,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale,infoScale));

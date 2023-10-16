@@ -50,10 +50,10 @@ class MechButtons_Handler : EventHandler
 			
 			if(cmd ~== "mw_gettarget")  drvObj.source.setExtBtn(DrivableMech.BT_GETTARGET, btnState);
 			if(cmd ~== "mw_powercycle") drvObj.source.setExtBtn(DrivableMech.BT_POWERCYCLE, btnState);
+			if(cmd ~== "mw_overrideshutdown") drvObj.source.setExtBtn(DrivableMech.BT_OVRSHUTDWN, btnState);
 			
 			if(cmd ~== "mw_openmechlab" && e.Player == consoleplayer)
 			{
-				console.printf("Menu?");
 				Menu.SetMenu("MechMenu_Mechlab");
 			}
 			
