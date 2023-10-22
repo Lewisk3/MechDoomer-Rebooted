@@ -621,6 +621,11 @@ class AC5 : AC2
 		ammoType = "AC5Ammo";
 		fireSound = "Ballistic/Autocannon5";
 	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.4, 0);
+		return super.Fire(firePos);
+	}
 }
 class AC10 : AC2
 {

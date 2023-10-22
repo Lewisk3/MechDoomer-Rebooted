@@ -663,13 +663,13 @@ class MenuItemsInvContainer : MenuElement
 			item.itemID = itemIndexes[i];
 			
 			bool dragging = mechlab.cursor.draggingElement == item;
-			bool outOfBounds = !item.CheckCollision(self, false);
+			bool outOfBounds = !item.AABBCollision(pos, size, item.pos, (item.size.x, item.size.y * 0.5));
 			item.outOfBounds = outOfBounds;
 			
 			if(!dragging)
 			{
 				item.pos.y = curY;			
-				if(!outOfBounds) item.Draw(dT);
+				item.Draw(dT); // if(!outOfBounds) 
 			}
 			else
 			{	
@@ -778,7 +778,7 @@ class MechContainerScrollBar : MenuElement
 	override void Draw(double dT)
 	{
 		if(!parentElement) return;
-		double minSize = 8;
+		double minSize = 24;
 		barSize = clamp(barSize, minSize, parentElement.size.y);
 		size.y  = barSize;
 		
@@ -808,7 +808,7 @@ class MechContainerTab : MenuButton
 	vector2 iconScale;
 	vector2 textScale;
 	bool active;
-	
+
 	void Setup(string txt, string icon, vector2 iconScale = (1,1), vector2 textScale = (1,1))
 	{
 		self.tabText = txt;
@@ -858,7 +858,7 @@ class MechContainerTab : MenuButton
 class MechItemSortTab : MechContainerTab
 {
 	class<MechItem> sortCls;
-	
+		
 	override void Init()
 	{
 		super.Init();
@@ -1285,7 +1285,7 @@ class MechMenu_Mechlab : MechMenu
 		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
 		
 		// Items inventory
-		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,170), (400,800));
+		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,170), (400,500));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 

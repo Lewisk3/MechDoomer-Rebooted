@@ -214,6 +214,19 @@ class MechEngine_XL325 : MechEngine
 	}
 }
 
+class MechEngine_XL400 : MechEngine
+{
+	override void Defaults()
+	{
+		rating = 400;
+		size = 12;
+		blocks = 1;
+		blockSize = 3;
+		type = Type_XL;
+		SetupEngine();
+	}
+}
+
 // Chassis structures
 
 // Arm structures

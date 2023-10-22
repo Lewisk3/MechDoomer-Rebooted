@@ -30,6 +30,12 @@ class MenuElement : Object abstract ui
 		return false;
 	}
 	
+	// When true, on successful collision, blocks collision with elements under element.
+	virtual bool IsBlocking(MenuElement other)
+	{
+		return false;
+	}
+	
 	virtual void updateDragPos(MenuCursor cursor) {}
 	virtual void OnDrag(MenuCursor cursor) {}
 	virtual void OnDrop(MenuCursor cursor) {}
@@ -289,7 +295,7 @@ class MechMenu : GenericMenu
 		}
 		
 		// Calculate element collisions (This is REALLY slow, sadly. However the result is pretty robust and clean code-wise collision logic)
-		for(int i = 0; i < elements.Size(); i++)
+		for(int i = elements.Size()-1; i >= 0; i--)
 		{
 			let srcElement = elements[i];
 			if(!srcElement.canCollide(null)) continue;
@@ -298,7 +304,7 @@ class MechMenu : GenericMenu
 				let otherElement = elements[k];
 				if(otherElement == srcElement || !otherElement.canCollide(srcElement)) continue;
 				
-				srcElement.CheckCollision(otherElement);
+				if(srcElement.CheckCollision(otherElement) && srcElement.IsBlocking(otherElement)) break;
 			}
 		}	
 	}	

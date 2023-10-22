@@ -184,7 +184,7 @@ class MechHardpoint : MechPart
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{	
 		double trueDamage = double(damage) * DMGSCALE;
-		double hpDmg = 0;
+		double hpDmg = truedamage;
 		
 		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);
 		
@@ -194,9 +194,10 @@ class MechHardpoint : MechPart
 				trueDamage = mech.armorType.ProcessDamage(trueDamage);
 				
 			if(rearArmor > 0)
+			{
+				hpDmg = max(0, hpDmg - rearArmor);
 				rearArmor = max(0, rearArmor-trueDamage);
-				
-			hpDmg = max(0, trueDamage - rearArmor);
+			}
 		}
 		else 
 		{
@@ -204,9 +205,10 @@ class MechHardpoint : MechPart
 				trueDamage = mech.armorType.ProcessDamage(trueDamage);
 				
 			if(armorPoints > 0)
-				armorPoints = max(0, armorPoints-trueDamage);
-				
-			hpDmg = max(0, trueDamage - armorPoints);
+			{
+				hpDmg = max(0, hpDmg - armorPoints);
+				armorPoints = max(0, armorPoints-trueDamage);	
+			}
 		}
 		
 		healthPoints -= hpDmg;
@@ -485,11 +487,11 @@ class MechLegs : MechPart
 {	
 	uint gear, prevSpd;
 	double turnSpeed;		
-	Property TurnSpeed : turnSpeed;
+	Property TurnSpeed : turnSpeed; // Degrees per second
 	
 	Default
 	{
-		MechLegs.TurnSpeed 0.5;
+		MechLegs.TurnSpeed 60.0;
 	}
 
 	State DoIdle(double walkSpeed = 0.08)
@@ -574,6 +576,7 @@ class MechTorso : MechHardpoint
 {
 	double turnMax, pitchMin, pitchMax, turnSpeed, pitchSpeed;
 	double pitchBob, pitchBobVel;
+	double rollBob, rollBobTimer;
 	double turnDir;
 	double prevAngle, prevPitch;
 	
@@ -583,7 +586,7 @@ class MechTorso : MechHardpoint
 	
 	Default
 	{
-		MechTorso.TurnSpeed 6, 4;
+		MechTorso.TurnSpeed 90, 90;
 		MechTorso.TurnRange 90;
 		MechTorso.PitchRange 40, 40;
 		MechHardpoint.Slots 12;
@@ -613,10 +616,14 @@ class MechTorso : MechHardpoint
 				
 		if(mech.getSpd() >= 0.1 && mech.onground)
 		{
-			double str = 0.07;
+			double str = 0.10; // 0.07
 			pitchBobVel += mech.legs.frame >= 12 ? (str*1.50) : -str;
+			
+			rollBob += sin(rollBobTimer * 3.0) * str;
+			rollBobTimer += mech.getSpd();
 		}
-		pitchBob = clamp(pitchBobVel, -15, 15);
+		
+		pitchBob = clamp(pitchBobVel, -8, 8);
 
 		double toAngle = driver.angle;
 		double toPitch = driver.pitch + pitchBob;
@@ -629,8 +636,8 @@ class MechTorso : MechHardpoint
 		}
 
 		// Set angles
-		DrivablesMath.AngleSlerp(angle, toAngle, turnSpeed);
-		DrivablesMath.AngleSlerp(pitch, toPitch, pitchSpeed);
+		DrivablesMath.AngleSlerp(angle, toAngle, turnSpeed / double(TICRATE));
+		DrivablesMath.AngleSlerp(pitch, toPitch, pitchSpeed / double(TICRATE));
 				
 		// Angle ranges
 		double LegAng = parent.angle;
@@ -647,12 +654,13 @@ class MechTorso : MechHardpoint
 			A_StopSound(CHAN_BODY);
 
 		// Roll distortion
-		A_SetRoll(rolldistort, SPF_INTERPOLATE);
+		A_SetRoll(rolldistort + rollBob, SPF_INTERPOLATE);
 		A_SetPitch(pitch + ((rolldistort * -turnDir) * 0.05), SPF_INTERPOLATE);
 		
 		// Keep track of angular change.
 		prevAngle = angle;
 		prevPitch = pitch;
+		rollBob *= 0.85;
 		
 		if(!mech.shutdown) pitchBobVel *= 0.97;
 	}
@@ -719,7 +727,7 @@ class MechCockpit : MechHardpoint
 		
 		A_SetAngle(torso.angle, SPF_INTERPOLATE);
 		A_SetPitch(torso.pitch + (torso.pitchBob * 5.0), SPF_INTERPOLATE);
-		A_SetRoll(torso.roll, SPF_INTERPOLATE);
+		A_SetRoll(torso.roll + (torso.rollBob * 5.0), SPF_INTERPOLATE);
 	}
 }
 
@@ -727,6 +735,7 @@ class MechArm : MechHardpoint
 {
 	double aimMax;
 	double pitchMin, pitchMax;
+	double pitchOffs;
 	Property ActuationRange : aimMax;
 	property PitchRange : pitchMin, pitchMax;
 	
@@ -771,18 +780,20 @@ class MechArm : MechHardpoint
 		if(!mech.torsoLock)
 		{
 			DrivablesMath.AngleSlerp(angle, driver.angle, aimMax);
-			DrivablesMath.AngleSlerp(pitch, driver.pitch, 0.5 * (abs(pitchMin)+abs(pitchMax)) );
+			DrivablesMath.AngleSlerp(pitch, driver.pitch + pitchOffs, 0.5 * (abs(pitchMin)+abs(pitchMax)) );
 		}
 		else
 		{
 			A_SetAngle(parent.angle, SPF_INTERPOLATE);
-			A_SetPitch(parent.pitch, SPF_INTERPOLATE);
+			A_SetPitch(parent.pitch + pitchOffs, SPF_INTERPOLATE);
 		}
 				
 		// Angle ranges
 		DrivablesMath.ClampAngles(angle, parent.angle, aimMax);
 		let torso = MechTorso(parent);
 		if(torso) pitch = clamp(pitch, -pitchMin-torso.pitchMin, pitchMax+torso.pitchMax);
+		
+		pitchOffs *= 0.9;
 	}
 }
 class MechArm_Left : MechArm 
@@ -813,6 +824,6 @@ class CockpitCamera : MechPart
 				
 		A_SetAngle(mech.driver.angle, SPF_INTERPOLATE);
 		A_SetPitch(mech.driver.pitch + (pitchBob), SPF_INTERPOLATE);
-		A_SetRoll(parent.roll, SPF_INTERPOLATE);
+		A_SetRoll(parent.roll * 0.5, SPF_INTERPOLATE);
 	}
 }

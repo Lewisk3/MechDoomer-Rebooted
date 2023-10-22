@@ -26,9 +26,11 @@ class MechButtons_Handler : EventHandler
 		if(!plr || !plr.mo) return;
 		
 		let drvObj = I_DrivingObject.Get(plr.mo);
+		string cmd = e.Name;
+		
 		if(drvObj && drvObj.source) 
 		{
-			string cmd = e.Name;
+	
 			bool btnState = cmd.IndexOf("+") != -1 ? true : false; 
 			cmd.Remove(0,1);
 			cmd = cmd.MakeLower();
@@ -59,5 +61,23 @@ class MechButtons_Handler : EventHandler
 			
 			MechMenu_Mechlab.processMechlabEvents(e, drvObj.source);
 		}	
+		
+		// Cheats and Debug
+		Array<string> args;
+		cmd.Split(args, ".");
+		cmd = args[0];
+		
+		if(cmd ~== "inv")
+		{
+			let inv = I_MechItemStorage.Get(plr.mo, give:false);
+			let item = (class<MechItem>)(args[2]);
+			if(!inv || !item) return;
+			
+			if(args[1] == "give")
+			{
+				inv.AddItem(MechItem.Init(item));
+				console.printf("Received: %s.", item.getClassName());
+			}
+		}
 	}
 }

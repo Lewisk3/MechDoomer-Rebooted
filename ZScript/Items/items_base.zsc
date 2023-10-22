@@ -724,6 +724,16 @@ class MechWeapon : MechItem
 	play virtual void A_Recoil(double pitchAmt, double pushBack = 0)
 	{
 		if( !mech || !MechTorso(mech.torso) ) return;
+		
+		// If we're on an Arm and this arm has upper actuation capability, arm will compensate for recoil.
+		let arm = MechArm(mount.hardpoint);
+		if(arm && arm.FindItem("MechUpperArmActuator", true))
+		{
+			arm.pitchOffs -= pitchAmt * 5;
+			pitchAmt *= 0.33;
+			pushBack *= 0;
+		}
+		
 		MechTorso(mech.torso).pitchBobVel -= pitchAmt;
 		
 		if(pushBack)
@@ -986,7 +996,6 @@ class I_MechItemStorage : Inventory
 			itm = I_MechItemStorage(from.FindInventory("I_MechItemStorage"));
 			
 			// Debug; populate inventory
-			
 			class<MechItem> arr[] = {
 				"AC2Ammo",
 				"AC5Ammo",
@@ -1020,7 +1029,7 @@ class I_MechItemStorage : Inventory
 				"LargePulseLaser"
 			};
 			
-			for(int i = 0; i < 30; i++)
+			for(int i = 0; i < 200; i++)
 			{
 				uint pick = random[DebugItems](0,28);
 				itm.AddItem(MechItem.Init(arr[pick]));

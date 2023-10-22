@@ -1,18 +1,80 @@
 class MechHUD_Handler : EventHandler
 {
-	ui DrivableMech mech;
-	ui vector3 torsoAim, leftArmAim, rightArmAim;
-	ui double prevMS, deltatime, curThrottle, curHeat;
-	ui transient Shape2D radarCircle;
-	ui double uiTics, chainBlink;
-	ui double powerupTics;
-	ui double lockingRotation;
-	ui int chainGroup; // For chainfire animation.
+	ui VehicleHUD curHUD;
+	ui bool hidingHUD;
 	
+	ui void HideHUD()
+	{
+		if(hidingHUD) return;
+		
+		Screen.EnableStencil(true);
+		Screen.SetStencil(0, SOP_Increment, SF_ColorMaskOff);
+		MWDrawer.DrawImage("Graphics/HUD/BLKPXL.png", (0,0), flags:0, alpha:1.0);
+		Screen.SetStencil(1, SOP_Keep, SF_AllOn);
+		hidingHUD = true;
+	}
+	ui void ShowHUD()
+	{
+		if(!hidingHUD) return;
+		
+		Screen.EnableStencil(false);
+		Screen.ClearStencil();
+		hidingHUD = false;
+	}
+	
+	ui DrivableMech getPilotingMech(RenderEvent e)
+	{
+		let viewer = e.Camera;
+		let drvObj = DrivableObjectPart(viewer);
+		if( !drvObj) return NULL;
+		
+		let mech = DrivableMech(drvObj.base);
+		return mech;
+	}
+	
+	override void RenderUnderlay(RenderEvent e)
+	{
+		let mech = getPilotingMech(e);
+		if(mech && mech.HUDType) 
+			HideHUD();
+		else
+			ShowHUD();
+	}
+	
+	override void RenderOverlay(RenderEvent e)
+	{		
+		// Get pilot
+		let mech = getPilotingMech(e);
+		if(!mech) return;
+		
+		if(!curHUD || mech.HUDType != curHUD.getClass())
+		{
+			if(curHUD) curHUD.Destroy();
+			curHUD = VehicleHUD(new(mech.HUDType));
+			curHUD.mech = mech;
+		}
+		else if(mech.HUDType == curHUD.getClass())
+		{
+			ShowHUD();
+			curHUD.Update();
+			curHUD.Draw(e);
+		}
+	}
+}
+
+// HUD Base 
+class VehicleHUD : Object ui
+{
 	const ANIM_FPS = 60.0;
 	const POWERANIM = ANIM_FPS * 2.0; 
+
+	DrivableMech mech;
+	double uiTics;
+	double prevMS, deltatime;
 	
-	ui void drawAngledLine(double x, double y, int distance, double angle, double fov, double thickness, Color c)
+	transient Shape2D radarCircle;
+
+	void drawAngledLine(double x, double y, int distance, double angle, double fov, double thickness, Color c)
 	{
 		vector2 toPos = (
 			x + (cos(angle+fov)*distance),
@@ -21,7 +83,7 @@ class MechHUD_Handler : EventHandler
 		MWDrawer.DrawThickLine(x,y,toPos.x,toPos.y, thickness, c, 1.0, MWDrawer.SS_NOASPECTCORRECTION);
 	}
 	
-	ui void FillCircle(vector2 pos, double radius, Color col=Color(0xFF,0,0,0), double alpha=1.0, double points=60)
+	void FillCircle(vector2 pos, double radius, Color col=Color(0xFF,0,0,0), double alpha=1.0, double points=60)
 	{
 		int angfrac = ceil(360/points);
 		if(!radarCircle)
@@ -54,7 +116,7 @@ class MechHUD_Handler : EventHandler
 		Screen.DrawShape(TexMan.CheckForTexture("BLKPXL", TexMan.Type_Any), false, radarCircle, DTA_ColorOverlay, col, DTA_Alpha, alpha);
 	}
 	
-	ui void DrawCircle(Color col = 0xFFAAAAAA, vector2 pos=(0,0), double radius=500, uint flags = MWDrawer.SS_NOASPECTCORRECTION)
+	void DrawCircle(Color col = 0xFFAAAAAA, vector2 pos=(0,0), double radius=500, uint flags = MWDrawer.SS_NOASPECTCORRECTION)
 	{
 		double step = 1.0 / (radius/100);
 		for(double i = 0; i < 360; i+=step)
@@ -65,7 +127,7 @@ class MechHUD_Handler : EventHandler
 		}
 	}
 	
-	ui void drawRadarLine( double x0, double y0, double x1, double y1, Color col, vector2 origin = (0,0), double alpha = 1.0, double maxdist = 128)
+	void drawRadarLine( double x0, double y0, double x1, double y1, Color col, vector2 origin = (0,0), double alpha = 1.0, double maxdist = 128)
 	{	
 		double scrw = Screen.getWidth();
 		double scrh = Screen.getHeight();
@@ -104,283 +166,56 @@ class MechHUD_Handler : EventHandler
 		vec.y = oldx;
 		return vec;
 	}
-	
-	override void RenderOverlay(RenderEvent e)
-	{
-		// Keep track of time, always.
-		if(!prevMS)
-		{
-			prevMS = MSTime();
-			return;
-		}
-		double ftime = MSTime()-prevMS;
-		prevMS = MSTime();
-		double dtime = 1000.0 / ANIM_FPS;
-		deltatime = (ftime/dtime);
-		uiTics += deltaTime;
 		
-		// Attempt to clear HUD through hax		
-		let viewer = e.Camera;
-		let drvObj = DrivableObjectPart(viewer);
-		if( !drvObj) return;
-		
-		mech = DrivableMech(drvObj.base);
-		if(!mech) return;
-		
-		double FOV = viewer.player ? viewer.player.FOV : viewer.CameraFOV;
-		if(automapactive) return; // Do not draw over automap.
-		
-		// Commit crimes 
-		/*
-			TexMan.SetCameraToTexture(viewer, "HideHUD", FOV);
-			vector2 camRes = (4096, 2160);
-			vector2 camScale = (1920. / camRes.x, 1080. / camRes.y);
-			MWDrawer.DrawImage("HideHUD", (0,0), MWDrawer.SS_SCREEN_CENTER | MWDrawer.SS_NOASPECTCORRECTION, 1.0, scale:camScale);
-		*/
-				
-		// After the crimes and times have been paid, draw the rest of the HUD.
-		if(!mech.shutdown)
-		{
-			let viewproj = MWDrawer.GetRenderEventViewProj(e, FOV);
-			let torsoAim_To    = mech.torso.lookingPos;
-			let leftArmAim_To  = mech.leftArm.lookingPos;
-			let rightArmAim_To = mech.rightArm.lookingPos;
-			
-			torsoAim = DrivablesMath.Lerp3D(torsoAim, torsoAim_To, 0.5 * deltatime);
-			leftArmAim = DrivablesMath.Lerp3D(leftArmAim, leftArmAim_To, 0.5 * deltatime);
-			rightArmAim = DrivablesMath.Lerp3D(rightArmAim, rightArmAim_To, 0.5 * deltatime);
-			
-			bool infront;
-			vector2 torsoAimPos, leftArmAimPos, rightArmAimPos;
-			double crosshairAlpha = 0.65;
-			
-			if(powerupTics <= 0)
-			{
-				vector2 aimScale = (0.3,0.3);
-				[infront, torsoAimPos] = MWDrawer.ProjectToHUD(viewproj, torsoAim, (0,0,0));
-				if(infront) MWDrawer.DrawImage("Graphics/HUD/TorsoRet.png", torsoAimPos, alpha:crosshairAlpha, scale:aimScale, absolute:true);
-				
-				[infront, leftArmAimPos] = MWDrawer.ProjectToHUD(viewproj, leftArmAim, (0,0,0));
-				if(infront && mech.leftArm.healthPoints > 0)
-				{
-					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, leftArmAimPos.x, leftArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
-					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", leftArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
-				}
-				
-				[infront, rightArmAimPos] = MWDrawer.ProjectToHUD(viewproj, rightArmAim, (0,0,0));
-				if(infront && mech.rightArm.healthPoints > 0) 
-				{
-					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, rightArmAimPos.x, rightArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
-					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", rightArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
-				}
-				
-				MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
-				
-				// Draw target selection
-				let curTarget = mech.curTarget;
-				if(curTarget)
-				{
-					vector2 topLeft, topRight, bottomLeft, bottomRight, center;
-			
-					[infront, center] = MWDrawer.GetActorHUDPos(viewproj, curTarget, 0, 0, 0);
-			
-					[infront, topLeft]       = MWDrawer.GetActorHUDPos(viewproj, curTarget, -curTarget.radius, 0, 0);
-					if(!infront) topLeft     = (0, 0);
-					
-					[infront, topRight]      = MWDrawer.GetActorHUDPos(viewproj, curTarget,  curTarget.radius, 0, 0);
-					if(!infront) topRight    = (Screen.getWidth(), 0 );
-					
-					[infront, bottomLeft]    = MWDrawer.GetActorHUDPos(viewproj, curTarget,  -curTarget.radius, 0, curTarget.height);
-					if(!infront) bottomLeft  = (0, Screen.getHeight());
-					
-					[infront, bottomRight]   = MWDrawer.GetActorHUDPos(viewproj, curTarget,  curTarget.radius, 0, curTarget.height);
-					if(!infront) bottomRight = (Screen.getWidth(), Screen.getHeight());
-					
-					double thickness = 4;
-					Color lineColor = 0xCCFF0000;
-					Screen.DrawThickLine(topLeft.x, topLeft.y, topRight.x, topRight.y, thickness, lineColor);             // ---
-					Screen.DrawThickLine(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y, thickness, lineColor);          // |
-					Screen.DrawThickLine(topRight.x, topRight.y, bottomRight.x, bottomRight.y, thickness, lineColor);     //   |
-					Screen.DrawThickLine(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, thickness, lineColor); // ___
-				}
-			}
-			
-			// Draw HUD elements.
-			DrawWeapons();
-			DrawBars();
-			DrawRadar();
-			DrawCompass();
-			DrawPaperDoll();
-			DrawLockonRet(crosshairAlpha);
-			
-			if(powerupTics > 0)	powerupTics -= deltaTime;
-		}
-		else
-		{
-			powerupTics = POWERANIM; // 2 seconds to powerup.
-		}
-		
-		bool debugInv = mech.getExtBtn(DrivableMech.BT_PEEKINV, DriverBtns.BTS_DOWN);
-		
-		if(debugInv)
-		{
-			vector2 invPos = (250,400);
-			
-			string armorInfo = String.Format(
-				"Armor: %s \n -> (Tons per: %.2f, Criticals: %d)", 
-				mech.armorType ? mech.armorType.displayName : "None",
-				mech.armorType ? mech.armorType.armorWeight : 0,
-				mech.armorType ? mech.armorType.structureSlots : 0
-			);
-			
-			MWDrawer.DrawString("ConsoleFont", String.Format("Weight: %.2f / %.2f", mech.weight, mech.maxWeight), invPos-(100,200)); 
-			MWDrawer.DrawString("ConsoleFont", armorInfo, invPos-(100, 180)); 
-			DrawDebugInv(invPos + (   0,   0), mech.leftArm,    "Left Arm");
-			DrawDebugInv(invPos + ( 300,   0), mech.leftTorso,  "Left Torso");
-			DrawDebugInv(invPos + ( 600,   0), mech.torso,      "Center Torso");
-			DrawDebugInv(invPos + ( 600,-300), mech.head,       "Head");
-			DrawDebugInv(invPos + ( 900,   0), mech.rightTorso, "Right Torso");
-			DrawDebugInv(invPos + (1200,   0), mech.rightArm,   "Right Arm");
-			DrawDebugInv(invPos + ( 300, 400), mech.leftLeg,    "Left Leg");
-			DrawDebugInv(invPos + ( 900, 400), mech.rightLeg,   "Right Leg");
-		}
-	}
-	
-	ui static void DrawRect(Color col, vector2 pos, vector2 size, uint flags = 0)
+	static void DrawRect(Color col, vector2 pos, vector2 size, uint flags = 0)
 	{
 		MWDrawer.Fill(col, pos.x,pos.y, size.x, size.y, flags:flags); 
 	}
 	
-	ui void DrawRadar()
+	string GetHeatString(Name unit = 'K')
 	{
-		vector2 radarPos = (960,900);
-		double radius = 150;
+		double baseTemp = 273.0 + 20.0;
+		double maxTemp = mech.maxKelvin;
+		double heatPerc = mech.curHeat / mech.maxHeat;
 		
-		// Powerup animation
-		if(powerupTics > 0) radius *= (1.0-(powerupTics/POWERANIM));
-		
-		double radarSpeed = 2;
-		double phase = (uiTics*radarSpeed)%360;
-		double scanRadius = (phase > 90 && phase < 270) ? radius : ((sin(uiTics*radarSpeed)*0.5) + 0.5) * radius;
-		
-		FillCircle( radarPos, radius, 0xEE01470c, 0.35 );
-		DrawCircle( 0xCC144a04, radarPos, radius);
-		
-		// Minimap
-		DrawMinimap(radarPos, scanRadius, 12);
-		
-		let torso = MechTorso(mech.torso);
-		double zoom = 0.45;
-		drawAngledLine(radarPos.x,radarPos.y, radius, 90,  (mech.cam.CameraFOV*zoom), 2, 0xAA2aa307); 
-		drawAngledLine(radarPos.x,radarPos.y, radius, 90, -(mech.cam.CameraFOV*zoom), 2, 0xAA2aa307); 
-		
-		// Draw middle line
-		drawAngledLine(radarPos.x,radarPos.y, radius,  90, 0, 3, 0xFF144a04); 
-		
-		// Draw leg angle difference.
-		drawAngledLine(radarPos.x,radarPos.y, radius, DrivablesMath.AngleDiff(torso.angle, mech.angle) + 90, 0, 2, 0xEE635500); 
-		
-		DrawCircle( 0xAA1c6306, radarPos, scanRadius);
-	}
-
-	ui void DrawMinimap(vector2 pos, double radius, double zoom)
-	{
-		// -- CVars / Constants --
-		double minimap_renderdist = 2048**2;
-		Vector2 baseoffs = pos;
-		Vector2 plrpos2D = (mech.cam.pos.x, mech.cam.pos.y);
-		
-		double angle = mech.torso.angle;
-		Vector2 map_middle = (baseoffs.x,baseoffs.y);
-		Color linecol = 0xFF343635;
-		
-		// Draw Minimap
-		for (int i = 0; i < Level.Lines.Size(); i++)
+		switch(unit)
 		{
-			Line ln = Level.Lines[i];
-			// if( !(ln.flags & Line.ML_MAPPED) ) continue;
-			
-			Vector2 ln_pos = ln.v1.p;
-			Vector2 ln_len = ln.v2.p;
-			
-			// Check render distance
-			if( DrivablesMath.Distance2DSquared(ln_pos, plrpos2D) > minimap_renderdist )
-				continue;
-			
-			ln_pos = Actor.RotateVector(SwapVector(ln_pos-plrpos2D),angle+180);
-			ln_len = Actor.RotateVector(SwapVector(ln_len-plrpos2D),angle+180);					
-			ln_pos += baseoffs*zoom;
-			ln_len += baseoffs*zoom;
-			ln_pos /= zoom;
-			ln_len /= zoom;
-			
-			drawRadarLine(ln_pos.x,ln_pos.y,ln_len.x,ln_len.y,linecol, map_middle, 1.0, radius);
+			case 'P':
+				maxTemp = 100.0;
+				unit = "%";
+			break;
+			case 'C':
+				baseTemp -= 273.0;
+				maxTemp -= 273.0;
+			break;
+			case 'F':
+				baseTemp -= 273.0;
+				maxTemp -= 273.0;
+				
+				baseTemp = (baseTemp * 1.8) + 32.0;
+				maxTemp  = (maxTemp  * 1.8) + 32.0;
+			break;
 		}
+			
+		return String.Format("[%4d %s]", round((heatPerc*maxTemp)), unit);
 	}
 	
-	ui void DrawBars()
+	virtual void Update()
 	{
-		uint flags = MWDrawer.SS_NOASPECTCORRECTION;
-		vector2 throttlePos, barSize;
-		throttlePos = (700, 800);
-		barSize = (30, 180);
-		
-		// Powerup animation
-		if(powerupTics > 0) barSize.y *= (1.0-(powerupTics/POWERANIM));
-		
-		 // Outline
-		DrawRect(0xCC00FF00, throttlePos, barSize);
-		DrawRect(0, throttlePos + (2,2), barSize - (3,3)); 
-		
-		// Fill
-		double accelHeight = abs(mech.accel) * (barSize.y - 3);
-		Color thrColor = mech.accel > 0 ? 0xCC0000FF : 0xCCFF0000;
-		DrawRect(thrColor, throttlePos + (2,barSize.y-2), (barSize.x-3, -accelHeight), flags:flags); 
-		
-		// Throttle bar
-		curThrottle = DrivablesMath.Lerp(curThrottle, mech.throttle, 0.25 * deltaTime);
-		double thrHeight = abs(curThrottle) * (barSize.y - 3);
-		DrawRect(0xCCFFFF00, throttlePos + (2,barSize.y-2 - thrHeight), (barSize.x-3, 4), flags:flags);
-		
-		vector2 txtScale = (0.75,0.75);
-		vector2 kphPos = throttlePos + (-(barSize.x), barSize.y+10);
-		vector2 txtPos = throttlePos + (10, -15);
-		double KPH = MechEngine.speedToKPH(mech.vel.xy.length(), 1. /*1./mech.Scale.X*/);
-		MWDrawer.DrawString("ConsoleFont", String.Format("[%3d KPH]", round(KPH)), kphPos, flags:flags, scale:txtScale);
-		MWDrawer.DrawString("ConsoleFont", "Throttle", txtPos, flags:flags | MWDrawer.SS_TEXT_CENTER, scale:txtScale);
-		
-		// Override shutdown overlay
-		if(mech.overrideShutdown)
-			MWDrawer.DrawImage("Graphics/HUD/shutdownOverlay.png", (0,400), MWDrawer.SS_SCREEN_TOP_CENTER, 0.5 + (cos(uiTics * 5) * 0.5), scale:(1.0,1.0));
-		
-		// Draw heat.
-		vector2 heatPos = (1190, 800);
-
-		 // Outline
-		DrawRect(0xCC00FF00, heatPos, barSize);
-		DrawRect(0, heatPos + (2,2), barSize - (3,3)); 
-		
-		// Fill
-		Color heatColor = 0xCCFF0000;
-		curHeat = DrivablesMath.Lerp(curHeat, min(mech.maxHeat, mech.curHeat), 0.25 * deltaTime);
-		double heatHeight = (curHeat / mech.maxHeat) * (barSize.y - 3);
-		DrawRect(heatColor, heatPos + (2,barSize.y-2), (barSize.x-3, -heatHeight), flags:flags); 
-		
-		// Heat bars
-		double highHeat = barSize.y * 0.60;
-		double criticalHeat = barSize.y * 0.85;
-		DrawRect(0xCCFFFF00, heatPos + (2,barSize.y-2 - highHeat), (barSize.x-3, 4), flags:flags);
-		DrawRect(0xCCFF0000, heatPos + (2,barSize.y-2 - criticalHeat), (barSize.x-3, 4), flags:flags);
-
-		vector2 kelvinPos = heatPos + (-(barSize.x), barSize.y+10);
-		txtPos = heatPos + (10, -15);
-		
-		MWDrawer.DrawString("ConsoleFont", GetHeatString('K'), kelvinPos, flags:flags, scale:txtScale);
-		MWDrawer.DrawString("ConsoleFont", "Heat", txtPos, flags:flags | MWDrawer.SS_TEXT_CENTER, scale:txtScale);
-		
+		// Keep track of time, always.
+		if(!prevMS)
+		{
+			prevMS = MSTimeF();
+			return;
+		}
+		double ftime = MSTimeF()-prevMS;
+		prevMS = MSTimeF();
+		double dtime = 1000.0 / ANIM_FPS;
+		deltatime = (ftime/dtime);
+		uiTics += deltaTime;
 	}
 	
-	ui void DrawDebugInv(vector2 pos, MechHardpoint hp, string title)
+	virtual void DrawDebugInv(vector2 pos, MechHardpoint hp, string title)
 	{
 		vector2 inv = pos;
 		vector2 invOffs = (0,80);
@@ -459,250 +294,6 @@ class MechHUD_Handler : EventHandler
 		}
 	}
 	
-	ui string GetHeatString(Name unit = 'K')
-	{
-		double baseTemp = 273.0 + 20.0;
-		double maxTemp = mech.maxKelvin;
-		double heatPerc = mech.curHeat / mech.maxHeat;
-		
-		switch(unit)
-		{
-			case 'P':
-				maxTemp = 100.0;
-				unit = "%";
-			break;
-			case 'C':
-				baseTemp -= 273.0;
-				maxTemp -= 273.0;
-			break;
-			case 'F':
-				baseTemp -= 273.0;
-				maxTemp -= 273.0;
-				
-				baseTemp = (baseTemp * 1.8) + 32.0;
-				maxTemp  = (maxTemp  * 1.8) + 32.0;
-			break;
-		}
-			
-		return String.Format("[%4d %s]", round((heatPerc*maxTemp)), unit);
-	}
-	
-	ui void DrawWeapons()
-	{
-		uint flags = MWDrawer.SS_NOASPECTCORRECTION;
-		Array<MechWeapon> weaps;
-		mech.getAllWeapons(weaps, readDeadHardpoints:true);
-		
-		vector2 offs = (0,0);
-		vector2 drawPos = (1600,50);
-		double yoff = 35;
-		double xoff = 20;
-		Color selColor = 0xAA0ba600;
-		double infoScale = 0.75;
-		
-		double weapCount = weaps.Size();
-				
-		// Powerup animation
-		if(powerupTics > 0) 
-			weapCount = weaps.Size() - DrivablesMath.fmap(powerupTics, 0, POWERANIM, 1, weaps.Size()); 
-		
-		if(!weapCount) return;
-		
-		double ymax = weapCount * 10;
-		// double boxScale = 0.10 * (weapCount + 1);
-		// MWDrawer.DrawImage("Graphics/HUD/weaponsBG2.png", drawPos + (70,ymax+10), flags, 1.0, scale:(0.90, boxScale));
-		
-		chainBlink += deltaTime;
-		if( chainBlink >= 20 )
-		{
-			chainGroup = (chainGroup + 1) % weapCount;
-			chainBlink = 0;
-		}
-		
-		int armSlot, torsoSlot;
-		for(int i = 0; i < weapCount; i++)
-		{
-			let weap = weaps[i];
-			if(!weap) continue;
-			
-			MWDrawer.DrawImage("Graphics/HUD/weaponBar.png", drawPos+offs + (75,12), flags, 0.85, scale:(0.9,1.0));
-			
-			string prefix = "";
-			if(weap.parent is "MechArm") armSlot++;
-			if(weap.parent is "MechTorso" || weap.parent is "MechSideTorso") torsoSlot++;
-			bool destroyed = weap.checkDestroyed();
-			
-			if(armSlot == 1) 
-			{
-				prefix = "\c[Red]O";
-				//if(i > 0) offs.y += yoff;
-			}
-			if(torsoSlot == 1) 
-			{
-				prefix = "\c[Red]X";
-				if(i > 0) offs.y += yoff;
-			}
-
-			uint tint = Font.CR_WHITE;
-			if(weap.cooldown > 0) tint = Font.CR_RED;
-			
-			if(destroyed) 
-				tint = Font.CR_DarkRed;
-			
-			if((i+1) == mech.selectedWeapon)
-				MWDrawer.Fill(selColor, drawPos.x - 120, drawPos.y+(offs.y), 320, 20, 0.20);
-			
-			vector2 groupOffs = (0,0);
-			for(int g = 0; g < 5; g++)
-			{	
-				double alpha = 0.5;
-				uint tint = Font.CR_Blue;
-				uint gBit = (2**g);
-				let wgroup = mech.weaponGroups[g];
-				bool chainfire = wgroup.chainfire;
-				
-				if( !!(weap.group & gBit) ) 
-				{
-					alpha = 1.0;
-					tint = Font.CR_WHITE;
-					if( chainfire && chainGroup == i )
-						tint = Font.CR_TEAL;
-						
-					if( weap.cooldown > (weap.fireTime*0.8) && wgroup.weapCycle > 0 )
-					{
-						tint = Font.CR_Red;
-						chainGroup = i;
-					}
-				}
-				
-				if(destroyed) 
-					tint = Font.CR_DarkRed;
-				
-				if(g == mech.selectedGroup)
-				{
-					double selAlpha = ((i+1) == mech.selectedWeapon) ? 0.5 : 0.25; 
-					MWDrawer.Fill(selColor, drawPos.x+groupOffs.x-120, drawPos.y + offs.y, 20, 22, selAlpha, flags);
-				}
-				
-				MWDrawer.DrawString("ConsoleFont", String.Format("%d",g+1), drawPos+offs+groupOffs-(115,0), flags, translation:tint, alpha:alpha);
-				groupOffs.x += xoff;
-			}
-			
-			string ammoCount = "***";
-			if(weap.ammoType) ammoCount = String.Format("\c[Gray]%d", mech.countAllAmmo(weap.ammoType));
-			
-			string weapRange = String.Format("%dm", weap.range);
-			if(weap.projType) 
-			{
-				let defs = GetDefaultByType(weap.projType);
-				weapRange = String.Format("%dm", defs.maxrange);
-			}
-		
-			if(destroyed) 
-				tint = Font.CR_DarkRed;
-			
-			string weapName = String.Format("%-13s", weap.DisplayName);
-			weapName = weapName.MakeUpper();
-			
-			if(prefix) MWDrawer.DrawString("ConsoleFont", prefix, drawPos+offs - (140,0), flags, translation:tint, scale:(infoScale,infoScale));
-			MWDrawer.DrawString("ConsoleFont", weapName, drawPos+offs+(0,3), flags, translation:tint, scale:(infoScale,infoScale));
-			MWDrawer.DrawString("ConsoleFont", ammoCount, drawPos+offs + (285,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale,infoScale));
-			MWDrawer.DrawString("ConsoleFont", weapRange, drawPos+offs + (235,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale*0.65,infoScale));
-			offs.y += yoff;
-		}
-	}
-	
-	ui void DrawPaperDoll()
-	{
-		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
-		vector2 dollPos = (1550,880);
-		vector2 dollScale = (0.75,0.75);
-		double dollAlpha = 1.0;
-		
-		if(powerupTics > 0) 
-		{
-			dollScale.x *= (1.0-(powerupTics/POWERANIM));
-			dollAlpha *= (1.0-(powerupTics/POWERANIM));
-		}
-		
-		double ArmorHD, ArmorCT, ArmorLT, ArmorRT, ArmorLA, ArmorRA, ArmorLL, ArmorRL;
-		double InternalHD, InternalCT, InternalLT, InternalRT, InternalLA, InternalRA, InternalLL, InternalRL;
-		[ArmorHD, InternalHD] = mech.head.getVitals();
-		[ArmorCT, InternalCT] = mech.torso.getVitals();
-		[ArmorLT, InternalLT] = mech.leftTorso.getVitals();
-		[ArmorRT, InternalRT] = mech.rightTorso.getVitals();
-		[ArmorLA, InternalLA] = mech.leftArm.getVitals();
-		[ArmorRA, InternalRA] = mech.rightArm.getVitals();
-		[ArmorLL, InternalLL] = mech.leftLeg.getVitals();
-		[ArmorRL, InternalRL] = mech.rightLeg.getVitals();
-		
-		MWDrawer.DrawImage("Graphics/HUD/box.png", dollPos + (100,0), drawFlags, dollAlpha, scale:dollScale);
-			
-		// Background
-		MWDrawer.DrawImage(mech.paperdoll_Background, dollPos, drawFlags, dollAlpha, scale:dollScale);
-		
-		// Draw paperdoll
-		for(int i = 0; i < mech.parts.Size(); i++)
-		{
-			let hardpoint = MechHardpoint(mech.parts[i]);
-			if(!hardpoint) continue;
-			
-			hardpoint.DrawPaperdoll(dollPos, dollAlpha, dollScale, drawFlags, deltatime);
-		}
-	}
-	
-	ui void DrawLockonRet(double crosshairAlpha)
-	{
-		if(mech.targetProgress <= 0.01) return;
-		
-		lockingRotation -= 3 * deltaTime;
-		bool hasLock = mech.targetProgress >= 1.0;
-		double scale = 0.35;
-		
-		if(!hasLock)
-		{
-			MWDrawer.DrawImage("Graphics/HUD/MissileRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, scale:(scale,scale));
-			MWDrawer.DrawImage("Graphics/HUD/MissileLocking.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, scale:(scale,scale), rotation:lockingRotation);
-		}
-		else
-		{
-			MWDrawer.DrawImage("Graphics/HUD/MissileLocked.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, scale:(scale,scale));	
-		}
-	}
-	
-	ui void DrawCompass()
-	{	
-		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
-		vector2 compassPos = (960,200);
-		double width = 200;
-		double height = 32;
-		double torsoAng = Actor.Normalize180(mech.torso.angle - 90);
-		double ang = Actor.Normalize180(mech.angle - 90);
-		double scale = 2.0;
-		
-		if(powerupTics > 0) width *= (1.0-(powerupTics/POWERANIM));
-				
-		width *= scale;
-		height *= scale;
-		
-		double degreeSize = 2*scale;
-		vector2 compassOffs = (ang*degreeSize, 0);
-		vector2 torsoOffs = (DrivablesMath.AngleDiff(torsoAng, ang)*degreeSize, 0);
-		
-		// Draw alignment arrows.
-		vector2 alignOne = compassPos + (8, -32);
-		vector2 alignTwo = compassPos + (8, 32) - torsoOffs;
-		MWDrawer.DrawImage("AR_ALIGN", alignOne, scale:(scale,scale));
-		MWDrawer.DrawImage("AR_ALIGN", alignTwo, scale:(scale,-scale));
-		
-		// Draw alignment lines
-		MWDrawer.drawThickLine(alignOne.x, alignOne.y + 16, alignOne.x, alignTwo.y - 16, 4, 0xAA2aa307);
-		MWDrawer.drawThickLine(alignOne.x, alignTwo.y - 16, alignTwo.x, alignTwo.y - 16, 4, 0xAA2aa307);
-		
-		// Draw compass
-		MWDrawer.SetClipRect(compassPos.x - width, compassPos.y - height, width*2, height*2);
-		MWDrawer.DrawImage("Compass", (compassPos + (720,0)) - compassOffs, drawFlags, scale:(scale,scale*0.8));
-		MWDrawer.DrawImage("Compass", (compassPos - (720,0)) - compassOffs, drawFlags, scale:(scale,scale*0.8));	
-		MWDrawer.ClearClipRect();
-	}
+	// Draw HUD
+	virtual void Draw(RenderEvent e) {}
 }

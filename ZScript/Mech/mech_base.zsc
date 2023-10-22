@@ -61,6 +61,7 @@ class DrivableMech : DrivableObject
 	
 	// Used to specify if mech needs more specific data storage, when mech is saved to player Inventory.
 	class<MechSaveData> saveDataType;
+	class<VehicleHUD> HUDType;
 	
 	Property Acceleration : accelKPH, decelKPH;
 	Property MaxHeat : maxHeat, maxKelvin;
@@ -69,6 +70,7 @@ class DrivableMech : DrivableObject
 	Property SaveDataFormat : saveDataType;
 	Property ChassisName : mechChassisName;
 	Property VariantName : mechVariantName;
+	Property HUD_Class : HUDType;
 	
 	enum MechBtns
 	{
@@ -113,6 +115,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.MaxHeat 200, 1050.0;
 		DrivableMech.PaperdollBG "Graphics/HUD/Paperdoll/paperdoll_background.png";
 		DrivableMech.SaveDataFormat "MechSaveData";
+		DrivableMech.HUD_Class "MechHUD";
 	}
 	
 	/*
@@ -242,7 +245,7 @@ class DrivableMech : DrivableObject
 	override void TakePilot(Actor user)
 	{
 		super.TakePilot(user);
-		driverOffset.z = 60;
+		driverOffset.z = 60 * Scale.X;
 		driver.A_SetScale(0,0);
 		driver.A_SetSize(8,8);
 		driver.angle = torso.angle;
@@ -597,16 +600,18 @@ class DrivableMech : DrivableObject
 			vel.xy -= dir * pushBack;
 		}
 		
+		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
+		
 		if(onground)
 		{
-			angVel -= MechLegs(legs).turnSpeed * DrivablesMath.sign(sm);
+			angVel -= legTurnSpeed * DrivablesMath.sign(sm);
 			angle += angVel;
 		}
-		
+	
 		if(centerToTorso && abs(angle - torso.angle) > 0.1)
 		{
 			double prev = angle;
-			DrivablesMath.AngleSlerp(angle, torso.angle, MechLegs(legs).turnSpeed*2.0);	
+			DrivablesMath.AngleSlerp(angle, torso.angle, legTurnSpeed*2.0);	
 			legVel = (angle - prev);
 		}
 		else if(centerToTorso) 
@@ -615,7 +620,7 @@ class DrivableMech : DrivableObject
 		if(centerToLegs && abs(angle - torso.angle) > 0.1)
 		{
 			double prev = torso.angle;
-			DrivablesMath.AngleSlerp(torso.angle, angle, MechTorso(torso).turnSpeed);
+			DrivablesMath.AngleSlerp(torso.angle, angle, legTurnSpeed);
 			driver.angle += (torso.angle - prev);
 		}
 		else if(centerToLegs)
@@ -806,6 +811,11 @@ class DrivableMech : DrivableObject
 	{
 		double UTOM = UTOCM / 100.0;
 		return ( meters / UTOM );
+	}
+	
+	clearscope static double DegToTurnSpeed(double degreeSeconds)
+	{
+		return degreeSeconds / 140.0; // Needs to be recalculated if turn friction is changed.
 	}
 	
 	override void Tick()

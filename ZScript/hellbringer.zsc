@@ -63,7 +63,7 @@ class Hellbringer_Legs : MechLegs
 {
 	Default
 	{
-		MechLegs.TurnSpeed 0.5; // * 2.4 = 1.20 LL.
+		MechLegs.TurnSpeed 62; // * 2.4 = 1.20 LL.
 	}
 }
 
@@ -107,7 +107,7 @@ class Hellbringer_CenterTorso : MechTorso
 {
 	Default
 	{
-		MechTorso.TurnSpeed 4, 3;
+		MechTorso.TurnSpeed 99, 99;
 		MechTorso.TurnRange 95;
 		MechTorso.PitchRange 25, 25;
 		Radius 10;
