@@ -400,7 +400,7 @@ class MechHUD : VehicleHUD
 			// Ammo
 			if(ammoCount ~== "INF")
 			{
-				MWDrawer.DrawImage("Graphics/HUD/rangeInf.png", weapDrawPos + (314,8), scale:(infoScale, infoScale) * 0.3, tint:0xC0FFFFFF);
+				MWDrawer.DrawImage("Graphics/HUD/ammoInf.png", weapDrawPos + (314,8), scale:(infoScale, infoScale) * 0.3, tint:0xC0FFFFFF);
 			}
 			else 
 			{
