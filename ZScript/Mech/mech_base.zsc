@@ -468,7 +468,8 @@ class DrivableMech : DrivableObject
 		
 		if(filteredWeaps.Size() <= 0) return;
 		
-		if(!selectedWeapon || selectedWeapon >= weaps.Size()) selectedWeapon = 1;
+		if(!selectedWeapon) selectedWeapon = 1;
+		if(selectedWeapon > weaps.Size()) selectedWeapon = weaps.Size();
 		MechWeapon weap = weaps[selectedWeapon-1];
 		
 		// Get next weapon if current is destroyed.
