@@ -994,49 +994,26 @@ class I_MechItemStorage : Inventory
 		{
 			from.GiveInventory("I_MechItemStorage", 1);
 			itm = I_MechItemStorage(from.FindInventory("I_MechItemStorage"));
-			
-			// Debug; populate inventory
-			class<MechItem> arr[] = {
-				"AC2Ammo",
-				"AC5Ammo",
-				"AC10Ammo",
-				"AC20Ammo",
-				"MechHeatsink",
-				"LRM5",
-				"LRM10",
-				"LRM15",
-				"LRM20",
-				"LRMAmmo",
-				"LRMAmmo",
-				"LRMAmmo",
-				"SRM2",
-				"SRM4",
-				"SRM6",
-				"SRMAmmo",
-				"SSRM2",
-				"SSRM4",
-				"SSRM6",
-				"SSRMAmmo",
-				"AC2",
-				"AC5",
-				"AC10",
-				"AC20",
-				"SmallLaser",
-				"MediumLaser",
-				"LargeLaser",
-				"SmallPulseLaser",
-				"MediumPulseLaser",
-				"LargePulseLaser"
-			};
-			
-			for(int i = 0; i < 200; i++)
+				
+			// Debug: give all items
+			foreach(cls : AllClasses)
 			{
-				uint pick = random[DebugItems](0,28);
-				itm.AddItem(MechItem.Init(arr[pick]));
+				let item = (class<MechItem>)(cls);
+				if(!item) continue;
+				
+				let itemInstance = MechItem.Init(item);
+				if( itemInstance && (!itemInstance.movable || itemInstance.displayName == "") )
+				{
+					itemInstance.Destroy();
+					continue;
+				}
+								
+				// Give 25 of each item.
+				for(int i = 0; i < 25; i++)
+				{
+					itm.AddItem(MechItem.Init(item));
+				}
 			}
-			
-			itm.items.Push(MechItem.Init("MechArmor_Standard"));
-			itm.items.Push(MechItem.Init("MechArmor_Ferro"));
 		}
 		
 		return itm;

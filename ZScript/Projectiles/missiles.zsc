@@ -64,7 +64,10 @@ class MechMissile : MechProjectile
 					EffectsHelper.ExplodeEx(self, 64, 128);
 				}
 				else 
+				{
 					A_StartSound("Generic/Impact", flags:CHANF_OVERLAP, pitch:frandom[ExplosionPitch](-0.8, 1.2));
+					bMISSILE = false;
+				}
 			//	A_Quake(3,8,0,512, "");
 			}
 		stop;

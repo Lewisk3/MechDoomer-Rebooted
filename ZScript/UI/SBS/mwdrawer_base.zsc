@@ -66,7 +66,9 @@ class MWDrawer Abstract ui
 		[widthOfs, heightOfs, width, height] = Screen.GetViewWindow();
 
 		int bottom = heightOfs + height;
-		return double(bottom) / Screen.getHeight();
+		
+		// Skip for now
+		return 1.0; //double(bottom) / Screen.getHeight();
 	}
 
 	// Coord processing

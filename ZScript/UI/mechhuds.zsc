@@ -262,24 +262,38 @@ class MechHUD : VehicleHUD
 		mech.getAllWeapons(weaps, readDeadHardpoints:true);
 		
 		vector2 offs = (0,0);
-		vector2 drawPos = (1600,50);
-		double yoff = 35;
+		vector2 drawPos = (1600,840);
+		double yoff = 27; //35;
 		double xoff = 20;
 		Color selColor = 0xAA0ba600;
 		double infoScale = 0.75;
+		vector2 weapBarScale = (-0.95,0.5);
 		
 		double weapCount = weaps.Size();
 				
 		// Powerup animation
 		if(powerupTics > 0) 
+		{
+			double scaleMod = 1.0 - (powerupTics / POWERANIM);
 			weapCount = weaps.Size() - DrivablesMath.fmap(powerupTics, 0, POWERANIM, 1, weaps.Size()); 
+			weapBarScale *= scaleMod;
+			yoff *= scaleMod;
+		}
 		
 		if(!weapCount) return;
 		
-		double ymax = weapCount * 10;
-		// double boxScale = 0.10 * (weapCount + 1);
-		// MWDrawer.DrawImage("Graphics/HUD/weaponsBG2.png", drawPos + (70,ymax+10), flags, 1.0, scale:(0.90, boxScale));
+		double ymax = weapCount * yoff;
 		
+		if( drawPos.y + ymax >= (1000 - yoff) )
+			drawPos.y -= ((drawPos.y + ymax) - 1000) + (yoff*2);
+		
+		Font weapFont = "ConsoleFont";
+		double weapHeight = weapFont.getHeight() * infoScale;
+		
+		// Weapons Top 
+		MWDrawer.DrawImage("Graphics/HUD/WeaponsTop.png", drawPos, flags, 1.0, scale:weapBarScale);
+		drawPos.y += yoff;		
+	
 		chainBlink += deltaTime;
 		if( chainBlink >= 20 )
 		{
@@ -287,42 +301,46 @@ class MechHUD : VehicleHUD
 			chainBlink = 0;
 		}
 		
-		int armSlot, torsoSlot;
+		int ArmMounted = -1;
+		vector2 mountIconScale = (0.4,0.4);
+		vector2 mountIconOffs = ( 
+			(256 * weapBarScale.x) - (24*mountIconScale.x), 0
+		);
+		
 		for(int i = 0; i < weapCount; i++)
 		{
 			let weap = weaps[i];
 			if(!weap) continue;
 			
-			string prefix = "";
-			if(weap.parent is "MechArm") armSlot++;
-			if(weap.parent is "MechTorso" || weap.parent is "MechSideTorso") torsoSlot++;
+			bool onArm = weap.parent is "MechArm";
+			bool onTorso = weap.parent is "MechTorso" || weap.parent is "MechSideTorso";
 			bool destroyed = weap.checkDestroyed();
 			
-			if(armSlot == 1) 
+			if(onArm && ArmMounted == -1 )
 			{
-				prefix = "\c[Red]O";
-				//if(i > 0) offs.y += yoff;
-			}
-			if(torsoSlot == 1) 
-			{
-				prefix = "\c[Red]X";
-				if(i > 0) offs.y += yoff;
+				MWDrawer.DrawImage("Graphics/HUD/weaponArmMounted.png", drawPos + mountIconOffs, flags, 1.0, scale:mountIconScale);
+				ArmMounted = 1;
 			}
 			
-			MWDrawer.DrawImage("Graphics/HUD/weaponBar.png", drawPos+offs + (75,12), flags, 0.85, scale:(0.9,1.0));
-
-			uint tint = Font.CR_WHITE;
-			if(weap.cooldown > 0) tint = Font.CR_RED;
+			if(onTorso && ArmMounted != 0) 
+			{
+				if(ArmMounted == 1)
+				{
+					MWDrawer.DrawImage("Graphics/HUD/WeaponsMiddle.png", drawPos, flags, 1.0, scale:weapBarScale);
+					drawPos.y += yoff;
+				}
+				
+				MWDrawer.DrawImage("Graphics/HUD/weaponTorsoMounted.png", drawPos + mountIconOffs, flags, 1.0, scale:mountIconScale);
+				ArmMounted = 0;
+			}
 			
-			if(destroyed) 
-				tint = Font.CR_DarkRed;
+			// Draw Middle
+			MWDrawer.DrawImage("Graphics/HUD/WeaponsMiddle.png", drawPos, flags, 1.0, scale:weapBarScale);
 			
-			if((i+1) == mech.selectedWeapon)
-				MWDrawer.Fill(selColor, drawPos.x - 120, drawPos.y+(offs.y), 320, 20, 0.20);
-			
-			vector2 groupOffs = (0,0);
+			// Draw groups
+			vector2 groupOffs = (-110,-10);
 			for(int g = 0; g < 5; g++)
-			{	
+			{
 				double alpha = 0.5;
 				uint tint = Font.CR_Blue;
 				uint gBit = (2**g);
@@ -349,14 +367,18 @@ class MechHUD : VehicleHUD
 				if(g == mech.selectedGroup)
 				{
 					double selAlpha = ((i+1) == mech.selectedWeapon) ? 0.5 : 0.25; 
-					MWDrawer.Fill(selColor, drawPos.x+groupOffs.x-120, drawPos.y + offs.y, 20, 22, selAlpha, flags);
+					MWDrawer.Fill(selColor, drawPos.x+groupOffs.x-115, drawPos.y + offs.y + groupOffs.y, 18, 20, selAlpha, flags);
 				}
 				
 				MWDrawer.DrawString("ConsoleFont", String.Format("%d",g+1), drawPos+offs+groupOffs-(115,0), flags, translation:tint, alpha:alpha);
 				groupOffs.x += xoff;
 			}
 			
-			string ammoCount = "***";
+			// Draw weapon
+			vector2 weapOffs = groupOffs + (-100, weapHeight * 0.5);
+			Color tint = Font.CR_White;
+			
+			string ammoCount = "INF";
 			if(weap.ammoType) ammoCount = String.Format("\c[Gray]%d", mech.countAllAmmo(weap.ammoType));
 			
 			string weapRange = String.Format("%dm", weap.range);
@@ -371,19 +393,48 @@ class MechHUD : VehicleHUD
 			
 			string weapName = String.Format("%-13s", weap.DisplayName);
 			weapName = weapName.MakeUpper();
+		
+			vector2 weapDrawPos = drawPos+offs+weapOffs;
+			MWDrawer.DrawString(weapFont, weapName, weapDrawPos, flags, translation:tint, scale:(infoScale,infoScale));
 			
-			if(prefix) MWDrawer.DrawString("ConsoleFont", prefix, drawPos+offs - (140,0), flags, translation:tint, scale:(infoScale,infoScale));
-			MWDrawer.DrawString("ConsoleFont", weapName, drawPos+offs+(0,3), flags, translation:tint, scale:(infoScale,infoScale));
-			MWDrawer.DrawString("ConsoleFont", ammoCount, drawPos+offs + (285,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale,infoScale));
-			MWDrawer.DrawString("ConsoleFont", weapRange, drawPos+offs + (235,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale*0.65,infoScale));
-			offs.y += yoff;
+			// Ammo
+			if(ammoCount ~== "INF")
+			{
+				MWDrawer.DrawImage("Graphics/HUD/rangeInf.png", weapDrawPos + (314,8), scale:(infoScale, infoScale) * 0.3, tint:0xC0FFFFFF);
+			}
+			else 
+			{
+				MWDrawer.DrawString(
+					weapFont, ammoCount, 
+					weapDrawPos + (330,0), 
+					flags | MWDrawer.SS_TEXT_RIGHT, 
+					translation:tint, 
+					scale:(infoScale,infoScale)
+				);			
+			}
+			
+			// Range
+			MWDrawer.DrawString(weapFont, weapRange, weapDrawPos + (215,0), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale*0.65,infoScale));
+			
+			// Weapon cooldown
+			vector2 cooldownPos = (weapDrawPos.x + 230, weapDrawPos.y + 3);
+			double cooldownPerc = min(1, weap.cooldown / double(weap.cooldownTime));
+			MWDrawer.Fill(0xFF7F7F7F, cooldownPos.x - 1, cooldownPos.y - 1, 52, 12, flags:flags);
+			MWDrawer.Fill(0xFF000000, cooldownPos.x, cooldownPos.y, 50, 10, flags:flags);
+			MWDrawer.Fill(0xFFFF0000, cooldownPos.x + 1, cooldownPos.y + 0.5, 48 * cooldownPerc, 8.5, flags:flags);
+			
+			// Next weapon
+			drawPos.y += yoff;
 		}
+		
+		// Draw bottom
+		MWDrawer.DrawImage("Graphics/HUD/WeaponsBottom.png", drawPos, flags, 1.0, scale:weapBarScale);
 	}
 	
 	void DrawPaperDoll()
 	{
 		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
-		vector2 dollPos = (1550,880);
+		vector2 dollPos = (210,920);
 		vector2 dollScale = (0.75,0.75);
 		double dollAlpha = 1.0;
 		
@@ -474,3 +525,92 @@ class MechHUD : VehicleHUD
 		MWDrawer.ClearClipRect();
 	}
 }
+
+
+
+/*
+			string prefix = "";
+			if(weap.parent is "MechArm") armSlot++;
+			if(weap.parent is "MechTorso" || weap.parent is "MechSideTorso") torsoSlot++;
+			bool destroyed = weap.checkDestroyed();
+			
+			if(armSlot == 1) 
+			{
+				prefix = "\c[Red]O";
+				//if(i > 0) offs.y += yoff;
+			}
+			if(torsoSlot == 1) 
+			{
+				prefix = "\c[Red]X";
+				if(i > 0) offs.y += yoff;
+			}
+			
+			MWDrawer.DrawImage("Graphics/HUD/weaponBar.png", drawPos+offs + (75,12), flags, 0.85, scale:(0.9,1.0));
+
+			uint tint = Font.CR_WHITE;
+			if(weap.cooldown > 0) tint = Font.CR_RED;
+			
+			if(destroyed) 
+				tint = Font.CR_DarkRed;
+			
+			if((i+1) == mech.selectedWeapon)
+				MWDrawer.Fill(selColor, drawPos.x - 120, drawPos.y+(offs.y), 320, 20, 0.20);
+			
+			vector2 groupOffs = (0,0);
+			for(int g = 0; g < 5; g++)
+			{	
+				double alpha = 0.5;
+				uint tint = Font.CR_Blue;
+				uint gBit = (2**g);
+				let wgroup = mech.weaponGroups[g];
+				bool chainfire = wgroup.chainfire;
+				
+				if( !!(weap.group & gBit) ) 
+				{
+					alpha = 1.0;
+					tint = Font.CR_WHITE;
+					if( chainfire && chainGroup == i )
+						tint = Font.CR_TEAL;
+						
+					if( weap.cooldown > (weap.fireTime*0.8) && wgroup.weapCycle > 0 )
+					{
+						tint = Font.CR_Red;
+						chainGroup = i;
+					}
+				}
+				
+				if(destroyed) 
+					tint = Font.CR_DarkRed;
+				
+				if(g == mech.selectedGroup)
+				{
+					double selAlpha = ((i+1) == mech.selectedWeapon) ? 0.5 : 0.25; 
+					MWDrawer.Fill(selColor, drawPos.x+groupOffs.x-120, drawPos.y + offs.y, 20, 22, selAlpha, flags);
+				}
+				
+				MWDrawer.DrawString("ConsoleFont", String.Format("%d",g+1), drawPos+offs+groupOffs-(115,0), flags, translation:tint, alpha:alpha);
+				groupOffs.x += xoff;
+			}
+			
+			string ammoCount = "***";
+			if(weap.ammoType) ammoCount = String.Format("\c[Gray]%d", mech.countAllAmmo(weap.ammoType));
+			
+			string weapRange = String.Format("%dm", weap.range);
+			if(weap.projType) 
+			{
+				let defs = GetDefaultByType(weap.projType);
+				weapRange = String.Format("%dm", defs.maxrange);
+			}
+		
+			if(destroyed) 
+				tint = Font.CR_DarkRed;
+			
+			string weapName = String.Format("%-13s", weap.DisplayName);
+			weapName = weapName.MakeUpper();
+			
+			if(prefix) MWDrawer.DrawString("ConsoleFont", prefix, drawPos+offs - (140,0), flags, translation:tint, scale:(infoScale,infoScale));
+			MWDrawer.DrawString("ConsoleFont", weapName, drawPos+offs+(0,3), flags, translation:tint, scale:(infoScale,infoScale));
+			MWDrawer.DrawString("ConsoleFont", ammoCount, drawPos+offs + (285,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale,infoScale));
+			MWDrawer.DrawString("ConsoleFont", weapRange, drawPos+offs + (235,3), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale*0.65,infoScale));
+			offs.y += yoff;
+*/
