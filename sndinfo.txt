@@ -1,13 +1,21 @@
 
 // Betty
+/*
 Betty/Nav/Alpha "Sounds/Betty/nav_alpha.wav"
 Betty/Nav/Beta  "Sounds/Betty/nav_beta.wav"
 Betty/Nav/Chi   "Sounds/Betty/nav_chi.wav"
 Betty/Nav/Delta "Sounds/Betty/nav_delta.wav"
+*/
 
-Betty/Heat/Warn "Sounds/Betty/heat_warn.wav"
+// Betty/Heat/Warn "Sounds/Betty/heat_warn.wav"
 Betty/Heat/Critical "Sounds/Betty/heat_crit.wav"
 Betty/Heat/CriticalShutdown "Sounds/Betty/heat_shutdown.wav"
+Betty/ShuttingDown "Sounds/Betty/shuttingdown.wav"
+Betty/CriticalHit "Sounds/Betty/CriticalHit.wav"
+Betty/AmmoExplosion "Sounds/Betty/ammo_explosion.wav"
+Betty/Ammo/Critical "Sounds/Betty/ammo_critical.wav"
+Betty/Ammo/Depleted "Sounds/Betty/ammo_depleted.wav"
+Betty/Target/Destroyed "Sounds/Betty/target_destroyed.wav"
 Betty/Shutdown/Override "Sounds/Betty/shutdown_override.wav"
 // Betty/ItemDestroyed/Type
 

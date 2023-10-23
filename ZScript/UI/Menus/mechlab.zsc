@@ -257,7 +257,7 @@ class MechHardpointContainer : MenuElement
 			let slot = slots[i];
 			
 			// Draw Item stats
-				if(mechlab.cursor.CheckCollision(slot, false))
+				if(mechlab.cursor.CheckCollision(slot, false) && slot && slot.slotItem)
 					MenuItemsInvContainer.DrawItemStats(mechlab, slot.slotItem, (340,570), 350);
 			
 			// Skip if item is being dragged.

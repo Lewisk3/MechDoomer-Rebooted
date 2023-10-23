@@ -798,7 +798,16 @@ class MechWeapon : MechItem
 		let am = MechAmmo(parent.FindItem(ammoType, false));
 		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType, false));
 		
+		double prevAmmoCount = mech.countAllAmmo(ammoType);
+		double criticalAmmo = ammoUse*3.0;
+		
 		if(am) am.curAmmo -= amt;
+		double ammoCount = mech.countAllAmmo(ammoType);
+		
+		if(prevAmmoCount > 0 && ammoCount <= 0)
+			mech.betty.Push("Betty/Ammo/Depleted");
+		else if(prevAmmoCount > criticalAmmo && ammoCount <= criticalAmmo)
+			mech.betty.Push("Betty/Ammo/Critical");
 	}
 	
 	play virtual void SetGroup(uint grp, bool onoff)

@@ -666,6 +666,7 @@ class DrivableMech : DrivableObject
 	virtual void DoShutdown()
 	{
 		throttle = 0;
+		betty.Push("Betty/ShuttingDown");
 		A_StartSound("Reactor/Shutdown", flags:CHANF_OVERLAP);
 		shutdown = true;
 		
@@ -716,7 +717,7 @@ class DrivableMech : DrivableObject
 		if(curHeat > kelvinToBHU(400.0) && !heatWarn)
 		{
 			// TODO: Play heat warn sound here.
-			betty.Push("Betty/Heat/Warn");
+			// betty.Push("Betty/Heat/Warn");
 			heatWarn = true;
 		}
 		
@@ -728,7 +729,7 @@ class DrivableMech : DrivableObject
 		
 		if(curHeat > kelvinToBHU(900.0) && !heatShutdown && !shutdown)
 		{
-			betty.Push("Betty/Heat/CriticalShutdown");
+			if(!overrideShutdown) betty.Push("Betty/Heat/CriticalShutdown");
 			shutdownTimer = 35*3; // Three seconds till shutdown.
 			heatShutdown = true;
 		}

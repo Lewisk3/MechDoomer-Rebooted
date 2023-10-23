@@ -266,20 +266,24 @@ class MechHardpoint : MechPart
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.
-		if( (isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0 )
+		if( skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0) )
 		{
-			bool criticalHit = random[HardpointCrit](0,100) <= 10;
-			double itemDmg = hpDmg * (criticalHit ? 100 : 1.0);
+			bool criticalHit = random[HardpointCrit](0,TICRATE * 100) <= 10;
+			double itemDmg = (criticalHit ? 100 : hpDmg);
 			int itemToDamage = random[DamageItemIndex](0, items.Size()-1);
 			
-			if(criticalHit)
-			{
-				mech.betty.Push("Betty/CriticalHit");
-				mech.betty.Push(String.Format("Betty/Hardpoint/%s", mech.getHardpointTypeName(self)));
-			}
-			
+			console.printf("Dmg: %f", itemDmg);
 			if(itemToDamage >= 0)
-				items[itemToDamage].OnDamaged(itemDmg);
+			{
+				let dmgItem = items[itemToDamage];
+				dmgItem.OnDamaged(itemDmg);
+							
+				if(criticalHit && dmgItem.damagable)
+				{
+					mech.betty.Push("Betty/CriticalHit");
+					mech.betty.Push(String.Format("Betty/Hardpoint/%s", mech.getHardpointTypeName(self)));
+				}
+			}
 		}
 		
 		healthPoints -= hpDmg;
