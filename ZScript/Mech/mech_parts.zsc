@@ -272,7 +272,6 @@ class MechHardpoint : MechPart
 			double itemDmg = (criticalHit ? 100 : hpDmg);
 			int itemToDamage = random[DamageItemIndex](0, items.Size()-1);
 			
-			console.printf("Dmg: %f", itemDmg);
 			if(itemToDamage >= 0)
 			{
 				let dmgItem = items[itemToDamage];
