@@ -61,7 +61,7 @@ class MechMissile : MechProjectile
 				{
 					EffectsHelper.SpawnFX("MissileEmber", 50, pos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);
 					SpawnEffect("MissileExplosion", pos);
-					EffectsHelper.ExplodeEx(self, 64, 128);
+					EffectsHelper.ExplodeEx(self, 16, 128);
 				}
 				else 
 				{

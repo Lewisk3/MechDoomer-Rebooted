@@ -9,6 +9,7 @@ Betty/Heat/Warn "Sounds/Betty/heat_warn.wav"
 Betty/Heat/Critical "Sounds/Betty/heat_crit.wav"
 Betty/Heat/CriticalShutdown "Sounds/Betty/heat_shutdown.wav"
 Betty/Shutdown/Override "Sounds/Betty/shutdown_override.wav"
+// Betty/ItemDestroyed/Type
 
 // Ambient mech sounds
 Torso/Twist     "Sounds/Ambient/torso_twist.wav"

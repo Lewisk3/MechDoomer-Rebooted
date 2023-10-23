@@ -435,6 +435,7 @@ class MechHUD : VehicleHUD
 	{
 		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
 		vector2 dollPos = (210,920);
+		vector2 rearDollPos = dollPos + (190,0);
 		vector2 dollScale = (0.75,0.75);
 		double dollAlpha = 1.0;
 		
@@ -455,10 +456,30 @@ class MechHUD : VehicleHUD
 		[ArmorLL, InternalLL] = mech.leftLeg.getVitals();
 		[ArmorRL, InternalRL] = mech.rightLeg.getVitals();
 		
-		MWDrawer.DrawImage("Graphics/HUD/box.png", dollPos + (100,0), drawFlags, dollAlpha, scale:dollScale);
+		MWDrawer.DrawImage("Graphics/HUD/box.png", dollPos + (105,20), drawFlags, dollAlpha, scale:dollScale * 1.15);
 			
 		// Background
 		MWDrawer.DrawImage(mech.paperdoll_Background, dollPos, drawFlags, dollAlpha, scale:dollScale);
+		
+		// Rear Outline
+		MWDrawer.DrawImage(mech.paperdoll_Background, rearDollPos, drawFlags, dollAlpha, scale:dollScale);
+		
+		// L and R
+		MWDrawer.DrawString("ConsoleFont", "L", dollPos + (-80,40), drawFlags, scale:(1.2,1.2));
+		MWDrawer.DrawString("ConsoleFont", "R", dollPos + ( 60,40), drawFlags, scale:(1.2,1.2));
+		MWDrawer.DrawString("ConsoleFont", "Front", dollPos + ( 0,70), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(0.75,0.75));
+		
+		// Rear LR
+		MWDrawer.DrawString("ConsoleFont", "L", rearDollPos + (-80,40), drawFlags, scale:(1.2,1.2));
+		MWDrawer.DrawString("ConsoleFont", "R", rearDollPos + ( 60,40), drawFlags, scale:(1.2,1.2));
+		MWDrawer.DrawString("ConsoleFont", "Rear", rearDollPos + ( 0,70), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(0.75,0.75));
+		
+		// Chassis 
+		MWDrawer.DrawString(
+			"ConsoleFont", 
+			String.Format("%s - %s", mech.mechChassisName, mech.mechVariantName),
+			dollPos + (90,95), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(1.0,1.0)
+		);
 		
 		// Draw paperdoll
 		for(int i = 0; i < mech.parts.Size(); i++)
@@ -467,6 +488,12 @@ class MechHUD : VehicleHUD
 			if(!hardpoint) continue;
 			
 			hardpoint.DrawPaperdoll(dollPos, dollAlpha, dollScale, drawFlags, deltatime);
+			
+			// Draw Rear Armor
+			if(hardpoint.hasRearArmor)
+			{
+				hardpoint.DrawPaperdoll(rearDollPos, dollAlpha, dollScale, drawFlags, deltatime, rear:true);
+			}
 		}
 	}
 	

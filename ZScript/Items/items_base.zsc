@@ -2,7 +2,8 @@ class MechItem : Object
 {
 	MechHardpoint parent;
 	DrivableMech mech;
-	int hp, size;
+	double hp;
+	int size;
 	bool movable, damagable, disabled, nosave; // No Save means this item is not saved into mech data.
 	string displayName;
 	uint amount;
@@ -24,7 +25,7 @@ class MechItem : Object
 		if(item) 
 		{
 			item.Movable = true;
-			item.hp = 100;
+			item.hp = 10;
 			item.size = 1; 
 			item.amount = 1;
 			item.Defaults();
@@ -60,11 +61,26 @@ class MechItem : Object
 	
 	clearscope virtual void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo = NULL)
 	{
-		flavorText = "";
+		if(checkDestroyed())
+		{
+			flavorText = "\c[Red]DESTROYED\c[White]";
+			//return;
+		}
+		else
+		{
+			flavorText = "";
+		}
+		
 		statName.Push("SLOTS");
 		statName.Push("TONS");
 		statValue.Push(String.Format("%d", size));
 		statValue.Push(String.Format("%.2f", weight));
+		
+		if(damagable)
+		{
+			statName.Push("HEALTH");
+			statValue.Push(String.Format("%d / %d", hp, 10));
+		}
 	}
 	
 	virtual MechItem MakeCopy()
@@ -133,30 +149,37 @@ class MechItem : Object
 	play virtual void OnDamaged(double dmg)
 	{
 		// Do stuff when damaged.
+		if(damagable) hp -= dmg;
+		if(hp <= 0) OnDestroyed();
 	}
 	
 	play virtual void OnDestroyed()
 	{
 		// Do stuff when destroyed.
-		Destroy();
+		mech.betty.Push(String.Format("Betty/ItemDestroyed/%s", getClassName()));
 	}
 	
 	virtual bool checkDestroyed()
 	{
+		if(!parent) return hp <= 0;
 		return hp <= 0 || parent.healthPoints <= 0;
+	}
+	
+	play virtual void modifyHeat(double amt)
+	{
+		mech.modifyHeat(amt);
+		parent.adjustLocalHeat(amt);
 	}
 	
 	play virtual void DoEffect()
 	{
+		// Under normal circumstances, if our hardpoint was destroyed, we took a lot of damage too.
+		if(parent.healthPoints <= 0) hp = 0;
+	
 		if(!mech) mech = parent.getMech();
 		
 		// Process destruction.
 		if(!parent) return;
-		if(damagable && hp <= 0) 
-		{
-			OnDestroyed();
-			return;
-		}
 	}
 }
 
@@ -173,6 +196,13 @@ class MechAmmo : MechItem
 	virtual void SetupAmmo()
 	{
 		curAmmo = maxAmmo;
+	}
+	
+	override void OnDestroyed()
+	{
+		mech.betty.Push("Betty/AmmoExplosion");
+		parent.DoExplosionDamage(curAmmo);
+		curAmmo = 0;
 	}
 	
 	override bool CanStack(MechItem other)
@@ -673,7 +703,7 @@ class MechEngine : MechItem
 		super.DoEffect();
 		
 		double power = abs(mech.throttle);
-		mech.modifyHeat(0.16 * power);
+		modifyHeat(0.16 * power);
 		
 		for(int i = 0; i < heatsinks.Size(); i++)
 		{
@@ -840,7 +870,11 @@ class MechWeapon : MechItem
 					
 					if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.mount.getPos()) )
 					{
-						weap.mech.modifyHeat(weap.heat);
+						// Alert monsters
+						if(weap.mech.driver)
+							weap.mech.driver.A_AlertMonsters(1024);
+						
+						weap.modifyHeat(weap.heat);
 						weap.cooldown += (weap.cooldownTime + weap.fireTime);
 						group.weapCycle = weap.fireTime;
 						group.prevWeapFired = weap;
@@ -854,7 +888,11 @@ class MechWeapon : MechItem
 			// Fire normally
 			if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.mount.getPos()))
 			{
-				weap.mech.modifyHeat(weap.heat);
+				// Alert monsters
+				if(weap.mech.driver)
+					weap.mech.driver.A_AlertMonsters(1024);
+			
+				weap.modifyHeat(weap.heat);
 				weap.cooldown += (weap.cooldownTime + weap.fireTime);
 				group.weapCycle = weap.fireTime;
 			}

@@ -33,6 +33,8 @@ class SoundQueue : Thinker
 	
 	void Push(Sound snd, uint delay = 0)
 	{
+		if(!snd) return;
+	
 		let snd = SoundInfo.Init(snd);
 		if(snd) snd.lengthTics += delay;
 		

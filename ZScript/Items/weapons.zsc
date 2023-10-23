@@ -26,6 +26,7 @@ class SmallLaser : MechWeapon
 		fireSound = "Laser/Small";
 		laserType = "MechLaser";
 		laserColor = "Red";
+		damagable = true;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -69,7 +70,7 @@ class SmallLaser : MechWeapon
 	override void DoEffect()
 	{
 		super.DoEffect();
-		if(laser) mech.modifyHeat(laserHeat);
+		if(laser) modifyHeat(laserHeat);
 	}
 }
 
@@ -103,6 +104,7 @@ class SmallPulseLaser : SmallLaser
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
 		laserColor = "Red";
+		damagable = true;
 	}
 	
 	override void DoEffect()
@@ -138,6 +140,7 @@ class MediumLaser : SmallLaser
 		fireSound = "Laser/Medium";
 		laserType = "MechLaser";
 		laserColor = "Green";
+		damagable = true;
 	}
 }
 class MediumPulseLaser : SmallPulseLaser
@@ -161,6 +164,7 @@ class MediumPulseLaser : SmallPulseLaser
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
 		laserColor = "Green";
+		damagable = true;
 	}
 }
 
@@ -184,6 +188,7 @@ class LargeLaser : SmallLaser
 		fireSound = "Laser/Large";
 		laserType = "MechLaser";
 		laserColor = "Blue";
+		damagable = true;
 	}
 }
 class LargePulseLaser : SmallPulseLaser
@@ -208,6 +213,7 @@ class LargePulseLaser : SmallPulseLaser
 		fireSound = "Laser/Large";
 		laserType = "MechPulseLaser";
 		laserColor = "Blue";
+		damagable = true;
 	}
 }
 
@@ -235,6 +241,7 @@ class SRM2 : MechWeapon
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM2";
+		damagable = true;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -307,7 +314,7 @@ class SRM2 : MechWeapon
 		proj.master = mech.driver;
 		proj.homingTarget = homingTarget;
 		
-		mech.modifyHeat(heat);
+		modifyHeat(heat);
 		depleteAmmo(ammoUse);
 		return true;
 	}
@@ -334,6 +341,7 @@ class SRM4 : SRM2
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM4";
+		damagable = true;
 	}
 }
 class SRM6 : SRM2
@@ -358,6 +366,7 @@ class SRM6 : SRM2
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM6";
+		damagable = true;
 	}
 }
 
@@ -437,6 +446,7 @@ class LRM5 : SRM2
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM5";
+		damagable = true;
 	}
 	
 	override bool canFire()
@@ -467,6 +477,7 @@ class LRM10 : LRM5
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM10";
+		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -496,6 +507,7 @@ class LRM15 : LRM5
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM15";
+		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -525,6 +537,7 @@ class LRM20 : LRM5
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM20";
+		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -551,6 +564,7 @@ class AC2 : MechWeapon
 		projType = "Autocannon2";
 		ammoType = "AC2Ammo";
 		fireSound = "Ballistic/Autocannon2";
+		damagable = true;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -597,7 +611,7 @@ class AC2 : MechWeapon
 		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true);
 		proj.master = mech.driver;
 
-		mech.modifyHeat(heat);
+		modifyHeat(heat);
 		depleteAmmo(ammoUse);
 		
 		return true;
@@ -620,6 +634,7 @@ class AC5 : AC2
 		projType = "Autocannon5";
 		ammoType = "AC5Ammo";
 		fireSound = "Ballistic/Autocannon5";
+		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -644,6 +659,7 @@ class AC10 : AC2
 		projType = "Autocannon10";
 		ammoType = "AC10Ammo";
 		fireSound = "Ballistic/Autocannon10";
+		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -668,6 +684,7 @@ class AC20 : AC2
 		projType = "Autocannon20";
 		ammoType = "AC20Ammo";
 		fireSound = "Ballistic/Autocannon20";
+		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
 	{

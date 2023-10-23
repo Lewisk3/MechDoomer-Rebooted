@@ -4,6 +4,7 @@ class MechHellbringer : DrivableMech
 	{
 		Radius 46;
 		Height 92;
+		DrivableMech.Acceleration 27, 30;
 		DrivableMech.MaxWeight 65; // In Tons.
 		DrivableMech.ChassisName "Hellbringer";
 		DrivableMech.VariantName "Prime";

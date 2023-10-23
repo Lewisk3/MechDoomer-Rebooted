@@ -97,6 +97,9 @@ class MechHardpoint : MechPart
 	double armorPoints, rearArmor, maxArmor, maxRearArmor;
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	
+	// Determines which hardpoints take the most damage while overheated.
+	double localHeat;
+	
 	vector3 oldAngles, oldAngleOffs;
 	
 	uint slots, maxslots;
@@ -118,7 +121,7 @@ class MechHardpoint : MechPart
 	Property UIGraphics : paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	
 	// Hardpoint damage scalar.
-	const DMGSCALE = 0.025;
+	const DMGSCALE = 0.05; // 0.025
 	
 	Default
 	{
@@ -137,6 +140,13 @@ class MechHardpoint : MechPart
 	{
 		// Setup weapon mount points here.
 		
+	}
+	
+	virtual void adjustLocalHeat(double amt)
+	{
+		// Double cooling while shutdown.
+		if(amt < 0 && mech.shutdown) amt *= 2.0;
+		localHeat += amt;
 	}
 	
 	bool adjustArmor(double front, double rear = 0)
@@ -170,49 +180,118 @@ class MechHardpoint : MechPart
 		return maxRearArmor > 0 ? (rearArmor / maxRearArmor) : 1.0;
 	}
 
-	ui virtual void DrawPaperdoll(vector2 dollPos, double dollAlpha = 1.0, vector2 dollScale = (1.0,1.0), uint drawFlags = 0, double deltaTime = 1.0)
+	ui virtual void DrawPaperdoll(vector2 dollPos, double dollAlpha = 1.0, vector2 dollScale = (1.0,1.0), uint drawFlags = 0, double deltaTime = 1.0, bool rear = false)
 	{
-		double armorPerc, healthPerc;
-		[armorPerc, healthPerc] = getVitals();
 		string armorGraphic = String.Format("Graphics/HUD/Paperdoll/%s", paperdoll_ArmorGraphic);
 		string internalsGraphic = String.Format("Graphics/HUD/Paperdoll/%s", paperdoll_InternalGraphic);
+		double armorPerc, healthPerc;
+		[armorPerc, healthPerc] = getVitals();
+	
+		if(rear && hasRearArmor) 
+		{	
+			// Replace armorPerc with rear armor vitals			
+			armorPerc = getRearVitals();
+		}
 		
 		if(armorPerc > 0) MWDrawer.DrawImage(armorGraphic, dollPos, drawFlags, dollAlpha, scale:dollScale, tint:getHealthyColor(armorPerc));
 		if(healthPerc > 0) MWDrawer.DrawImage(internalsGraphic, dollPos, drawFlags, dollAlpha, scale:dollScale, tint:getHealthyColor(healthPerc));
 	}
 	
-	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
-	{	
-		double trueDamage = double(damage) * DMGSCALE;
-		double hpDmg = truedamage;
+	void processHeatDamage()
+	{
+		double heatperc = mech.getHeatPerc();
+		if(heatperc < 0.9) return;
 		
-		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);
+		// Take 10% structural damage every second, multiplied by local heat ratio.
 		
-		if(abs(hitAngle) > 100 && hasRearArmor)
+		double heatDmg = (0.1 * maxHP) / double(TICRATE);		
+		double internalHeatPerc = min(1.0, localHeat / (mech.maxHeat / 2.0));
+		
+		heatDmg *= max(0.35, internalHeatPerc);
+		
+		DamageHardpoint('MechHeat', heatDmg, skipArmor:true);
+	}
+	
+	virtual void DoExplosionDamage(double dmg)
+	{
+		bool hasCASE = FindItem("MechCASE", true);
+		
+		// Initial explosion damage
+		DamageHardpoint('AmmoExplosion', dmg, skipArmor:true);
+		
+		if(!hasCASE)
 		{
-			if(mech && mech.armorType && rearArmor > 0) 
-				trueDamage = mech.armorType.ProcessDamage(trueDamage);
-				
-			if(rearArmor > 0)
+			let adjacent = mech.getAdjacentHardpoint(self);
+			if(!adjacent) return;
+			
+			adjacent.DamageHardpoint('AmmoExplosion', dmg * 0.5, skipArmor:true);
+		}
+	}
+	
+	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
+	{
+		double hpDmg = damage;
+		
+		if(type == 'MechHeat') 
+		{			
+			// Radiate local heat to armor
+			double radiateDmg = hpDmg * (localHeat / (mech.maxHeat / 4.0));
+			if(armorPoints > 0) armorPoints = max(0, armorPoints - radiateDmg); 
+		}
+		
+		if(!skipArmor)
+		{
+			if(isRearDamage && hasRearArmor)
 			{
-				hpDmg = max(0, hpDmg - rearArmor);
-				rearArmor = max(0, rearArmor-trueDamage);
+				if(mech && mech.armorType && rearArmor > 0) 
+					damage = mech.armorType.ProcessDamage(damage);
+					
+				if(rearArmor > 0)
+				{
+					hpDmg = max(0, hpDmg - rearArmor);
+					rearArmor = max(0, rearArmor-damage);
+				}
+			}
+			else 
+			{
+				if(mech && mech.armorType && armorPoints > 0) 
+					damage = mech.armorType.ProcessDamage(damage);
+					
+				if(armorPoints > 0)
+				{
+					hpDmg = max(0, hpDmg - armorPoints);
+					armorPoints = max(0, armorPoints-damage);	
+				}
 			}
 		}
-		else 
+		
+		// Item damage; only occurs if armor is gone on hardpoint.
+		if( (isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0 )
 		{
-			if(mech && mech.armorType && armorPoints > 0) 
-				trueDamage = mech.armorType.ProcessDamage(trueDamage);
-				
-			if(armorPoints > 0)
+			bool criticalHit = random[HardpointCrit](0,100) <= 10;
+			double itemDmg = hpDmg * (criticalHit ? 100 : 1.0);
+			int itemToDamage = random[DamageItemIndex](0, items.Size()-1);
+			
+			if(criticalHit)
 			{
-				hpDmg = max(0, hpDmg - armorPoints);
-				armorPoints = max(0, armorPoints-trueDamage);	
+				mech.betty.Push("Betty/CriticalHit");
+				mech.betty.Push(String.Format("Betty/Hardpoint/%s", mech.getHardpointTypeName(self)));
 			}
+			
+			if(itemToDamage >= 0)
+				items[itemToDamage].OnDamaged(itemDmg);
 		}
 		
 		healthPoints -= hpDmg;
+	}
+	
+	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
+	{	
+		double trueDamage = double(damage) * DMGSCALE;
+		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
 		
+		DamageHardpoint(mod, trueDamage, isRearDamage:abs(hitAngle) > 100, skipArmor:false);
+
 		// console.printf("Damaged: %s for %d damage. [%d :> %d]", getClassName(), trueDamage, armorPoints, healthPoints);
 		return 0;
 	}
@@ -357,10 +436,19 @@ class MechHardpoint : MechPart
 				}
 				if(!item.parent) continue;
 				
-				if(healthPoints > 0 && !item.disabled) 
+				if(!item.checkDestroyed() && !item.disabled) 
 					item.DoEffect();
 			}
 		}
+		
+		// Heat damage
+		processHeatDamage();
+			
+		// Ambient heat diss
+		localHeat -= 0.67;
+			
+		// Heat is 0 minimum.
+		localheat = max(0, localheat);
 	}
 	
 	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false)
@@ -504,6 +592,7 @@ class MechLegs : MechPart
 		if( (frame == 5 || frame == 16) && stepSound )
 		{
 			A_StartSound("Legs/Footstep", CHAN_BODY, CHANF_OVERLAP, pitch:frandom[FootstepPitch](0.8, 1.2));
+			if(mech.driver) mech.driver.A_AlertMonsters(512,0);
 			if(mech.head) mech.head.animOffsets.z -= 3;
 		}
 		else if(mech.head)

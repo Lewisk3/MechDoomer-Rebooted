@@ -37,7 +37,7 @@ class DrivableMech : DrivableObject
 	SoundQueue betty;
 	
 	// UI Stuff
-	string paperdoll_Background;
+	string paperdoll_Background, paperdoll_Outline;
 	string mechChassisName, mechVariantName;
 	
 	// Shutdown stuff
@@ -66,7 +66,7 @@ class DrivableMech : DrivableObject
 	Property Acceleration : accelKPH, decelKPH;
 	Property MaxHeat : maxHeat, maxKelvin;
 	Property MaxWeight : maxWeight;
-	Property PaperdollBG : paperdoll_Background;
+	Property PaperdollBG : paperdoll_Background, paperdoll_Outline;
 	Property SaveDataFormat : saveDataType;
 	Property ChassisName : mechChassisName;
 	Property VariantName : mechVariantName;
@@ -113,7 +113,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.Acceleration 25, 30; 
 		DrivableMech.MaxWeight 85; // In Tons.
 		DrivableMech.MaxHeat 200, 1050.0;
-		DrivableMech.PaperdollBG "Graphics/HUD/Paperdoll/paperdoll_background.png";
+		DrivableMech.PaperdollBG "Graphics/HUD/Paperdoll/paperdoll_background.png", "Graphics/HUD/Paperdoll/paperdoll_thickOutline.png";
 		DrivableMech.SaveDataFormat "MechSaveData";
 		DrivableMech.HUD_Class "MechHUD";
 	}
@@ -149,6 +149,24 @@ class DrivableMech : DrivableObject
 			
 		// Autoscale
 		A_SetScale(Scale.X * getAutoFitScale());
+	}
+	
+	virtual string getHardpointTypeName(MechHardpoint hp)
+	{
+		// Ugly but, works.
+		// Needed for overriding if our mech is for example a Tank or helicopter.
+		
+		string pName = "None";
+		if(hp == torso) pName = "Torso";
+		if(hp == leftTorso) pName = "LeftTorso";
+		if(hp == rightTorso) pName = "RightTorso";
+		if(hp == leftArm) pName = "LeftArm";
+		if(hp == rightArm) pName = "RightArm";
+		if(hp == head) pName = "Head";
+		if(hp == leftLeg) pName = "LeftLeg";
+		if(hp == rightLeg) pName = "RightLeg";
+		
+		return pName;
 	}
 	
 	virtual double getAutoFitScale()
@@ -389,6 +407,18 @@ class DrivableMech : DrivableObject
 			}
 		}
 		return "";
+	}
+	
+	virtual MechHardpoint getAdjacentHardpoint(MechHardpoint from)
+	{
+		if(from ==  leftTorso) return torso;
+		if(from == rightTorso) return torso;
+		if(from ==    leftArm) return leftTorso;
+		if(from ==   rightArm) return rightTorso;
+		if(from ==    leftLeg) return leftTorso;
+		if(from ==   rightLeg) return rightTorso;
+		
+		return NULL;
 	}
 		
 	override void SetupParts()
@@ -757,6 +787,11 @@ class DrivableMech : DrivableObject
 	{
 		double bhuPerc = bhu / maxHeat;
 		return bhuPerc * maxKelvin;
+	}
+	
+	clearscope virtual double getHeatPerc()
+	{
+		return curHeat / maxHeat;
 	}
 	
 	virtual double getAmbient()

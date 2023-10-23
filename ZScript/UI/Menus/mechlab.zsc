@@ -335,7 +335,7 @@ class MechItemSlot : MenuElement
 	override void Draw(double dT)
 	{
 		Font itemFont = "SmallFont"; 
-		
+		bool destroyed = slotItem.checkDestroyed();
 		
 		Color slotColor = 0;
 		uint itemFontColor = Font.CR_WHITE;
@@ -344,8 +344,14 @@ class MechItemSlot : MenuElement
 		[itemFontColor, slotColor] = GetItemColors(slotItem);
 		if(disabled)
 		{
+			slotColor = 0xFF000000;
+			itemFontColor = Font.CR_White;
+		}
+		
+		if(destroyed)
+		{
 			slotColor = 0xFFFF0000;
-			itemFontColor = Font.CR_BLACK;
+			itemFontColor = Font.CR_Black; 
 		}
 		
 		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, texoffs:(0,0));
@@ -564,7 +570,7 @@ class MenuItemsInvContainer : MenuElement
 		);
 		
 		// Stats
-		vector2 lnPos = descPos + (10, 50 + flavorTextHeight);
+		vector2 lnPos = descPos + (10, 50 + (flavorTextHeight+20));
 		for(int s = 0; s < itemStatName.Size(); s++)
 		{
 			string ln = itemStatName[s];
@@ -944,10 +950,16 @@ class MechInvItem : MenuElement
 	override void Draw(double dT)
 	{
 		Font itemFont = "SmallFont"; 
+		bool destroyed = item.checkDestroyed();
 		
 		Color slotColor = 0;
 		uint itemFontColor = Font.CR_WHITE;
 		[itemFontColor, slotColor] = MechItemSlot.GetItemColors(item);
+		if(destroyed)
+		{
+			itemFontColor = Font.CR_BLACK;
+			slotColor = 0xFFFF0000;
+		}
 		if(grayed) 
 		{
 			itemFontColor = Font.CR_BLACK;

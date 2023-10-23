@@ -45,7 +45,8 @@ class MechHeatsink : MechItem
 		}
 		
 		// Dissipate heat.
-		mech.modifyHeat(-heatEff*3.0);
+		modifyHeat(-heatEff*3.0);
+	
 		// console.printf("Removing heat -%f  [%d]", heatEff, level.mapTime);
 	}
 }
@@ -60,6 +61,22 @@ class MechDoubleHeatsink : MechHeatsink
 		heatEff = 0.40 / TICRATE;
 		buffer = 4;
 		displayName = "Double Heatsink";
+	}
+}
+
+class MechCASE : MechItem
+{
+	override void Defaults()
+	{
+		damagable = false;
+		displayName = "C.A.S.E";
+		size = 1.0;
+		weight = 0;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		flavorText = "If an ammo explosion occurs, C.A.S.E prevents the damage from spreading to adjacent hardpoints.";
 	}
 }
 
