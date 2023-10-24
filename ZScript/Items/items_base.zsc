@@ -522,6 +522,10 @@ class MechEngine : MechItem
 		statName.Push(" ");
 		statValue.Push(" ");
 		
+		// Modify slots to reflect side slots
+		int slotsIndex = statName.Find("SLOTS");
+		statValue[slotsIndex] = String.Format("%d", size + (blocks*2) * blockSize);
+		
 		statName.Push("SIDE SLOTS");
 		statValue.Push(String.Format("%d",blocks*blockSize));
 		
@@ -616,15 +620,85 @@ class MechEngine : MechItem
 		return unitsPerSecond / TICRATE;
 	}
 		
-	override void Defaults()
-	{	
-		rating = 100;
-		type = Type_STD;
-		SetupEngine();
+	
+	virtual void AutoDetectEngine()
+	{
+		// Find rating and type based on classname.
+		// Naming convention -> MechEngine_ -> STD###, XL###, XXL###, LIGHT###
+		
+		string clsName = getClassName();
+		int engineToken = clsName.IndexOf("_");
+		
+		string nums = "0123456789";
+		int ratingIndex = -1;
+		for(uint i = 0; i <= clsName.Length(); i++)
+		{
+			string ch = String.Format("%c", clsName.ByteAt(i));
+			if(nums.IndexOf(ch) != -1)
+			{
+				ratingIndex = i;
+				break;
+			}
+		}
+		
+		if(engineToken == -1 || ratingIndex == -1) 
+		{
+			console.printf("\c[Red]MechEngine Error: failed to autodetect engine parameters for %s.\c[White]", clsName);
+			return; // Unrecognized naming convention.
+		}
+				
+		int engineRating = clsName.Mid(ratingIndex).ToInt(); 
+		Name engineType = clsName.Mid(engineToken+1, ratingIndex-engineToken-1);
+		
+		// console.printf("Rating for %s: [%d] %d :> Type is %s", clsName, ratingIndex, engineRating, engineType); 
+		
+		switch(engineType)
+		{
+			case   'STD': type = Type_STD;   break;
+			case    'XL': type = Type_XL;    break;
+			case   'XXL': type = Type_XXL;   break;
+			case 'LIGHT': type = Type_Light; break;
+		}
+		rating = clamp(engineRating, 100, 500);
 	}
 	
-	void SetupEngine()
+	override void Defaults()
+	{	
+		if(getClassName() != "MechEngine")
+		{
+			rating = 100;
+			type = Type_STD;
+			AutoDetectEngine();
+			SetupEngine(automaticParameters:true);
+		}
+	}
+	
+	void SetupEngine(bool automaticParameters = true)
 	{
+		// Setup engine blocks
+		switch(type)
+		{
+			case Type_STD: // 6 + 0
+				blocks = blockSize = 0;
+			break;
+		
+			case Type_XL: // 6 + 6
+				blocks = 1;
+				blockSize = 3;
+			break;
+			
+			case Type_Light: // 6 + 4
+				blocks = 1;
+				blockSize = 2;
+			break;
+			
+			case Type_XXL: // 6 + 12
+				blocks = 1;
+				blockSize = 6;
+			break;
+		}
+		
+		size = 6;
 		nosave = true;
 		weight = GetTonnage();
 		displayName = String.Format("%s ENGINE %d", getTypeStr(), rating);
@@ -639,15 +713,15 @@ class MechEngine : MechItem
 		let rt = parent.mech.rightTorso;  
 		for(uint i = 0; i < blocks; i++) 
 		{
-			let block = lt.AddItem("MechEngineBlock");
-			block.displayName = displayName;
-			block.size = blockSize ? blockSize : block.size;
-			engineBlocks.push(block);
+			let lt_block = MechItem.Init("MechEngineBlock");
+			lt_block.displayName = displayName;
+			lt_block.size = blockSize ? blockSize : lt_block.size;
+			if(lt_block.TryAttach(lt)) engineBlocks.push(lt_block);
 			
-			block = rt.AddItem("MechEngineBlock");
-			block.displayName = displayName;
-			block.size = blockSize ? blockSize : block.size;
-			engineBlocks.push(block);
+			let rt_block = MechItem.Init("MechEngineBlock");
+			rt_block.displayName = displayName;
+			rt_block.size = blockSize ? blockSize : rt_block.size;
+			if(rt_block.TryAttach(rt)) engineBlocks.push(rt_block);
 		}
 		
 		// Add heatsinks to Engine
@@ -698,7 +772,11 @@ class MechEngine : MechItem
 		let lt = part.mech.leftTorso;
 		let rt = part.mech.rightTorso;
 		if( (lt.slots +  eblockSlots) > lt.maxslots ||
-			(rt.slots +  eblockSlots) > rt.maxslots    ) return IAE_NOSLOTS;
+			(rt.slots +  eblockSlots) > rt.maxslots    ) 
+		{
+			console.printf("Slot error : %d, %d, %d", lt.slots, eblockSlots, lt.maxslots);
+			return IAE_NOSLOTS;
+		}
 		
 		return super.TryAttach(part.mech.torso);
 	}

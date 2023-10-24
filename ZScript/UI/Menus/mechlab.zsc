@@ -302,31 +302,37 @@ class MechItemSlot : MenuElement
 		if(!item) return itemFontColor, slotColor;
 		
 		bool isDynamic = item is "MechDynamicStructure";
-		if(!item.movable && !isDynamic)
+
+		let weap = MechWeapon(item);
+		if(weap)
+		{
+			if(weap.mountType ~== "energy"   ) slotColor = 0xA0FFFF00;
+			if(weap.mountType ~== "ballistic") slotColor = 0xA00000FF;
+			if(weap.mountType ~== "missile"  ) slotColor = 0xA000FF00;
+		}
+		
+		if(!item.movable)
 		{
 			itemFontColor = Font.CR_BLACK;
+			slotColor = 0;
 		}
-		else
+		
+		if(isDynamic)
 		{
-			let weap = MechWeapon(item);
-			if(weap)
-			{
-				if(weap.mountType ~== "energy"   ) slotColor = 0xA0FFFF00;
-				if(weap.mountType ~== "ballistic") slotColor = 0xA00000FF;
-				if(weap.mountType ~== "missile"  ) slotColor = 0xA000FF00;
-			}
+			itemFontColor = Font.CR_BLACK;
+			slotColor = 0xB2000000;
+		}
+		
+		if(item is "MechAmmo")
+			slotColor = 0xA0FF00FF;
+		
+		if(item is "MechEngine")
+			slotColor = 0xA0FF0000;
 			
-			if(isDynamic)
-			{
-				itemFontColor = Font.CR_BLACK;
-				slotColor = 0xB2000000;
-			}
-			
-			if(item is "MechAmmo")
-				slotColor = 0xA0FF00FF;
-			
-			if(item is "MechEngine")
-				slotColor = 0xA0FF0000;
+		if(item is "MechEngineBlock")
+		{
+			itemFontColor = Font.CR_WHITE;
+			slotColor = 0xA07F0000;
 		}
 		
 		return itemFontColor, slotColor;
@@ -501,6 +507,7 @@ class MenuItemsInvContainer : MenuElement
 			MenuElement.Create("MechEquipmentSortTab", "tabEquipment", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		equipmentTab.Setup("Equipment", "", textScale:(tabTextScale,tabTextScale));
+		equipmentTab.active = false;
 		tabOffs.x += tabSpacing;
 		
 		let armorTab = MechArmorSortTab(
@@ -519,6 +526,8 @@ class MenuItemsInvContainer : MenuElement
 	
 	static void DrawItemStats(MechMenu_Mechlab mechlab, MechItem invItem, vector2 pos, double width)
 	{
+		if(invItem is "MechDynamicStructure") return;
+		
 		string itemName = invItem.displayName;
 		
 		string itemFlavorText;
@@ -535,7 +544,7 @@ class MenuItemsInvContainer : MenuElement
 		
 		string formattedFlavorText = MWStringHelper.formatLnBreaks(
 			itemFlavorText, 
-			(boxWidth*0.9) / (descFont.getCharWidth(0) * 2.0 * (descFontScale*0.8))
+			boxWidth / (descFont.getCharWidth(0) * 2.0 * (descFontScale*0.8))
 		);
 		double flavorTextLn = (10*(descFontScale*0.8));
 		double flavorTextHeight = MWStringHelper.countLnBreaks(formattedFlavorText) * (descFont.getHeight()+flavorTextLn);
@@ -970,15 +979,17 @@ class MechInvItem : MenuElement
 		double yscale = 1.1;
 		double slotHeight = 32 * scale;
 		double wScale = size.x / 256.0;
+	
+		int itemSize = item ? max(1,item.size) : 1;
+		if(item is "MechEngine" && (!dragging || grayed) ) itemSize = 1;
+		
+		size.y = item ? slotHeight * itemSize * yscale : slotHeight;
 		vector2 amtOffs = (size.x * 0.5, -(size.y*0.25));
 		
-		size.y = item ? slotHeight * max(1,item.size) * yscale : slotHeight;
-		
-		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, scale:(scale*wScale,scale*yscale), tint:slotColor, texoffs:(0,0));
-		
 		if(item)
-		{
-			int itemSize = max(1,item.size);
+		{	
+			MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, scale:(scale*wScale,scale*yscale), tint:slotColor, texoffs:(0,0));
+			
 			for(int i = 0; i < itemSize-1; i++)
 			{
 				MWDrawer.DrawImage(

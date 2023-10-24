@@ -148,8 +148,8 @@ class MenuCursor : MenuElement
 	{
 		if(draggingElement) 
 		{
-			draggingElement.updateDragPos(self);
 			draggingElement.Draw(dT);
+			draggingElement.updateDragPos(self);
 		}
 	}
 	

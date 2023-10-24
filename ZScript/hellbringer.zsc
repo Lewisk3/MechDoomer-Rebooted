@@ -35,7 +35,7 @@ class MechHellbringer : DrivableMech
 	override void SetupItems()
 	{
 		// Armor and Engine
-		torso.AddItem("MechEngine_XL325");
+		torso.AddItem("MechEngine_XL300");
 		MechArmor.addToMech(self, "MechArmor_Ferro");
 		
 		// Weapons

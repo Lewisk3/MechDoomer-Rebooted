@@ -121,7 +121,7 @@ class MechHardpoint : MechPart
 	Property UIGraphics : paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	
 	// Hardpoint damage scalar.
-	const DMGSCALE = 0.05; // 0.025
+	const DMGSCALE = 0.04; // 0.025
 	
 	Default
 	{

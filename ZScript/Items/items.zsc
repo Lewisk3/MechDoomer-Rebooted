@@ -206,44 +206,6 @@ class MechArmor_Ferro : MechArmor
 	}
 }
 
-// Engines
-class MechEngine_STD100 : MechEngine
-{
-	override void Defaults()
-	{
-		rating = 100;
-		size = 5;
-		type = Type_STD;
-		SetupEngine();
-	}
-}
-
-class MechEngine_XL325 : MechEngine
-{
-	override void Defaults()
-	{
-		rating = 325;
-		size = 6;
-		blocks = 1;
-		blockSize = 2;
-		type = Type_XL;
-		SetupEngine();
-	}
-}
-
-class MechEngine_XL400 : MechEngine
-{
-	override void Defaults()
-	{
-		rating = 400;
-		size = 12;
-		blocks = 1;
-		blockSize = 3;
-		type = Type_XL;
-		SetupEngine();
-	}
-}
-
 // Chassis structures
 
 // Arm structures
@@ -256,6 +218,11 @@ class MechShoulder : MechItem
 		size = 1;
 		weight = 0;
 		displayName = "Shoulder";
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		flavorText = "\c[Red]Critical Structure \c[Red]Item. Cannot be moved. \c[White]"; 
 	}
 }
 class MechUpperArmActuator : MechShoulder
@@ -315,7 +282,7 @@ class MechGyro : MechShoulder
 	override void Defaults()
 	{
 		super.Defaults();
-		size = 3;
+		size = 4;
 		displayName = "Gyro";
 	}
 }

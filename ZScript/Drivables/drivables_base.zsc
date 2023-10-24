@@ -258,8 +258,8 @@ class DrivableObject : DrivableComponent
 	virtual void AttachPart(DrivableObjectPart part, DrivableComponent parent)
 	{
 		part.parent = parent;
-		part.OnAttach();
 		parts.Push(part);
+		part.OnAttach();
 	}
 	
 	virtual DrivableObjectPart AddPart(class<DrivableObjectPart> type, double fw, double lr, double ud, DrivableComponent parent)
