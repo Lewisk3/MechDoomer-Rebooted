@@ -393,6 +393,16 @@ class ParticleCannon : MechProjectile
 	}
 }
 
+// ER PPC
+class RangedParticleCannon : ParticleCannon
+{
+	Default
+	{
+		MechProjectile.Ranges 0, 1620;
+		MechProjectile.SpeedKPH 1900;
+	}
+}
+
 class PPCTrail : EffectsActor
 {
 	Default

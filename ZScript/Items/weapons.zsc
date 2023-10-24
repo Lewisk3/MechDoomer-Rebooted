@@ -728,3 +728,17 @@ class PPC : AC2
 		return super.Fire(firePos);
 	}
 }
+class ERPPC : PPC
+{	
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "ER PPC";
+		heat = 25.0;
+				
+		projType = "RangedParticleCannon";
+		fireSound = "Energy/PPC";
+		damagable = true;
+	}
+}
