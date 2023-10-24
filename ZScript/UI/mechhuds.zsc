@@ -4,7 +4,7 @@ class MechHUD : VehicleHUD
 	
 	double chainBlink, powerupTics, lockingRotation, curThrottle, curHeat;
 	int chainGroup; // For chainfire animation.
-	
+		
 	override void Draw(RenderEvent e)
 	{		
 		let viewer = e.Camera;
@@ -35,28 +35,9 @@ class MechHUD : VehicleHUD
 			vector2 torsoAimPos, leftArmAimPos, rightArmAimPos;
 			double crosshairAlpha = 0.65;
 			
+			
 			if(powerupTics <= 0)
 			{
-				vector2 aimScale = (0.3,0.3);
-				[infront, torsoAimPos] = MWDrawer.ProjectToHUD(viewproj, torsoAim, (0,0,0));
-				if(infront) MWDrawer.DrawImage("Graphics/HUD/TorsoRet.png", torsoAimPos, alpha:crosshairAlpha, scale:aimScale, absolute:true);
-				
-				[infront, leftArmAimPos] = MWDrawer.ProjectToHUD(viewproj, leftArmAim, (0,0,0));
-				if(infront && mech.leftArm.healthPoints > 0)
-				{
-					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, leftArmAimPos.x, leftArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
-					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", leftArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
-				}
-				
-				[infront, rightArmAimPos] = MWDrawer.ProjectToHUD(viewproj, rightArmAim, (0,0,0));
-				if(infront && mech.rightArm.healthPoints > 0) 
-				{
-					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, rightArmAimPos.x, rightArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
-					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", rightArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
-				}
-				
-				MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
-				
 				// Draw target selection
 				let curTarget = mech.curTarget;
 				if(curTarget)
@@ -84,6 +65,59 @@ class MechHUD : VehicleHUD
 					Screen.DrawThickLine(topRight.x, topRight.y, bottomRight.x, bottomRight.y, thickness, lineColor);     //   |
 					Screen.DrawThickLine(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, thickness, lineColor); // ___
 				}
+			
+				// Draw crosshair
+				double aimDistMetersLeft  = GetAimDistance(mech.leftArm);
+				double aimDistMetersRight = GetAimDistance(mech.rightArm);
+				double aimDistMetersTorso = GetAimDistance(mech.torso);
+				double distStringScale = (Screen.getWidth() / MWDrawer.getBaseWidth());
+			
+				vector2 aimScale = (0.3,0.3);
+				[infront, torsoAimPos] = MWDrawer.ProjectToHUD(viewproj, torsoAim, (0,0,0));
+				if(infront) MWDrawer.DrawImage("Graphics/HUD/TorsoRet.png", torsoAimPos, alpha:crosshairAlpha, scale:aimScale, absolute:true);
+				
+				[infront, leftArmAimPos] = MWDrawer.ProjectToHUD(viewproj, leftArmAim, (0,0,0));
+				if(infront && mech.leftArm.healthPoints > 0)
+				{
+					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, leftArmAimPos.x, leftArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
+					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", leftArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
+					
+					if(mech.curTarget)
+					{
+						MWDrawer.DrawString("ConsoleFont", 
+							String.Format("%dm", aimDistMetersLeft), leftArmAimPos + ((-40,0) * distStringScale), 
+							flags:MWDrawer.SS_TEXT_RIGHT, 
+							translation:Font.CR_Red, 
+							scale:(0.5,0.5), absolute:true
+						); 
+					}
+				}
+				
+				[infront, rightArmAimPos] = MWDrawer.ProjectToHUD(viewproj, rightArmAim, (0,0,0));
+				if(infront && mech.rightArm.healthPoints > 0) 
+				{
+					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, rightArmAimPos.x, rightArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
+					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", rightArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
+					
+					if(mech.curTarget)
+					{
+						MWDrawer.DrawString("ConsoleFont", 
+							String.Format("%dm", aimDistMetersRight), rightArmAimPos + ((40,0) * distStringScale), 
+							flags:0, 
+							translation:Font.CR_Red, 
+							scale:(0.5,0.5), absolute:true
+						); 
+					}
+				}
+				
+				MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
+
+				MWDrawer.DrawString("ConsoleFont", 
+					String.Format("%dm", aimDistMetersTorso), (0,40), 
+					flags:MWDrawer.SS_TEXT_CENTER|MWDrawer.SS_SCREEN_CENTER, 
+					translation:mech.curTarget ? Font.CR_Red : Font.CR_DarkGreen, 
+					scale:(0.6,0.6)
+				); 
 			}
 				
 			// Draw HUD elements.
@@ -146,6 +180,21 @@ class MechHUD : VehicleHUD
 		}
 	}
 	
+	virtual double GetAimDistance(MechHardpoint fromHardpoint)
+	{
+		Array<HardpointMount> mounts;
+		fromHardpoint.getMountPoints(mounts);
+		vector3 hardpointPos = fromHardpoint.pos;
+		
+		// If we've got mounts, get position from that point.
+		if(mounts.Size() > 0)
+			hardpointPos = mounts[0].getPos(absolute:true);
+	
+		vector3 aimPos = mech.curTarget ? mech.curTarget.pos : mech.aimingPos;
+		double aimDist = (hardpointPos.xy - aimPos.xy).Length();
+		return (aimDist * UTOCM) / 100.0;	
+	}
+	
 	void DrawRadar()
 	{
 		vector2 radarPos = (960,900);
@@ -187,7 +236,7 @@ class MechHUD : VehicleHUD
 		
 		double angle = mech.torso.angle;
 		Vector2 map_middle = (baseoffs.x,baseoffs.y);
-		Color linecol = 0xFF343635;
+		Color linecol = 0xFF139131;
 		
 		// Draw Minimap
 		// Setup stencil clip
@@ -217,7 +266,7 @@ class MechHUD : VehicleHUD
 			ln_len /= zoom;
 			
 			// drawRadarLine(ln_pos.x,ln_pos.y,ln_len.x,ln_len.y,linecol, map_middle, 1.0, radius);
-			MWDrawer.DrawThickLine(ln_pos.x, ln_pos.y, ln_len.x, ln_len.y, 5, linecol);
+			MWDrawer.DrawThickLine(ln_pos.x, ln_pos.y, ln_len.x, ln_len.y, 1.5, linecol);
 		}
 		
 		// Disable stencil

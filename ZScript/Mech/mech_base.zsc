@@ -13,7 +13,9 @@
 	we get; 3.039047882723666
 */
 
-const UTOCM = (12.9 / 92.0) * 100.0;
+const UTOCM_Scaled = ((12.9 / 92.0) * 100.0);
+const UTOCM_Real = ((12.9 / 368.0) * 100.0);
+const UTOCM = UTOCM_Scaled;
 
 class DrivableMech : DrivableObject
 {
@@ -28,10 +30,12 @@ class DrivableMech : DrivableObject
 	bool noItemSlots; // If true, prevents any items from being equipped.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
-	
+
 	MechWeapon prevWeapFired;
 	MechArmor armorType;
 	Array<MechWeaponGroup> weaponGroups;
+	
+	vector3 aimingPos;
 	
 	// Sound logic
 	SoundQueue betty;
@@ -49,7 +53,7 @@ class DrivableMech : DrivableObject
 	bool centerToTorso, centerToLegs;
 	
 	// Targeting
-	double targetProgress; // 1.0 when tatget is locked.
+	double targetProgress; // 1.0 when target is locked.
 	Actor curTarget; // Targeted enemy, not necessarily locked.
 	
 	MechPart legs, hips; // Non-hardpoint parts.
@@ -151,7 +155,7 @@ class DrivableMech : DrivableObject
 		SetupItems();
 			
 		// Autoscale
-		A_SetScale(Scale.X * getAutoFitScale());
+		A_SetScale(Scale.X * getAutoFitScale()); 
 	}
 	
 	virtual string getHardpointTypeName(MechHardpoint hp)
@@ -202,7 +206,7 @@ class DrivableMech : DrivableObject
 		
 		while(act = Actor(it.Next()))
 		{
-			if(!act.bSHOOTABLE) continue;
+			if(!act.bSHOOTABLE || act.bNODAMAGE) continue;
 			if(!cam.IsVisible(act, false, look) && requireSight) continue;
 			if(act == driver) continue;
 			
@@ -497,7 +501,11 @@ class DrivableMech : DrivableObject
 		HandleHoming(filteredWeaps);
 		
 		// Lose target if target is dead.
-		if(curTarget && curTarget.bCORPSE) curTarget = NULL;
+		if(curTarget && (curTarget.bCORPSE || curTarget.health <= 0) )
+		{
+			betty.Push("Betty/TargetDestroyed");
+			curTarget = NULL;
+		}
 		
 		if(filteredWeaps.Size() <= 0) return;
 		
@@ -521,7 +529,12 @@ class DrivableMech : DrivableObject
 		
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
+		{
+			Actor prevTarget = curTarget;
 			AcquireTarget();
+			if(curTarget != prevTarget)
+				betty.Push("Betty/Targetting");
+		}
 						
 		// Group customization
 		if(selectedGroup < 0) selectedGroup = 4;
@@ -868,6 +881,8 @@ class DrivableMech : DrivableObject
 		else if(driver)
 			betty.local = driver;
 		
+		betty.active = (driver != NULL);
+		
 		if( (throttle-prevThrottle) < -0.25 )
 		{
 			A_StartSound("Engine/Forward", CHAN_5, CHANF_OVERLAP);
@@ -898,6 +913,9 @@ class DrivableMech : DrivableObject
 			let grp = weaponGroups[i];
 			if(grp) grp.DoEffect();
 		}
+		
+		// Get aim position
+		aimingPos = DrivablesMath.getActorAim(cam);
 	}
 	
 	States

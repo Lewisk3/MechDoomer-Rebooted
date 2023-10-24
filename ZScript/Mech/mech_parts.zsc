@@ -187,6 +187,8 @@ class MechHardpoint : MechPart
 		double armorPerc, healthPerc;
 		[armorPerc, healthPerc] = getVitals();
 	
+		if(healthPerc <= 0) return; // Do not draw if hardpoint is destroyed.
+	
 		if(rear && hasRearArmor) 
 		{	
 			// Replace armorPerc with rear armor vitals			
@@ -289,8 +291,10 @@ class MechHardpoint : MechPart
 	}
 	
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
-	{	
+	{		
 		double trueDamage = double(damage) * DMGSCALE;
+		if(flags & DMG_EXPLOSION) trueDamage *= 0.25;
+		
 		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
 		
 		DamageHardpoint(mod, trueDamage, isRearDamage:abs(hitAngle) > 100, skipArmor:false);
@@ -792,8 +796,8 @@ class MechCockpit : MechHardpoint
 {
 	Default
 	{
-		Radius 4;
-		Height 4;
+		Radius 1;
+		Height 1;
 		MechHardpoint.Slots 6;
 		MechHardpoint.UIGraphics "paperdoll_HD.png", "paperdoll_SK_HD.png";
 	}
@@ -852,7 +856,7 @@ class MechArm : MechHardpoint
 		A_SetRoll(parent.roll, SPF_INTERPOLATE);
 		if( !mech.driver || mountPoints.Size() <= 0 ) return;
 		
-		vector3 aimingPos = DrivablesMath.getActorAim(mech.cam);
+		vector3 aimingPos = mech.aimingPos; 
 		if(mech.torsoLock) aimingPos = mech.head.lookingPos;
 		
 		vector3 shootPos = mountPoints[0].getPos(true);	

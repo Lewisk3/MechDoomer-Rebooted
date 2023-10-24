@@ -15,7 +15,8 @@ Betty/CriticalHit "Sounds/Betty/CriticalHit.wav"
 Betty/AmmoExplosion "Sounds/Betty/ammo_explosion.wav"
 Betty/Ammo/Critical "Sounds/Betty/ammo_critical.wav"
 Betty/Ammo/Depleted "Sounds/Betty/ammo_depleted.wav"
-Betty/Target/Destroyed "Sounds/Betty/target_destroyed.wav"
+Betty/TargetDestroyed "Sounds/Betty/target_destroyed.wav"
+Betty/Targetting "Sounds/Betty/targetting.wav"
 Betty/Shutdown/Override "Sounds/Betty/shutdown_override.wav"
 // Betty/ItemDestroyed/Type
 
@@ -55,6 +56,9 @@ Ballistic/Autocannon2  "Sounds/Weapons/ac2_fire.wav"
 Ballistic/Autocannon5  "Sounds/Weapons/ac5_fire.wav"
 Ballistic/Autocannon10 "Sounds/Weapons/ac10_fire.wav"
 Ballistic/Autocannon20 "Sounds/Weapons/ac20_fire.wav"
+
+Energy/PPC "Sounds/Weapons/ppc_fire.wav"
+Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
 
 IMPACT1 "Sounds/Weapons/impact1.wav"
 IMPACT2 "Sounds/Weapons/impact2.wav"

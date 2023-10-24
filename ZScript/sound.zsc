@@ -20,6 +20,7 @@ class SoundQueue : Thinker
 {
 	Actor local;
 	Array<SoundInfo> sounds;
+	bool active;
 	
 	static SoundQueue Create(Actor local = NULL)
 	{
@@ -57,7 +58,8 @@ class SoundQueue : Thinker
 	override void Tick()
 	{
 		super.Tick();
-	
+		if(!active) return;
+		
 		if(sounds.Size() > 0)
 		{
 			if(!sounds[0].playing)

@@ -603,6 +603,7 @@ class MechEngine : MechItem
 		return scalar * (( unitsPerHour * (UTOCM / level.pixelStretch) ) / 100000.0);
 	}
 	
+	// This is for a Mech, not a projectile.
 	clearscope static double getKPHSpeed(double KPH, double scalar = 1.0)
 	{
 		double unitsPerHour = (KPH*100000.0) / (UTOCM / level.pixelStretch);

@@ -55,22 +55,33 @@ class MechMissile : MechProjectile
 		Crash:
 		XDeath:
 		Death:
-			TNT1 A 10
+			MODL A 10
 			{
 				if(curDist > minRange)
 				{
-					EffectsHelper.SpawnFX("MissileEmber", 50, pos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);
+					EffectsHelper.SpawnFX("MissileEmber", 25, pos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);
 					SpawnEffect("MissileExplosion", pos);
-					EffectsHelper.ExplodeEx(self, 16, 128);
+					EffectsHelper.ExplodeEx(self, 64, 128);
 				}
 				else 
 				{
 					A_StartSound("Generic/Impact", flags:CHANF_OVERLAP, pitch:frandom[ExplosionPitch](-0.8, 1.2));
-					bMISSILE = false;
+					return FindState("Fall");
 				}
-			//	A_Quake(3,8,0,512, "");
+				return FindState(null);
 			}
 		stop;
+		
+		Fall:
+			MODL A 1 
+			{
+				bMISSILE = false;
+				vel.xy *= 0;
+				vel.z += GetGravity();
+				pitch = min(90, pitch + 2);
+				if(pos.z >= floorz) A_FadeOut(0.1);
+			}
+		wait;
 	}
 }
 

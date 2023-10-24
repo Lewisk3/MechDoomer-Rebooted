@@ -264,13 +264,13 @@ class SRM2 : MechWeapon
 		
 		statName.Push(" ");
 		statValue.Push(" ");
-		statName.Push("MAX RANGE");
-		statValue.Push(String.Format("%d", projDefs.maxRange));
 		if(projDefs.minRange > 0)
 		{
 			statName.Push("MIN RANGE");
 			statValue.Push(String.Format("%d", projDefs.minRange));
 		}
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange));
 		
 		statName.Push(" ");
 		statValue.Push(" ");
@@ -575,7 +575,9 @@ class AC2 : MechWeapon
 		
 		let projDefs = GetDefaultByType(projType);
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
-		
+		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
+		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
+	
 		statName.Push("DAMAGE");
 		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE)));
 		statName.Push("HEAT");
@@ -587,12 +589,17 @@ class AC2 : MechWeapon
 		
 		statName.Push(" ");
 		statValue.Push(" ");
+		if(projDefs.minRange > 0)
+		{
+			statName.Push("MIN RANGE");
+			statValue.Push(String.Format("%d", projDefs.minRange));
+		}
 		statName.Push("MAX RANGE");
 		statValue.Push(String.Format("%d", projDefs.maxRange));
 		statName.Push("OPTIMAL RANGE");
 		statValue.Push(String.Format("%d", projDefs.maxRange * 0.5));
 		statName.Push("PROJ SPEED");
-		statValue.Push( String.Format("%d m/s", (MechEngine.speedToKPH(projDefs.Speed) / 3600) * 1000) );
+		statValue.Push( String.Format("%d m/s", metersPerSeconds) );
 		
 		statName.Push(" ");
 		statValue.Push(" ");
@@ -689,6 +696,35 @@ class AC20 : AC2
 	override bool Fire(vector3 firePos)
 	{
 		A_Recoil(-2, 4);
+		return super.Fire(firePos);
+	}
+}
+
+// PPC
+class PPC : AC2
+{	
+	override void Defaults()
+	{	
+		DisplayName = "PPC";
+		mountType = "Energy";
+		heat = 20.0;
+		weight = 7.0;
+		size = 3.0;
+		
+		ammoUse = 0;
+		fireTime = 10;
+		cooldownTime = ceil(3 * TICRATE);
+		
+		projType = "ParticleCannon";
+		ammoType = "";
+		fireSound = "Energy/PPC";
+		damagable = true;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-2);
+		
 		return super.Fire(firePos);
 	}
 }

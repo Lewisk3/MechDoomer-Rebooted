@@ -200,7 +200,7 @@ class MWDrawer Abstract ui
 	}
 	
 	static void DrawString( Font fnt, String str, Vector2 pos, int flags = SS_NOASPECTCORRECTION, int translation = Font.CR_UNTRANSLATED, 
-							double Alpha = 1., Vector2 scale = (1, 1), Color tint = Color(0,0,0,0), int charspacing = 0, int linespacing = 20 )
+							double Alpha = 1., Vector2 scale = (1, 1), Color tint = Color(0,0,0,0), int charspacing = 0, int linespacing = 20, bool absolute = false)
 	{
 		Array<String> lines;
 		str.Split(lines, "\n");
@@ -214,18 +214,21 @@ class MWDrawer Abstract ui
 			pos.x -= (fnt.StringWidth(str) * scale.x) * 2.0;
 		}
 		
-		vector2 npos = _ProcessCoords(pos, flags);
-		scale = _ProcessScale(scale, flags);
+		vector2 npos = absolute ? pos : _ProcessCoords(pos, flags);
+		scale = absolute ? scale : _ProcessScale(scale, flags);
 		npos.x *= (1./scale.x*0.5);
 		npos.y *= (1./scale.y*0.5);
+		
+		vector2 baseRes = (GetBaseWidth(), GetBaseHeight());
+		if(absolute) baseRes = (Screen.getWidth(), Screen.getHeight());
 		
 		for(int i = 0; i < lines.Size(); i++)
 		{
 			 double lineoffs = (linespacing*i);
 			 Screen.DrawText(fnt, translation, npos.x, npos.y+lineoffs, 
 				lines[i],
-				DTA_VirtualWidthF,  int(GetBaseWidth()*(1./scale.x*0.5)),
-				DTA_VirtualHeightF, int(GetBaseHeight()*(1./scale.y*0.5)),
+				DTA_VirtualWidthF,  int(baseRes.x*(1./scale.x*0.5)),
+				DTA_VirtualHeightF, int(baseRes.y*(1./scale.y*0.5)),
 				DTA_KeepRatio, true,
 				DTA_Alpha, alpha,
 				DTA_ColorOverlay, tint,
@@ -357,7 +360,7 @@ class MWDrawer Abstract ui
 	}
 	
 	// Lines
-	static void DrawThickLine(double x0, double y0, double x1, double y1, int thickness, Color col, double alpha = 1.0, int flags = SS_NOASPECTCORRECTION)
+	static void DrawThickLine(double x0, double y0, double x1, double y1, double thickness, Color col, double alpha = 1.0, int flags = SS_NOASPECTCORRECTION)
 	{
 		vector2 posFrom = (x0, y0);
 		vector2 posTo = (x1, y1);
