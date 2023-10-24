@@ -609,7 +609,7 @@ class MechHUD : VehicleHUD
 		vector2 healthBarPos = pos + (100, -55);
 		double healthPerc = target.health / double(target.getSpawnHealth());
 		MWDrawer.DrawImage("Graphics/HUD/enemyHealthBar.png", healthBarPos + (0,1*drawScale), drawFlags, 1.0, scale:(0.86,0.90)*drawScale, tint:0xFF000000);
-		MWDrawer.SetClipRect(healthBarPos.x - (barSize.x * 0.5), healthBarPos.y - (barSize.y * 0.5), barSize.x * healthPerc, barSize.y, visualize:true);
+		MWDrawer.SetClipRect(healthBarPos.x - (barSize.x * 0.5), healthBarPos.y - (barSize.y * 0.5), barSize.x * healthPerc, barSize.y, visualize:false);
 		MWDrawer.DrawImage("Graphics/HUD/enemyHealthBar.png", healthBarPos, drawFlags, 1.0, scale:barScale);
 		MWDrawer.ClearClipRect();
 		
