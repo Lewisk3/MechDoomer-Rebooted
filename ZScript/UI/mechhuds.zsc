@@ -85,7 +85,7 @@ class MechHUD : VehicleHUD
 					Screen.DrawThickLine(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, thickness, lineColor); // ___
 				}
 			}
-			
+				
 			// Draw HUD elements.
 			DrawWeapons();
 			DrawBars();
@@ -181,7 +181,7 @@ class MechHUD : VehicleHUD
 	void DrawMinimap(vector2 pos, double radius, double zoom)
 	{
 		// -- CVars / Constants --
-		double minimap_renderdist = 2048**2;
+		double minimap_renderdist = 2048;
 		Vector2 baseoffs = pos;
 		Vector2 plrpos2D = (mech.cam.pos.x, mech.cam.pos.y);
 		
@@ -190,16 +190,23 @@ class MechHUD : VehicleHUD
 		Color linecol = 0xFF343635;
 		
 		// Draw Minimap
+		// Setup stencil clip
+		Screen.EnableStencil(true);
+		Screen.SetStencil(0, SOP_Increment, SF_ColorMaskOff);
+		FillCircle(pos, radius);
+		Screen.SetStencil(1, SOP_Keep, SF_AllOn);
+		
 		for (int i = 0; i < Level.Lines.Size(); i++)
 		{
 			Line ln = Level.Lines[i];
+			
 			// if( !(ln.flags & Line.ML_MAPPED) ) continue;
 			
 			Vector2 ln_pos = ln.v1.p;
 			Vector2 ln_len = ln.v2.p;
 			
 			// Check render distance
-			if( DrivablesMath.Distance2DSquared(ln_pos, plrpos2D) > minimap_renderdist )
+			if( DrivablesMath.Distance2D(ln_pos, plrpos2D) > minimap_renderdist )
 				continue;
 			
 			ln_pos = Actor.RotateVector(SwapVector(ln_pos-plrpos2D),angle+180);
@@ -209,8 +216,13 @@ class MechHUD : VehicleHUD
 			ln_pos /= zoom;
 			ln_len /= zoom;
 			
-			drawRadarLine(ln_pos.x,ln_pos.y,ln_len.x,ln_len.y,linecol, map_middle, 1.0, radius);
+			// drawRadarLine(ln_pos.x,ln_pos.y,ln_len.x,ln_len.y,linecol, map_middle, 1.0, radius);
+			MWDrawer.DrawThickLine(ln_pos.x, ln_pos.y, ln_len.x, ln_len.y, 5, linecol);
 		}
+		
+		// Disable stencil
+		Screen.EnableStencil(false);
+		Screen.ClearStencil();
 	}
 	
 	void DrawBars()

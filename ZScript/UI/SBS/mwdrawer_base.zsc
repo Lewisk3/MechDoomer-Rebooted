@@ -342,6 +342,20 @@ class MWDrawer Abstract ui
 		Screen.SetClipRect(x,y,w,h);
 	}
 	
+	static void SetClipMask(String maskImage, vector2 pos, vector2 scale, bool visual = false)
+	{
+		Screen.EnableStencil(true);
+		Screen.SetStencil(0, SOP_Increment, visual ? -1 : SF_ColorMaskOff);
+		DrawImage(maskImage, pos, flags:0, alpha:1.0, scale:scale);
+		Screen.SetStencil(1, SOP_Keep, SF_AllOn);
+	}
+	
+	static void ClearClipMask()
+	{
+		Screen.EnableStencil(false);
+		Screen.ClearStencil();
+	}
+	
 	// Lines
 	static void DrawThickLine(double x0, double y0, double x1, double y1, int thickness, Color col, double alpha = 1.0, int flags = SS_NOASPECTCORRECTION)
 	{
@@ -369,6 +383,6 @@ class MWDrawer Abstract ui
 			DTA_ColorOverlay, tint
 		);
 	}
-
+	
 	static void ClearClipRect() { Screen.ClearClipRect(); }
 }	
