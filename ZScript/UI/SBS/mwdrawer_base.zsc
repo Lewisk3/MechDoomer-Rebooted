@@ -234,21 +234,47 @@ class MWDrawer Abstract ui
 		}		
 	}
 	
-	static void Fill(Color col, double x, double y, double w, double h, double alpha = 1.0, int flags = SS_NOASPECTCORRECTION, bool absolute = false)
+	static void Fill(Color col, double x, double y, double w, double h, double alpha = 1.0, int flags = 0, bool absolute = false)
 	{
 		vector2 pos = (x, y);
-		double sc_xres = Screen.getWidth()/GetBaseWidth();
-		double sc_yres = Screen.getHeight()/GetBaseHeight();		
+
+		double sc_xres = Screen.getWidth()/1920.0;
+		double sc_yres = Screen.getHeight()/1080.0;		
 		vector2 npos = absolute ? pos : _ProcessCoords(pos, flags);
 		if(!absolute)
 		{
 			npos.x *= sc_xres;
 			npos.y *= sc_yres;
 		}
+
 		w *= sc_xres;
 		h *= sc_yres;
 		
-		Screen.Dim(col, alpha, npos.x, npos.y, w, h);
+		let square = new("Shape2D");
+		square.PushVertex((-0.5,-0.5));
+		square.PushVertex((0.5,-0.5));
+		square.PushVertex((0.5,0.5));
+		square.PushVertex((-0.5,0.5));
+		square.PushCoord((0,0));
+		square.PushCoord((1,0));
+		square.PushCoord((1,1));
+		square.PushCoord((0,1));
+		square.PushTriangle(0,1,2);
+		square.PushTriangle(0,2,3);
+		let transform = new("Shape2DTransform");
+		transform.Scale((w,h)); 
+		transform.Translate(npos + (w/2., h/2.));
+		square.SetTransform(transform);
+		
+		int colAlpha = col.a;
+		int red = col.r; 
+		int green = col.g;
+		int blue = col.b;
+		color adjustedColor = (colAlpha << 24) | (blue << 16) | (green << 8) | red;
+		
+		Screen.DrawShapeFill(adjustedColor, alpha, square);
+		square.Destroy();
+		transform.Destroy();
 	}
 	
 	static void DrawBar(String ongfx, String offgfx, double curval, double maxval, Vector2 position, int border, int vertical,

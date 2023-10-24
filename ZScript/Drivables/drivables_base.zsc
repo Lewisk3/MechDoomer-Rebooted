@@ -119,6 +119,8 @@ class DriverBtns abstract
 	
 	clearscope static bool Get(int btn, int bstate, Actor src, uint btnsrc = -1, uint oldbtnsrc = -1)
 	{
+		if(!src) return 0;
+		
 		uint btns, oldbtns;
 		bool btnstatus;
 		

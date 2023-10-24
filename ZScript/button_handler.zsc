@@ -1,7 +1,6 @@
 class MechButtons_Handler : EventHandler
 {
 	// Setup MechItems for players
-	
 	override void WorldTick()
 	{
 		for(int i = 0; i < MAXPLAYERS; i++)

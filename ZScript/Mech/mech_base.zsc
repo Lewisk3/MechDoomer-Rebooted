@@ -63,6 +63,9 @@ class DrivableMech : DrivableObject
 	class<MechSaveData> saveDataType;
 	class<VehicleHUD> HUDType;
 	
+	// UI
+	ui VehicleHUD activeHUD; // Mech's currently active HUD. 
+	
 	Property Acceleration : accelKPH, decelKPH;
 	Property MaxHeat : maxHeat, maxKelvin;
 	Property MaxWeight : maxWeight;

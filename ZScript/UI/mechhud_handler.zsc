@@ -1,6 +1,5 @@
 class MechHUD_Handler : EventHandler
 {
-	ui VehicleHUD curHUD;
 	ui bool hidingHUD;
 	
 	ui void HideHUD()
@@ -47,17 +46,16 @@ class MechHUD_Handler : EventHandler
 		let mech = getPilotingMech(e);
 		if(!mech) return;
 		
-		if(!curHUD || mech.HUDType != curHUD.getClass())
+		if(!mech.activeHUD)
 		{
-			if(curHUD) curHUD.Destroy();
-			curHUD = VehicleHUD(new(mech.HUDType));
-			curHUD.mech = mech;
+			mech.activeHUD = VehicleHUD(new(mech.HUDType));
+			mech.activeHUD.mech = mech;
 		}
-		else if(mech.HUDType == curHUD.getClass())
+		else
 		{
 			ShowHUD();
-			curHUD.Update();
-			curHUD.Draw(e);
+			mech.activeHUD.Update(mech);
+			mech.activeHUD.Draw(e);
 		}
 	}
 }
@@ -200,8 +198,10 @@ class VehicleHUD : Object ui
 		return String.Format("[%4d %s]", round((heatPerc*maxTemp)), unit);
 	}
 	
-	virtual void Update()
+	virtual void Update(DrivableMech mech)
 	{
+		self.mech = mech;
+	
 		// Keep track of time, always.
 		if(!prevMS)
 		{

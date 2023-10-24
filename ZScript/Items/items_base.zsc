@@ -28,6 +28,7 @@ class MechItem : Object
 			item.hp = 10;
 			item.size = 1; 
 			item.amount = 1;
+			item.damagable = false;
 			item.Defaults();
 		}
 		return item;
@@ -148,8 +149,10 @@ class MechItem : Object
 	
 	play virtual void OnDamaged(double dmg)
 	{
+		if(!damagable) return;
+	
 		// Do stuff when damaged.
-		if(damagable) hp -= dmg;
+		hp -= dmg;
 		if(hp <= 0) OnDestroyed();
 	}
 	
@@ -200,6 +203,7 @@ class MechAmmo : MechItem
 	
 	override void OnDestroyed()
 	{
+		if(curAmmo <= 0) return;
 		mech.betty.Push("Betty/AmmoExplosion");
 		parent.DoExplosionDamage(curAmmo);
 		curAmmo = 0;

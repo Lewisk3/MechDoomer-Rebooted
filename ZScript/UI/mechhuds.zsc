@@ -91,8 +91,28 @@ class MechHUD : VehicleHUD
 			DrawBars();
 			DrawRadar();
 			DrawCompass();
-			DrawPaperDoll();
+			DrawPaperDoll(mech);
 			DrawLockonRet(crosshairAlpha);
+			
+			// Draw target enemy paperdoll.
+			let mechTarget = DrivableMech(mech.curTarget);
+			
+			// TODO check is mech is friendly.
+			Color targetTint = 0xA07F7F7F;
+			if(mech.curTarget) targetTint = 0xA0FF0000;
+			
+			DrawPaperDoll(mechTarget, (1600,100), drawScale:0.85, bgTint:targetTint, drawNoTarget:!!!mech.curTarget);
+			
+			if(mechTarget) 
+			{
+				// Draw targetted mech.
+				DrawMechWeapons(mechTarget, (1505,70), drawScale:0.65);
+			}
+			else if(mech.curTarget)
+			{
+				// Draw targeted demon
+				DrawEnemyTarget(mech.curTarget, (1600,100), drawScale:0.85);
+			}
 			
 			if(powerupTics > 0)	powerupTics -= deltaTime;
 		}
@@ -431,12 +451,33 @@ class MechHUD : VehicleHUD
 		MWDrawer.DrawImage("Graphics/HUD/WeaponsBottom.png", drawPos, flags, 1.0, scale:weapBarScale);
 	}
 	
-	void DrawPaperDoll()
+	void DrawMechWeapons(DrivableMech targetMech, vector2 pos, double drawScale = 1.0, uint fntColor = Font.CR_Gray)
 	{
 		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
-		vector2 dollPos = (210,920);
+		double spacing = 20 * drawScale;
+		Array<MechWeapon> weaps;
+		targetMech.getAllWeapons(weaps, readDeadHardpoints:true);
+		
+		foreach(weap : weaps)
+		{
+			// Get weapon ammunition
+			int ammoCount = int.max;
+			if(weap.ammoType) ammoCount = targetMech.countAllAmmo(weap.ammoType);
+		
+			uint txtColor = fntColor;
+			if(weap.disabled) txtColor = Font.CR_Black;
+			if(weap.checkDestroyed() || ammoCount <= 0) txtColor = Font.CR_Red;
+			MWDrawer.DrawString("ConsoleFont", weap.displayName, pos, drawFlags | MWDrawer.SS_TEXT_RIGHT, txtColor, 1.0, scale:(drawScale, drawScale));
+			pos.y += spacing;
+		}
+	}
+	
+	void DrawPaperDoll(DrivableMech targetMech, vector2 pos = (210,920), double drawScale = 1.0, Color bgTint = 0, bool drawNoTarget = false)
+	{
+		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+		vector2 dollPos = pos;
 		vector2 rearDollPos = dollPos + (190,0);
-		vector2 dollScale = (0.75,0.75);
+		vector2 dollScale = (0.75,0.75) * drawScale;
 		double dollAlpha = 1.0;
 		
 		if(powerupTics > 0) 
@@ -445,46 +486,69 @@ class MechHUD : VehicleHUD
 			dollAlpha *= (1.0-(powerupTics/POWERANIM));
 		}
 		
+		MWDrawer.DrawImage("Graphics/HUD/box.png", dollPos + (105,20), drawFlags, dollAlpha, scale:dollScale * 1.15, tint:bgTint);
+		if(!targetMech) 
+		{
+			if(drawNoTarget)
+			{
+				Font infoFont = "ConsoleFont";
+				double infoScale = 1.5 * drawScale;
+				MWDrawer.DrawString(
+					"ConsoleFont",
+					"NO TARGET FOUND", 
+					dollPos + (105,20 - (infoFont.GetHeight() * infoScale)), 
+					drawFlags | MWDrawer.SS_TEXT_CENTER, 
+					Font.CR_Red,
+					dollAlpha, 
+					scale:(infoScale,infoScale)
+				);
+			}
+			return; // If our target is empty, just draw the background image.
+		}
+		
 		double ArmorHD, ArmorCT, ArmorLT, ArmorRT, ArmorLA, ArmorRA, ArmorLL, ArmorRL;
 		double InternalHD, InternalCT, InternalLT, InternalRT, InternalLA, InternalRA, InternalLL, InternalRL;
-		[ArmorHD, InternalHD] = mech.head.getVitals();
-		[ArmorCT, InternalCT] = mech.torso.getVitals();
-		[ArmorLT, InternalLT] = mech.leftTorso.getVitals();
-		[ArmorRT, InternalRT] = mech.rightTorso.getVitals();
-		[ArmorLA, InternalLA] = mech.leftArm.getVitals();
-		[ArmorRA, InternalRA] = mech.rightArm.getVitals();
-		[ArmorLL, InternalLL] = mech.leftLeg.getVitals();
-		[ArmorRL, InternalRL] = mech.rightLeg.getVitals();
-		
-		MWDrawer.DrawImage("Graphics/HUD/box.png", dollPos + (105,20), drawFlags, dollAlpha, scale:dollScale * 1.15);
+		[ArmorHD, InternalHD] = targetMech.head.getVitals();
+		[ArmorCT, InternalCT] = targetMech.torso.getVitals();
+		[ArmorLT, InternalLT] = targetMech.leftTorso.getVitals();
+		[ArmorRT, InternalRT] = targetMech.rightTorso.getVitals();
+		[ArmorLA, InternalLA] = targetMech.leftArm.getVitals();
+		[ArmorRA, InternalRA] = targetMech.rightArm.getVitals();
+		[ArmorLL, InternalLL] = targetMech.leftLeg.getVitals();
+		[ArmorRL, InternalRL] = targetMech.rightLeg.getVitals();
 			
 		// Background
-		MWDrawer.DrawImage(mech.paperdoll_Background, dollPos, drawFlags, dollAlpha, scale:dollScale);
+		MWDrawer.DrawImage(targetMech.paperdoll_Background, dollPos, drawFlags, dollAlpha, scale:dollScale);
 		
 		// Rear Outline
-		MWDrawer.DrawImage(mech.paperdoll_Background, rearDollPos, drawFlags, dollAlpha, scale:dollScale);
+		MWDrawer.DrawImage(targetMech.paperdoll_Background, rearDollPos, drawFlags, dollAlpha, scale:dollScale);
 		
 		// L and R
-		MWDrawer.DrawString("ConsoleFont", "L", dollPos + (-80,40), drawFlags, scale:(1.2,1.2));
-		MWDrawer.DrawString("ConsoleFont", "R", dollPos + ( 60,40), drawFlags, scale:(1.2,1.2));
-		MWDrawer.DrawString("ConsoleFont", "Front", dollPos + ( 0,70), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(0.75,0.75));
+		vector2 lrScale = (1.2,1.2) * drawScale;
+		vector2 frontBackScale = (0.75,0.75) * drawScale;
+		vector2 leftPos  = ((-80,40) * drawScale);
+		vector2 rightPos = ( (60,40) * drawScale);
+		vector2 frontBackPos = (0,70) * drawScale;
+		MWDrawer.DrawString("ConsoleFont", "L", dollPos + leftPos, drawFlags, scale:lrScale);
+		MWDrawer.DrawString("ConsoleFont", "R", dollPos + rightPos, drawFlags, scale:lrScale);
+		MWDrawer.DrawString("ConsoleFont", "Front", dollPos + frontBackPos, drawFlags | MWDrawer.SS_TEXT_CENTER, scale:frontBackScale);
 		
 		// Rear LR
-		MWDrawer.DrawString("ConsoleFont", "L", rearDollPos + (-80,40), drawFlags, scale:(1.2,1.2));
-		MWDrawer.DrawString("ConsoleFont", "R", rearDollPos + ( 60,40), drawFlags, scale:(1.2,1.2));
-		MWDrawer.DrawString("ConsoleFont", "Rear", rearDollPos + ( 0,70), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(0.75,0.75));
+		MWDrawer.DrawString("ConsoleFont", "L", rearDollPos + leftPos, drawFlags, scale:lrScale);
+		MWDrawer.DrawString("ConsoleFont", "R", rearDollPos + rightPos, drawFlags, scale:lrScale);
+		MWDrawer.DrawString("ConsoleFont", "Rear", rearDollPos + frontBackPos, drawFlags | MWDrawer.SS_TEXT_CENTER, scale:frontBackScale);
 		
 		// Chassis 
 		MWDrawer.DrawString(
 			"ConsoleFont", 
-			String.Format("%s - %s", mech.mechChassisName, mech.mechVariantName),
-			dollPos + (90,95), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(1.0,1.0)
+			String.Format("%s - %s", targetMech.mechChassisName, targetMech.mechVariantName),
+			dollPos + ((90,95) * drawScale), drawFlags | MWDrawer.SS_TEXT_CENTER, scale:(1.0,1.0) * drawScale
 		);
 		
 		// Draw paperdoll
-		for(int i = 0; i < mech.parts.Size(); i++)
+		for(int i = 0; i < targetMech.parts.Size(); i++)
 		{
-			let hardpoint = MechHardpoint(mech.parts[i]);
+			let hardpoint = MechHardpoint(targetMech.parts[i]);
 			if(!hardpoint) continue;
 			
 			hardpoint.DrawPaperdoll(dollPos, dollAlpha, dollScale, drawFlags, deltatime);
@@ -495,6 +559,50 @@ class MechHUD : VehicleHUD
 				hardpoint.DrawPaperdoll(rearDollPos, dollAlpha, dollScale, drawFlags, deltatime, rear:true);
 			}
 		}
+	}
+	
+	void DrawEnemyTarget(Actor target, vector2 pos = (210,920), double drawScale = 1.0)
+	{
+		uint drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+		uint textFlags = drawFlags | MWDrawer.SS_TEXT_CENTER;
+		vector2 namePos = (120,95) * drawScale; 
+		
+		// Annoying sprite angle bullshit.
+		vector3 posDiff = level.SphericalCoords(mech.pos, target.pos, (mech.head.angle - 90, 0));
+		double rawAngle = (Actor.Normalize180(posDiff.x) + 180);
+		int targetAngle = floor(rawAngle / 45.0);
+		
+		TextureID targetTex;
+		targetTex = target.CurState.GetSpriteTexture(targetAngle);
+		
+		// Sprite sizes
+		vector2 targetDrawSize = (128,128) * drawScale;
+		vector2 spriteSize;
+		[spriteSize.x, spriteSize.y] = TexMan.GetSize(targetTex);	
+		double spriteAspect = spriteSize.x / spriteSize.y;
+		
+		vector2 spriteScale = (
+			(targetDrawSize.x / spriteSize.x) * spriteAspect, 
+			targetDrawSize.y / spriteSize.y
+		);
+		
+		// Name and sprite
+		string targetName = target.getTag();
+		MWDrawer.DrawString("ConsoleFont", targetName, pos + namePos, textFlags);
+		MWDrawer.DrawTexture(targetTex, pos + (90,10), drawFlags, 1.0, scale:spriteScale);
+		
+		// Healthbar
+		vector2 barScale = (0.85,0.65) * drawScale;
+		vector2 barSize = (252 * barScale.x, 32 * barScale.y);
+		vector2 healthBarPos = pos + (100, -55);
+		double healthPerc = target.health / double(target.getSpawnHealth());
+		MWDrawer.DrawImage("Graphics/HUD/enemyHealthBar.png", healthBarPos + (0,1*drawScale), drawFlags, 1.0, scale:(0.86,0.90)*drawScale, tint:0xFF000000);
+		MWDrawer.SetClipRect(healthBarPos.x - (barSize.x * 0.5), healthBarPos.y - (barSize.y * 0.5), barSize.x * healthPerc, barSize.y, visualize:true);
+		MWDrawer.DrawImage("Graphics/HUD/enemyHealthBar.png", healthBarPos, drawFlags, 1.0, scale:barScale);
+		MWDrawer.ClearClipRect();
+		
+		// Percent string
+		MWDrawer.DrawString("ConsoleFont", String.Format("%d%%", healthPerc * 100.0), healthBarPos + (0,-8*drawScale), textFlags, Font.CR_White, scale:(1.0,1.0)*drawScale);
 	}
 	
 	void DrawLockonRet(double crosshairAlpha)

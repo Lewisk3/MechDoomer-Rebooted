@@ -142,3 +142,243 @@ class FXLightningBolt : Actor abstract
 		}
 	}
 }
+
+// Pre-rendered lightning effects
+class FXLightningSparks : Actor
+{
+	double spawnFreq;
+	double spawnChance;
+	bool followingGun, interpolateGunView;
+	Color particleShade;
+	double particleScale, particleDensity;
+	Property SpawnChance : spawnChance;
+	Property SpawnFrequency : spawnFreq;
+	vector3 particleOffs;
+	vector3 lastSpawnPos;
+	Weapon restrictedToWeapon;
+	int lifetime;
+
+	Default
+	{
+		FXLightningSparks.SpawnFrequency 4;
+		FXLightningSparks.SpawnChance 50;
+		Alpha 1.0;
+		+NOINTERACTION;
+	}
+	
+	static FXLightningSparks AttachToActor(
+		Actor to, double fw, double lr, double ud, 
+		double scale = 1.0, double density = 1.0, 
+		Color shading = Color(0,0,0,0), 
+		int spawnFreq = 4, int spawnOdds = 50, 
+		bool followingGun = false, bool interpolateGunView = false, int lifetime = -1,
+		class<FXLightningParticle> particleType = "FXLightningParticle"
+	)
+	{
+		let tesl = FXLightningSparks(Spawn("FXLightningSparks", to.pos));
+		if(tesl)
+		{
+			tesl.master = to;
+			tesl.particleDensity = density;
+			tesl.particleScale = scale;
+			tesl.spawnChance = spawnOdds;
+			tesl.spawnFreq = spawnFreq;
+			tesl.particleOffs = (fw, lr, ud);
+			tesl.particleShade = shading; 
+			tesl.lastSpawnPos = to.pos;
+			tesl.lifetime = lifetime;
+			tesl.followingGun = followingGun;
+			tesl.interpolateGunView = interpolateGunView;
+		}
+		return tesl;
+	}
+	
+	override void Tick()
+	{
+		if(!master && lifetime < 0) 
+		{
+			alpha *= 0.85;
+			if(alpha <= 0.02) Destroy();
+		}
+			
+		if(lifetime >= 0 && --lifetime < 0)
+			Destroy();
+		
+		if(restrictedToWeapon && master && master.player && master.player.ReadyWeapon != restrictedToWeapon)
+			Destroy();
+		
+		if(random[LightningFX](0,100) <= spawnChance || !(level.maptime%spawnFreq))
+		{	
+			if(master) lastSpawnPos = master.pos;
+			let p = FXLightningParticle(Spawn("FXLightningParticle", lastSpawnPos));
+			if(p) 
+			{
+				p.A_SetScale(particleScale);
+				p.SetShade(particleShade);
+				p.follow = master;
+				p.interpolateGunView = interpolateGunView;
+				p.followingGun = followingGun;
+				p.followOffs = (
+					particleOffs.x+(frandom[LightningFX](-5,5)/particleDensity),
+					particleOffs.y+(frandom[LightningFX](-5,5)/particleDensity),
+					particleOffs.z+(frandom[LightningFX](-5,5)/particleDensity)
+				);
+			}
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A -1;
+		stop;
+	}
+}
+
+class FXLightningParticle : Actor
+{
+	Actor follow;
+	vector3 followOffs, lastPos;
+	bool followingGun, interpolateGunView;
+	double defScale;
+	
+	uint lnflags;
+	double curScaleFactor, desiredScale;
+	int flashtics;
+	
+	Property FlashTic : flashtics;
+	flagdef DOFLASH : lnflags, 0;
+
+	Default
+	{
+		Radius 1;
+		+NOINTERACTION;
+		RenderStyle "AddShaded";
+		Alpha 1.0;
+		Scale 0.01;
+		+ROLLSPRITE;
+		+BRIGHT;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		lastPos = pos;
+		defScale = Scale.X;
+	}
+	
+	override void Tick()
+	{			
+		if (isFrozen()) return;
+		
+		if(!bDOFLASH || flashtics == 0) 
+			bInvisible = false;
+		else if(!(level.time%flashtics))
+			bInvisible = !bInvisible;
+		
+		//animation:
+		if (tics != -1) 
+		{
+			if(tics > 0) tics--;
+			while (!tics) 
+				if(!SetState(CurState.NextState)) return;
+		}
+		
+		FSpawnParticleParams pset;
+		Quat dir = Quat.FromAngles(angle, pitch, roll);
+		vector3 followPos = lastPos;
+		
+		vector2 bob = (0,0);
+		if(follow)
+		{
+			dir = Quat.FromAngles(follow.angle, follow.pitch, follow.roll);
+		
+			if(followingGun && follow.player) 
+			{
+				followPos.z = follow.player.viewz;
+				if(interpolateGunView) follow.player.cheats |= CF_INTERPVIEW;
+
+				let psp = follow.player.GetPSprite(PSP_WEAPON);
+				if(psp)
+				{
+					bob = PlayerPawn(follow).BobWeapon(1.0);
+					
+					bob.x += psp.x;
+					bob.y += (psp.y - 32);
+					bob.x *= 0.031;
+					bob.y *= 0.035;
+				}
+				else
+				{
+					Destroy();
+					return;
+				}
+			}
+			
+			followPos = (follow.pos.xy, follow.pos.z + (follow.height * 0.5));
+			if(follow.player) followPos.z = follow.player.viewz;
+			lastPos = level.vec3offset(followPos, dir * (-8,0,0));
+		}
+		
+		vector3 offs = dir * (followOffs.x, followOffs.y - bob.x, followOffs.z - bob.y);
+		SetOrigin(level.vec3offset(followPos, offs), true);
+		
+		TextureID partTextures[4] = {
+			TexMan.CheckForTexture("Sprites/Lightning/LTNGA0.png"), 
+			TexMan.CheckForTexture("Sprites/Lightning/LTNGB0.png"), 
+			TexMan.CheckForTexture("Sprites/Lightning/LTNGC0.png"), 
+			TexMan.CheckForTexture("Sprites/Lightning/LTNGD0.png")
+		};
+	
+		if( random[LightningFX](0,100) <= 5 )
+		{
+			pset.color1 = fillcolor;
+			pset.style = STYLE_Add;
+			pset.pos = pos + (dir * (0, frandom[LightningFX](-3,3), frandom[LightningFX](-5,5)));
+			pset.lifetime = 8;
+			
+			for(int i = 0; i < 5; i++)
+			{
+				pset.texture = partTextures[random[LightningFX](0,3)];
+				pset.vel = dir * (frandom[LightningFX](0,3), frandom[LightningFX](-3,3), frandom[LightningFX](-3,3));
+				pset.size = frandom[LightningFX](1.0,2.5) * (min(Scale.X, Scale.Y)*100.0);
+				pset.startalpha = 3.0;
+				pset.startroll = frandom[LightningFX](-180,180);
+				if(follow) pset.vel += follow.vel;
+				
+				level.SpawnParticle(pset);
+			}
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 0; // When does nodelay ever actually work? 
+			TNT1 "#" 1
+			{ 
+				frame = random[LightningSetup](0,3); 
+				A_SetRoll(frandom[LightningSetup](-180,180));
+				A_SetScale(defScale * 0.01);
+				desiredScale = frandom[LightningSetup](0.8,1.2);
+				alpha = 0.01;
+			}
+		SpawnLoop:
+			LTNG "#" 1
+			{
+				alpha += 0.1;
+				curScaleFactor = DrivablesMath.Lerp(curScaleFactor, desiredScale, 0.25);
+				A_SetScale(defScale * curScaleFactor);
+				
+				if( abs(curScaleFactor-desiredScale) <= 0.1 )
+					return ResolveState("Fadeout");
+					
+				return ResolveState(null);
+			}
+		loop;
+		
+		Fadeout:
+			"####" "#" 1 A_FadeOut(0.5);
+		wait;
+	}
+}

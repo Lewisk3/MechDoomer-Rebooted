@@ -273,6 +273,12 @@ class PPC : MechProjectile
 		MechProjectile.Ranges 90, 1000;
 	}
 
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		FXLightningSparks.AttachToActor(self, 0,0,0, scale:0.04, 2.0, shading:0xFF0000FF, spawnFreq:2, spawnOdds:75);
+	}
+
 	override void Tick()
 	{
 		super.Tick();
@@ -303,6 +309,19 @@ class PPC : MechProjectile
 					vector3 posmod = vel.Unit() * (5 * i);
 					let trail = Spawn("PPCTrail", level.vec3offset(pos, -posmod));
 					if(trail) trail.A_SetScale(trail.default.Scale.X * Scale.X);
+				}
+			
+				for(int i = 0; i < 10; i++)
+				{
+					FXLightning.DoLightning(
+						pos,
+						(frandom[PPCFX](-180,180), frandom[PPCFX](-30,30)),
+						dist:10 + frandom[PPCFX](-5,15),
+						stepsize:0.5,
+						strength:2.0+frandom[PPCFX](0,15.0),
+						roughness:frandom[PPCFX](5,10),
+						branchchance:80
+					);
 				}
 			}
 		loop;
