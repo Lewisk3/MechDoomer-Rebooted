@@ -680,11 +680,11 @@ class MechEngine : MechItem
 			rating = 100;
 			type = Type_STD;
 			AutoDetectEngine();
-			SetupEngine(automaticParameters:true);
+			SetupEngine();
 		}
 	}
 	
-	void SetupEngine(bool automaticParameters = true)
+	void SetupEngine()
 	{
 		// Setup engine blocks
 		switch(type)
