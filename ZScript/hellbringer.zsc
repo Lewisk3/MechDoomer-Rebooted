@@ -35,7 +35,7 @@ class MechHellbringer : DrivableMech
 	override void SetupItems()
 	{
 		// Armor and Engine
-		torso.AddItem("MechEngine_XL300");
+		torso.AddItem("MechEngine_XL325");
 		MechArmor.addToMech(self, "MechArmor_Ferro");
 		
 		// Weapons
@@ -44,18 +44,14 @@ class MechHellbringer : DrivableMech
 		leftArm.AddWeapon("AC10", GROUPFLG_THREE);
 		//leftArm.AddWeapon("AC2", GROUPFLG_THREE);
 		//leftArm.AddWeapon("AC2", GROUPFLG_THREE);
-		rightArm.AddWeapon("LargePulseLaser", GROUPFLG_TWO);
-		rightArm.AddWeapon("LargePulseLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("LargeLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("LargeLaser", GROUPFLG_TWO);
 		
-		rightLeg.AddItem("SRMAmmo");
 		leftLeg.AddItem("LRMAmmo");
-		rightArm.AddItem("AC2Ammo");
-		rightArm.AddItem("AC5Ammo");
 		rightArm.AddItem("AC10Ammo");
 		rightArm.AddItem("AC10Ammo");
-		rightArm.AddItem("AC20Ammo");
 		
-		leftTorso.AddWeapon("LRM20", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("LRM15", GROUPFLG_FOUR);
 	}
 }
 

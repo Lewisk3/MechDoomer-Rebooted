@@ -1,6 +1,6 @@
 class MechMissile : MechProjectile
 {
-	double missileSpread;
+	vector2 missileSpread;
 	double homingSpread;
 	
 	Property HomingInaccuracy : homingSpread;
@@ -17,7 +17,11 @@ class MechMissile : MechProjectile
 				SpawnEffect("MissileTrail", pos + (vel * 0.5));	
 				if(hasHoming) 
 				{
-					if(!missileSpread) missileSpread = frandom[MissileHomingOffs](-homingSpread,homingSpread);
+					if(!missileSpread.x && !missileSpread.y)
+					{
+						missileSpread.x = frandom[MissileHomingOffs](-homingSpread,homingSpread);
+						missileSpread.y = frandom[MissileHomingOffs](-homingSpread,homingSpread);
+					}
 					HandleHoming(missileSpread);
 				}
 			}
@@ -118,7 +122,7 @@ class MechLRM : MechMissile
 		Speed 20;
 		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 120, 900;
-		MechProjectile.FirePitch 45;
+		MechProjectile.FirePitch 30;
 		MechProjectile.Homing true;
 		MechMissile.HomingInaccuracy 30;
 	}

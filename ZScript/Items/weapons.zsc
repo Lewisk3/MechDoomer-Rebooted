@@ -436,7 +436,7 @@ class LRM5 : SRM2
 		
 		weight = 2.0;
 		refireCount = 5;
-		refireDelay = 4;
+		refireDelay = 2;
 		heat = 2.20;
 		size = 1;
 		
@@ -467,7 +467,7 @@ class LRM10 : LRM5
 		
 		weight = 5.0;
 		refireCount = 10;
-		refireDelay = 4;
+		refireDelay = 2;
 		heat = 3.60;
 		size = 2;
 		
@@ -497,7 +497,7 @@ class LRM15 : LRM5
 		
 		weight = 7.0;
 		refireCount = 15;
-		refireDelay = 4;
+		refireDelay = 2;
 		heat = 4.50;
 		size = 3;
 		
@@ -527,7 +527,7 @@ class LRM20 : LRM5
 		
 		weight = 10.0;
 		refireCount = 20;
-		refireDelay = 4;
+		refireDelay = 2;
 		heat = 5.60;
 		size = 5;
 		
@@ -723,7 +723,7 @@ class PPC : AC2
 	
 	override bool Fire(vector3 firePos)
 	{
-		A_Recoil(-2);
+		A_Recoil(-3);
 		
 		return super.Fire(firePos);
 	}

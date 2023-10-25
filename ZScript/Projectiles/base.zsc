@@ -99,25 +99,30 @@ class MechProjectile : FastProjectile
 		curDist = (pos - spawnPos).Length();
 		curDist = DrivableMech.unitsToKM(curDist) * 1000.0;
 		
-		if(!homingTarget && firePitch)
+		if( firePitch && curDist < minRange )
 		{
-			pitch += 1;
-			firePitch -= 1;
+			pitch = -firePitch * (1.0 - (curDist/minRange));
 			UpdateVelocity();
 		}
 	}
 	
-	virtual void HandleHoming(double spread = 0, double strength = 0.25)
+	virtual void HandleHoming(vector2 spread = (0,0), double strength = 0.6)
 	{
 		if(!homingTarget || homingTics > TICRATE) return;
+		if(curDist < minRange) return; // No homing if too close.
 		
 		// Target is too close.
-		double targetDist = Distance3DSquared(homingTarget);
-		if(targetDist < 128*128) return; 
+		vector3 spreadPos = Quat.FromAngles(angle, pitch, roll) * (0, spread.x, (homingTarget.height * 0.5) + spread.y);
+		vector3 targetPos = level.vec3offset(homingTarget.pos, spreadPos);
+		double targetDist = DrivablesMath.Distance3D(pos, targetPos);
+		if(targetDist < 128) 
+		{
+			strength = 1.0;
+			// return; 
+		}
 		
 		vector3 homAngles = level.SphericalCoords(
-			pos, homingTarget.pos + (spread,spread, (homingTarget.height * 0.5) + spread), 
-			(angle, pitch)
+			pos, targetPos, (angle, pitch)
 		);
 		
 		// if(abs(homAngles.x) <= 20) strength = 1.0;
@@ -125,7 +130,7 @@ class MechProjectile : FastProjectile
 		
 		angle -= toAngles.x;
 		pitch -= toAngles.y;
-		if(targetDist <= 512*512) homingTics++;
+		if(targetDist <= 512) homingTics++;
 		
 		UpdateVelocity();
 	}

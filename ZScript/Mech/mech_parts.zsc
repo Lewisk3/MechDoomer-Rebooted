@@ -173,7 +173,7 @@ class MechHardpoint : MechPart
 	}
 	clearscope double, double getVitals()
 	{
-		return maxArmor > 0 ? ( (armorPoints+rearArmor) / maxArmor ) : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
+		return maxArmor > 0 ? ( (armorPoints / (maxArmor-maxRearArmor) )) : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
 	}
 	clearscope double getRearVitals()
 	{
