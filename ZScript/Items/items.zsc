@@ -1,4 +1,4 @@
-class MechHeatsink : MechItem
+class MechHeatsink : MechUtility
 {
 	double buffer;
 	double heatEff;
@@ -64,7 +64,7 @@ class MechDoubleHeatsink : MechHeatsink
 	}
 }
 
-class MechCASE : MechItem
+class MechCASE : MechUtility
 {
 	override void Defaults()
 	{
@@ -209,7 +209,9 @@ class MechArmor_Ferro : MechArmor
 // Chassis structures
 
 // Arm structures
-class MechShoulder : MechItem
+class MechStructure : MechItem abstract {}
+
+class MechShoulder : MechStructure
 {
 	override void Defaults()
 	{

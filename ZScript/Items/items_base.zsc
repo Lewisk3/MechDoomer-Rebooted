@@ -50,7 +50,6 @@ class MechItem : Object
 		}
 	}
 	
-	
 	// Called to check if new item should be added to `amount` or physically differentiated.
 	virtual bool CanStack(MechItem other)
 	{
@@ -59,6 +58,11 @@ class MechItem : Object
 	
 	// Called when item is added to inventory (Not attached to a mech)
 	virtual void OnInventoryAdd() {}
+	
+	clearscope virtual bool isEquipped(DrivableMech mech)
+	{
+		return !!parent;
+	}
 	
 	clearscope virtual void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo = NULL)
 	{
@@ -347,7 +351,9 @@ class MechDynamicStructure : MechItem
 	}
 }
 
-class MechArmor : MechItem
+class MechUtility : MechItem abstract {}
+
+class MechArmor : MechUtility
 {
 	double armorWeight;
 	double armorAmount;
@@ -456,6 +462,11 @@ class MechArmor : MechItem
 			OnAttach();
 		}
 		return fail;
+	}
+	
+	override bool isEquipped(DrivableMech mech)
+	{
+		return mech && mech.armorType.getClassName() == getClassName();
 	}
 	
 	override bool TryDetach(bool forced)
@@ -1068,7 +1079,7 @@ class I_MechItemStorage : Inventory
 		+INVENTORY.UNDROPPABLE;
 	}
 	
-	void FindItems(class<MechItem> itemCls, Array<MechItem> result, bool subclass = false)
+	clearscope void FindItems(class<MechItem> itemCls, Array<MechItem> result, bool subclass = false)
 	{
 		for(int i = 0; i < items.Size(); i++)
 		{
@@ -1130,6 +1141,7 @@ class I_MechItemStorage : Inventory
 			{
 				let item = (class<MechItem>)(cls);
 				if(!item) continue;
+				if(item.getClassName() == "MechUtility" || item.getClassName() == "MechStructure") continue;
 				
 				let itemInstance = MechItem.Init(item);
 				if( itemInstance && (!itemInstance.movable || itemInstance.displayName == "") )
