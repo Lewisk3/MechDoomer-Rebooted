@@ -63,6 +63,7 @@ class MechAutocannon : MechProjectile
 	{
 		super.HandleRanges();
 		
+		double launchSpeed = getBaseSpeed();
 		if(curDist < 120)
 		{
 			for(int i = 0; i < 2; i++)
@@ -72,9 +73,9 @@ class MechAutocannon : MechProjectile
 				trail.A_SetScale(0.033 * scale.X);
 			}
 		}
-		else if( curDist < maxRange*1.75 && (Speed - (default.Speed*0.5)) > 0.1 )
+		else if( curDist < maxRange*1.75 && (Speed - (launchSpeed*0.5)) > 0.1 )
 		{
-			Speed = DrivablesMath.Lerp(Speed, default.Speed * 0.5, 0.25);
+			Speed = DrivablesMath.Lerp(Speed, launchSpeed * 0.5, 0.25);
 			UpdateVelocity();
 		}
 		
@@ -84,9 +85,9 @@ class MechAutocannon : MechProjectile
 			double dmgMod = 1.0 - ( (curDist-maxRange) / maxRange );
 			trueDamage = default.trueDamage * dmgmod;
 			
-			if(curDist > maxRange*1.75 && (Speed - (default.Speed*0.25)) > 0.1)
+			if(curDist > maxRange*1.75 && (Speed - (launchSpeed*0.25)) > 0.1)
 			{
-				Speed = DrivablesMath.Lerp(Speed, default.Speed * 0.25, 0.08);
+				Speed = DrivablesMath.Lerp(Speed, launchSpeed * 0.25, 0.08);
 				UpdateVelocity();
 			}
 		}
@@ -207,7 +208,7 @@ class Autocannon2 : MechAutocannon
 		MechProjectile.Dmg 2 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 900;
 		Scale 1.0;
-		Speed 80;
+		MechProjectile.SpeedKPH 1800;
 	}
 	
 	States
@@ -227,7 +228,7 @@ class Autocannon5 : Autocannon2
 		MechProjectile.Dmg 5 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 720;
 		Scale 1.25;
-		Speed 60;
+		MechProjectile.SpeedKPH 1500;
 	}
 }
 class Autocannon10 : Autocannon2
@@ -239,7 +240,7 @@ class Autocannon10 : Autocannon2
 		MechProjectile.Dmg 10 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 540;
 		Scale 1.5;
-		Speed 50;
+		MechProjectile.SpeedKPH 1300;
 	}
 	
 	States
@@ -267,7 +268,7 @@ class Autocannon20 : Autocannon10
 		MechProjectile.Dmg 20 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 360;
 		Scale 2.0;
-		Speed 40;
+		MechProjectile.SpeedKPH 1100;
 	}
 }
 

@@ -274,21 +274,21 @@ class MechSRM : MechMissile
 	{
 		Radius 8;
 		Height 4;
-		Speed 25;
 		MechProjectile.Dmg 2 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 270;
 		MechProjectile.FirePitch 0;
 		MechProjectile.Homing false;
+		MechProjectile.SpeedKPH 600;
 	}
 }
 class MechSSRM : MechSRM
 {
 	Default
 	{
-		Speed 20;
 		MechProjectile.Ranges 0, 360;
 		MechProjectile.Homing true;
 		MechMissile.HomingInaccuracy 20;
+		MechProjectile.SpeedKPH 700;
 	}
 }
 
@@ -298,11 +298,11 @@ class MechLRM : MechMissile
 	{
 		Radius 8;
 		Height 4;
-		Speed 20;
 		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 120, 900;
 		MechProjectile.FirePitch 30;
 		MechProjectile.Homing true;
 		MechMissile.HomingInaccuracy 30;
+		MechProjectile.SpeedKPH 400; 
 	}
 }

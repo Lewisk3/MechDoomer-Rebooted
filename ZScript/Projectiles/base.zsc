@@ -48,6 +48,12 @@ class MechProjectile : FastProjectile
 			playImpactSound();
 	}
 	
+	virtual double getBaseSpeed()
+	{
+		if(speedKPH) return GetSpeedFromKPH(speedKPH);
+		return default.Speed;
+	}
+	
 	static double GetSpeedFromKPH(double KPH)
 	{
 		double kmPerSecond = KPH / 3600.0;
