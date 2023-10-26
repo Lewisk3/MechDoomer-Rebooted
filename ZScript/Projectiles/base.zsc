@@ -9,6 +9,7 @@ class MechProjectile : FastProjectile
 	bool hasHoming;
 	Actor homingTarget;
 	Sound impactSnd;
+	bool stopHoming;
 	
 	Property Ranges : minRange, maxRange;
 	Property FirePitch : firePitch;
@@ -82,7 +83,11 @@ class MechProjectile : FastProjectile
 		if(impactSnd) // Play Impact sound effect.
 			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
 		
-		victim.DamageMobJ(self, master ? master : target, ceil(trueDamage), DamageType, 0, angle);
+		// Hit a non-vehicle
+		double damageMod = 1.0;
+		if( !(victim is "DrivableObjectPart") ) damageMod = 2.7; 
+		
+		victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
 		return super.SpecialMissileHit(victim);
 	}
 	
@@ -108,18 +113,22 @@ class MechProjectile : FastProjectile
 	
 	virtual void HandleHoming(vector2 spread = (0,0), double strength = 0.6)
 	{
-		if(!homingTarget || homingTics > TICRATE) return;
-		if(curDist < minRange) return; // No homing if too close.
+		if(!homingTarget || homingTics > TICRATE || stopHoming) return;
 		
 		// Target is too close.
 		vector3 spreadPos = Quat.FromAngles(angle, pitch, roll) * (0, spread.x, (homingTarget.height * 0.5) + spread.y);
 		vector3 targetPos = level.vec3offset(homingTarget.pos, spreadPos);
 		double targetDist = DrivablesMath.Distance3D(pos, targetPos);
-		if(targetDist < 128) 
+		
+		// If our target is really close, we shouldn't need to home anymore.
+		if(targetDist <= 192) 
 		{
-			strength = 1.0;
-			// return; 
+			stopHoming = true;
+			// strength = 1.0;
+			return; 
 		}
+		if(curDist < minRange) return; // No homing if too close.
+		
 		
 		vector3 homAngles = level.SphericalCoords(
 			pos, targetPos, (angle, pitch)

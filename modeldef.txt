@@ -31,6 +31,17 @@ Model MechLaserCore
 	FrameIndex MODL A 0 0
 }
 
+Model RailgunBeam
+{
+	Path "models/"
+	Model 0 "beam_cyl.md3"
+	Skin 0 "beam_cyl.png"
+	USEACTORPITCH
+	DONTCULLBACKFACES
+	
+	FrameIndex BEAM A 0 0
+}
+
 // Lightning
 Model LightningPart
 {
@@ -118,6 +129,31 @@ Model AutocannonDebris
 	DONTCULLBACKFACES
 	
 	FrameIndex MODL A 0 0
+}
+
+Model GaussCannon
+{
+	Path "models/"
+	Model 0 "gauss_ball.md3" 
+	Skin 0 "gauss.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset 90
+	
+	FrameIndex MODL A 0 0
+}
+
+Model GaussBeam
+{
+	Path "models/"
+	Model 0 "beam_cyl.md3"
+	Skin 0 "beam_cyl.png"
+	USEACTORPITCH
+	DONTCULLBACKFACES
+	
+	FrameIndex BEAM A 0 0
 }
 
 // Missiles

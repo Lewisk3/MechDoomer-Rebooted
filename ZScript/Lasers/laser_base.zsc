@@ -198,3 +198,55 @@ class MechLaserBeam : Actor
 		stop;
 	}
 }
+
+// Other beam effects
+class RailgunBeam : EffectsActor
+{
+	vector3 startpos;
+	vector3 endpos;
+	double fadespd; 
+	double dist;
+	
+	Default
+	{
+		RenderStyle "AddShaded";
+	}
+	
+	static RailgunBeam Start(Color col, vector3 from, vector3 to, vector2 angles, double alpha, double fadespd = 0.05, class<RailgunBeam> type = "RailgunBeam")
+	{
+		let trail = RailgunBeam(Spawn(type, from));
+		if(trail) 
+		{
+			trail.startpos = from;
+			trail.endpos = to;
+			trail.alpha = alpha;
+			
+			// Face target position
+			vector3 aim = level.SphericalCoords(from, to, (angles.x, angles.y));
+			trail.dist = aim.z;
+			trail.angle = (angles.x - aim.x);
+			trail.pitch = (angles.y - aim.y) + 90;
+			trail.fadespd = fadespd;
+			trail.SetShade(col);
+		}
+		return trail;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		bInvisible = GetAge() < 2;
+		
+		// Scale to dist
+		Scale.Y = dist;
+	}
+	
+	States
+	{
+		Spawn:
+			BEAM A 4;
+		Spawn.Loop:
+			BEAM A 1 A_FadeOut(fadespd);
+		loop;
+	}
+}

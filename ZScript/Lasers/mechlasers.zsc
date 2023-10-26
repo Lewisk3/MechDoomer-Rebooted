@@ -5,6 +5,7 @@ class MechLaser : MechLaserBeam
 	double time;
 	double dropoff_range;
 	Sound fireSound, impactSound;
+	MechLaser core;
 	
 	Property FiringSound : fireSound, impactSound;
 
@@ -50,18 +51,25 @@ class MechLaser : MechLaserBeam
 				laserCore.master = laser;
 				laserCore.A_SetScale(laser.scale.X * 0.5, laser.scale.Y * 0.5);
 				laserCore.SetEnabled(true);
+				laser.core = laserCore;
 			}
 		}
 		return laser, laserCore;
+	}
+	
+	override void OnDestroy()
+	{
+		if(core) core.Destroy();
 	}
 
 	override void BeamTick()
 	{
 		A_StartSound(fireSound, flags:CHANF_LOOPING);
-		if(master) 
+		if(MechLaser(master)) 
 		{
 			alpha = master.alpha;
 			bInvisible = master.bInvisible;
+			enabled = MechLaser(master).enabled;
 		}
 		
 		// Implement custom laser logic here.		
@@ -98,6 +106,9 @@ class MechLaser : MechLaserBeam
 
 		if(hitActor) 
 		{
+			double damageMod = 1.0;
+			if(!(hitActor is "DrivableObjectPart")) damageMod = 2.7;
+			
 			hitActor.DamageMobJ(hardpoint.mech.driver, self, trueDamage, "Fire");
 			if(!hitSomething)
 			{

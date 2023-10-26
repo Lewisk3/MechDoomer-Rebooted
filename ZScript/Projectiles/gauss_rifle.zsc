@@ -1,0 +1,224 @@
+
+// Gauss rifle
+class GaussCannon : MechProjectile
+{
+	Quat moveDirection;
+
+	Default
+	{
+		Radius 16;
+		Height 16;
+		RenderStyle "Normal";
+		Scale 0.5;
+		MechProjectile.Dmg 15 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 2050;
+		MechProjectile.SpeedKPH 2200;
+		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
+	}
+
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		FireRailgun();
+	}
+	
+	void LightningSparks()
+	{
+		for(int i = 0; i < 10; i++)
+		{
+			FXLightning.DoLightning(
+				pos,
+				(frandom[PPCFX](-180,180), frandom[GaussFX](-30,30)),
+				dist:15 + frandom[GaussFX](-5,15),
+				stepsize:0.5,
+				strength:2.0+frandom[GaussFX](0,15.0),
+				roughness:frandom[GaussFX](5,10),
+				branchchance:80
+			);
+		}
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		
+		if(level.isFrozen()) return;
+		HandleRanges();
+		
+		if( !(GetAge()%5) )
+			Shockwave(pos, 0.2 * Scale.X, 0xFF313de8); 
+		
+		if( !(GetAge()%5) )
+			LightningSparks();
+	}
+	
+	void FireGaussBeam(Color col, double size, double startAlpha)
+	{
+		let smok = GaussBeam(RailgunBeam.Start(col, spawnpos, spawnpos, (angle, pitch), startAlpha, type:"GaussBeam"));
+		if(smok) 
+		{
+			smok.angle = angle;
+			smok.pitch = pitch + 90;
+			smok.roll = roll;
+			
+			smok.A_SetScale(size * 0.7 * Scale.X);
+			smok.parentProj = self;
+		}
+	}
+	
+	void FireRailgun(double size = 1.0, vector3 colors = (0xFF161af5, 0xFF5940e6, 0xFFa852ff))
+	{	
+		moveDirection = Quat.FromAngles(angle, pitch, roll);
+			
+		FireGaussBeam(int(colors.x), 17.0, 0.35);
+		FireGaussBeam(int(colors.y), 12.0, 0.65);
+		FireGaussBeam(int(colors.z),  7.0, 0.95);
+		
+		Shockwave(pos, 0.2 * size * Scale.X, 0xFF313de8); 
+		Sparks(min(12, 10 * size), min(200, 200 * size), 0);
+	}
+		
+	void Shockwave(vector3 pos, double scale, Color col = 0xFFfc9d03)
+	{
+		vector3 forward = moveDirection * (20.0,0,0);
+		vector3 shockpos = level.vec3offset(pos, forward);
+		let shock = Spawn("GaussShockwave", shockpos);
+		if(shock) 
+		{
+			shock.SetShade(col);
+			shock.A_SetScale(scale * 0.8);
+		}
+	}
+
+	void Sparks(double amt = 5, double dist = 50, double fixed_dist = -1)
+	{
+		double rawDist = level.vec3diff(spawnPos, pos).Length();
+	
+		double ang = angle+180;
+		double biridist = fixed_dist >= 0 ? fixed_dist : frandom[BiriRNG](0, 1.0);
+		for(int i = 0; i < amt; i++)
+		{
+			vector3 biripos = level.vec3offset(spawnPos, moveDirection * (rawDist * biridist, 0, 0));
+			FXLightning.DoLightning(biripos, (ang + frandom[BiriRNG](-60,60), 0), dist:dist, 1.0, 10.0, 5, 200);
+			if(fixed_dist < 0) biridist += frandom[BiriRNG](-0.05, 0.05);
+			biripos.z -= 10;
+		}
+	}
+	
+	virtual void DoDebris()
+	{
+		Array<Actor> debris;
+		EffectsHelper.SpawnFX("AutocannonDebris", random[DebrisAmt](15,30), pos, (angle+180, -pitch, roll), 10, (10,10,10), (45,30,0), 3, debris);
+		foreach(part : debris)
+		{
+			part.A_SetScale(part.scale.X * scale.X);
+			SpawnEffect("AutocannonExplosion", part.pos);
+			let ACDebris = AutocannonDebris(part);
+			if(ACDebris) ACDebris.debrisScale = scale.X * frandom[DebrisRNG](1.0,5.0);
+		}
+	}
+
+	override void HandleRanges()
+	{
+		super.HandleRanges();
+		if(!bMISSILE) return;
+		
+		double fric = 1.0 - (curDist / (maxRange*0.8));
+		
+		vector3 curVel = (moveDirection * (Speed * fric, 0, 0));
+		vel.xy = curVel.xy;
+		
+		if(curDist >= maxRange * 0.5) vel.z -= 1;
+	}
+	
+	States
+	{	
+		Spawn:
+			MODL A 1;
+		loop;
+		
+		Crash:
+		Death:
+		XDeath:
+			TNT1 A 1
+			{
+				DoDebris();
+				SpawnEffect("GaussExplosion", pos);
+			}
+		stop;
+	}
+}
+
+class GaussExplosion : AutocannonExplosion
+{
+	Default
+	{
+		Scale 8.0;
+		+BRIGHT;
+	}
+
+	States
+	{
+		Explosion:
+			SX04 ABCDEFGHIJKLMNOP 1;
+			SX04 Q 1 A_FadeOut(0.05);
+		stop;
+	}	
+}
+
+class GaussBeam : RailgunBeam
+{
+	GaussCannon parentProj;
+	
+	Default
+	{
+		RenderStyle "AddShaded";
+		+BRIGHT;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(!parentProj || parentProj.curDist <= 0) return;
+		dist = level.vec3diff(parentProj.spawnPos, parentProj.pos).Length();
+	}
+	
+	States
+	{
+		Spawn:
+			BEAM A 10 Bright;
+		Spawn.Loop:
+			BEAM A 1 Bright 
+			{
+				if(!parentProj)
+					A_FadeOut(0.1);
+			}
+		loop;
+	}
+}
+
+class GaussShockwave : EffectsActor
+{
+	Default
+	{
+		RenderStyle "AddShaded";
+		Scale 0.25;
+		+BRIGHT;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(isFrozen()) return;
+		
+		A_SetScale(Scale.X + 0.008);
+	}
+	
+	States
+	{
+		Spawn:
+			BSW0 A 4 Bright;
+			BSW0 A 1 Bright A_FadeOut(0.05);
+		wait;
+	}
+}

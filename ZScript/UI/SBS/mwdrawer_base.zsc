@@ -241,14 +241,14 @@ class MWDrawer Abstract ui
 	{
 		vector2 pos = (x, y);
 
-		double sc_xres = Screen.getWidth()/1920.0;
-		double sc_yres = Screen.getHeight()/1080.0;		
-		vector2 npos = absolute ? pos : _ProcessCoords(pos, flags);
+		double sc_xres = Screen.getWidth()/getBaseWidth();
+		double sc_yres = Screen.getHeight()/getBaseHeight();		
 		if(!absolute)
 		{
-			npos.x *= sc_xres;
-			npos.y *= sc_yres;
+			pos.x *= sc_xres;
+			pos.y *= sc_yres;
 		}
+		vector2 npos = absolute ? pos : _ProcessCoords(pos, flags);
 
 		w *= sc_xres;
 		h *= sc_yres;
@@ -364,8 +364,8 @@ class MWDrawer Abstract ui
 	{
 		vector2 posFrom = (x0, y0);
 		vector2 posTo = (x1, y1);
-		double sc_xres = Screen.getWidth()/statscr_base_width;
-		double sc_yres = Screen.getHeight()/statscr_base_height;		
+		double sc_xres = Screen.getWidth()/GetBaseWidth();
+		double sc_yres = Screen.getHeight()/getBaseHeight();		
 		vector2 nposFrom = _ProcessCoords(posFrom, flags);
 		vector2 nposTo = _ProcessCoords(posTo, flags);
 		nposTo.x *= sc_xres;

@@ -121,7 +121,7 @@ class MechHardpoint : MechPart
 	Property UIGraphics : paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	
 	// Hardpoint damage scalar.
-	const DMGSCALE = 0.04; // 0.025
+	const DMGSCALE = 0.05; // 0.025
 	
 	Default
 	{
@@ -268,7 +268,7 @@ class MechHardpoint : MechPart
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.
-		if( skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0) )
+		if( skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0) && items.Size() > 0 )
 		{
 			bool criticalHit = random[HardpointCrit](0,TICRATE * 100) <= 10;
 			double itemDmg = (criticalHit ? 100 : hpDmg);

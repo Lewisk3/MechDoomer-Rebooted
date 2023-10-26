@@ -20,8 +20,8 @@ class MechAutocannon : MechProjectile
 		
 		if(overlay)
 		{
-			A_SetRenderStyle(min(0.9, overlayHeat), STYLE_Shaded);
-			overlayHeat *= 0.9;			
+			A_SetRenderStyle(min(0.9, overlayHeat), STYLE_AddShaded);
+			overlayHeat *= 0.97;			
 			return;
 		}
 		
@@ -31,6 +31,11 @@ class MechAutocannon : MechProjectile
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
+		let muzzleFlash = SpawnEffect("AutocannonMuzzleFlash", pos);
+		
+		// Scale muzzle flash depending on damage.
+		if(muzzleFlash) muzzleFlash.A_SetScale(muzzleFlash.Scale.X * min(1, max(0.25,trueDamage / 20.0)));
+		
 		
 		if(overlay) return; // Do not produce an infinite recursion loop.
 		let projheat = MechAutocannon(Spawn(getClass(), pos));
@@ -47,6 +52,7 @@ class MechAutocannon : MechProjectile
 			projheat.roll = roll;
 			projheat.master = master;
 			projheat.target = target;
+			projheat.bBRIGHT = true;
 			
 			projheat.SetShade(0xFFFA3a05); 
 			projheat.A_SetScale(scale.X*1.1);
@@ -57,7 +63,7 @@ class MechAutocannon : MechProjectile
 	{
 		super.HandleRanges();
 		
-		if(curDist < 45)
+		if(curDist < 120)
 		{
 			for(int i = 0; i < 2; i++)
 			{
@@ -246,8 +252,7 @@ class Autocannon10 : Autocannon2
 				if(!overlay)
 				{
 					DoDebris();
-					let expl = Spawn("AutocannonExplosion", pos);
-					if(expl) expl.A_SetScale(scale.X);
+					SpawnEffect("AutocannonExplosion", pos);
 				}
 			}
 		stop;
@@ -272,6 +277,13 @@ class AutocannonExplosion : EffectsActor
 	Default
 	{
 		RenderStyle "Add";
+		+ROLLSPRITE;
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		A_SetRoll(frandom(0,360));
 	}
 
 	States
@@ -283,176 +295,22 @@ class AutocannonExplosion : EffectsActor
 				bBRIGHT = true;
 				A_SetScale(scale.X * 0.3);
 			}
+			TNT1 A 0 A_JumpIf(true, "Explosion"); // Needed so that the Explosion state sequence can be overwritten.
+			
+		Explosion:
 			MTRL ABCDEFGHIJKLMNOPQR 1;
 			MTRL S 1 A_FadeOut(0.35);
 		wait;
 	}
 }
 
-// PPC
-class ParticleCannon : MechProjectile
+class AutocannonMuzzleFlash : AutocannonExplosion
 {
-	Default
-	{
-		// Speed 50;
-		Radius 8;
-		Height 8;
-		RenderStyle "Add";
-		Scale 0.25;
-		MechProjectile.Dmg 10 / MechHardpoint.DMGSCALE;
-		MechProjectile.Ranges 90, 1080;
-		MechProjectile.SpeedKPH 1400;
-		MechProjectile.ImpactSound "Energy/PPC/Impact";
-	}
-
-	override void PostBeginPlay()
-	{
-		super.postBeginPlay();
-		// FXLightningSparks.AttachToActor(self, 0,0,0, scale:0.04, 2.0, shading:0xFF0000FF, spawnFreq:2, spawnOdds:75);
-	}
-
-	override void Tick()
-	{
-		super.Tick();
-		
-		if(level.isFrozen()) return;
-		
-		HandleRanges();
-	}
-
-	override void HandleRanges()
-	{
-		super.HandleRanges();
-		
-		if(curDist < minRange)
-		{
-			trueDamage = 0;
-			alpha = 0.25;
-		}
-		else
-		{
-			// Linear damage falloff
-			double distScale = max(0, 1.0 - (curDist / (maxRange-minRange)));
-			double damageFallOff = (curDist > (maxRange * 0.5)) ? distScale : 1.0;
-			alpha = 1.0;
-			
-			trueDamage = default.trueDamage * damageFallOff;
-		}	
-		
-		if(curDist > maxRange*2.0)
-		{
-			Destroy();
-			return;
-		}
-	}
-	
-	States
-	{	
-		Spawn:
-			PPCF A 2
-			{
-				for(int i = 0; i < 25; i++)
-				{
-					vector3 posmod = vel.Unit() * (5 * i);
-					let trail = Spawn("PPCTrail", level.vec3offset(pos, -posmod));
-					if(trail) 
-					{
-						trail.A_SetScale(trail.default.Scale.X * Scale.X);
-						trail.alpha = alpha;
-					}
-				}
-			
-				for(int i = 0; i < 10; i++)
-				{
-					FXLightning.DoLightning(
-						pos,
-						(frandom[PPCFX](-180,180), frandom[PPCFX](-30,30)),
-						dist:10 + frandom[PPCFX](-5,15),
-						stepsize:0.5,
-						strength:2.0+frandom[PPCFX](0,15.0),
-						roughness:frandom[PPCFX](5,10),
-						branchchance:80
-					);
-				}
-			}
-		loop;
-		
-		Crash:
-		Death:
-		XDeath:
-			TNT1 A 1
-			{
-				// PPC explosion
-				if(curDist > minRange)
-				{
-					let expl = Spawn("PPCExplosion", pos);
-					if(expl) expl.A_SetScale(expl.default.Scale.X * Scale.X);	
-				}
-			}
-		stop;
-	}
-}
-
-// ER PPC
-class RangedParticleCannon : ParticleCannon
-{
-	Default
-	{
-		MechProjectile.Ranges 0, 1620;
-		MechProjectile.SpeedKPH 1900;
-	}
-}
-
-class PPCTrail : EffectsActor
-{
-	Default
-	{
-		RenderStyle "Add";
-		Alpha 1.0;
-		+BRIGHT;
-	}
-
 	States
 	{
-		Spawn:	
-			PPCB A 1 
-			{
-				A_FadeOut(0.07);
-				A_SetScale(Scale.X * 0.94);
-			}
-		wait;
-	}
-}
-
-class PPCExplosion : PPCTrail
-{
-	Default
-	{
-		Scale 5.0;
-	}
-
-	override void PostBeginPlay()
-	{
-		super.postBeginPlay();
-		for(int i = 0; i < 10; i++)
-		{
-			FXLightning.DoLightning(
-				pos,
-				(frandom[PPCFX](-180,180), frandom[PPCFX](-30,30)),
-				dist:100 + frandom[PPCFX](-5,15),
-				stepsize:0.5,
-				strength:2.0+frandom[PPCFX](0,15.0),
-				roughness:frandom[PPCFX](5,10),
-				branchchance:80
-			);
-		}
-	}
-	
-	States
-	{
-		Spawn:	
-			PPCI ABCDEFGHIJKLMNO 1;
-			PPCI P 1 A_FadeOut(0.35);
+		Explosion:
+			FX58 ABCDEFGHIJKLMNOP 1;
+			FX58 Q 1 A_FadeOut(0.35);
 		wait;
 	}
 }

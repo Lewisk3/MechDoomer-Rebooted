@@ -1,0 +1,164 @@
+
+// PPC
+class ParticleCannon : MechProjectile
+{
+	Default
+	{
+		// Speed 50;
+		Radius 8;
+		Height 8;
+		RenderStyle "Add";
+		Scale 0.25;
+		MechProjectile.Dmg 10 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 90, 1080;
+		MechProjectile.SpeedKPH 1400;
+		MechProjectile.ImpactSound "Energy/PPC/Impact";
+	}
+
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		// FXLightningSparks.AttachToActor(self, 0,0,0, scale:0.04, 2.0, shading:0xFF0000FF, spawnFreq:2, spawnOdds:75);
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		
+		if(level.isFrozen()) return;
+		
+		HandleRanges();
+	}
+
+	override void HandleRanges()
+	{
+		super.HandleRanges();
+		
+		if(curDist < minRange)
+		{
+			trueDamage = 0;
+			alpha = 0.25;
+		}
+		else
+		{
+			// Linear damage falloff
+			double distScale = max(0, 1.0 - (curDist / (maxRange-minRange)));
+			double damageFallOff = (curDist > (maxRange * 0.5)) ? distScale : 1.0;
+			alpha = 1.0;
+			
+			trueDamage = default.trueDamage * damageFallOff;
+		}	
+		
+		if(curDist > maxRange*2.0)
+		{
+			Destroy();
+			return;
+		}
+	}
+	
+	States
+	{	
+		Spawn:
+			PPCF A 2
+			{
+				for(int i = 0; i < 25; i++)
+				{
+					vector3 posmod = vel.Unit() * (5 * i);
+					let trail = Spawn("PPCTrail", level.vec3offset(pos, -posmod));
+					if(trail) 
+					{
+						trail.A_SetScale(trail.default.Scale.X * Scale.X);
+						trail.alpha = alpha;
+					}
+				}
+			
+				for(int i = 0; i < 10; i++)
+				{
+					FXLightning.DoLightning(
+						pos,
+						(frandom[PPCFX](-180,180), frandom[PPCFX](-30,30)),
+						dist:10 + frandom[PPCFX](-5,15),
+						stepsize:0.5,
+						strength:2.0+frandom[PPCFX](0,15.0),
+						roughness:frandom[PPCFX](5,10),
+						branchchance:80
+					);
+				}
+			}
+		loop;
+		
+		Crash:
+		Death:
+		XDeath:
+			TNT1 A 1
+			{
+				// PPC explosion
+				if(curDist > minRange) SpawnEffect("PPCExplosion", pos);
+			}
+		stop;
+	}
+}
+
+// ER PPC
+class RangedParticleCannon : ParticleCannon
+{
+	Default
+	{
+		MechProjectile.Ranges 0, 1620;
+		MechProjectile.SpeedKPH 1900;
+	}
+}
+
+class PPCTrail : EffectsActor
+{
+	Default
+	{
+		RenderStyle "Add";
+		Alpha 1.0;
+		+BRIGHT;
+	}
+
+	States
+	{
+		Spawn:	
+			PPCB A 1 
+			{
+				A_FadeOut(0.07);
+				A_SetScale(Scale.X * 0.94);
+			}
+		wait;
+	}
+}
+
+class PPCExplosion : PPCTrail
+{
+	Default
+	{
+		Scale 5.0;
+	}
+
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		for(int i = 0; i < 10; i++)
+		{
+			FXLightning.DoLightning(
+				pos,
+				(frandom[PPCFX](-180,180), frandom[PPCFX](-30,30)),
+				dist:100 + frandom[PPCFX](-5,15),
+				stepsize:0.5,
+				strength:2.0+frandom[PPCFX](0,15.0),
+				roughness:frandom[PPCFX](5,10),
+				branchchance:80
+			);
+		}
+	}
+	
+	States
+	{
+		Spawn:	
+			PPCI ABCDEFGHIJKLMNO 1;
+			PPCI P 1 A_FadeOut(0.35);
+		wait;
+	}
+}

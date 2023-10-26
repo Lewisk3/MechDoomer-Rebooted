@@ -373,7 +373,24 @@ class MechHUD : VehicleHUD
 		
 		// Weapons Top 
 		MWDrawer.DrawImage("Graphics/HUD/WeaponsTop.png", drawPos, flags, 1.0, scale:weapBarScale);
+		// Reactor battery
+		vector2 batteryScale = (infoScale * 4.0, infoScale);
+		vector2 batteryPos = drawPos + (20,5);
+		vector2 batterySize = (40 * batteryScale.x, 26 * batteryScale.y);
+		double batteryPerc = mech.engine ? mech.engine.energy : 0;
+		double batteryHue = (batteryPerc * 100) / 360.0;
+		Color batteryColor = MWDrawerColor.HSLtoRGB(batteryHue, 1.0, 0.5, 1.0);
+		
+		MWDrawer.DrawString("ConsoleFont", "POWER ", drawPos - (100,0), flags, 1.0, scale:(infoScale, infoScale));
+		//DrawRect(0xFF00FFFF, batteryPos - (batterySize*0.5), batterySize);
+		MWDrawer.SetClipRect(batteryPos.x - (batterySize.x * 0.5), batteryPos.y - (batterySize.y * 0.5), batterySize.x * batteryPerc, batterySize.y);
+		MWDrawer.DrawImage("Graphics/HUD/ReactorBattery_Fill.png", drawPos + (20,5), flags, scale:batteryScale, tint:batteryColor);
+		MWDrawer.ClearClipRect();
+		MWDrawer.DrawImage("Graphics/HUD/ReactorBattery_Outline.png", drawPos + (20,5), flags, scale:batteryScale);
+		
 		drawPos.y += yoff;		
+		
+		
 	
 		chainBlink += deltaTime;
 		if( chainBlink >= 20 )

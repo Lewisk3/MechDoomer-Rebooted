@@ -37,6 +37,7 @@ class MechMissile : MechProjectile
 	override void HandleRanges()
 	{
 		super.HandleRanges();
+		if(!bMISSILE) return;
 		
 		// Missile ran out of fuel.
 		if(curDist > maxRange)
@@ -45,7 +46,7 @@ class MechMissile : MechProjectile
 			if(pitch < 90) pitch += 1;
 		}
 	}
-	
+
 	States
 	{
 		Spawn:
@@ -61,11 +62,12 @@ class MechMissile : MechProjectile
 		Death:
 			MODL A 10
 			{
+				bMISSILE = false;
 				if(curDist > minRange)
 				{
 					EffectsHelper.SpawnFX("MissileEmber", 25, pos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);
 					SpawnEffect("MissileExplosion", pos);
-					EffectsHelper.ExplodeEx(self, 64, 128);
+					EffectsHelper.ExplodeEx(self, 16, 128, thrustMod:0);
 				}
 				else 
 				{
@@ -89,49 +91,12 @@ class MechMissile : MechProjectile
 	}
 }
 
-class MechSRM : MechMissile
-{
-	Default
-	{
-		Radius 8;
-		Height 4;
-		Speed 25;
-		MechProjectile.Dmg 2 / MechHardpoint.DMGSCALE;
-		MechProjectile.Ranges 0, 270;
-		MechProjectile.FirePitch 0;
-		MechProjectile.Homing false;
-	}
-}
-class MechSSRM : MechSRM
-{
-	Default
-	{
-		Speed 20;
-		MechProjectile.Ranges 0, 360;
-		MechProjectile.Homing true;
-		MechMissile.HomingInaccuracy 20;
-	}
-}
-
-class MechLRM : MechMissile
-{
-	Default
-	{
-		Radius 8;
-		Height 4;
-		Speed 20;
-		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
-		MechProjectile.Ranges 120, 900;
-		MechProjectile.FirePitch 30;
-		MechProjectile.Homing true;
-		MechMissile.HomingInaccuracy 30;
-	}
-}
-
 class MissileExplosion : EffectsActor
 {
 	Default
 	{
+		RenderStyle "Add";
+		+ROLLSPRITE;
 		Scale 0.05;
 		+BRIGHT;
 	}
@@ -139,6 +104,7 @@ class MissileExplosion : EffectsActor
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
+		A_SetRoll(frandom(0,360));
 		
 		// I would use NoDelay, but it doesn't work...
 		A_StartSound("Missile/Explosion", flags:CHANF_OVERLAP, attenuation:0.7, pitch:frandom[ExplosionPitch](-0.8, 1.2) );
@@ -299,5 +265,44 @@ class MissileSmokeTrail : EffectsActor
 		Spawn:
 			MSMK A -1;
 		stop;
+	}
+}
+
+class MechSRM : MechMissile
+{
+	Default
+	{
+		Radius 8;
+		Height 4;
+		Speed 25;
+		MechProjectile.Dmg 2 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 270;
+		MechProjectile.FirePitch 0;
+		MechProjectile.Homing false;
+	}
+}
+class MechSSRM : MechSRM
+{
+	Default
+	{
+		Speed 20;
+		MechProjectile.Ranges 0, 360;
+		MechProjectile.Homing true;
+		MechMissile.HomingInaccuracy 20;
+	}
+}
+
+class MechLRM : MechMissile
+{
+	Default
+	{
+		Radius 8;
+		Height 4;
+		Speed 20;
+		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 120, 900;
+		MechProjectile.FirePitch 30;
+		MechProjectile.Homing true;
+		MechMissile.HomingInaccuracy 30;
 	}
 }

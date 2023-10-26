@@ -22,6 +22,7 @@ class SmallLaser : MechWeapon
 		laserRange = 300; // Maximum laser range.
 		damage = convertDMG(3.25, fireTime);
 		laserHeat = convertHeat(1.10, fireTime); // Laserbeam heat.
+		energyUse = 0.3 / double(fireTime);
 		
 		fireSound = "Laser/Small";
 		laserType = "MechLaser";
@@ -70,7 +71,16 @@ class SmallLaser : MechWeapon
 	override void DoEffect()
 	{
 		super.DoEffect();
-		if(laser) modifyHeat(laserHeat);
+		if(laser) 
+		{
+			modifyHeat(laserHeat);
+			modifyEnergy(energyUse);
+			if(mech.engine && mech.engine.energy < energyUse)
+			{
+				// Disable laser if low energy
+				laser.Destroy();
+			}
+		}
 	}
 }
 
@@ -100,6 +110,7 @@ class SmallPulseLaser : SmallLaser
 		damage = convertDMG(3.50, fireTime);
 		laserHeat = convertHeat(1.35, fireTime); // Laserbeam heat.
 		pulseSpeed = 70;
+		energyUse = 0.15 / double(fireTime);
 		
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
@@ -136,6 +147,8 @@ class MediumLaser : SmallLaser
 		range = 270;
 		damage = convertDMG(5.0, fireTime);
 		laserHeat = convertHeat(3.40, fireTime); // Laserbeam heat.
+		energyUse = 0.025;
+		energyUse = 0.6 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechLaser";
@@ -160,6 +173,7 @@ class MediumPulseLaser : SmallPulseLaser
 		damage = convertDMG(6.0, fireTime);
 		laserHeat = convertHeat(3.80, fireTime); // Laserbeam heat.
 		pulseSpeed = 50;
+		energyUse = 0.4 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
@@ -184,6 +198,7 @@ class LargeLaser : SmallLaser
 		range = 450;
 		damage = convertDMG(9.0, fireTime);
 		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
+		energyUse = 0.8 / double(fireTime);
 		
 		fireSound = "Laser/Large";
 		laserType = "MechLaser";
@@ -208,6 +223,7 @@ class LargePulseLaser : SmallPulseLaser
 		range = 370;
 		damage = convertDMG(10.0, fireTime);
 		laserHeat = convertHeat(7.25, fireTime); // Laserbeam heat.
+		energyUse = 0.6 / double(fireTime);
 		pulseSpeed = 40;
 		
 		fireSound = "Laser/Large";
@@ -700,6 +716,58 @@ class AC20 : AC2
 	}
 }
 
+class GaussRifle : AC2
+{
+	bool justFired;
+
+	override void Defaults()
+	{	
+		DisplayName = "GAUSS RIFLE";
+		mountType = "Ballistic";
+		heat = 1.0;
+		weight = 15.0;
+		size = 7.0;
+		
+		ammoUse 	 = 1;
+		fireTime	 = 8;
+		cooldownTime = ceil(4.25 * TICRATE);
+		energyUse = 1.0;
+		
+		projType = "GaussCannon";
+		ammoType = "GaussAmmo";
+		fireSound = "Ballistic/GaussRifle";
+		damagable = true;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-5, 6);
+		justFired = true;
+		return super.Fire(firePos);
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if( justFired && (cooldown <= TICRATE) && checkAmmo() >= ammoUse )
+		{
+			// If we've just fired and fireTime has ended, play reload sound.
+			parent.A_StartSound("Ballistic/GaussRifle/Reload", CHAN_BODY, CHANF_OVERLAP);
+			justFired = false;
+		}
+	}
+	
+	override void OnDestroyed()
+	{
+		if(!parent) return;
+		mech.betty.Push(String.Format("Betty/ItemDestroyed/%s", getClassName()));
+		
+		// Yeah, pretty bad idea to get one of these guys crit...
+		// Massive capacitor banks plus a hole, turns out, don't mix too well.
+		parent.DoExplosionDamage(20.0);
+	}
+}
+
 // PPC
 class PPC : AC2
 {	
@@ -707,13 +775,14 @@ class PPC : AC2
 	{	
 		DisplayName = "PPC";
 		mountType = "Energy";
-		heat = 20.0;
+		heat = 15.0;
 		weight = 7.0;
 		size = 3.0;
 		
 		ammoUse = 0;
 		fireTime = 10;
 		cooldownTime = ceil(3 * TICRATE);
+		energyUse = 0.30;
 		
 		projType = "ParticleCannon";
 		ammoType = "";
@@ -735,7 +804,8 @@ class ERPPC : PPC
 		super.Defaults();
 		
 		DisplayName = "ER PPC";
-		heat = 25.0;
+		heat = 20.0;
+		energyUse = 0.40;
 				
 		projType = "RangedParticleCannon";
 		fireSound = "Energy/PPC";

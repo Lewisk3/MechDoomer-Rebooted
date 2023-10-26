@@ -41,8 +41,10 @@ version "4.10.0"
 
 // Projectiles
 #include "ZScript/Projectiles/base.zsc"
-#include "ZScript/Projectiles/ballistics.zsc"
 #include "ZScript/Projectiles/missiles.zsc"
+#include "ZScript/Projectiles/autocannons.zsc"
+#include "ZScript/Projectiles/gauss_rifle.zsc"
+#include "ZScript/Projectiles/ppcs.zsc"
 
 // Decorations
 #include "ZScript/Decorations/trees.zsc"
