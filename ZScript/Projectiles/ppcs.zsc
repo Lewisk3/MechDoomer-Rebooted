@@ -140,6 +140,10 @@ class PPCExplosion : PPCTrail
 	override void PostBeginPlay()
 	{
 		super.postBeginPlay();
+		
+		// Ambient thunder sound.
+		S_StartSound("Energy/PPC/Thunder", CHAN_AUTO, CHANF_OVERLAP);
+		
 		for(int i = 0; i < 10; i++)
 		{
 			FXLightning.DoLightning(

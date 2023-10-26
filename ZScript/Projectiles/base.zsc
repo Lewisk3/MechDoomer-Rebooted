@@ -10,12 +10,14 @@ class MechProjectile : FastProjectile
 	Actor homingTarget;
 	Sound impactSnd;
 	bool stopHoming;
+	bool fullVolumeImpact;
 	
 	Property Ranges : minRange, maxRange;
 	Property FirePitch : firePitch;
 	Property Dmg : trueDamage;
 	Property Homing : hasHoming;
 	Property ImpactSound : impactSnd;
+	Property GlobalImpactSound : fullVolumeImpact;
 	Property SpeedKPH : speedKPH;
 	
 	Default
@@ -43,7 +45,7 @@ class MechProjectile : FastProjectile
 	virtual void PreGeometryHit(Line ln, Sector sec)
 	{
 		if(impactSnd) // Play Impact sound effect.
-			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
+			playImpactSound();
 	}
 	
 	static double GetSpeedFromKPH(double KPH)
@@ -52,6 +54,14 @@ class MechProjectile : FastProjectile
 		double cmPerTick = (kmPerSecond / TICRATE) * 100000.0;
 		
 		return cmPerTick / UTOCM;
+	}
+	
+	virtual void playImpactSound()
+	{
+		if(fullVolumeImpact)
+			S_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP, attenuation:ATTN_NONE);
+		else
+			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
 	}
 	
 	override void PostBeginPlay()
@@ -81,8 +91,8 @@ class MechProjectile : FastProjectile
 			return 1; // Ignore actor.
 		
 		if(impactSnd) // Play Impact sound effect.
-			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
-		
+			playImpactSound();
+
 		// Hit a non-vehicle
 		double damageMod = 1.0;
 		if( !(victim is "DrivableObjectPart") ) damageMod = 2.7; 

@@ -63,6 +63,8 @@ Ballistic/Gauss/Impact "Sounds/Weapons/gauss_hit.wav"
 
 Energy/PPC "Sounds/Weapons/ppc_fire.wav"
 Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
+Energy/PPC/Thunder "Sounds/Weapons/ppc_thunder.wav"
+$volume Energy/PPC/Thunder 5.0;
 
 IMPACT1 "Sounds/Weapons/impact1.wav"
 IMPACT2 "Sounds/Weapons/impact2.wav"
@@ -86,6 +88,16 @@ $limit Laser/Medium 0;
 $limit Laser/Large  0;
 $limit Laser/Pulse 0;
 $limit Laser/Pulse/Impact 0;
+$limit Ballistic/Autocannon2  0;
+$limit Ballistic/Autocannon5  0;
+$limit Ballistic/Autocannon10 0;
+$limit Ballistic/Autocannon20 0;
+$limit Ballistic/GaussRifle   0;
+$limit Ballistic/Gauss/Impact 0;
+$limit Energy/PPC 			  0;
+$limit Energy/PPC/Impact	  0;
+$limit Laser/Pulse/Impact 0;
+$limt Energy/PPC/Thunder  0;
 
 $limit Generic/Impact 0;
 
@@ -93,3 +105,10 @@ $limit Missile/SRM2 0;
 $limit Missile/SRM4 0;
 $limit Missile/SRM6 0;
 $limit Missile/Explosion 0;
+
+// Attenuation
+$rolloff Generic/Impact linear 500 2500
+$rolloff Missile/Explosion linear 500 2500
+$rolloff Laser/Pulse/Impact linear 500 1500
+$rolloff Ballistic/Gauss/Impact linear 800 3000
+$rolloff Energy/PPC/Impact linear 600 3000

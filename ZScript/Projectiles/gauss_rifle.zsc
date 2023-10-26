@@ -14,6 +14,7 @@ class GaussCannon : MechProjectile
 		MechProjectile.Ranges 0, 2050;
 		MechProjectile.SpeedKPH 2200;
 		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
+		// MechProjectile.GlobalImpactSound true;
 	}
 
 	override void PostBeginPlay()
