@@ -1,0 +1,1 @@
+server float sv_mdr_mechscale = 1.0;

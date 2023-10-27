@@ -10,6 +10,7 @@ class MechHeatsink : MechUtility
 		heatEff = 0.26 / TICRATE;
 		buffer = 2.6;
 		displayName = "Heatsink";
+		sndItemName = "Betty/Item/Heatsink";
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)

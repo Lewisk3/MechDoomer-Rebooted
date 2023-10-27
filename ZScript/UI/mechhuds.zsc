@@ -301,7 +301,7 @@ class MechHUD : VehicleHUD
 		vector2 txtScale = (0.75,0.75);
 		vector2 kphPos = throttlePos + (-(barSize.x), barSize.y+10);
 		vector2 txtPos = throttlePos + (10, -15);
-		double KPH = MechEngine.speedToKPH(mech.vel.xy.length(), 1. /*1./mech.Scale.X*/);
+		double KPH = MechEngine.mechSpeedToKPH(mech.vel.xy.length(), 1. /*1./mech.Scale.X*/);
 		MWDrawer.DrawString("ConsoleFont", String.Format("[%3d KPH]", round(KPH)), kphPos, flags:flags, scale:txtScale);
 		MWDrawer.DrawString("ConsoleFont", "Throttle", txtPos, flags:flags | MWDrawer.SS_TEXT_CENTER, scale:txtScale);
 		

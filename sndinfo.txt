@@ -1,16 +1,9 @@
 
 // Betty
-/*
-Betty/Nav/Alpha "Sounds/Betty/nav_alpha.wav"
-Betty/Nav/Beta  "Sounds/Betty/nav_beta.wav"
-Betty/Nav/Chi   "Sounds/Betty/nav_chi.wav"
-Betty/Nav/Delta "Sounds/Betty/nav_delta.wav"
-*/
-
-// Betty/Heat/Warn "Sounds/Betty/heat_warn.wav"
 Betty/Heat/Critical "Sounds/Betty/heat_crit.wav"
 Betty/Heat/CriticalShutdown "Sounds/Betty/heat_shutdown.wav"
 Betty/ShuttingDown "Sounds/Betty/shuttingdown.wav"
+Betty/ReactorOnline "Sounds/Betty/reactor_online.wav"
 Betty/CriticalHit "Sounds/Betty/CriticalHit.wav"
 Betty/AmmoExplosion "Sounds/Betty/ammo_explosion.wav"
 Betty/Ammo/Critical "Sounds/Betty/ammo_critical.wav"
@@ -18,7 +11,21 @@ Betty/Ammo/Depleted "Sounds/Betty/ammo_depleted.wav"
 Betty/TargetDestroyed "Sounds/Betty/target_destroyed.wav"
 Betty/Targetting "Sounds/Betty/targetting.wav"
 Betty/Shutdown/Override "Sounds/Betty/shutdown_override.wav"
-// Betty/ItemDestroyed/Type
+Betty/DamageCritical "Sounds/Betty/damage_critical.wav"
+Betty/Item/Destroyed "Sounds/Betty/Items/Destroyed.wav"
+Betty/Item/Damaged "Sounds/Betty/Items/Damaged.wav"
+Betty/Item/Autocannon "Sounds/Betty/Items/autocannon.wav"
+Betty/Item/Machinegun "Sounds/Betty/Items/machinegun.wav"
+Betty/Item/GaussRifle "Sounds/Betty/Items/gaussrifle.wav"
+Betty/Item/Laser "Sounds/Betty/Items/laser.wav"
+Betty/Item/ERLaser "Sounds/Betty/Items/erlaser.wav"
+Betty/Item/PulseLaser "Sounds/Betty/Items/laser.wav"
+Betty/Item/Flamer "Sounds/Betty/Items/flamer.wav"
+Betty/Item/PPC "Sounds/Betty/Items/ppc.wav"
+Betty/Item/ERPPC "Sounds/Betty/Items/erppc.wav"
+Betty/Item/SRM "Sounds/Betty/Items/srm.wav"
+Betty/Item/LRM "Sounds/Betty/Items/lrm.wav"
+Betty/Item/Heatsink "Sounds/Betty/Items/heatsink.wav"
 
 // Mech explosions
 Mech/Explosion/Hardpoint1 "Sounds/Mech/hardpoint_explosion1.wav";

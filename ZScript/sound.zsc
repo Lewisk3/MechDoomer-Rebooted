@@ -59,7 +59,7 @@ class SoundQueue : Thinker
 	{
 		super.Tick();
 		if(!active) return;
-		
+	
 		if(sounds.Size() > 0)
 		{
 			if(!sounds[0].playing)

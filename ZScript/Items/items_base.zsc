@@ -8,6 +8,7 @@ class MechItem : Object
 	string displayName;
 	uint amount;
 	double weight;
+	Sound sndItemName;
 	
 	enum ItemActionError 
 	{
@@ -153,7 +154,13 @@ class MechItem : Object
 	
 	play virtual void OnDamaged(double dmg)
 	{
-		if(!damagable) return;
+		if(!damagable || hp <= 0) return;
+	
+		if(sndItemName && hp >= 10)
+		{
+			mech.betty.Push(sndItemName);
+			mech.betty.Push("Betty/Item/Damaged");
+		}
 	
 		// Do stuff when damaged.
 		hp -= dmg;
@@ -163,7 +170,11 @@ class MechItem : Object
 	play virtual void OnDestroyed()
 	{
 		// Do stuff when destroyed.
-		mech.betty.Push(String.Format("Betty/ItemDestroyed/%s", getClassName()));
+		if(sndItemName)
+		{
+			mech.betty.Push(sndItemName);
+			mech.betty.Push("Betty/Item/Destroyed");
+		}
 	}
 	
 	virtual bool checkDestroyed()
@@ -372,7 +383,7 @@ class MechArmor : MechUtility
 
 	override void Defaults()
 	{
-		hp = 100;
+		damagable = false;
 		size = 0; 
 		structType = "MechDynamicStructure";
 		structureSlots = 0;
@@ -513,6 +524,12 @@ class MechEngineBlock : MechItem
 		nosave = true; 
 		displayName = "??? ENGINE";
 	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		// Report back engine description
+		mech.engine.GetDescription(flavorText, statName, statValue, mechInfo);
+	}
 }
 
 class MechEngine : MechItem
@@ -639,22 +656,29 @@ class MechEngine : MechItem
 	{
 		double unitsPerSecond = spd * TICRATE;
 		double unitsPerHour = unitsPerSecond * 3600.0;
-		return scalar * (( unitsPerHour * (UTOCM / level.pixelStretch) ) / 100000.0);
+		return scalar * (( unitsPerHour * UTOCM ) / 100000.0);
 	}
 	
-	// This is for a Mech, not a projectile.
-	clearscope static double getKPHSpeed(double KPH, double scalar = 1.0)
+	// Holy fuck this is a mess LMFAO
+	const MOVEFRICMOD   = 0.94/DrivableMech.MECHFRICTION;
+	const MOVEACCELREAL = 15.66666564814815 * MOVEFRICMOD;
+	const MOVESPEED_MOD = 10 * MOVEFRICMOD; 
+	clearscope static double getMechKPHSpeed(double KPH, double scalar = 1.0)
 	{
-		double unitsPerHour = (KPH*100000.0) / (UTOCM / level.pixelStretch);
+		double unitsPerHour = (KPH*100000.0) / UTOCM;
 		double unitsPerSecond = unitsPerHour / 3600.0;
 		
-		// Divide by magic constants.
-		unitsPerSecond /= (15.66666564814815) * (0.94/DrivableMech.MECHFRICTION);
+		unitsPerSecond /= MOVESPEED_MOD;
 		unitsPerSecond *= scalar;
 		
 		return unitsPerSecond / TICRATE;
 	}
-		
+	
+	clearscope static double mechSpeedToKPH(double spd, double scalar)
+	{
+		double kph = speedToKPH(spd, scalar);
+		return kph * (MOVESPEED_MOD / MOVEACCELREAL);
+	}
 	
 	virtual void AutoDetectEngine()
 	{
@@ -1068,12 +1092,6 @@ class MechWeapon : MechItem
 			homingTarget = mech.curTarget; 
 		else if(mech.targetProgress <= 0.1 && homingTarget)
 			homingTarget = NULL;
-	}
-	
-	// Weapons shouldn't get removed from the game once destroyed.
-	override void OnDestroyed()
-	{
-		// Do not remove item.
 	}
 		
 	// Note: firePos is ALWAYS relative offsets from the parent's position

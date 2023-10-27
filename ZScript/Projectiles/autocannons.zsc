@@ -114,7 +114,7 @@ class MechAutocannon : MechProjectile
 		if(overlay || !bMISSILE) return; // Overlays do not have debris.
 
 		Array<Actor> debris;
-		EffectsHelper.SpawnFX("AutocannonDebris", random[DebrisAmt](10,20), pos, (angle+180, -pitch, roll), 3, (5,5,5), (45,30,0), 3, debris);
+		EffectsHelper.SpawnFX("AutocannonDebris", random[DebrisAmt](10,20), pos, (angle+180, -pitch, roll), 3, (5,5,5), (45,30,0), 3, spawnedActors:debris);
 		EffectsHelper.SpawnFX("MissileEmber", 20, pos, (angle+180, -pitch, roll), 3, (5,5,6), (45,30,0), 3);
 		for(int i = 0; i < debris.Size(); i++)
 		{
@@ -344,7 +344,7 @@ class MGBullet : MechAutocannon
 		Radius 1;
 		Height 1;
 		Scale 0.2;
-		MechProjectile.Dmg 0.04 / MechHardpoint.DMGSCALE; // Roughly 1 damage a second.
+		MechProjectile.Dmg 0.06 / MechHardpoint.DMGSCALE; // Roughly 1 damage a second.
 		MechProjectile.Ranges 0, 100;
 		MechProjectile.SpeedKPH 1200;
 		MechProjectile.ImpactSound "MGun/Impact";

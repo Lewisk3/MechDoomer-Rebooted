@@ -325,20 +325,80 @@ class MechHardpoint : MechPart
 				exp.target = self;	
 			}
 		}
+		
+		// Destroy items
+		foreach(itm : items)
+		{
+			if(itm.hp > 0)
+			{
+				itm.hp = 0;
+				itm.onDamaged(999);
+			}
+		}
+	}
+		
+	virtual void doDamageEffects()
+	{
+		double healthPerc = !healthPoints ? 0 : (healthPoints / maxHP);
+		if(healthPerc > 0.35) return;
+		
+		// Hardpoint is damaged but not destroyed.
+		if(healthPerc > 0)
+		{
+			vector3 spAngles = (angle, pitch, roll);
+			vector3 rngAngles = (90,30,180);
+			
+			bool spawnSmoke = !(level.maptime%35) || frandom[FXRNG](0,20) >= 15;
+			bool spawnSparks = !(level.maptime%100) || frandom[FXRNG](0,100) > 90;
+			if(spawnSmoke) EffectsHelper.SpawnFX("HardpointSmoke", 5, pos, spAngles, 1, (8,8,8), rngAngles, 2);
+			//if(spawnSparks) EffectsHelper.SpawnFX("HardpointSparks", 3, pos, spAngles, 3, (20,20,20), rngAngles, 6);
+		}
+	}
+	
+	virtual void doDamageRecoil(double amt, vector3 angles, bool behind)
+	{
+		let torso = MechTorso(mech.torso);
+		if(!torso || !mech.hips) return;
+		
+		// Hits to legs shouldn't move torso.
+		bool abovePivot = pos.z >= mech.hips.pos.z;
+		if(!abovePivot) return;
+		
+		if(behind) angles.xy *= -1;
+		torso.recoilAngles = angles * (amt / 10.0);
+		
+		// Cockpit shake
+		torso.recoilShake += (
+			frandom[DMGRecoilRNG](-1,1),
+			frandom[DMGRecoilRNG](-1,1),
+			frandom[DMGRecoilRNG](-1,1)
+		) * (amt / 5.0);
 	}
 	
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
 		double trueDamage = double(damage) * DMGSCALE;
-		if( (flags & DMG_EXPLOSION) )
+		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
+		
+		bool behind = abs(hitAngle) > 100;
+		bool isProj = inflictor && (MechProjectile(inflictor) || inflictor.bMISSILE);
+		bool explosiveDamage = flags & DMG_EXPLOSION;
+		
+		if( explosiveDamage )
 		{
 			trueDamage *= 0.25;
 			if(immuneToExplosions) return 0;
 		}
 		
-		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
+		// Recoil based on damage
+		if(isProj && mech.torso && !explosiveDamage)
+		{
+			vector3 hitDir = DrivablesMath.DiffToLocal(mech.torso.pos, inflictor.pos, angle,pitch,roll);
+			doDamageRecoil(trueDamage, (-hitDir.y, hitDir.z, 0), behind);
+		}
 		
-		DamageHardpoint(mod, trueDamage, isRearDamage:abs(hitAngle) > 100, skipArmor:false);
+		// Apply hardpoint damage
+		DamageHardpoint(mod, trueDamage, isRearDamage:behind, skipArmor:false);
 
 		// console.printf("Damaged: %s for %d damage. [%d :> %d]", getClassName(), trueDamage, armorPoints, healthPoints);
 		return 0;
@@ -498,12 +558,16 @@ class MechHardpoint : MechPart
 		// Heat is 0 minimum.
 		localheat = max(0, localheat);
 		
+		// Destroyed attached hardpoints if destroyed.
 		let hardpointParent = MechHardpoint(parent);
 		if(hardpointParent && hardpointParent.healthPoints <= 0 && healthPoints > 0)
 		{
 			healthPoints = 0;
 			DamageHardpoint("Collateral", 999, skipArmor:true);
 		}
+		
+		// Damage Effects
+		doDamageEffects();
 	}
 	
 	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false)
@@ -735,6 +799,7 @@ class MechHips : MechPart
 
 class MechTorso : MechHardpoint
 {
+	vector3 recoilAngles, recoilShake;
 	double turnMax, pitchMin, pitchMax, turnSpeed, pitchSpeed;
 	double pitchBob, pitchBobVel;
 	double rollBob, rollBobTimer;
@@ -769,8 +834,37 @@ class MechTorso : MechHardpoint
 		
 		let localPlayer = players[consoleplayer].mo;
 		bInvisible = healthPoints > 0 && (mech.camActive == mech.cam) && (mech.driver == localPlayer);
-	}
 		
+		vector3 shake = (
+			random[RecoilFXRNG](-1,1) * recoilShake.x,
+			random[RecoilFXRNG](-1,1) * recoilShake.y,
+			random[RecoilFXRNG](-1,1) * recoilShake.z
+		);
+		
+		angle += recoilAngles.x + shake.x;
+		pitch += recoilAngles.y + shake.y;
+		roll += (recoilAngles.z + shake.z) * 0.5;
+		recoilAngles *= 0.6;
+		recoilShake *= 0.92;
+		
+		ClampAngles();
+	}
+	
+	virtual void ClampAngles()
+	{
+		// Angle ranges
+		double LegAng = parent.angle;
+		turnDir = cos((angle-LegAng)-90);
+		double rolldistort = ( turnDir * pitch );
+		
+		pitch = clamp(pitch, -pitchMin, pitchMax);
+		DrivablesMath.ClampAngles(angle, LegAng, turnMax);
+		
+		// Roll distortion
+		A_SetRoll(rolldistort + rollBob, SPF_INTERPOLATE);
+		A_SetPitch(pitch + ((rolldistort * -turnDir) * 0.05), SPF_INTERPOLATE);
+	}
+	
 	override void DriverUpdate(Actor driver)
 	{				
 		// Bobbing
@@ -801,24 +895,12 @@ class MechTorso : MechHardpoint
 		DrivablesMath.AngleSlerp(angle, toAngle, turnSpeed / double(TICRATE));
 		DrivablesMath.AngleSlerp(pitch, toPitch, pitchSpeed / double(TICRATE));
 				
-		// Angle ranges
-		double LegAng = parent.angle;
-		turnDir = cos((angle-LegAng)-90);
-		double rolldistort = ( turnDir * pitch );
-		
-		pitch = clamp(pitch, -pitchMin, pitchMax);
-		DrivablesMath.ClampAngles(angle, LegAng, turnMax);
-		
 		// Turn sound
 		if( abs(angle-prevAngle) >= 2 || abs(pitch-prevPitch) >= 2 )
 			A_StartSound("Torso/Twist", CHAN_BODY, CHANF_LOOPING);
 		else
 			A_StopSound(CHAN_BODY);
 
-		// Roll distortion
-		A_SetRoll(rolldistort + rollBob, SPF_INTERPOLATE);
-		A_SetPitch(pitch + ((rolldistort * -turnDir) * 0.05), SPF_INTERPOLATE);
-		
 		// Keep track of angular change.
 		prevAngle = angle;
 		prevPitch = pitch;
@@ -938,7 +1020,13 @@ class MechArm : MechHardpoint
 		let torso = MechTorso(mech.torso);
 		if(!torso) return;
 		
-		A_SetRoll(mech.torso.roll, SPF_INTERPOLATE);
+		A_SetRoll(torso.roll, SPF_INTERPOLATE);
+		if(torso.recoilAngles.Length() > 0.01)
+		{	
+			A_SetAngle(angle + torso.recoilAngles.x, SPF_INTERPOLATE);
+			A_SetPitch(pitch + torso.recoilAngles.y, SPF_INTERPOLATE);
+		}
+		
 		if( !mech.driver || mountPoints.Size() <= 0 ) return;
 		
 		vector3 aimingPos = mech.aimingPos; 

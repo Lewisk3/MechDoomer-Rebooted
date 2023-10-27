@@ -31,7 +31,7 @@ class EffectsHelper Abstract
 {
 	play static void SpawnFX( class<Actor> type, double amt, vector3 pos, vector3 angles, double vel, 
 							  vector3 randPos = (0,0,0), vector3 randAngles = (0,0,0), double randVel = 0, 
-							  out Array<Actor> spawnedActors = NULL )
+							  double scale = 1.0, out Array<Actor> spawnedActors = NULL )
 	{
 		for(int i = 0; i < amt; i++)
 		{
@@ -58,6 +58,7 @@ class EffectsHelper Abstract
 				act.angle = angles.x;
 				act.pitch = angles.y;
 				act.roll = angles.z;
+				act.A_SetScale(act.Scale.X * scale);
 				if(spawnedActors) spawnedActors.Push(act);
 			}
 		}

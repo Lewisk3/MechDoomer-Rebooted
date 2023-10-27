@@ -109,7 +109,7 @@ class MechLaser : MechLaserBeam
 			double damageMod = 1.0;
 			if(!(hitActor is "DrivableObjectPart")) damageMod = 2.7;
 			
-			hitActor.DamageMobJ(hardpoint.mech.driver, self, trueDamage, "Fire");
+			hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Fire");
 			if(!hitSomething)
 			{
 				A_StartSound(impactSound, flags:CHANF_OVERLAP);

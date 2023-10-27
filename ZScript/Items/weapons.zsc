@@ -27,6 +27,7 @@ class SmallLaser : MechWeapon
 		laserType = "MechLaser";
 		laserColor = "Red";
 		damagable = true;
+		sndItemName = "Betty/Item/Laser";
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -96,6 +97,7 @@ class ERSmallLaser : SmallLaser
 		energyUse = 0.4 / double(fireTime);
 		
 		laserColor = "Yellow";
+		sndItemName = "Betty/Item/ERLaser";
 	}
 }
 class SmallPulseLaser : SmallLaser
@@ -122,6 +124,7 @@ class SmallPulseLaser : SmallLaser
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
 		laserColor = "Red";
+		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
 	}
 	
@@ -159,6 +162,7 @@ class MediumLaser : SmallLaser
 		fireSound = "Laser/Medium";
 		laserType = "MechLaser";
 		laserColor = "Green";
+		sndItemName = "Betty/Item/Laser";
 		damagable = true;
 	}
 }
@@ -176,6 +180,7 @@ class ERMediumLaser : MediumLaser
 		energyUse = 0.6 / double(fireTime);
 		
 		laserColor = "Cyan";
+		sndItemName = "Betty/Item/ERLaser";
 	}
 }
 class MediumPulseLaser : SmallPulseLaser
@@ -200,6 +205,7 @@ class MediumPulseLaser : SmallPulseLaser
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
 		laserColor = "Green";
+		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
 	}
 }
@@ -226,6 +232,7 @@ class LargeLaser : SmallLaser
 		laserType = "MechLaser";
 		laserColor = "Blue";
 		damagable = true;
+		sndItemName = "Betty/Item/Laser";
 	}
 }
 class ERLargeLaser : LargeLaser
@@ -241,6 +248,7 @@ class ERLargeLaser : LargeLaser
 		energyUse = 0.8 / double(fireTime);
 		
 		laserColor = "Purple";
+		sndItemName = "Betty/Item/ERLaser";
 	}
 }
 class LargePulseLaser : SmallPulseLaser
@@ -266,6 +274,7 @@ class LargePulseLaser : SmallPulseLaser
 		fireSound = "Laser/Large";
 		laserType = "MechPulseLaser";
 		laserColor = "Blue";
+		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
 	}
 }
@@ -295,6 +304,7 @@ class SRM2 : MechWeapon
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM2";
 		damagable = true;
+		sndItemName = "Betty/Item/SRM";
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -394,6 +404,7 @@ class SRM4 : SRM2
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM4";
+		sndItemName = "Betty/Item/SRM";
 		damagable = true;
 	}
 }
@@ -419,6 +430,7 @@ class SRM6 : SRM2
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM6";
+		sndItemName = "Betty/Item/SRM";
 		damagable = true;
 	}
 }
@@ -499,6 +511,7 @@ class LRM5 : SRM2
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM5";
+		sndItemName = "Betty/Item/LRM";
 		damagable = true;
 	}
 	
@@ -530,6 +543,7 @@ class LRM10 : LRM5
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM10";
+		sndItemName = "Betty/Item/LRM";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -560,6 +574,7 @@ class LRM15 : LRM5
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM15";
+		sndItemName = "Betty/Item/LRM";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -590,6 +605,7 @@ class LRM20 : LRM5
 		projType = "MechLRM";
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM20";
+		sndItemName = "Betty/Item/LRM";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -622,6 +638,7 @@ class AC2 : MechWeapon
 		ammoType = "AC2Ammo";
 		fireSound = "Ballistic/Autocannon2";
 		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
 		spread = 0;
 		damagable = true;
 	}
@@ -721,6 +738,7 @@ class AC5 : AC2
 		ammoType = "AC5Ammo";
 		fireSound = "Ballistic/Autocannon5";
 		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -747,6 +765,7 @@ class AC10 : AC2
 		ammoType = "AC10Ammo";
 		fireSound = "Ballistic/Autocannon10";
 		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -773,6 +792,7 @@ class AC20 : AC2
 		ammoType = "AC20Ammo";
 		fireSound = "Ballistic/Autocannon20";
 		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -803,6 +823,7 @@ class MachineGun : AC2
 		ammoType = "MGAmmo";
 		fireSound = "";
 		mgunFire = "Ballistic/MachineGun";
+		sndItemName = "Betty/Item/Machinegun";
 		spread = 1.2;
 		damagable = true;
 	}
@@ -837,6 +858,7 @@ class GaussRifle : AC2
 		ammoType = "GaussAmmo";
 		fireSound = "Ballistic/GaussRifle";
 		reloadSound = "Ballistic/GaussRifle/Reload";
+		sndItemName = "Betty/Item/GaussRifle";
 		damagable = true;
 	}
 	
@@ -876,6 +898,7 @@ class PPC : AC2
 		projType = "ParticleCannon";
 		ammoType = "";
 		fireSound = "Energy/PPC";
+		sndItemName = "Betty/Item/PPC";
 		damagable = true;
 	}
 	
@@ -898,6 +921,7 @@ class ERPPC : PPC
 				
 		projType = "RangedParticleCannon";
 		fireSound = "Energy/PPC";
+		sndItemName = "Betty/Item/ERPPC";
 		damagable = true;
 	}
 }

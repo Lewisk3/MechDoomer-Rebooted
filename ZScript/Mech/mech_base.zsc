@@ -14,7 +14,7 @@
 */
 
 const UTOCM_Scaled = ((12.9 / 92.0) * 100.0);
-const UTOCM_Real = ((12.9 / 368.0) * 100.0);
+const UTOCM_Real = UTOCM_Scaled / 5.54;
 const UTOCM = UTOCM_Scaled;
 
 class DrivableMech : DrivableObject
@@ -26,6 +26,7 @@ class DrivableMech : DrivableObject
 	double moveSpeed, moveSpeedKPH;
 	double weight, maxWeight;
 	double selectedWeapon, selectedGroup; // For UI stuff.
+	double healthPerc; // Health percent taking into account all hardpoints.
 	int mechbayID; // Used for saving mechs to mechbays.
 	bool noItemSlots; // If true, prevents any items from being equipped.
 	
@@ -156,7 +157,7 @@ class DrivableMech : DrivableObject
 		SetupItems();
 			
 		// Autoscale
-		A_SetScale(Scale.X * getAutoFitScale()); 
+		A_SetScale(Scale.X * getAutoFitScale() * sv_mdr_mechscale); 
 	}
 	
 	virtual string getHardpointTypeName(MechHardpoint hp)
@@ -383,12 +384,12 @@ class DrivableMech : DrivableObject
 		return MechHardpoint(AddPart(part, fw,lr,ud, parent));
 	}
 	
-	clearscope virtual void getHardpoints(out Array<MechHardpoint> hardpoints)
+	clearscope virtual void getHardpoints(out Array<MechHardpoint> hardpoints, bool skipDestroyed = true)
 	{
 		for(int i = 0; i < parts.Size(); i++)
 		{	
 			let hardpoint = MechHardpoint(parts[i]);
-			if(!hardpoint || hardpoint.healthPoints <= 0) continue;
+			if( !hardpoint || (hardpoint.healthPoints <= 0 && skipDestroyed) ) continue;
 			
 			hardpoints.Push(hardpoint);
 		}
@@ -433,6 +434,22 @@ class DrivableMech : DrivableObject
 		if(from ==   rightLeg) return rightTorso;
 		
 		return NULL;
+	}
+	
+	virtual double getHealthyPercent()
+	{
+		Array<MechHardpoint> hardpoints;
+		getHardpoints(hardpoints, skipDestroyed:false);
+		
+		double maxHP;
+		double curHP;
+		foreach(hp : hardpoints)
+		{
+			maxHP += hp.maxHP;
+			curHP += hp.healthPoints;
+		}
+		
+		return curHP / maxHP;
 	}
 		
 	override void SetupParts()
@@ -780,6 +797,12 @@ class DrivableMech : DrivableObject
 			if(overrideShutdown) betty.Push("Betty/Shutdown/Override");
 		}
 		
+		// Damage notification(s)
+		double curHealthPerc = getHealthyPercent();
+		if(curHealthPerc <= 0.35 && healthPerc > 0.35)
+			betty.Push("Betty/DamageCritical");
+		healthPerc = getHealthyPercent();
+		
 		// Movement code.
 		if(shutdown) return;
 		
@@ -787,7 +810,7 @@ class DrivableMech : DrivableObject
 		if(engine) 
 		{
 			moveSpeedKPH = engine.getKPH(self);
-			moveSpeed = MechEngine.getKPHSpeed(moveSpeedKPH);
+			moveSpeed = MechEngine.getMechKPHSpeed(moveSpeedKPH);
 		}
 		else
 			moveSpeed = moveSpeedKPH = 0;

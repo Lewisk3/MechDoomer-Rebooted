@@ -182,19 +182,6 @@ class DrivablesMath Abstract
 		return ( ((two.x-one.x)**2) + ((two.y-one.y)**2) ); 
 	}
 
-	// Thanks to: Boondorl for the math here! 
-	static vector3 DiffToLocal(vector3 one, vector3 two, vector2 angles)
-	{
-		vector3 forward = (Actor.AngleToVector(angles.x, cos(angles.y)), -sin(angles.y));
-		vector3 right   = (Actor.AngleToVector(angles.x-90),0);
-		vector3 up      = (Actor.AngleToVector(angles.x, cos(angles.y-90)), -sin(angles.y-90));
-		
-		vector3 diff = level.Vec3Diff(two, one);
-		vector3 rel  = (diff dot forward, diff dot right, diff dot up);
-	
-		return rel;
-	}
-	
 	static vector3 getAxes(double angle, double pitch, double roll)
 	{
 		return V3Offset(angle, pitch, roll, 1.0,0,0);
@@ -275,6 +262,17 @@ class DrivablesMath Abstract
 			atan2(diff.z, sqrt((diff.x*diff.x) + (diff.y*diff.y))),
 			getDist ? diff.Length() : 0 // Saves on performance.
 		);
+	}
+	
+	clearscope static vector3 DiffToLocal(vector3 base, vector3 offs, double a, double p, double r)
+	{
+		let dir = Quat.FromAngles(a,p,r);
+		vector3 diff = level.vec3diff(offs, base);
+		vector3 fw = dir * (1,0,0);
+		vector3 lr = dir * (0,1,0);
+		vector3 ud = dir * (0,0,1);
+		
+		return (diff dot fw, diff dot lr, diff dot ud);
 	}
 	
 	/* Summary:
