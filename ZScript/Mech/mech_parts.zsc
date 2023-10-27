@@ -93,6 +93,7 @@ class HardpointMount : Object
 class MechHardpoint : MechPart
 {
 	bool hasRearArmor;
+	bool immuneToExplosions;
 	double healthPoints, maxHP;
 	double armorPoints, rearArmor, maxArmor, maxRearArmor;
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
@@ -123,6 +124,7 @@ class MechHardpoint : MechPart
 	
 	class<MechExplosion> explosionType;
 	Property ExplosionType : explosionType;
+	Property ImmuneToExplosions : immuneToExplosions;
 	
 	// Hardpoint damage scalar.
 	const DMGSCALE = 0.05; // 0.025
@@ -139,6 +141,7 @@ class MechHardpoint : MechPart
 		MechHardpoint.SetupArmor 24, 0;
 		MechHardpoint.RearArmor false;
 		MechHardpoint.ExplosionType "HardpointExplosion";
+		MechHardpoint.ImmuneToExplosions false;
 	}
 	
 	virtual void SetupMounts()
@@ -327,7 +330,11 @@ class MechHardpoint : MechPart
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
 		double trueDamage = double(damage) * DMGSCALE;
-		if(flags & DMG_EXPLOSION) trueDamage *= 0.25;
+		if( (flags & DMG_EXPLOSION) )
+		{
+			trueDamage *= 0.25;
+			if(immuneToExplosions) return 0;
+		}
 		
 		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
 		
@@ -679,8 +686,7 @@ class MechLegs : MechPart
 			prevSpd = spd;
 		}
 		
-		let torso = MechTorso(mech.torso);
-		bInvisible = torso && torso.healthPoints <= 0;
+		bInvisible = (mech.leftLeg && mech.leftLeg.healthPoints <= 0) && (mech.rightLeg && mech.rightLeg.healthPoints <= 0);
 	}
 
 	States
@@ -748,7 +754,7 @@ class MechTorso : MechHardpoint
 		MechHardpoint.UIGraphics "paperdoll_CT.png", "paperdoll_SK_CT.png";
 		MechHardpoint.ExplosionType "ReactorExplosion";
 	}
-	
+		
 	override void OnAttach()
 	{
 		super.OnAttach();
@@ -828,7 +834,7 @@ class MechSideTorso : MechHardpoint
 	{
 		MechHardpoint.Slots 12;
 	}
-	
+		
 	override void UpdateAngles()
 	{
 		super.UpdateAngles();
@@ -860,6 +866,13 @@ class MechCockpit : MechHardpoint
 		Height 1;
 		MechHardpoint.Slots 6;
 		MechHardpoint.UIGraphics "paperdoll_HD.png", "paperdoll_SK_HD.png";
+		MechHardpoint.ImmuneToExplosions true;
+	}
+	
+	override void DestroyHardpoint()
+	{
+		super.DestroyHardpoint();
+		if(mech.driver) mech.driver.DamageMobJ(self, self, int.max, 'CockpitExplosion', DMG_NO_ARMOR|DMG_NO_PROTECT );
 	}
 		
 	override void OnAttach()

@@ -79,6 +79,7 @@ class DrivableMech : DrivableObject
 	Property VariantName : mechVariantName;
 	Property HUD_Class : HUDType;
 	
+	
 	enum MechBtns
 	{
 		BT_GROUPNEXT  = 1 << 0,
@@ -707,6 +708,9 @@ class DrivableMech : DrivableObject
 	
 	override void OnDrive()
 	{	
+		// Don't do anything if the driver is dead.
+		if(driver && driver.health <= 0 || driver.bCORPSE) return;
+	
 		super.OnDrive();
 		
 		if(DriverBtns.Get(BT_RELOAD, DriverBtns.BTS_PRESSED, driver))
