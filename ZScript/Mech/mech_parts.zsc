@@ -96,6 +96,7 @@ class MechHardpoint : MechPart
 	double healthPoints, maxHP;
 	double armorPoints, rearArmor, maxArmor, maxRearArmor;
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
+	int heatDamageTics; // Timer for heat damage on items
 	
 	// Determines which hardpoints take the most damage while overheated.
 	double localHeat;
@@ -120,6 +121,9 @@ class MechHardpoint : MechPart
 	
 	Property UIGraphics : paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	
+	class<MechExplosion> explosionType;
+	Property ExplosionType : explosionType;
+	
 	// Hardpoint damage scalar.
 	const DMGSCALE = 0.05; // 0.025
 	
@@ -134,6 +138,7 @@ class MechHardpoint : MechPart
 		MechHardpoint.Vitals 24, 12;
 		MechHardpoint.SetupArmor 24, 0;
 		MechHardpoint.RearArmor false;
+		MechHardpoint.ExplosionType "HardpointExplosion";
 	}
 	
 	virtual void SetupMounts()
@@ -268,15 +273,27 @@ class MechHardpoint : MechPart
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.
-		if( skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0) && items.Size() > 0 )
+		int toHit = random[ItmeHitChance](0,20) >= 15;
+		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
+		
+		if(items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
-			bool criticalHit = random[HardpointCrit](0,TICRATE * 100) <= 10;
+			bool criticalHit = random[HardpointCrit](0,100) <= 2; // 2 percent chance of crit.
+			
 			double itemDmg = (criticalHit ? 100 : hpDmg);
-			int itemToDamage = random[DamageItemIndex](0, items.Size()-1);
+			Array<MechItem> itemList;
+			foreach(itm : items)
+			{
+				for(int i = 0; i < itm.size; i++)
+					itemList.Push(itm);
+			}
+			
+			int itemToDamage = random[DamageItemIndex](0, itemList.Size()-1);
+			heatDamageTics = 0;
 			
 			if(itemToDamage >= 0)
 			{
-				let dmgItem = items[itemToDamage];
+				let dmgItem = itemList[itemToDamage];
 				dmgItem.OnDamaged(itemDmg);
 							
 				if(criticalHit && dmgItem.damagable)
@@ -288,6 +305,23 @@ class MechHardpoint : MechPart
 		}
 		
 		healthPoints -= hpDmg;
+		if(healthPoints <= 0) DestroyHardpoint();
+
+	}
+	
+	virtual void DestroyHardpoint()
+	{
+		healthPoints = 0;
+		if(explosionType)
+		{
+			let exp = Spawn(explosionType, pos);
+			if(exp) 
+			{
+				exp.angle = frandom[EXPLSRNG](0,360);
+				exp.pitch = frandom[EXPLSRNG](-30,30);
+				exp.target = self;	
+			}
+		}
 	}
 	
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
@@ -456,6 +490,13 @@ class MechHardpoint : MechPart
 			
 		// Heat is 0 minimum.
 		localheat = max(0, localheat);
+		
+		let hardpointParent = MechHardpoint(parent);
+		if(hardpointParent && hardpointParent.healthPoints <= 0 && healthPoints > 0)
+		{
+			healthPoints = 0;
+			DamageHardpoint("Collateral", 999, skipArmor:true);
+		}
 	}
 	
 	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false)
@@ -554,6 +595,14 @@ class MechLeg : MechHardpoint
 		MechHardpoint.Slots 6;
 	}
 	
+	override void Tick()
+	{
+		super.Tick();
+		
+		let torso = MechTorso(mech.torso);
+		if(torso.healthPoints <= 0 && healthPoints > 0) DestroyHardpoint();
+	}
+	
 	override void OnAttach()
 	{
 		super.OnAttach();
@@ -629,6 +678,9 @@ class MechLegs : MechPart
 			A_StartSound("Legs/Decel", CHAN_BODY, CHANF_OVERLAP);
 			prevSpd = spd;
 		}
+		
+		let torso = MechTorso(mech.torso);
+		bInvisible = torso && torso.healthPoints <= 0;
 	}
 
 	States
@@ -653,6 +705,14 @@ class MechLegs : MechPart
 
 class MechHips : MechPart
 {
+	override void Tick()
+	{
+		super.Tick();
+		
+		let torso = MechTorso(mech.torso);
+		bInvisible = torso && torso.healthPoints <= 0;
+	}
+
 	override void UpdateAngles()
 	{
 		// Do not update to parent angles.
@@ -661,8 +721,7 @@ class MechHips : MechPart
 	
 	override void DriverUpdate(Actor driver)
 	{
-		if(!mech) return;
-		
+		if(!mech) return;		
 		let torso = MechTorso(mech.torso);
 		A_SetPitch(torso.pitch + (torso.roll * torso.turnDir), SPF_INTERPOLATE);
 	}
@@ -687,6 +746,7 @@ class MechTorso : MechHardpoint
 		MechTorso.PitchRange 40, 40;
 		MechHardpoint.Slots 12;
 		MechHardpoint.UIGraphics "paperdoll_CT.png", "paperdoll_SK_CT.png";
+		MechHardpoint.ExplosionType "ReactorExplosion";
 	}
 	
 	override void OnAttach()
@@ -851,9 +911,21 @@ class MechArm : MechHardpoint
 		if(aimMax > 0) AddItem("MechLowerArmActuator");
 	}
 		
+	virtual void ClampAngles(out double a, out double p)
+	{
+		let torso = MechTorso(mech.torso);
+		if(!torso) return;
+		
+		DrivablesMath.ClampAngles(a, torso.angle, aimMax);
+		p = clamp(p, -(pitchMin+torso.pitchMin), pitchMax+torso.pitchMax);
+	}
+		
 	override void UpdateAngles()
 	{
-		A_SetRoll(parent.roll, SPF_INTERPOLATE);
+		let torso = MechTorso(mech.torso);
+		if(!torso) return;
+		
+		A_SetRoll(mech.torso.roll, SPF_INTERPOLATE);
 		if( !mech.driver || mountPoints.Size() <= 0 ) return;
 		
 		vector3 aimingPos = mech.aimingPos; 
@@ -862,17 +934,20 @@ class MechArm : MechHardpoint
 		vector3 shootPos = mountPoints[0].getPos(true);	
 		
 		vector2 aimAngles = (mech.driver.angle, mech.driver.pitch);
-		if(mech.torsoLock) aimAngles = (mech.torso.angle, mech.torso.pitch);
+		if(mech.torsoLock) aimAngles = (torso.angle, torso.pitch);
 		vector3 sphere = level.SphericalCoords(shootPos, aimingPos, (angle, pitch));
 	
 		aimAngles -= sphere.xy;
+		ClampAngles(aimAngles.x, aimAngles.y);
 		
-		DrivablesMath.ClampAngles(aimAngles.x, parent.angle, aimMax);
 		lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
 	}
 	
 	override void DriverUpdate(Actor driver)
 	{
+		let torso = MechTorso(mech.torso);
+		if(!torso) return;
+		
 		if(!mech.torsoLock)
 		{
 			DrivablesMath.AngleSlerp(angle, driver.angle, aimMax);
@@ -880,14 +955,12 @@ class MechArm : MechHardpoint
 		}
 		else
 		{
-			A_SetAngle(parent.angle, SPF_INTERPOLATE);
-			A_SetPitch(parent.pitch + pitchOffs, SPF_INTERPOLATE);
+			A_SetAngle(torso.angle, SPF_INTERPOLATE);
+			A_SetPitch(torso.pitch + pitchOffs, SPF_INTERPOLATE);
 		}
 				
 		// Angle ranges
-		DrivablesMath.ClampAngles(angle, parent.angle, aimMax);
-		let torso = MechTorso(parent);
-		if(torso) pitch = clamp(pitch, -pitchMin-torso.pitchMin, pitchMax+torso.pitchMax);
+		ClampAngles(angle, pitch);
 		
 		pitchOffs *= 0.9;
 	}

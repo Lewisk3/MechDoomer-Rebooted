@@ -20,6 +20,12 @@ Betty/Targetting "Sounds/Betty/targetting.wav"
 Betty/Shutdown/Override "Sounds/Betty/shutdown_override.wav"
 // Betty/ItemDestroyed/Type
 
+// Mech explosions
+Mech/Explosion/Hardpoint1 "Sounds/Mech/hardpoint_explosion1.wav";
+Mech/Explosion/Hardpoint2 "Sounds/Mech/hardpoint_explosion2.wav";
+Mech/Explosion/Hardpoint3 "Sounds/Mech/hardpoint_explosion3.wav";
+$random Mech/Explosion/Hardpoint { Mech/Explosion/Hardpoint1 Mech/Explosion/Hardpoint2 Mech/Explosion/Hardpoint3 }
+
 // Ambient mech sounds
 Torso/Twist     "Sounds/Ambient/torso_twist.wav"
 Engine/Idle		"Sounds/Ambient/engine_idle.wav"

@@ -269,6 +269,12 @@ class DrivableMech : DrivableObject
 	
 	override void TakePilot(Actor user)
 	{
+		if(head && head.healthPoints <= 0)
+		{
+			console.printf("\c[Red]Mech's cockpit was destroyed!");
+			return;
+		}
+		
 		super.TakePilot(user);
 		driverOffset.z = 60 * Scale.X;
 		driver.A_SetScale(0,0);

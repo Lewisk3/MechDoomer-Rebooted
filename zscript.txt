@@ -30,6 +30,7 @@ version "4.10.0"
 // Mech Basics
 #include "ZScript/Mech/mech_base.zsc"
 #include "ZScript/Mech/mech_parts.zsc"
+#include "ZScript/Mech/mech_explosions.zsc"
 
 // Lightning Effects
 #include "ZScript/Lightning/lightning_base.zsc"

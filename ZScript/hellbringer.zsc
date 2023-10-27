@@ -25,8 +25,8 @@ class MechHellbringer : DrivableMech
 		leftLeg = AddHardpoint("Hellbringer_LeftLeg",  0,-14,0, legs);
 		rightLeg = AddHardpoint("Hellbringer_RightLeg", 0, 14,0, legs);
 			
-		leftArm  = AddHardpoint("Hellbringer_LeftArm",  -5,-25,30, torso);
-		rightArm = AddHardpoint("Hellbringer_RightArm", -5, 25,30, torso);
+		leftArm  = AddHardpoint("Hellbringer_LeftArm",  -5,-5,30, leftTorso);
+		rightArm = AddHardpoint("Hellbringer_RightArm", -5, 5,30, rightTorso);
 		
 		head = AddHardpoint("Hellbringer_Cockpit", 15,0,30, torso);
 		cam  = AddPart("CockpitCamera", 0,0,4, head);

@@ -1,0 +1,93 @@
+class MechExplosion : EffectsActor
+{
+	DrivableMech mech;
+
+	Sound explosionSound;
+	Property ExplodeSound : explosionSound;
+	
+	Default
+	{
+		RenderStyle "Add";
+		+BRIGHT;
+		+ROLLSPRITE;
+	}
+	
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		if(!target) return;
+		A_SetScale(scale.X * frandom[EXPLSRNG](0.5,1.25));
+		A_SetRoll(roll + frandom[EXPLSRNG](0,360));
+		
+		mech = DrivableMech(target);
+	}
+	
+	virtual void DoDebris()
+	{
+		// Debris spawn here
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 0;
+			TNT1 A 0 
+			{
+				A_SetScale(target ? Scale.X * target.scale.X : Scale.X);
+				A_StartSound(explosionSound, CHAN_AUTO, CHANF_OVERLAP);
+				return ResolveState("Explosion");
+			}
+		stop;
+		
+		Explosion:
+			TNT1 A 1; // Explosion stuff here
+		stop;
+	}
+}
+
+
+class HardpointExplosion : MechExplosion
+{
+	Default
+	{
+		MechExplosion.ExplodeSound "Mech/Explosion/Hardpoint";
+	}
+
+	override void DoDebris()
+	{
+		EffectsHelper.SpawnFX("AutocannonExplosion", 10, pos, (angle+180, -pitch, roll), 4, (20,20,20), (20,20,20), 6);
+		EffectsHelper.SpawnFX("MissileEmber", 20, pos, (angle+180, -pitch, roll), 10, (5,5,5), (60,30,0), 4);
+	}
+
+	States
+	{
+		Explosion:
+			TNT1 A 0 DoDebris();
+			FX58 ABCDEFGHIJKLMNOP 2;
+			FX58 Q 1 A_Fadeout(0.1);
+		wait;
+	}
+}
+
+class ReactorExplosion : MechExplosion
+{
+	Default
+	{
+		MechExplosion.ExplodeSound "Mech/Explosion/Reactor";
+	}
+
+	override void DoDebris()
+	{
+		EffectsHelper.SpawnFX("AutocannonExplosion", 10, pos, (angle+180, -pitch, roll), 4, (20,20,20), (20,20,20), 6);
+		EffectsHelper.SpawnFX("MissileEmber", 20, pos, (angle+180, -pitch, roll), 10, (5,5,5), (60,30,0), 4);
+	}
+
+	States
+	{
+		Explosion:
+			TNT1 A 0 DoDebris();
+			FX58 ABCDEFGHIJKLMNOP 2;
+			FX58 Q 1 A_Fadeout(0.1);
+		wait;
+	}
+}
