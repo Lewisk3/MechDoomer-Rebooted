@@ -1,0 +1,126 @@
+
+class SRMAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "SRM Ammo";
+		maxAmmo = 120;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 2;
+		
+		SetupAmmo();
+	}
+}
+class SSRMAmmo : SRMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "SSRM Ammo";
+	}
+}
+
+class LRMAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "LRM Ammo";
+		maxAmmo = 240;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 1;
+		
+		SetupAmmo();
+	}
+}
+
+class AC2Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/2 Ammo";
+		maxAmmo = 50;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 2;
+		
+		SetupAmmo();
+	}
+}
+class AC5Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/5 Ammo";
+		maxAmmo = 25;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 5;
+		
+		SetupAmmo();
+	}
+}
+class AC10Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/10 Ammo";
+		maxAmmo = 10;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 10;
+		
+		SetupAmmo();
+	}
+}
+class AC20Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AC/20 Ammo";
+		maxAmmo = 5;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 20;
+		
+		SetupAmmo();
+	}
+}
+
+class MGAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "MACHINEGUN AMMO";
+		maxAmmo = 1000;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0.04;
+		
+		SetupAmmo();
+	}
+}
+
+class GaussAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Gauss Ammo";
+		maxAmmo = 8;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0;
+		
+		SetupAmmo();
+	}
+}
+

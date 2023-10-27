@@ -1,5 +1,6 @@
 class MechProjectile : FastProjectile
 {
+	DrivableMech mech;
 	vector3 spawnPos;
 	double speedKPH;
 	double curDist, minRange, maxRange;
@@ -77,6 +78,10 @@ class MechProjectile : FastProjectile
 		pitch -= firePitch;
 		if(speedKPH > 0) A_SetSpeed(GetSpeedFromKPH(speedKPH)); 
 		UpdateVelocity();
+		
+		// Get parent mech
+		let hardpointParent = MechHardpoint(target);
+		if(hardpointParent) mech = hardpointParent.mech;
 	}
 	
 	virtual void UpdateVelocity()

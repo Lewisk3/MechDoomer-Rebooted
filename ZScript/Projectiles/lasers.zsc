@@ -136,4 +136,11 @@ class MechLaserCore : MechLaser
 		MechLaserBeam.LaserColor "White";
 	}
 }
-	
+
+class MechPulseLaser : MechLaser
+{
+	Default
+	{
+		MechLaser.FiringSound "Laser/Loop", "PulseLaser/Impact";
+	}
+}

@@ -1,4 +1,3 @@
-
 // Lasers
 class SmallLaser : MechWeapon
 {
@@ -83,12 +82,20 @@ class SmallLaser : MechWeapon
 		}
 	}
 }
-
-class MechPulseLaser : MechLaser
+class ERSmallLaser : SmallLaser
 {
-	Default
-	{
-		MechLaser.FiringSound "Laser/Loop", "PulseLaser/Impact";
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "ERSMALLLASER";
+		mountType = "Energy";
+				
+		range = 200; // Damage dropoff
+		laserRange = 400; // Maximum laser range.
+		laserHeat = convertHeat(1.90, fireTime); // Laserbeam heat.
+		energyUse = 0.4 / double(fireTime);
+		
+		laserColor = "Yellow";
 	}
 }
 class SmallPulseLaser : SmallLaser
@@ -146,14 +153,29 @@ class MediumLaser : SmallLaser
 		laserRange = 540; // Meters
 		range = 270;
 		damage = convertDMG(5.0, fireTime);
-		laserHeat = convertHeat(3.40, fireTime); // Laserbeam heat.
-		energyUse = 0.025;
-		energyUse = 0.6 / double(fireTime);
+		laserHeat = convertHeat(3.25, fireTime); // Laserbeam heat.
+		energyUse = 0.5 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechLaser";
 		laserColor = "Green";
 		damagable = true;
+	}
+}
+class ERMediumLaser : MediumLaser
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "ERMEDIUMLASER";
+
+		laserRange = 720; // Meters
+		range = 360; 
+	
+		laserHeat = convertHeat(3.80, fireTime); // Laserbeam heat.
+		energyUse = 0.6 / double(fireTime);
+		
+		laserColor = "Cyan";
 	}
 }
 class MediumPulseLaser : SmallPulseLaser
@@ -198,12 +220,27 @@ class LargeLaser : SmallLaser
 		range = 450;
 		damage = convertDMG(9.0, fireTime);
 		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
-		energyUse = 0.8 / double(fireTime);
+		energyUse = 0.7 / double(fireTime);
 		
 		fireSound = "Laser/Large";
 		laserType = "MechLaser";
 		laserColor = "Blue";
 		damagable = true;
+	}
+}
+class ERLargeLaser : LargeLaser
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "ERLARGELASER";
+	
+		laserRange = 1480; // Meters
+		range = 740;
+		laserHeat = convertHeat(7.5, fireTime); // Laserbeam heat.
+		energyUse = 0.8 / double(fireTime);
+		
+		laserColor = "Purple";
 	}
 }
 class LargePulseLaser : SmallPulseLaser
@@ -565,6 +602,10 @@ class LRM20 : LRM5
 // Ballistics
 class AC2 : MechWeapon
 {
+	bool justFired;
+	Sound reloadSound;
+	double spread;
+
 	override void Defaults()
 	{	
 		DisplayName = "AC/2";
@@ -580,6 +621,8 @@ class AC2 : MechWeapon
 		projType = "Autocannon2";
 		ammoType = "AC2Ammo";
 		fireSound = "Ballistic/Autocannon2";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		spread = 0;
 		damagable = true;
 	}
 	
@@ -621,21 +664,41 @@ class AC2 : MechWeapon
 		statValue.Push(" ");
 		statName.Push("DPS");
 		statValue.Push(String.Format("%.2f", projDefs.trueDamage * (1.0 / cooldownSeconds) ));
-		statName.Push("HPS");
-		statValue.Push(String.Format("%.2f", heat / cooldownSeconds));
-		statName.Push("DPH");
-		statValue.Push(String.Format("%d", projDefs.trueDamage / heat));
+		
+		if(heat > 0)
+		{
+			statName.Push("HPS");
+			statValue.Push(String.Format("%.2f", heat / cooldownSeconds));
+			statName.Push("DPH");
+			statValue.Push(String.Format("%d", projDefs.trueDamage / heat));
+		}
 	}
 	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if( justFired && (cooldown <= S_GetLength(reloadSound) * 36.0) && checkAmmo() >= ammoUse )
+		{
+			// If we've just fired and fireTime has ended, play reload sound.
+			parent.A_StartSound(reloadSound, CHAN_BODY, CHANF_OVERLAP);
+			justFired = false;
+		}
+	}
 	
 	override bool Fire(vector3 firePos)
 	{
+		vector2 projSpread = (
+			frandom[BallisticSpread](-spread, spread),
+			frandom[BallisticSpread](-spread, spread)
+		) * parent.scale.X;
+	
 		WeapSound(fireSound);
-		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true);
+		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
 		proj.master = mech.driver;
 
 		modifyHeat(heat);
 		depleteAmmo(ammoUse);
+		justFired = true;
 		
 		return true;
 	}
@@ -657,6 +720,7 @@ class AC5 : AC2
 		projType = "Autocannon5";
 		ammoType = "AC5Ammo";
 		fireSound = "Ballistic/Autocannon5";
+		reloadSound = "Ballistic/Autocannon/Reload";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -682,6 +746,7 @@ class AC10 : AC2
 		projType = "Autocannon10";
 		ammoType = "AC10Ammo";
 		fireSound = "Ballistic/Autocannon10";
+		reloadSound = "Ballistic/Autocannon/Reload";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -707,6 +772,7 @@ class AC20 : AC2
 		projType = "Autocannon20";
 		ammoType = "AC20Ammo";
 		fireSound = "Ballistic/Autocannon20";
+		reloadSound = "Ballistic/Autocannon/Reload";
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -716,10 +782,44 @@ class AC20 : AC2
 	}
 }
 
+class MachineGun : AC2
+{
+	Sound mgunFire;
+	int fireCounter;
+
+	override void Defaults()
+	{	
+		DisplayName = "MACHINEGUN";
+		mountType = "Ballistic";
+		heat = 0;
+		weight = 0.5;
+		size = 1.0;
+		
+		ammoUse = 1;
+		fireTime     = 1;
+		cooldownTime = 1;
+		
+		projType = "MGBullet";
+		ammoType = "MGAmmo";
+		fireSound = "";
+		mgunFire = "Ballistic/MachineGun";
+		spread = 1.2;
+		damagable = true;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		if(fireCounter++ >= 1)
+		{
+			WeapSound(mgunFire, 0.5, randomPitch:true);
+			fireCounter = 0;
+		}
+		return super.Fire(firePos);
+	} 
+}
+
 class GaussRifle : AC2
 {
-	bool justFired;
-
 	override void Defaults()
 	{	
 		DisplayName = "GAUSS RIFLE";
@@ -736,25 +836,14 @@ class GaussRifle : AC2
 		projType = "GaussCannon";
 		ammoType = "GaussAmmo";
 		fireSound = "Ballistic/GaussRifle";
+		reloadSound = "Ballistic/GaussRifle/Reload";
 		damagable = true;
 	}
 	
 	override bool Fire(vector3 firePos)
 	{
 		A_Recoil(-5, 6);
-		justFired = true;
 		return super.Fire(firePos);
-	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		if( justFired && (cooldown <= TICRATE) && checkAmmo() >= ammoUse )
-		{
-			// If we've just fired and fireTime has ended, play reload sound.
-			parent.A_StartSound("Ballistic/GaussRifle/Reload", CHAN_BODY, CHANF_OVERLAP);
-			justFired = false;
-		}
 	}
 	
 	override void OnDestroyed()

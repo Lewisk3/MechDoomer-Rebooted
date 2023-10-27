@@ -69,7 +69,7 @@ class EffectsHelper Abstract
 		double a = shooter.angle + angleoffs;
 		double p = shooter.pitch + pitchoffs;
 		double r = shooter.roll;
-		let dir = Quat.FromAngles(a, p, r);
+		let dir = Quat.FromAngles(shooter.angle, shooter.pitch, shooter.roll);
 		vector3 offsetPos = dir * (forward, -leftright, updown);
 		
 		vector3 shooterPos = (shooter.pos.xy, shooter.pos.z + shooter.height * 0.5);
@@ -80,10 +80,10 @@ class EffectsHelper Abstract
 		if(crosshairConverge)
 		{
 			FLineTraceData lt;
-			vector3 aimAngles = level.SphericalCoords(offsetPos, aimTo, (a, p));
+			vector3 aimAngles = level.SphericalCoords(offsetPos, aimTo, (a,p));
 			
-			a -= aimAngles.x;
-			p -= aimAngles.y;
+			a -= aimAngles.x + angleoffs;
+			p -= aimAngles.y + pitchoffs;
 		}
 		
 		dir = Quat.FromAngles(a, p, r);

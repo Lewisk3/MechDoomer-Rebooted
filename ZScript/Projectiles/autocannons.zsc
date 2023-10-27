@@ -1,12 +1,18 @@
 class MechAutocannon : MechProjectile
 {
 	bool overlay;
+	bool generateOverlay;
+	bool doSmoke;
 	double overlayHeat;
 	Actor velSource; // Follows this actor's velocity.
+	Property CreateOverlay : generateOverlay;
+	Property SmokeTrail : doSmoke;
 
 	Default
 	{
 		MechProjectile.ImpactSound "Generic/Impact";
+		MechAutocannon.CreateOverlay true;
+		MechAutocannon.SmokeTrail true;
 	}
 
 	override void Tick()
@@ -34,10 +40,13 @@ class MechAutocannon : MechProjectile
 		let muzzleFlash = SpawnEffect("AutocannonMuzzleFlash", pos);
 		
 		// Scale muzzle flash depending on damage.
-		if(muzzleFlash) muzzleFlash.A_SetScale(muzzleFlash.Scale.X * min(1, max(0.25,trueDamage / 20.0)));
+		if(muzzleFlash) 
+		{
+			muzzleFlash.A_SetScale(muzzleFlash.Scale.X * min(1, max(0.25,trueDamage / 20.0)));
+			if(mech) muzzleFlash.vel = mech.vel;
+		}
 		
-		
-		if(overlay) return; // Do not produce an infinite recursion loop.
+		if(overlay || !generateOverlay) return; // Do not produce an infinite recursion loop.
 		let projheat = MechAutocannon(Spawn(getClass(), pos));
 		if(projheat) 
 		{
@@ -64,7 +73,7 @@ class MechAutocannon : MechProjectile
 		super.HandleRanges();
 		
 		double launchSpeed = getBaseSpeed();
-		if(curDist < 120)
+		if(curDist < 120 && doSmoke)
 		{
 			for(int i = 0; i < 2; i++)
 			{
@@ -307,11 +316,97 @@ class AutocannonExplosion : EffectsActor
 
 class AutocannonMuzzleFlash : AutocannonExplosion
 {
+	Default
+	{
+		Scale 1.5;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		SetOrigin(level.vec3offset(pos, vel), true);
+	}
+
 	States
 	{
 		Explosion:
 			FX58 ABCDEFGHIJKLMNOP 1;
 			FX58 Q 1 A_FadeOut(0.35);
 		wait;
+	}
+}
+
+// Machine gun
+class MGBullet : MechAutocannon
+{
+	Default
+	{	
+		Radius 1;
+		Height 1;
+		Scale 0.2;
+		MechProjectile.Dmg 0.04 / MechHardpoint.DMGSCALE; // Roughly 1 damage a second.
+		MechProjectile.Ranges 0, 100;
+		MechProjectile.SpeedKPH 1200;
+		MechProjectile.ImpactSound "MGun/Impact";
+		MechAutocannon.CreateOverlay false;
+		MechAutocannon.SmokeTrail false;
+	}
+		
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		let flash = SpawnEffect("MGMuzzleFlash", pos);
+		if(flash && mech) 
+		{
+			flash.angle = angle;
+			flash.pitch = pitch;
+			flash.vel = mech.vel;
+		}
+		
+		double unitRange = DrivableMech.MetersToUnits(maxRange);
+		vector3 finalPos = level.vec3offset(pos, Quat.FromAngles(angle, pitch, 0) * (unitRange,0,0));
+		let beam = RailgunBeam.Start(0xFF7F7F7F, pos, level.vec3offset(pos, finalPos), (angle,pitch), 0.15, 1.0); 
+		if(beam && mech) beam.vel = mech.vel;
+	}	
+	
+	override void HandleRanges()
+	{
+		super.HandleRanges();
+		if(curDist >= maxRange) Destroy();
+	}
+
+	override void DoDebris()
+	{
+		if(!bMISSILE) return;
+		SpawnEffect("AutocannonExplosion", pos);
+	}
+
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}
+
+class MGMuzzleFlash : AutocannonMuzzleFlash
+{ 
+	Default
+	{
+		Scale 10.0;
+	}
+
+	override void PostBeginPlay()
+	{
+		super.postBeginPlay();
+		A_SetAngle(angle + frandom[MGFX](-3,3));
+		A_SetScale(Scale.X * frandom[MGFX](0.8,1.1));
+	}
+	
+	States
+	{
+		Explosion:
+			MODL A 2 BRIGHT;
+		stop;
 	}
 }

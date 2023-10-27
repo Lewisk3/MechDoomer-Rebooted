@@ -222,10 +222,9 @@ class RailgunBeam : EffectsActor
 			trail.alpha = alpha;
 			
 			// Face target position
-			vector3 aim = level.SphericalCoords(from, to, (angles.x, angles.y));
-			trail.dist = aim.z;
-			trail.angle = (angles.x - aim.x);
-			trail.pitch = (angles.y - aim.y) + 90;
+			trail.dist = (from - to).Length();
+			trail.angle = angles.x; 
+			trail.pitch = angles.y + 90; 
 			trail.fadespd = fadespd;
 			trail.SetShade(col);
 		}
@@ -239,6 +238,7 @@ class RailgunBeam : EffectsActor
 		
 		// Scale to dist
 		Scale.Y = dist;
+		SetOrigin(level.vec3offset(pos, vel), true);
 	}
 	
 	States

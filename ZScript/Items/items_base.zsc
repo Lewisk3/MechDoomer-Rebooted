@@ -201,10 +201,12 @@ class MechAmmo : MechItem
 {
 	int curAmmo;
 	int maxAmmo;
+	double explosionDamage;
 	
 	override void Defaults()
 	{
 		damagable = true;
+		explosionDamage = 1;
 	}
 	
 	virtual void SetupAmmo()
@@ -214,9 +216,9 @@ class MechAmmo : MechItem
 	
 	override void OnDestroyed()
 	{
-		if(curAmmo <= 0) return;
+		if(curAmmo <= 0 || !explosionDamage) return;
 		mech.betty.Push("Betty/AmmoExplosion");
-		parent.DoExplosionDamage(curAmmo);
+		parent.DoExplosionDamage(curAmmo * explosionDamage);
 		curAmmo = 0;
 	}
 	
@@ -893,9 +895,9 @@ class MechWeapon : MechItem
 		}
 	}
 	
-	virtual void WeapSound(Sound snd, double vol = 1.0)
+	virtual void WeapSound(Sound snd, double vol = 1.0, bool randomPitch = false)
 	{
-		if(parent) parent.A_StartSound(snd, CHAN_WEAPON, flags:CHANF_OVERLAP, volume:vol);
+		if(parent) parent.A_StartSound(snd, CHAN_WEAPON, flags:CHANF_OVERLAP, volume:vol, pitch:randomPitch ? frandom[SFXRNG](0.6,1.0) : 0);
 	}
 	
 	clearscope virtual int checkAmmo()

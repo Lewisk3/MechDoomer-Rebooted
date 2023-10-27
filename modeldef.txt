@@ -1,7 +1,7 @@
 // Weapons
 Model MechLaser
 {
-	Path "models/"
+	Path "models/lasers/"
 	Model 0 "beam_cyl.md3"
 	Skin 0 "beam_cyl.png"
 	USEACTORPITCH
@@ -11,7 +11,7 @@ Model MechLaser
 }
 Model MechPulseLaser
 {
-	Path "models/"
+	Path "models/lasers/"
 	Model 0 "beam_cyl.md3"
 	Skin 0 "beam_cyl.png"
 	USEACTORPITCH
@@ -22,7 +22,7 @@ Model MechPulseLaser
 
 Model MechLaserCore
 {
-	Path "models/"
+	Path "models/lasers/"
 	Model 0 "beam_cyl.md3"
 	Skin 0 "beam_cyl.png"
 	USEACTORPITCH
@@ -33,7 +33,7 @@ Model MechLaserCore
 
 Model RailgunBeam
 {
-	Path "models/"
+	Path "models/lasers/"
 	Model 0 "beam_cyl.md3"
 	Skin 0 "beam_cyl.png"
 	USEACTORPITCH
@@ -45,7 +45,7 @@ Model RailgunBeam
 // Lightning
 Model LightningPart
 {
-	Path "models/"
+	Path "models/vfx/"
 	Model 0 "lightning.md3" 
 	Skin 0 "lightning.png"
 	Scale 1.0 1.0 1.0
@@ -59,12 +59,12 @@ Model LightningPart
 // Ballistics
 Model Autocannon2
 {
-	Path "models/"
-	Model 0 "autocannon2.md3" 
-	SurfaceSkin 0 0 "missile_body.png"
-	SurfaceSkin 0 1 "c_simple.png"
-	SurfaceSkin 0 2 "missile_head.png"
-	SurfaceSkin 0 3 "c_simple.png"
+	Path "models"
+	Model 0 "ballistics/autocannon2.md3" 
+	SurfaceSkin 0 0 "missiles/missile_body.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_head.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
 	Scale 4.0 4.0 4.0
 	USEACTORPITCH
 	USEACTORROLL
@@ -74,12 +74,12 @@ Model Autocannon2
 }
 Model Autocannon5
 {
-	Path "models/"
-	Model 0 "autocannon5.md3" 
-	SurfaceSkin 0 0 "missile_body.png"
-	SurfaceSkin 0 1 "c_simple.png"
-	SurfaceSkin 0 2 "missile_head.png"
-	SurfaceSkin 0 3 "c_simple.png"
+	Path "models"
+	Model 0 "ballistics/autocannon5.md3" 
+	SurfaceSkin 0 0 "missiles/missile_body.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_head.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
 	Scale 4.0 4.0 4.0
 	USEACTORPITCH
 	USEACTORROLL
@@ -89,12 +89,12 @@ Model Autocannon5
 }
 Model Autocannon10
 {
-	Path "models/"
-	Model 0 "autocannon10.md3" 
-	SurfaceSkin 0 0 "missile_body.png"
-	SurfaceSkin 0 1 "c_simple.png"
-	SurfaceSkin 0 2 "missile_head.png"
-	SurfaceSkin 0 3 "c_simple.png"
+	Path "models"
+	Model 0 "ballistics/autocannon10.md3" 
+	SurfaceSkin 0 0 "missiles/missile_body.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_head.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
 	Scale 4.0 4.0 4.0
 	USEACTORPITCH
 	USEACTORROLL
@@ -104,12 +104,12 @@ Model Autocannon10
 }
 Model Autocannon20
 {
-	Path "models/"
-	Model 0 "autocannon20.md3" 
-	SurfaceSkin 0 0 "missile_body.png"
-	SurfaceSkin 0 1 "c_simple.png"
-	SurfaceSkin 0 2 "missile_head.png"
-	SurfaceSkin 0 3 "c_simple.png"
+	Path "models"
+	Model 0 "ballistics/autocannon20.md3" 
+	SurfaceSkin 0 0 "missiles/missile_body.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_head.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
 	Scale 4.0 4.0 4.0
 	USEACTORPITCH
 	USEACTORROLL
@@ -120,7 +120,7 @@ Model Autocannon20
 
 Model AutocannonDebris
 {
-	Path "models/"
+	Path "models/vfx/"
 	Model 0 "debris.md3" 
 	Skin 0 "c_simple.png"
 	Scale 1.0 1.0 1.0
@@ -133,7 +133,7 @@ Model AutocannonDebris
 
 Model GaussCannon
 {
-	Path "models/"
+	Path "models/ballistics/"
 	Model 0 "gauss_ball.md3" 
 	Skin 0 "gauss.png"
 	Scale 1.0 1.0 1.0
@@ -147,7 +147,7 @@ Model GaussCannon
 
 Model GaussBeam
 {
-	Path "models/"
+	Path "models/lasers/"
 	Model 0 "beam_cyl.md3"
 	Skin 0 "beam_cyl.png"
 	USEACTORPITCH
@@ -156,10 +156,40 @@ Model GaussBeam
 	FrameIndex BEAM A 0 0
 }
 
+
+Model MGBullet
+{
+	Path "models"
+	Model 0 "ballistics/autocannon2.md3" 
+	SurfaceSkin 0 0 "missiles/missile_body.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_head.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	
+	FrameIndex MODL A 0 0
+}
+Model MGMuzzleFlash 
+{
+	Path "models/muzzleflash/"
+	Model 0 "muzzleflash.obj"
+	Skin 0 "muzzleflash.png"
+	Scale 10.0 10.0 10.0
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset -90
+	
+	FrameIndex MODL A 0 0
+}
+
 // Missiles
 Model MechSRM
 {
-	Path "models/"
+	Path "models/missiles/"
 	Model 0 "missile_srm.md3"
 	SurfaceSkin 0 0 "missile_body.png"
 	SurfaceSkin 0 1 "missile_head.png"
@@ -173,7 +203,7 @@ Model MechSRM
 }
 Model MechSSRM
 {
-	Path "models/"
+	Path "models/missiles/"	
 	Model 0 "missile_srm.md3"
 	SurfaceSkin 0 0 "missile_body.png"
 	SurfaceSkin 0 1 "missile_head.png"
@@ -189,7 +219,7 @@ Model MechSSRM
 
 Model MechLRM
 {
-	Path "models/"
+	Path "models/missiles/"
 	Model 0 "missile_lrm.md3"
 	SurfaceSkin 0 0 "missile_body.png"
 	SurfaceSkin 0 1 "missile_head.png"
@@ -205,9 +235,9 @@ Model MechLRM
 // Hellbringer
 Model Hellbringer_CenterTorso
 {
-	Path "models"
-	Model 0 "hellbringer_noarms.md3"
-	SurfaceSkin 0 0 "hellbringer.png"
+	Path "models/mechs/"
+	Model 0 "hellbringer/hellbringer_noarms.md3"
+	SurfaceSkin 0 0 "hellbringer/hellbringer.png"
 	SurfaceSkin 0 1 "c_glass.png"
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
@@ -217,7 +247,7 @@ Model Hellbringer_CenterTorso
 }
 Model Hellbringer_Hips
 {
-	Path "models"
+	Path "models/mechs/hellbringer/"
 	Model 0 "hellbringer_hips.md3"
 	Skin 0 "hellbringer.png" // Main
 	Scale 1.0 1.0 1.0
@@ -228,7 +258,7 @@ Model Hellbringer_Hips
 }
 Model Hellbringer_LeftArm
 {
-	Path "models"
+	Path "models/mechs/hellbringer/"
 	Model 0 "hellbringer_leftarm.md3"
 	SurfaceSkin 0 0 "hellbringer.png"
 	Scale 1.0 1.0 1.0
@@ -239,7 +269,7 @@ Model Hellbringer_LeftArm
 }
 Model Hellbringer_RightArm
 {
-	Path "models"
+	Path "models/mechs/hellbringer/"
 	Model 0 "hellbringer_rightarm.md3"
 	SurfaceSkin 0 0 "hellbringer.png"
 	Scale 1.0 1.0 1.0
@@ -251,9 +281,9 @@ Model Hellbringer_RightArm
 Model Hellbringer_Cockpit
 {
 	Path "models"
-	Model 0 "hellbringer_head.obj"
+	Model 0 "mechs/hellbringer/hellbringer_head.obj"
 	Scale 0.04 0.04 0.04
-	Skin 0 "c_simple.png" // Main
+	Skin 0 "vfx/c_simple.png" // Main
 	USEACTORPITCH
 	USEACTORROLL 
 	DONTCULLBACKFACES
@@ -264,7 +294,7 @@ Model Hellbringer_Cockpit
 }
 Model Hellbringer_Legs
 {
-	Path "models"
+	Path "models/mechs/hellbringer/"
 	Model 0 "hellbringer_legs.md3"
 	Scale 1.0 1.0 1.0
 	Skin 0 "hellbringer.png" // Main

@@ -23,6 +23,7 @@ version "4.10.0"
 // Items
 #include "ZScript/Items/items_base.zsc"
 #include "ZScript/Items/items.zsc"
+#include "ZScript/Items/ammo.zsc"
 #include "ZScript/Items/engines.zsc"
 #include "ZScript/Items/weapons.zsc"
 
@@ -37,10 +38,10 @@ version "4.10.0"
 // Lasers
 #include "ZScript/lasers/laser_base.zsc"
 #include "ZScript/lasers/laser_fx.zsc"
-#include "ZScript/lasers/mechlasers.zsc"
 
 // Projectiles
 #include "ZScript/Projectiles/base.zsc"
+#include "ZScript/Projectiles/lasers.zsc"
 #include "ZScript/Projectiles/missiles.zsc"
 #include "ZScript/Projectiles/autocannons.zsc"
 #include "ZScript/Projectiles/gauss_rifle.zsc"
@@ -51,3 +52,4 @@ version "4.10.0"
 
 // Drivable Mechs
 #include "ZScript/hellbringer.zsc"
+

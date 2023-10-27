@@ -56,10 +56,12 @@ Ballistic/Autocannon2  "Sounds/Weapons/ac2_fire.wav"
 Ballistic/Autocannon5  "Sounds/Weapons/ac5_fire.wav"
 Ballistic/Autocannon10 "Sounds/Weapons/ac10_fire.wav"
 Ballistic/Autocannon20 "Sounds/Weapons/ac20_fire.wav"
+Ballistic/Autocannon/Reload "Sounds/Weapons/ac_reload.wav"
 
 Ballistic/GaussRifle "Sounds/Weapons/gauss_fire.wav"
 Ballistic/GaussRifle/Reload "Sounds/Weapons/gauss_reload.wav"
 Ballistic/Gauss/Impact "Sounds/Weapons/gauss_hit.wav"
+Ballistic/Machinegun "Sounds/Weapons/machinegun_fire.wav"
 
 Energy/PPC "Sounds/Weapons/ppc_fire.wav"
 Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
