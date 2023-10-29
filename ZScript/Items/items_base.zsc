@@ -20,6 +20,11 @@ class MechItem : Object
 		IAE_SUCCESS 	= 0xFF
 	};
 	
+	clearscope virtual bool isTypeOf(class<MechItem> item, bool subclass = false)
+	{	
+		return ((self is item) && subclass) || getClass() == item;;
+	}
+	
 	clearscope static MechItem Init(class<MechItem> type)
 	{
 		let item = MechItem(new(type));
@@ -169,7 +174,7 @@ class MechItem : Object
 	{
 		if(!damagable || hp <= 0) return;
 	
-		if(sndItemName && hp >= 10)
+		if( sndItemName && hp >= 10 && int(hp) < 10 )
 		{
 			mech.betty.Push(sndItemName);
 			mech.betty.Push("Betty/Item/Damaged");
@@ -226,11 +231,18 @@ class MechAmmo : MechItem
 	int curAmmo;
 	int maxAmmo;
 	double explosionDamage;
+	class<MechAmmo> baseAmmoClass;
 	
 	override void Defaults()
 	{
 		damagable = true;
 		explosionDamage = 1;
+		baseAmmoClass = "";
+	}
+	
+	override bool isTypeOf(class<MechItem> item, bool subclass)
+	{
+		return getClass() == item || baseAmmoClass == item;
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
@@ -956,7 +968,7 @@ class MechWeapon : MechItem
 	
 	play virtual void A_Recoil(double pitchAmt, double pushBack = 0)
 	{
-		if( !mech || !MechTorso(mech.torso) ) return;
+		if( !mech || !MechTorso(mech.torso) || !mount ) return;
 		
 		// If we're on an Arm and this arm has upper actuation capability, arm will compensate for recoil.
 		let arm = MechArm(mount.hardpoint);
@@ -984,8 +996,8 @@ class MechWeapon : MechItem
 	clearscope virtual int checkAmmo()
 	{
 		if(!ammoType) return int.max;
-		let am = parent.FindItem(ammoType, false);
-		if(!am) am = parent.mech.FindItem(ammoType, false);
+		let am = MechAmmo(parent.FindItem(ammoType));
+		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType));
 		return am ? MechAmmo(am).curAmmo : 0;
 	}
 	
@@ -999,8 +1011,8 @@ class MechWeapon : MechItem
 	play virtual void depleteAmmo(int amt)
 	{
 		if(!ammoType) return;
-		let am = MechAmmo(parent.FindItem(ammoType, false));
-		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType, false));
+		let am = MechAmmo(parent.FindItem(ammoType));
+		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType));
 		
 		double prevAmmoCount = mech.countAllAmmo(ammoType);
 		double criticalAmmo = ammoUse*3.0;
@@ -1009,9 +1021,15 @@ class MechWeapon : MechItem
 		double ammoCount = mech.countAllAmmo(ammoType);
 		
 		if(prevAmmoCount > 0 && ammoCount <= 0)
+		{
+			if(sndItemName) mech.betty.Push(sndItemName);
 			mech.betty.Push("Betty/Ammo/Depleted");
+		}
 		else if(prevAmmoCount > criticalAmmo && ammoCount <= criticalAmmo)
+		{
+			if(sndItemName) mech.betty.Push(sndItemName);
 			mech.betty.Push("Betty/Ammo/Critical");
+		}
 	}
 	
 	play virtual void SetGroup(uint grp, bool onoff)
@@ -1039,6 +1057,11 @@ class MechWeapon : MechItem
 		}
 		
 		return success;
+	}
+	
+	virtual vector3 getFirePos()
+	{
+		return mount.getPos();
 	}
 	
 	override void OnInventoryAdd()
@@ -1083,7 +1106,7 @@ class MechWeapon : MechItem
 					}
 					// console.printf("Firing (Chainfire): %s on %s (%d)", weap.getClassName(), weap.parent.getClassName(), curIndex);
 					
-					if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.mount.getPos()) )
+					if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.getFirePos()) )
 					{
 						// Alert monsters
 						if(weap.mech.driver)
@@ -1102,7 +1125,7 @@ class MechWeapon : MechItem
 			}
 			
 			// Fire normally
-			if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.mount.getPos()))
+			if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.getFirePos()))
 			{
 				// Alert monsters
 				if(weap.mech.driver)
@@ -1137,7 +1160,7 @@ class MechWeapon : MechItem
 		// Refire logic
 		if(--refireTimer <= 0 && refire > 0)
 		{
-			if(canFire() && Fire(mount.getPos()) )
+			if(canFire() && Fire(getFirePos()) )
 			{
 				refireTimer = refireDelay;
 				refire--;

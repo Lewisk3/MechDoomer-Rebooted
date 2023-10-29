@@ -44,11 +44,12 @@ class MechHellbringer : DrivableMech
 		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
 		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
 		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		rightTorso.AddWeapon("AMS");
 		leftTorso.AddWeapon("SSRM6", GROUPFLG_TWO);
 		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
 		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
 		
-		leftLeg.AddItem("MGAmmo");
+		leftLeg.AddItem("AMSAmmoHalf");
 		leftLeg.AddItem("MGAmmo");
 		rightLeg.AddItem("SSRMAmmo");
 		rightLeg.AddItem("SSRMAmmo");

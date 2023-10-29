@@ -428,12 +428,12 @@ class MechHardpoint : MechPart
 		}
 	}
 	
-	virtual double getHeight()
+	clearscope virtual double getHeight()
 	{
 		return max(hitboxHeight, height);
 	}
 	
-	virtual double getWidth()
+	clearscope virtual double getWidth()
 	{
 		return max(hitboxRadius, radius);
 	}
@@ -583,23 +583,18 @@ class MechHardpoint : MechPart
 	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false)
 	{	
 		if(healthPoints <= 0) return NULL;
-		for(int i = 0; i < items.Size(); i++)
-		{
-			let item = items[i];
-			if( ((item is type) && subclass) || item.getClass() == type) 
-				return item;
-		}
+		foreach(itm : items) 
+			 if(itm.isTypeOf(type, subclass)) return itm;
 		return NULL;
 	}
 	
 	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems)
 	{
 		if(healthPoints <= 0) return;
-		for(int i = 0; i < items.Size(); i++)
-		{
-			let item = items[i];
-			if( ((item is type) && subclass) || item.getClass() == type) 
-				foundItems.Push(item);
+		foreach(itm : items)
+		{	
+			if(itm.isTypeOf(type, subclass))
+				foundItems.Push(itm);
 		}
 	}
 	
@@ -610,7 +605,7 @@ class MechHardpoint : MechPart
 		for(int i = 0; i < items.Size(); i++)
 		{
 			let item = items[i];
-			if( ((item is type) && subclass) || item.getClass() == type) 
+			if( ((item is type) && subclass) || item.getClass() == type ) 
 				typeCount++;
 		}
 		return typeCount;
@@ -618,7 +613,7 @@ class MechHardpoint : MechPart
 	
 	virtual MechAmmo AddAmmo(class<MechAmmo> type, uint amt)
 	{	
-		let am = MechAmmo(FindItem(type, false));
+		let am = MechAmmo(FindItem(type));
 		if(am) 
 		{
 			am.curAmmo = min(am.maxAmmo, am.curAmmo+amt);

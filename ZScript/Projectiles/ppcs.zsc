@@ -19,6 +19,7 @@ class ParticleCannon : MechProjectile
 	{
 		super.postBeginPlay();
 		// FXLightningSparks.AttachToActor(self, 0,0,0, scale:0.04, 2.0, shading:0xFF0000FF, spawnFreq:2, spawnOdds:75);
+		A_StartSound("Energy/PPC/Ambient", CHAN_AUTO, CHANF_OVERLAP, 1.0, ATTN_NONE);
 	}
 
 	override void Tick()

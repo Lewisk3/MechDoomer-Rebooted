@@ -170,4 +170,18 @@ class AMSAmmo : MechAmmo
 		SetupAmmo();
 	}
 }
+class AMSAmmoHalf : AMSAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "AMS AMMO 1/2";
+		maxAmmo *= 0.5;
+		weight = 0.5;
+		baseAmmoClass = "AMSAmmo";
+		
+		SetupAmmo();
+	}
+}
+
 

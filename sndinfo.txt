@@ -26,6 +26,7 @@ Betty/Item/ERPPC "Sounds/Betty/Items/erppc.wav"
 Betty/Item/SRM "Sounds/Betty/Items/srm.wav"
 Betty/Item/LRM "Sounds/Betty/Items/lrm.wav"
 Betty/Item/Heatsink "Sounds/Betty/Items/heatsink.wav"
+Betty/Item/AMS "Sounds/Betty/Items/AMS.wav"
 
 // Mech explosions
 Mech/Explosion/Hardpoint1 "Sounds/Mech/hardpoint_explosion1.wav";
@@ -63,6 +64,7 @@ Missile/LRM5  "Sounds/Weapons/missile_lrm5.wav"
 Missile/LRM10 "Sounds/Weapons/missile_lrm10.wav"
 Missile/LRM15 "Sounds/Weapons/missile_lrm15.wav" 
 Missile/LRM20 "Sounds/Weapons/missile_lrm20.wav"
+Missile/AMS "Sounds/Weapons/ams_fire.wav";
 Missile/Explosion "Sounds/Weapons/missile_explosion.wav"
 
 Ballistic/Autocannon2  "Sounds/Weapons/ac2_fire.wav"
@@ -74,12 +76,14 @@ Ballistic/Autocannon/Reload "Sounds/Weapons/ac_reload.wav"
 Ballistic/GaussRifle "Sounds/Weapons/gauss_fire.wav"
 Ballistic/GaussRifle/Reload "Sounds/Weapons/gauss_reload.wav"
 Ballistic/Gauss/Impact "Sounds/Weapons/gauss_hit.wav"
+Ballistic/Gauss/Ambient "Sounds/Weapons/gauss_ambient.wav"
 Ballistic/Machinegun "Sounds/Weapons/machinegun_fire.wav"
 
 Energy/PPC "Sounds/Weapons/ppc_fire.wav"
 Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
 Energy/PPC/Thunder "Sounds/Weapons/ppc_thunder.wav"
-$volume Energy/PPC/Thunder 5.0;
+Energy/PPC/Ambient "Sounds/Weapons/ppc_ambient.wav"
+//$volume Energy/PPC/Thunder 5.0;
 
 IMPACT1 "Sounds/Weapons/impact1.wav"
 IMPACT2 "Sounds/Weapons/impact2.wav"
@@ -112,7 +116,7 @@ $limit Ballistic/Gauss/Impact 0;
 $limit Energy/PPC 			  0;
 $limit Energy/PPC/Impact	  0;
 $limit Laser/Pulse/Impact 0;
-$limt Energy/PPC/Thunder  0;
+$limit Energy/PPC/Thunder  0;
 
 $limit Generic/Impact 0;
 

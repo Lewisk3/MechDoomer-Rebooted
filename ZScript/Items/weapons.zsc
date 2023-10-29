@@ -1092,12 +1092,17 @@ class AMS : MechWeapon
 		mountType = "NONE"; // Doesn't take a mount position.
 		weight = 0.5;
 		
-		fireTime = 1;
-		cooldownTime = 2;
+		fireTime = 2;
+		cooldownTime = 16;
 		range = 270;
 		ammoUse = 1;
 		
+		refireCount = 8;
+		refireDelay = 4;
+		
 		projType = "MechAAM";
+		sndItemName = "Betty/Item/AMS";
+		fireSound = "Missile/AMS";
 		damagable = true;
 	}
 	
@@ -1126,9 +1131,12 @@ class AMS : MechWeapon
 	
 	override bool Fire(vector3 firePos)
 	{
-		if(cooldown || !curTarget) return false;
+		if(!refire && refireCount > 0) DoRefire();
+		if(!curTarget) return false;
 		
-		WeapSound(fireSound);
+		// Only play weapon Fire sound on the first true Fire call.
+		if(refire == refireCount) WeapSound(fireSound);
+		
 		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, false, 0,0));
 		proj.master = mech.driver;
 		proj.homingTarget = curTarget;
@@ -1141,17 +1149,22 @@ class AMS : MechWeapon
 		return true;
 	}
 	
+	override vector3 getFirePos()
+	{
+		return (0,0,parent.getHeight());
+	}
+	
 	override void DoEffect()
 	{
 		super.DoEffect();
 		
 		// Don't run if mech is shutdown.
-		if(mech.shutdown) return;
+		if(mech.shutdown || !canFire()) return;
 		
 		// Firing is handled manually by the AMS computer
 		// Manually because I am the AMS computer, lazy bastard...
 		
-		vector3 localFirePos = (0,0,parent.getHeight());
+		vector3 localFirePos = getFirePos();
 		vector3 globalFirePos = parent.OffsetPos(localFirePos.x, localFirePos.y, localFirePos.z);
 		
 		let it = ThinkerIterator.Create();
@@ -1166,17 +1179,14 @@ class AMS : MechWeapon
 			let hardpointSource = MechHardpoint(act.target);
 			let mechProj = MechProjectile(act);
 			double projDmg = mechProj ? mechProj.trueDamage : act.damage;
-			if( projDmg <= 10 || !act.bMISSILE || (hardpointSource && hardpointSource.mech == mech) ) continue;
+			if( projDmg <= 0 || !act.bMISSILE || (hardpointSource && hardpointSource.mech == mech) ) continue;
 			
 			// If we're dealing with a mech projectile, only target missiles
 			if( mechProj && !(mechProj is "MechMissile") ) continue;
 			
 			// In range and an enemy projectile, engage
-			if(canFire()) 
-			{
-				curTarget = act;
-				Fire(localFirePos);
-			}
+			curTarget = act;
+			if(!cooldown) Fire(localFirePos);
 		}
 	}
 }

@@ -75,6 +75,8 @@ class GaussCannon : MechProjectile
 		FireGaussBeam(int(colors.y), 12.0, 0.65);
 		FireGaussBeam(int(colors.z),  7.0, 0.95);
 		
+		A_StartSound("Ballistic/Gauss/Ambient", CHAN_AUTO, CHANF_OVERLAP, 1.0, ATTN_NONE);
+		
 		Shockwave(pos, 0.2 * size * Scale.X, 0xFF313de8); 
 		Sparks(min(12, 10 * size), min(200, 200 * size), 0);
 	}

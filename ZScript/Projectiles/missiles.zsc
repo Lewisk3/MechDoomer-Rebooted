@@ -93,6 +93,8 @@ class MechMissile : MechProjectile
 
 class MissileExplosion : EffectsActor
 {
+	bool skipSound;
+
 	Default
 	{
 		RenderStyle "Add";
@@ -107,7 +109,7 @@ class MissileExplosion : EffectsActor
 		A_SetRoll(frandom(0,360));
 		
 		// I would use NoDelay, but it doesn't work...
-		A_StartSound("Missile/Explosion", flags:CHANF_OVERLAP, attenuation:0.7, pitch:frandom[ExplosionPitch](-0.8, 1.2) );
+		if(!skipSound) A_StartSound("Missile/Explosion", flags:CHANF_OVERLAP, attenuation:0.7, pitch:frandom[ExplosionPitch](-0.8, 1.2) );
 	}
 	
 	States
@@ -320,6 +322,7 @@ class MechAAM : MechMissile // Anti-Air-Missile
 		MechProjectile.Ranges 0, 300;
 		MechProjectile.FirePitch 0;
 		MechProjectile.Homing true;
+		MechProjectile.ImpactSound "";
 		MechMissile.HomingInaccuracy 0;
 		MechProjectile.SpeedKPH 1200; 
 		MechAAM.ToHitChance 50;
@@ -360,8 +363,12 @@ class MechAAM : MechMissile // Anti-Air-Missile
 		Death:
 			MODL A 10
 			{
-				let fx = SpawnEffect("MissileExplosion", pos);
-				if(fx) fx.A_SetScale(Scale.X * 0.1);
+				let fx = MissileExplosion(SpawnEffect("MissileExplosion", pos));
+				if(fx) 
+				{
+					fx.A_SetScale(Scale.X * 0.1);
+					fx.skipSound = true;
+				}
 			}
 		stop;
 	}
