@@ -158,6 +158,9 @@ class DrivableMech : DrivableObject
 			
 		// Autoscale
 		A_SetScale(Scale.X * getAutoFitScale() * sv_mdr_mechscale); 
+		
+		// Start shutdown
+		shutdown = true;
 	}
 	
 	virtual string getHardpointTypeName(MechHardpoint hp)
@@ -294,6 +297,12 @@ class DrivableMech : DrivableObject
 	}
 	override void RemovePilot()
 	{
+		if(!shutdown)
+		{
+			console.printf("\c[Red]Mech must be shutdown before exiting.\c[White]");
+			return;
+		}
+	
 		driver.SetOrigin(OffsetPos(30,0,0), true);
 		driver.A_SetScale(driver.default.Scale.X, driver.default.Scale.Y);
 		driver.A_SetSize(driver.default.Radius, driver.default.Height);

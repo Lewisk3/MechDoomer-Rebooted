@@ -72,6 +72,10 @@ class MechItem : Object
 			flavorText = "\c[Red]DESTROYED\c[White]";
 			//return;
 		}
+		else if(hp < 10)
+		{
+			flavorText = "\c[Orange]DAMAGED\c[White]";
+		}
 		else
 		{
 			flavorText = "";

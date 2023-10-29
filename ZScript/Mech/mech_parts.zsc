@@ -276,14 +276,14 @@ class MechHardpoint : MechPart
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.
-		int toHit = random[ItmeHitChance](0,20) >= 15;
+		int toHit = random[ItmeHitChance](0,20) >= 16;
 		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
 		
 		if(items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
-			bool criticalHit = random[HardpointCrit](0,100) <= 2; // 2 percent chance of crit.
+			bool criticalHit = random[HardpointCrit](0,100) <= 3; // 3 percent chance of crit.
 			
-			double itemDmg = (criticalHit ? 100 : hpDmg);
+			double itemDmg = (criticalHit ? 100 : (hpDmg*20.0));
 			Array<MechItem> itemList;
 			foreach(itm : items)
 			{
@@ -294,7 +294,7 @@ class MechHardpoint : MechPart
 			int itemToDamage = random[DamageItemIndex](0, itemList.Size()-1);
 			heatDamageTics = 0;
 			
-			if(itemToDamage >= 0)
+			if(itemToDamage >= 0 && itemToDamage < itemList.Size())
 			{
 				let dmgItem = itemList[itemToDamage];
 				dmgItem.OnDamaged(itemDmg);
