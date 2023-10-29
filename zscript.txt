@@ -10,6 +10,7 @@ version "4.10.0"
 #include "ZScript/UI/mechhud_handler.zsc"
 #include "ZScript/UI/mechhuds.zsc"
 #include "ZScript/UI/stringhelper.zsc"
+#include "ZScript/UI/wireframe.zsc"
 #include "ZScript/button_handler.zsc"
 
 #include "ZScript/UI/Menus/menus_base.zsc"

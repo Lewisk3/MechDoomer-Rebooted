@@ -93,7 +93,6 @@ class AC20Ammo : MechAmmo
 		SetupAmmo();
 	}
 }
-
 class MGAmmo : MechAmmo
 {
 	override void Defaults()
@@ -106,6 +105,39 @@ class MGAmmo : MechAmmo
 		explosionDamage = 0.04;
 		
 		SetupAmmo();
+	}
+}
+
+class UAC2Ammo : AC2Ammo 
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "UAC/2 Ammo";
+	}
+}
+class UAC5Ammo : AC5Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "UAC/5 Ammo";
+	}
+}
+class UAC10Ammo : AC10Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "UAC/10 Ammo";
+	}
+}
+class UAC20Ammo : AC20Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "UAC/20 Ammo";
 	}
 }
 
@@ -123,4 +155,5 @@ class GaussAmmo : MechAmmo
 		SetupAmmo();
 	}
 }
+
 

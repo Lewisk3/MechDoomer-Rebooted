@@ -167,19 +167,23 @@ class DrivablesMath Abstract
 	// Distance 3D on vectors, not actors.
 	static double Distance3D(vector3 one, vector3 two)
 	{
-		return (one-two).Length();
+		let diff = level.vec3diff(one, two);
+		return diff.Length();
 	}
 	
 	// Distance 2D on vectors, not actors.
 	static double Distance2D(Vector2 one, Vector2 two)
 	{
-		return (one-two).Length();
+		// let diff = level.vec2diff(one, two);
+		// This is primarily used on UI, and it's more performant to do it this way.
+		return (two-one).Length();
 	}
 	
 	// Distance 2D on vectors, not actors.
 	static double Distance2DSquared(Vector2 one, Vector2 two)
 	{
-		return ( ((two.x-one.x)**2) + ((two.y-one.y)**2) ); 
+		let diff = level.vec2diff(one, two);
+		return ( (diff.x**2) + (diff.y**2) ); 
 	}
 
 	static vector3 getAxes(double angle, double pitch, double roll)

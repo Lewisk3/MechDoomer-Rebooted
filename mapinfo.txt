@@ -1,6 +1,6 @@
 GameInfo
 {
-	AddEventHandlers = "MechHUD_Handler", "MechButtons_Handler"
+	AddEventHandlers = "MechHUD_Handler", "MechButtons_Handler", "Wireframe_Handler"
 	CursorPic = "Graphics/Mechlab/menuCursor_HD.png"
 }
 

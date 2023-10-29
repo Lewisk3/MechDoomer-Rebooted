@@ -387,5 +387,21 @@ class MWDrawer Abstract ui
 		);
 	}
 	
+	static clearscope Shape2D MakeSquare()
+	{
+		// the shape that will be drawn
+		Shape2D square = new("Shape2D");
+		// texture coordinates of each corner
+		square.PushCoord((0,0));
+		square.PushCoord((1,0));
+		square.PushCoord((0,1));
+		square.PushCoord((1,1));
+		// two triangles make up the square
+		// the points have to be in counter-clockwise order
+		square.PushTriangle(0,3,1);
+		square.PushTriangle(0,2,3);
+		return square;
+	}
+	
 	static void ClearClipRect() { Screen.ClearClipRect(); }
 }	

@@ -627,12 +627,12 @@ class AC2 : MechWeapon
 		DisplayName = "AC/2";
 		mountType = "Ballistic";
 		heat = 0.50;
-		weight = 5.0;
-		size = 3.0;
+		weight = 6.0;
+		size = 1.0;
 		
 		ammoUse = 1;
-		fireTime     = 8;
-		cooldownTime = ceil(0.7 * TICRATE);
+		fireTime     = 4;
+		cooldownTime = ceil(0.25 * TICRATE);
 		
 		projType = "Autocannon2";
 		ammoType = "AC2Ammo";
@@ -704,6 +704,9 @@ class AC2 : MechWeapon
 	
 	override bool Fire(vector3 firePos)
 	{
+		// Setup weapon refire on the first Fire call.
+		if(!refire && refireCount > 0) DoRefire();
+	
 		vector2 projSpread = (
 			frandom[BallisticSpread](-spread, spread),
 			frandom[BallisticSpread](-spread, spread)
@@ -720,6 +723,66 @@ class AC2 : MechWeapon
 		return true;
 	}
 }
+class UltraAC2 : AC2
+{
+	string baseName;
+	int jamChance;
+	bool jammed;
+	
+	virtual void SetupUAC(double jamperc = 10)
+	{
+		baseName = displayName;
+		refireCount = 1;
+		refireDelay = fireTime*4;
+		ammoUse = 1;
+		jamChance = jamperc;
+	}
+
+	override void Defaults()
+	{	
+		super.Defaults();
+		heat = 1.0;
+		weight = 7.0;
+		size = 3.0;
+		energyUse = 0.05; // Magnetic loading system uses reactor power.
+		ammoType = "UAC2Ammo";
+		displayName = "UAC/2";
+		cooldownTime = ceil(0.1 * TICRATE);
+		
+		SetupUAC();
+	}
+	
+	virtual void SetJammed(bool onoff)
+	{
+		jammed = onoff;
+		if( jammed) displayName = "\c[Red]" .. baseName .. " - JAMMED\c[White]";
+		if(!jammed) displayName = baseName;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		if(random[UACRNG](0,100) <= jamChance && refire >= refireCount)
+		{
+			// Weapon jammed
+			cooldown = 3.0 * TICRATE;
+			SetJammed(true);
+			return true;
+		}
+		
+		return super.Fire(firepos);
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if( jammed && cooldown <= 0)
+		{
+			SetJammed(false);
+		}
+	}
+}
+
 class AC5 : AC2
 {
 	override void Defaults()
@@ -727,12 +790,12 @@ class AC5 : AC2
 		DisplayName = "AC/5";
 		mountType = "Ballistic";
 		heat = 1.40;
-		weight = 7.0;
+		weight = 8.0;
 		size = 4.0;
 		
 		ammoUse = 1;
-		fireTime     = 8;
-		cooldownTime = ceil(1.5 * TICRATE);
+		fireTime     = 4;
+		cooldownTime = ceil(0.5 * TICRATE);
 		
 		projType = "Autocannon5";
 		ammoType = "AC5Ammo";
@@ -747,19 +810,50 @@ class AC5 : AC2
 		return super.Fire(firePos);
 	}
 }
+class UltraAC5 : UltraAC2
+{
+	override void Defaults()
+	{	
+		DisplayName = "UAC/5";
+		mountType = "Ballistic";
+		heat = 3.0;
+		weight = 9.0;
+		size = 5.0;
+		energyUse = 0.08;
+		
+		ammoUse = 1;
+		fireTime     = 4;
+		cooldownTime = ceil(0.25 * TICRATE);
+		
+		projType = "Autocannon5";
+		ammoType = "UAC5Ammo";
+		fireSound = "Ballistic/Autocannon5";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
+		damagable = true;
+		
+		SetupUAC(20); // UAC known to be more jam-prone.
+	}	
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.25, 0);
+		return super.Fire(firePos);
+	}
+}
+
 class AC10 : AC2
 {
 	override void Defaults()
 	{	
 		DisplayName = "AC/10";
 		mountType = "Ballistic";
-		heat = 2.0;
-		weight = 10.0;
-		size = 5.0;
+		heat = 2.5;
+		weight = 12.0;
+		size = 7.0;
 		
 		ammoUse = 1;
-		fireTime     = 8;
-		cooldownTime = ceil(2.0 * TICRATE);
+		fireTime     = 4;
+		cooldownTime = ceil(1.25 * TICRATE);
 		
 		projType = "Autocannon10";
 		ammoType = "AC10Ammo";
@@ -774,19 +868,50 @@ class AC10 : AC2
 		return super.Fire(firePos);
 	}
 }
+class UltraAC10 : UltraAC2
+{
+	override void Defaults()
+	{	
+		DisplayName = "UAC/10";
+		mountType = "Ballistic";
+		heat = 5.0;
+		weight = 9.0;
+		size = 5.0;
+		energyUse = 0.12;
+		
+		ammoUse = 1;
+		fireTime     = 4;
+		cooldownTime = ceil(0.6 * TICRATE);
+		
+		projType = "Autocannon10";
+		ammoType = "UAC10Ammo";
+		fireSound = "Ballistic/Autocannon10";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
+		damagable = true;
+		
+		SetupUAC();		
+	}	
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-0.6, 0.6);
+		return super.Fire(firePos);
+	}
+}
+
 class AC20 : AC2
 {
 	override void Defaults()
 	{	
 		DisplayName = "AC/20";
 		mountType = "Ballistic";
-		heat = 6.0;
-		weight = 12.0;
-		size = 9.0;
+		heat = 5.0;
+		weight = 14.0;
+		size = 10.0;
 		
 		ammoUse = 1;
-		fireTime     = 8;
-		cooldownTime = ceil(4.0 * TICRATE);
+		fireTime     = 4;
+		cooldownTime = ceil(2.0 * TICRATE);
 		
 		projType = "Autocannon20";
 		ammoType = "AC20Ammo";
@@ -795,6 +920,36 @@ class AC20 : AC2
 		sndItemName = "Betty/Item/Autocannon";
 		damagable = true;
 	}
+	override bool Fire(vector3 firePos)
+	{
+		A_Recoil(-2, 4);
+		return super.Fire(firePos);
+	}
+}
+class UltraAC20 : UltraAC2
+{
+	override void Defaults()
+	{	
+		DisplayName = "UAC/20";
+		mountType = "Ballistic";
+		heat = 10.0;
+		weight = 15.0;
+		size = 10.0;
+		energyUse = 0.2;
+		
+		ammoUse = 1;
+		fireTime     = 4;
+		cooldownTime = ceil(1.0 * TICRATE);
+		
+		projType = "Autocannon20";
+		ammoType = "UAC20Ammo";
+		fireSound = "Ballistic/Autocannon20";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
+		damagable = true;
+		
+		SetupUAC(20); // This needs to jam more often for balance, because holy shit are UAC20s scary.	
+	}	
 	override bool Fire(vector3 firePos)
 	{
 		A_Recoil(-2, 4);

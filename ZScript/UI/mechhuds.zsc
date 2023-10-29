@@ -479,7 +479,8 @@ class MechHUD : VehicleHUD
 			string ammoCount = "INF";
 			if(weap.ammoType) ammoCount = String.Format("\c[Gray]%d", mech.countAllAmmo(weap.ammoType));
 			
-			string weapRange = String.Format("%dm", weap.range);
+			let laserWeap = SmallLaser(weap);
+			string weapRange = String.Format("%dm", laserWeap ? laserWeap.laserRange : weap.range);
 			if(weap.projType) 
 			{
 				let defs = GetDefaultByType(weap.projType);

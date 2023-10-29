@@ -1,0 +1,255 @@
+class WireFrame_Handler : EventHandler
+{	
+	const LINESIZE = 4.0;
+	bool map_enabled;
+	bool actors_enabled;
+	
+	override void WorldTick()
+	{
+		map_enabled = sv_mdr_wireframe;
+		actors_enabled = sv_mdr_drawmechhitboxes;
+	}
+
+	override void RenderOverlay(RenderEvent e)
+	{		
+		if(map_enabled) DrawWireFrame(e);
+		if(actors_enabled) DrawHitboxes(e, true);
+	}
+	
+	ui static int getLineAlpha(double dist, double maxDist = 4096)
+	{
+		double alpha = 1.0 - (dist / maxDist);
+		return int(alpha * 255);
+	}
+	
+	ui static void DrawMapLine(MWDViewProjection view, Color linecol, vector3 bl, vector3 br, vector3 tl, vector3 tr, double lnDist, bool skipZeroHeight = true)
+	{
+		double maxDist = 4096;
+		double height = abs(max(bl.z, br.z) - max(tl.z, tr.z));
+		if( (height <= 0 && skipZeroHeight ) || lnDist > maxDist ) return; // Skip lines with no height.
+	
+		bool BL_Visible, BR_Visible, TL_Visible, TR_Visible;
+		vector2 lineUI_BL, lineUI_BR, lineUI_TL, lineUI_TR;
+		[BL_Visible, lineUI_BL] = MWDrawer.ProjectToHud(view, bl, (0,0,0));
+		[BR_Visible, lineUI_BR] = MWDrawer.ProjectToHud(view, br, (0,0,0));
+		[TL_Visible, lineUI_TL] = MWDrawer.ProjectToHud(view, tl, (0,0,0));
+		[TR_Visible, lineUI_TR] = MWDrawer.ProjectToHud(view, tr, (0,0,0));
+		
+		double scale = WireFrame_Handler.LINESIZE;
+		int lnAlpha = getLineAlpha(lnDist);
+		
+		// BL - BR	
+		if(BL_Visible && BR_Visible)
+			Screen.DrawThickLine(lineUI_BL.x, lineUI_BL.y, lineUI_BR.x, lineUI_BR.y, scale, linecol, lnAlpha);
+		// TL - TR
+		if(TL_Visible && TR_Visible)
+			Screen.DrawThickLine(lineUI_TL.x, lineUI_TL.y, lineUI_TR.x, lineUI_TR.y, scale, linecol, lnAlpha);
+		// TL - BL
+		if(TL_Visible && BL_Visible)
+			Screen.DrawThickLine(lineUI_TL.x, lineUI_TL.y, lineUI_BL.x, lineUI_BL.y, scale, linecol, lnAlpha);
+		// TR - BR
+		if(TR_Visible && BR_Visible)
+			Screen.DrawThickLine(lineUI_TR.x, lineUI_TR.y, lineUI_BR.x, lineUI_BR.y, scale, linecol, lnAlpha);
+	}
+	
+	ui static void DrawActorLine(MWDViewProjection view, Color linecol, Actor act, vector3 offsFrom, vector3 offsTo, double actDist)
+	{
+		vector2 posFrom, posTo;
+		offsFrom.xy *= act.radius;
+		offsFrom.z *= act.height;
+		offsTo.xy *= act.radius;
+		offsTo.z *= act.height;
+		
+		bool visibleFrom, visibleTo;
+		[visibleFrom, posFrom] = MWDrawer.GetActorHUDPos(view, act, offsFrom.x,offsFrom.y,offsFrom.z, rotatecoords:false);
+		[visibleTo, posTo] = MWDrawer.GetActorHUDPos(view, act, offsTo.x,offsTo.y,offsTo.z, rotatecoords:false);
+		
+		if(visibleFrom && visibleTo)
+			Screen.DrawThickLine(posFrom.x, posFrom.y, posTo.x, posTo.y, LINESIZE, linecol, getLineAlpha(actDist)); 
+	}
+	
+	ui static void DrawHardpointBox(MWDViewProjection view, MechHardpoint hardpoint, MechHitbox hitbox)
+	{
+		if(!hardpoint && hitbox) hardpoint = MechHardpoint(hitbox.parent);
+	
+		double hpVitals = hardpoint.getVitals();			
+		
+		double hue = (hpVitals * 100) / 360.0;
+		Color hpColor = MWDrawerColor.HSLtoRGB(hue, 1.0, 0.5, 1.0);
+		
+		Actor targetActor = hardpoint;
+		if(hitbox) targetActor = hitbox;
+	
+		vector2 topLeft, topRight, bottomLeft, bottomRight;
+		bool infront;
+
+		[infront, topLeft]     = MWDrawer.GetActorHUDPos(view, targetActor, -targetActor.radius, 0, 0);
+		if(!infront) return;
+		[infront, topRight]    = MWDrawer.GetActorHUDPos(view, targetActor,  targetActor.radius, 0, 0);
+		if(!infront) return;
+		[infront, bottomLeft]  = MWDrawer.GetActorHUDPos(view, targetActor, -targetActor.radius, 0, targetActor.height);
+		if(!infront) return;
+		[infront, bottomRight] = MWDrawer.GetActorHUDPos(view, targetActor,  targetActor.radius, 0, targetActor.height);
+		if(!infront) return;
+		
+		let lineSquare = MWDrawer.MakeSquare();
+		lineSquare.Clear(Shape2D.C_Verts);
+		lineSquare.PushVertex(bottomLeft);
+		lineSquare.PushVertex(bottomRight);
+		lineSquare.PushVertex(topLeft);
+		lineSquare.PushVertex(topRight);
+
+		// Only draw if any vert is visible on the screen.
+		int colAlpha = hpColor.a;
+		int red = hpColor.r; 
+		int green = hpColor.g;
+		int blue = hpColor.b;
+		color adjustedColor = (colAlpha << 24) | (blue << 16) | (green << 8) | red;
+		
+		Screen.DrawShapeFill(adjustedColor, 0.45, lineSquare);
+	}	
+		
+	ui static void DrawWireFrame(RenderEvent e)
+	{
+		let cam = e.Camera;
+		let view = MWDrawer.GetRenderEventViewProj(e, cam.CameraFOV);
+		
+		Screen.Dim("Black", 0.25, 0,0, Screen.getWidth(), Screen.getHeight());
+					
+		foreach(ln : level.lines)
+		{
+			bool twoSided = (ln.flags & Line.ML_TWOSIDED);
+			
+			let frontSector = ln.frontsector;
+			let backSector = ln.backsector;
+			if(twoSided && !backSector) continue;
+						
+			Color linColor = "DarkGreen";
+			bool threedee = frontSector.get3DFloorCount() > 0;
+			
+			vector2 lnMiddle = ln.v1.p + (ln.delta * 0.5);
+			double lnDist = (cam.pos - lnMiddle).Length();
+			
+			if(threedee)
+			{
+				for(int i = 0; i < frontSector.get3DFloorCount(); i++)
+				{
+					F3DFloor fl = frontSector.get3DFloor(i);
+				
+					double fTop_v1 = fl.model.ceilingplane.ZAtPoint(fl.master.v1.p);
+					double fBottom_v1 = fl.model.floorplane.ZAtPoint(fl.master.v1.p);
+					double fTop_v2 = fl.model.ceilingplane.ZAtPoint(fl.master.v2.p);
+					double fBottom_v2 = fl.model.floorplane.ZAtPoint(fl.master.v2.p);
+					
+					vector3 linePos_BL = (ln.v1.p, fBottom_v1);
+					vector3 linePos_BR = (ln.v2.p, fBottom_v2);
+					vector3 linePos_TL = (ln.v1.p, fTop_v1);
+					vector3 linePos_TR = (ln.v2.p, fTop_v2);
+					
+					DrawMapLine(view, linColor, linePos_BL, linePos_BR, linePos_TL, linePos_TR, lnDist);
+				}
+				continue;
+			}
+		
+			// Oh god...
+			bool isSlope = frontSector.ceilingplane.isSlope() || frontSector.floorplane.isSlope();
+			double f_ceilHeight_v1  = frontSector.ceilingplane.ZAtPoint(ln.v1.p);
+			double f_floorHeight_v1 = frontSector.floorplane.ZAtPoint(ln.v1.p);
+			double b_ceilHeight_v1  = backSector ? backSector.ceilingplane.ZAtPoint(ln.v1.p) : 0;
+			double b_floorHeight_v1 = backSector ? backSector.floorplane.ZAtPoint(ln.v1.p) : 0;
+			
+			double f_ceilHeight_v2  = frontSector.ceilingplane.ZAtPoint(ln.v2.p);
+			double f_floorHeight_v2 = frontSector.floorplane.ZAtPoint(ln.v2.p);
+			double b_ceilHeight_v2  = backSector ? backSector.ceilingplane.ZAtPoint(ln.v2.p) : 0;
+			double b_floorHeight_v2 = backSector ? backSector.floorplane.ZAtPoint(ln.v2.p) : 0;
+			
+			double ceilz_v1 = twoSided ? b_floorheight_v1 : f_ceilheight_v1;
+			double ceilz_v2 = twoSided ? b_floorheight_v2 : f_ceilheight_v2;
+			
+			vector3 linePos_BL = (ln.v1.p, f_floorHeight_v1);
+			vector3 linePos_BR = (ln.v2.p, f_floorHeight_v2);
+			vector3 linePos_TL = (ln.v1.p, ceilz_v1);
+			vector3 linePos_TR = (ln.v2.p, ceilz_v2);
+			
+			DrawMapLine(view, linColor, linePos_BL, linePos_BR, linePos_TL, linePos_TR, lnDist, !isSlope);
+	
+			// If double sided, draw ceiling lines
+			let ceilingpic = frontSector.getTexture(Sector.ceiling);
+			if( twoSided && ceilingpic != skyflatnum )
+			{
+				linePos_BL = (ln.v1.p, b_ceilHeight_v1);
+				linePos_BR = (ln.v2.p, b_ceilHeight_v2);
+				linePos_TL = (ln.v1.p, f_ceilHeight_v1);
+				linePos_TR = (ln.v2.p, f_ceilHeight_v2);
+				
+				DrawMapLine(view, linColor, linePos_BL, linePos_BR, linePos_TL, linePos_TR, lnDist);
+			}
+		}	
+	}
+	
+	ui static void DrawHitboxes(RenderEvent e, bool onlyMechs = false)
+	{
+		let cam = e.Camera;
+		let view = MWDrawer.GetRenderEventViewProj(e);
+	
+		// Hitboxes
+		Color actorLineColor = "DarkGreen"; 
+		
+		let it = ThinkerIterator.Create();
+		Actor act;
+		bool infront = false;
+		while(act = Actor(it.Next()))
+		{
+			if(!act.bSOLID && !act.bMISSILE) continue;
+			if( act == cam || act.bInvisible || (act is "EffectsActor") ) continue;
+			double actDist = cam.Distance3D(act);
+			
+			bool isMech = (act is "MechHardpoint" || act is "MechHitbox");
+			bool isNonLocalMech = false;
+			
+			if(isMech) 
+			{
+				DrivableMech mech = NULL;
+				let mechHP = MechHardpoint(act);
+				let mechHB = MechHitBox(act);
+				if(!mechHP && mechHB) mechHP = MechHardpoint(mechHB.parent);
+				if(mechHP) mech = mechHP.mech;
+				
+				isNonLocalMech = (mech && mech.driver != e.Camera && mech.cam != e.Camera);
+				if(isNonLocalMech) 
+					DrawHardpointBox(view, mechHP, mechHB);
+			}
+			if( (!isMech && onlyMechs) || !isNonLocalMech ) continue;
+						
+			// LR, FB, UD factors of radius and height respectively.
+			vector3 FTL = (-1, -1, 0);
+			vector3 FTR = ( 1, -1, 0);
+			vector3 FBL = (-1, -1, 1);
+			vector3 FBR = ( 1, -1, 1);
+			
+			vector3 BTL = (-1,  1, 0);
+			vector3 BTR = ( 1,  1, 0);
+			vector3 BBL = (-1,  1, 1);
+			vector3 BBR = ( 1,  1, 1);
+			
+			// Front Box
+			DrawActorLine(view, actorLineColor, act, FTL,FTR, actDist);
+			DrawActorLine(view, actorLineColor, act, FTL,FBL, actDist);
+			DrawActorLine(view, actorLineColor, act, FTR,FBR, actDist);
+			DrawActorLine(view, actorLineColor, act, FBL,FBR, actDist);
+			
+			// Back Box
+			DrawActorLine(view, actorLineColor, act, BTL,BTR, actDist);
+			DrawActorLine(view, actorLineColor, act, BTL,BBL, actDist);
+			DrawActorLine(view, actorLineColor, act, BTR,BBR, actDist);
+			DrawActorLine(view, actorLineColor, act, BBL,BBR, actDist);
+			
+			// Depth
+			DrawActorLine(view, actorLineColor, act, FTL,BTL, actDist);
+			DrawActorLine(view, actorLineColor, act, FTR,BTR, actDist);
+			DrawActorLine(view, actorLineColor, act, FBL,BBL, actDist);
+			DrawActorLine(view, actorLineColor, act, FBR,BBR, actDist);
+		}
+	}
+}
+
