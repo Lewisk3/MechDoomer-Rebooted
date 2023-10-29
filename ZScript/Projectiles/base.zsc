@@ -140,17 +140,17 @@ class MechProjectile : FastProjectile
 		vector3 spreadPos = Quat.FromAngles(angle, pitch, roll) * (0, spread.x, (homingTarget.height * 0.5) + spread.y);
 		vector3 targetPos = level.vec3offset(homingTarget.pos, spreadPos);
 		double targetDist = DrivablesMath.Distance3D(pos, targetPos);
+		double mDist = DrivableMech.unitsToKM(targetDist)*1000.0;
 		
 		// If our target is really close, we shouldn't need to home anymore.
-		if(targetDist <= 192) 
+		if( mDist <= minRange ) 
 		{
-			stopHoming = true;
-			// strength = 1.0;
-			return; 
+			//stopHoming = true;
+			firePitch = 0;
+			strength = 1.0;
+			//return; 
 		}
-		if(curDist < minRange) return; // No homing if too close.
-		
-		
+
 		vector3 homAngles = level.SphericalCoords(
 			pos, targetPos, (angle, pitch)
 		);

@@ -174,7 +174,7 @@ extend class MWDrawer
 		double  depth	 = diff dot forw_in;
 	
 		// Normalize
-		bool front = (0 < depth);
+		bool front = (depth > 0);
 		let normal_pos = proj_pos / depth + (1, 1);
 		
 		// Final

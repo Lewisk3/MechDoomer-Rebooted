@@ -135,7 +135,7 @@ class MechShoulder : MechStructure
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
-		flavorText = "\c[Red]Critical Structure \c[Red]Item. Cannot be moved. \c[White]"; 
+		flavorText = "\c[Red]Critical Structure Item. \nCannot be moved. \c[White]"; 
 	}
 }
 class MechUpperArmActuator : MechShoulder

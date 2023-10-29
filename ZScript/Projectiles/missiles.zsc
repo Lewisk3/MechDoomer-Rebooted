@@ -306,3 +306,63 @@ class MechLRM : MechMissile
 		MechProjectile.SpeedKPH 400; 
 	}
 }
+
+class MechAAM : MechMissile // Anti-Air-Missile
+{
+	double toHit;
+	Property ToHitChance : toHit;
+
+	Default
+	{
+		Radius 2;
+		Height 2;
+		MechProjectile.Dmg 0;
+		MechProjectile.Ranges 0, 300;
+		MechProjectile.FirePitch 0;
+		MechProjectile.Homing true;
+		MechMissile.HomingInaccuracy 0;
+		MechProjectile.SpeedKPH 1200; 
+		MechAAM.ToHitChance 50;
+		
+		Scale 0.5;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		if(!homingTarget) 
+		{
+			Destroy();
+			return;
+		}
+		
+		bool inRange = DrivablesMath.Distance3D(pos, homingTarget.pos) <= 128;
+		bool success = random[AAMRNG](0,100) <= toHit;
+		if(inRange && homingTarget)
+		{
+			// Explode missile
+			if(success) 
+			{
+				homingTarget.ExplodeMissile(null, homingTarget.target);
+				homingTarget = NULL;
+			}
+			
+			// Explode self
+			ExplodeMissile(null, target);
+		}
+	}
+	
+	States
+	{
+		Crash:
+		XDeath:
+		Death:
+			MODL A 10
+			{
+				let fx = SpawnEffect("MissileExplosion", pos);
+				if(fx) fx.A_SetScale(Scale.X * 0.1);
+			}
+		stop;
+	}
+}

@@ -500,7 +500,7 @@ class DrivableMech : DrivableObject
 		if(selectedWeapon > weaps.Size()) selectedWeapon = 1;
 		let weap = weaps[selectedWeapon-1];
 		
-		while(weap && weap.checkDestroyed()) 
+		while(weap && !weap.checkSelectable()) 
 		{
 			selectedWeapon++;
 			if(selectedWeapon > weaps.Size()) selectedWeapon = 1;
@@ -515,13 +515,21 @@ class DrivableMech : DrivableObject
 		if(selectedWeapon < 1) selectedWeapon = weaps.Size();
 		let weap = weaps[selectedWeapon-1];
 		
-		while(weap && weap.checkDestroyed()) 
+		while(weap && !weap.checkSelectable()) 
 		{
 			selectedWeapon--;
 			if(selectedWeapon < 1) selectedWeapon = 1;
 			weap = weaps[selectedWeapon-1];
 		}
 		return weap;
+	}
+	
+	clearscope virtual MechWeapon getSelectedWeapon()
+	{
+		Array<MechWeapon> weaps, filteredWeaps;
+		getAllWeapons(weaps, readDeadHardpoints:true);
+		
+		return weaps[selectedWeapon-1];
 	}
 	
 	virtual void WeaponsInteraction()
@@ -576,7 +584,7 @@ class DrivableMech : DrivableObject
 		let group = weaponGroups[selectedGroup];
 		uint gBit = (2**selectedGroup);
 				
-		if(weap && group) 
+		if(weap && group && weap.isGroupable()) 
 		{
 			if( getExtBtn(BT_GROUPSET, DriverBtns.BTS_PRESSED) )
 				weap.group ^= gBit;  

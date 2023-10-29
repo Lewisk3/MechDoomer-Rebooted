@@ -156,4 +156,18 @@ class GaussAmmo : MechAmmo
 	}
 }
 
+class AMSAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "AMS AMMO";
+		maxAmmo = 1000;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0.01;
+		
+		SetupAmmo();
+	}
+}
 

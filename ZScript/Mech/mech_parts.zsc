@@ -149,7 +149,7 @@ class MechHardpoint : MechPart
 		// Setup weapon mount points here.
 		
 	}
-	
+		
 	virtual void adjustLocalHeat(double amt)
 	{
 		// Double cooling while shutdown.
@@ -426,6 +426,16 @@ class MechHardpoint : MechPart
 			part.A_SetSize(r, h);
 			mech.AttachPart(part, self);
 		}
+	}
+	
+	virtual double getHeight()
+	{
+		return max(hitboxHeight, height);
+	}
+	
+	virtual double getWidth()
+	{
+		return max(hitboxRadius, radius);
 	}
 	
 	virtual void addMountPoint(string type, double fw, double lr, double ud)

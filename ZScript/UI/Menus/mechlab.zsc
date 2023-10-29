@@ -297,45 +297,12 @@ class MechItemSlot : MenuElement
 	
 	static Color, Color GetItemColors(MechItem item)
 	{
-		Color slotColor = 0;
-		uint itemFontColor = Font.CR_WHITE;
+		int slotColor = 0;
+		int itemFontColor = Font.CR_WHITE;
 		if(!item) return itemFontColor, slotColor;
 		
-		bool isDynamic = item is "MechDynamicStructure";
-
-		let weap = MechWeapon(item);
-		if(weap)
-		{
-			if(weap.mountType ~== "energy"   ) slotColor = 0xA0FFFF00;
-			if(weap.mountType ~== "ballistic") slotColor = 0xA00000FF;
-			if(weap.mountType ~== "missile"  ) slotColor = 0xA000FF00;
-		}
-		
-		if(!item.movable)
-		{
-			itemFontColor = Font.CR_BLACK;
-			slotColor = 0;
-		}
-		
-		if(isDynamic)
-		{
-			itemFontColor = Font.CR_BLACK;
-			slotColor = 0xB2000000;
-		}
-		
-		if(item is "MechAmmo")
-			slotColor = 0xA0FF00FF;
-		
-		if(item is "MechEngine")
-			slotColor = 0xA0FF0000;
-			
-		if(item is "MechEngineBlock")
-		{
-			itemFontColor = Font.CR_WHITE;
-			slotColor = 0xA07F0000;
-		}
-		
-		return itemFontColor, slotColor;
+		item.getUIColors(itemFontColor, slotColor);
+		return itemFontColor, Color(slotColor);
 	}
 	
 	override void Draw(double dT)
@@ -565,12 +532,10 @@ class MenuItemsInvContainer : MenuElement
 		double boxHeight = 60. + (itemStatName.Size() * ((descFont.getHeight()*2.0*descFontScale) + (descSpacing*1.2)));
 		double boxWidth = width;
 		
-		string formattedFlavorText = MWStringHelper.formatLnBreaks(
-			itemFlavorText, 
-			boxWidth / (descFont.getCharWidth(0) * 2.0 * (descFontScale*0.8))
-		);
-		double flavorTextLn = (10*(descFontScale*0.8));
-		double flavorTextHeight = MWStringHelper.countLnBreaks(formattedFlavorText) * (descFont.getHeight()+flavorTextLn);
+		BrokenLines flavorTextLines = descFont.BreakLines(itemFlavorText, (boxWidth * 0.58) / descFontScale);
+		
+		double flavorTextLn = (18*(descFontScale*0.8));
+		double flavorTextHeight = flavorTextLines.Count() * (descFont.getHeight()+flavorTextLn);
 		boxHeight += flavorTextHeight;
 		
 		Color itFntCol, itemColor;
@@ -595,11 +560,18 @@ class MenuItemsInvContainer : MenuElement
 		);
 		
 		// Flavor text
-		MWDrawer.DrawString(descFont, formattedFlavorText,
-			(descPos.x+10, descPos.y + 50), translation:Font.CR_GRAY,
-			scale:(descFontScale,descFontScale)*0.8, 
-			linespacing:flavorTextLn
-		);
+		vector2 flavorTextPos = (descPos.x+10, descPos.y + 50);
+		for(int i = 0; i < flavorTextLines.Count(); i++)
+		{
+			string descLine = flavorTextLines.StringAt(i);
+			MWDrawer.DrawString(
+				descFont, descLine, 
+				flavorTextPos,
+				translation:Font.CR_GRAY, 1.0,
+				scale:(descFontScale,descFontScale)*0.8
+			);
+			flavorTextPos.y += flavorTextLn;
+		}
 		
 		// Stats
 		vector2 lnPos = descPos + (10, 50 + (flavorTextHeight+20));

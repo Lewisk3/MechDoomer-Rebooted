@@ -35,6 +35,15 @@ class MechItem : Object
 		return item;
 	}
 	
+	clearscope virtual void GetUIColors(out int fontColor, out int bgColor)
+	{		
+		if(!movable)
+		{
+			fontColor = Font.CR_BLACK;
+			bgColor = 0;
+		}
+	}
+	
 	virtual string GetItemErrorMessage(int ERR_TYPE)	
 	{
 		switch(ERR_TYPE)
@@ -224,6 +233,11 @@ class MechAmmo : MechItem
 		explosionDamage = 1;
 	}
 	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		bgColor = 0xA0FF00FF;
+	}
+	
 	virtual void SetupAmmo()
 	{
 		curAmmo = maxAmmo;
@@ -281,6 +295,12 @@ class MechDynamicStructure : MechItem
 		nosave = true;
 		displayName = "Structure";
 	}
+
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		fontColor = Font.CR_BLACK;
+		bgColor = 0xB2000000;
+	}	
 	
 	clearscope virtual int getFreeslots()
 	{
@@ -393,7 +413,7 @@ class MechArmor : MechUtility
 		structureSlots = 0;
 		armorWeight = 0.05;
 	}
-	
+		
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		statName.Push("ARMOR WEIGHT");
@@ -529,6 +549,12 @@ class MechEngineBlock : MechItem
 		displayName = "??? ENGINE";
 	}
 	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		fontColor = Font.CR_WHITE;
+		bgColor = 0xA07F0000;
+	}
+	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		// Report back engine description
@@ -551,6 +577,11 @@ class MechEngine : MechItem
 		Type_Light,
 		Type_XL,
 		Type_XXL
+	}
+	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		bgColor = 0xA0FF0000;
 	}
 	
 	double roundTons(double value)
@@ -882,6 +913,17 @@ class MechWeapon : MechItem
 	class<MechProjectile> projType;
 	double energyUse;
 	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		let weap = MechWeapon(self);
+		if(weap)
+		{
+			if(weap.mountType ~== "energy"   ) bgColor = 0xA0FFFF00;
+			if(weap.mountType ~== "ballistic") bgColor = 0xA00000FF;
+			if(weap.mountType ~== "missile"  ) bgColor = 0xA000FF00;
+		}
+	}
+	
 	// Convert from spreadsheet data.
 	virtual double convertHeat(double amt, double delta)
 	{
@@ -899,6 +941,17 @@ class MechWeapon : MechItem
 		let item = MechWeapon(super.MakeCopy());
 		item.group = group;
 		return item;
+	}
+	
+	virtual bool isGroupable()
+	{
+		// If false, this weapon cannot be assigned to any group.
+		return true;
+	}
+	
+	virtual bool checkSelectable()
+	{
+		return !checkDestroyed();
 	}
 	
 	play virtual void A_Recoil(double pitchAmt, double pushBack = 0)
@@ -972,12 +1025,14 @@ class MechWeapon : MechItem
 	
 	override int TryAttach(MechHardpoint part)
 	{
+		bool noMount = mountType == "NONE"; // This weapon doesn't have a mount position.		
+	
 		// Attempt to find position to mount weapon to.
 		let mnt = part.findMountPoint(mountType);
-		if(!mnt) return IAE_INVALID;
+		if(!mnt && !noMount) return IAE_INVALID;
 		
 		int success = super.TryAttach(part);
-		if(success == IAE_SUCCESS)
+		if(success == IAE_SUCCESS && !noMount)
 		{
 			mnt.mountItem(self);
 			mount = mnt;

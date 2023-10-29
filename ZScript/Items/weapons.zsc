@@ -1080,3 +1080,103 @@ class ERPPC : PPC
 		damagable = true;
 	}
 }
+
+class AMS : MechWeapon
+{
+	Actor curTarget;
+
+	override void Defaults()
+	{
+		displayName = "AMS";
+		ammoType = "AMSAmmo";
+		mountType = "NONE"; // Doesn't take a mount position.
+		weight = 0.5;
+		
+		fireTime = 1;
+		cooldownTime = 2;
+		range = 270;
+		ammoUse = 1;
+		
+		projType = "MechAAM";
+		damagable = true;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue, mechInfo);
+		string infoText = "\c[Orange]Destroys missiles before they hit you.";
+		
+		flavorText = flavorText == "" ? infoText : String.Format("%s\n%s", flavorText,infoText);
+	}
+	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		fontColor = Font.CR_White;
+		bgColor = 0xA0e68115;
+	}
+	
+	override bool isGroupable()
+	{
+		return false;
+	}
+	override bool checkSelectable()
+	{
+		return false;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		if(cooldown || !curTarget) return false;
+		
+		WeapSound(fireSound);
+		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, false, 0,0));
+		proj.master = mech.driver;
+		proj.homingTarget = curTarget;
+		
+		modifyHeat(heat);
+		modifyEnergy(energyUse);
+		depleteAmmo(ammoUse);
+		cooldown = fireTime + cooldownTime;
+		
+		return true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		// Don't run if mech is shutdown.
+		if(mech.shutdown) return;
+		
+		// Firing is handled manually by the AMS computer
+		// Manually because I am the AMS computer, lazy bastard...
+		
+		vector3 localFirePos = (0,0,parent.getHeight());
+		vector3 globalFirePos = parent.OffsetPos(localFirePos.x, localFirePos.y, localFirePos.z);
+		
+		let it = ThinkerIterator.Create();
+		Actor act;
+		while(act = Actor(it.Next()))
+		{
+			// Out of range
+			double dist = DrivableMech.unitsToKM(DrivablesMath.Distance3D(globalFirePos,act.pos)) * 1000.0;
+			if(dist > range) continue;
+		
+			// Don't fire at our own projectiles stoopid
+			let hardpointSource = MechHardpoint(act.target);
+			let mechProj = MechProjectile(act);
+			double projDmg = mechProj ? mechProj.trueDamage : act.damage;
+			if( projDmg <= 10 || !act.bMISSILE || (hardpointSource && hardpointSource.mech == mech) ) continue;
+			
+			// If we're dealing with a mech projectile, only target missiles
+			if( mechProj && !(mechProj is "MechMissile") ) continue;
+			
+			// In range and an enemy projectile, engage
+			if(canFire()) 
+			{
+				curTarget = act;
+				Fire(localFirePos);
+			}
+		}
+	}
+}

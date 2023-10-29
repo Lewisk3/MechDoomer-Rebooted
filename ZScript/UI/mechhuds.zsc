@@ -390,7 +390,6 @@ class MechHUD : VehicleHUD
 		
 		drawPos.y += yoff;		
 		
-		
 	
 		chainBlink += deltaTime;
 		if( chainBlink >= 20 )
@@ -405,9 +404,23 @@ class MechHUD : VehicleHUD
 			(256 * weapBarScale.x) - (24*mountIconScale.x), 0
 		);
 		
+		// Sort weapons
+		Array<MechWeapon> sortedWeaps;
+		
+		for(int p = 0; p <= 1; p++)
+		{
+			foreach(wp : weaps)
+			{
+				if(!p && wp.isGroupable()) // Automatic weapon
+					sortedWeaps.Push(wp);
+				else if(p && !wp.isGroupable())
+					sortedWeaps.Push(wp);
+			}
+		}
+		
 		for(int i = 0; i < weapCount; i++)
 		{
-			let weap = weaps[i];
+			let weap = sortedWeaps[i];
 			if(!weap) continue;
 			
 			bool onArm = weap.parent is "MechArm";
@@ -444,6 +457,7 @@ class MechHUD : VehicleHUD
 				uint gBit = (2**g);
 				let wgroup = mech.weaponGroups[g];
 				bool chainfire = wgroup.chainfire;
+				MechWeapon selWeap = mech.getSelectedWeapon();
 				
 				if( !!(weap.group & gBit) ) 
 				{
@@ -462,13 +476,13 @@ class MechHUD : VehicleHUD
 				if(destroyed) 
 					tint = Font.CR_DarkRed;
 				
-				if(g == mech.selectedGroup)
+				if(g == mech.selectedGroup && weap.isGroupable())
 				{
-					double selAlpha = ((i+1) == mech.selectedWeapon) ? 0.5 : 0.25; 
+					double selAlpha = (weap == selWeap) ? 0.5 : 0.25; 
 					MWDrawer.Fill(selColor, drawPos.x+groupOffs.x-115, drawPos.y + offs.y + groupOffs.y, 18, 20, selAlpha, flags);
 				}
 				
-				MWDrawer.DrawString("ConsoleFont", String.Format("%d",g+1), drawPos+offs+groupOffs-(115,0), flags, translation:tint, alpha:alpha);
+				if(weap.isGroupable()) MWDrawer.DrawString("ConsoleFont", String.Format("%d",g+1), drawPos+offs+groupOffs-(115,0), flags, translation:tint, alpha:alpha);
 				groupOffs.x += xoff;
 			}
 			
@@ -517,7 +531,7 @@ class MechHUD : VehicleHUD
 			
 			// Weapon cooldown
 			vector2 cooldownPos = (weapDrawPos.x + 230, weapDrawPos.y + 3);
-			double cooldownPerc = min(1, weap.cooldown / double(weap.cooldownTime));
+			double cooldownPerc = min(1, max(0.01,weap.cooldown) / max(0.01,double(weap.cooldownTime)));
 			MWDrawer.Fill(0xFF7F7F7F, cooldownPos.x - 1, cooldownPos.y - 1, 52, 12, flags:flags);
 			MWDrawer.Fill(0xFF000000, cooldownPos.x, cooldownPos.y, 50, 10, flags:flags);
 			MWDrawer.Fill(0xFFFF0000, cooldownPos.x + 1, cooldownPos.y + 0.5, 48 * cooldownPerc, 8.5, flags:flags);

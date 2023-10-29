@@ -39,7 +39,7 @@ class WireFrame_Handler : EventHandler
 		int lnAlpha = getLineAlpha(lnDist);
 		
 		// BL - BR	
-		if(BL_Visible && BR_Visible)
+		if( BL_Visible && BR_Visible)
 			Screen.DrawThickLine(lineUI_BL.x, lineUI_BL.y, lineUI_BR.x, lineUI_BR.y, scale, linecol, lnAlpha);
 		// TL - TR
 		if(TL_Visible && TR_Visible)
