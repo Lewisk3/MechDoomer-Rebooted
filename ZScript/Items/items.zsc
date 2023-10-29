@@ -120,7 +120,13 @@ class MechArmor_Ferro : MechArmor
 // Chassis structures
 
 // Arm structures
-class MechStructure : MechItem abstract {}
+class MechStructure : MechItem 
+{
+	override void Defaults()
+	{
+		template = true;
+	}
+}
 
 class MechShoulder : MechStructure
 {

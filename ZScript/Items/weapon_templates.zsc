@@ -1,0 +1,322 @@
+// Lasers
+class MechLaserWeapon : MechWeapon
+{
+	MechLaser laser;
+	double laserHeat;
+	double laserRange;
+	class<MechLaser> laserType;
+	Color laserColor;
+	double pulseSpeed;
+	Sound pulseSound;
+	
+	override void Defaults()
+	{
+		template = true;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (damage * fireTime * MechHardpoint.DMGSCALE) ));
+		statName.Push("HEAT");
+		statValue.Push(String.Format("%.2f", (laserHeat/6.5) * fireTime) );
+		statName.Push("COOLDOWN");
+		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", laserRange));
+		statName.Push("OPTIMAL RANGE");
+		statValue.Push(String.Format("%d", range));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("DPS");
+		statValue.Push(String.Format("%.2f", damage*TICRATE));
+		statName.Push("HPS");
+		statValue.Push(String.Format("%.2f", laserHeat*TICRATE));
+		statName.Push("DPH");
+		statValue.Push(String.Format("%d", damage / laserHeat));
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		WeapSound(fireSound);
+		laser = MechLaser.FireLaser(parent, firePos, damage, fireTime, range, laserRange, laserType);
+		laser.shade = laserColor;
+		return true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(laser) 
+		{
+			modifyHeat(laserHeat);
+			modifyEnergy(energyUse);
+		
+			if(pulseSpeed > 0)
+			{
+				laser.alpha = (sin(laser.getAge()*pulseSpeed));
+				bool prevInvisible = laser.bInvisible;
+				laser.bInvisible = laser.alpha <= 0;
+				if(laser.bInvisible != prevInvisible) 
+				{
+					// Would be nice if the ternary operator supported Sound types...
+					Sound sndpulse = "Laser/Pulse";
+					if(pulseSound) sndpulse = pulseSound;
+					WeapSound(sndpulse);
+				}
+			}
+		
+			if(mech.engine && mech.engine.energy < energyUse)
+			{
+				// Disable laser if low energy
+				laser.Destroy();
+			}
+		}
+	}
+}
+
+// Missiles
+class MechMissileWeapon : MechWeapon
+{
+	bool doConverge;
+	double spread;
+	bool requiresTarget; // Weapon will not fire unless a target is locked in.
+	
+	override void Defaults()
+	{	
+		template = true;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		let projDefs = GetDefaultByType(projType);
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE) * refireCount ));
+		statName.Push("HEAT");
+		statValue.Push(String.Format("%.2f", heat * refireCount));
+		statName.Push("FIRE RATE");
+		statValue.Push(String.Format("%.1f/s", 1.0 / (refireDelay / double(TICRATE))));
+		statName.Push("COOLDOWN");
+		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		if(projDefs.minRange > 0)
+		{
+			statName.Push("MIN RANGE");
+			statValue.Push(String.Format("%d", projDefs.minRange));
+		}
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("DPS");
+		statValue.Push(
+			String.Format(
+				"%.2f", 
+				(projDefs.trueDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
+			) 
+		);
+		statName.Push("HPS");
+		statValue.Push(String.Format("%.2f", (heat*refireCount) / cooldownSeconds) );
+		statName.Push("DPH");
+		statValue.Push(String.Format("%d", (projDefs.trueDamage*refireCount) / (heat*refireCount)) );
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		// Setup weapon refire on the first Fire call.
+		if(!refire) return DoRefire();
+		
+		double slotNum = refireCount - refire;
+		double row = floor(slotNum / 3.0);
+		
+		double xoffs = 4 * (slotNum - (row*3.0));
+		double yoffs = 4 * row;
+
+		// Adjust to scale. Y Scale is unsupported.
+		vector2 mslSpread = (
+			frandom[MissileSpread](-spread, spread),
+			frandom[MissileSpread](-spread, spread)
+		) * parent.scale.X;
+		xoffs *= parent.Scale.X;
+		yoffs *= parent.Scale.X;
+		
+		// Only play weapon Fire sound on the first true Fire call.
+		if(refire == refireCount) WeapSound(fireSound);
+		
+		// Shoot projectile.
+		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y + xoffs, firePos.z - yoffs, doConverge, mslSpread.x, mslSpread.y));
+		proj.master = mech.driver;
+		proj.homingTarget = homingTarget;
+		
+		modifyHeat(heat);
+		depleteAmmo(ammoUse);
+		return true;
+	}
+	
+	override bool CanFire()
+	{
+		return super.canFire() && (homingTarget || !requiresTarget);
+	}
+}
+
+// Ballistics
+class MechBallisticWeapon : MechWeapon
+{
+	bool justFired;
+	Sound reloadSound;
+	double spread;
+
+	override void Defaults()
+	{	
+		template = true;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		let projDefs = GetDefaultByType(projType);
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
+		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
+	
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE)));
+		statName.Push("HEAT");
+		statValue.Push(String.Format("%.2f", heat));
+		statName.Push("FIRE RATE");
+		statValue.Push(String.Format("%.1f/s", 1.0 / cooldownSeconds));
+		statName.Push("COOLDOWN");
+		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		if(projDefs.minRange > 0)
+		{
+			statName.Push("MIN RANGE");
+			statValue.Push(String.Format("%d", projDefs.minRange));
+		}
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange));
+		statName.Push("OPTIMAL RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange * 0.5));
+		statName.Push("PROJ SPEED");
+		statValue.Push( String.Format("%d m/s", metersPerSeconds) );
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		statName.Push("DPS");
+		statValue.Push(String.Format("%.2f", projDefs.trueDamage * (1.0 / cooldownSeconds) ));
+		
+		if(heat > 0)
+		{
+			statName.Push("HPS");
+			statValue.Push(String.Format("%.2f", heat / cooldownSeconds));
+			statName.Push("DPH");
+			statValue.Push(String.Format("%d", projDefs.trueDamage / heat));
+		}
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if( justFired && (cooldown <= S_GetLength(reloadSound) * 36.0) && checkAmmo() >= ammoUse )
+		{
+			// If we've just fired and fireTime has ended, play reload sound.
+			parent.A_StartSound(reloadSound, CHAN_BODY, CHANF_OVERLAP);
+			justFired = false;
+		}
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		// Setup weapon refire on the first Fire call.
+		if(!refire && refireCount > 0) DoRefire();
+	
+		vector2 projSpread = (
+			frandom[BallisticSpread](-spread, spread),
+			frandom[BallisticSpread](-spread, spread)
+		) * parent.scale.X;
+	
+		WeapSound(fireSound);
+		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
+		proj.master = mech.driver;
+
+		modifyHeat(heat);
+		depleteAmmo(ammoUse);
+		justFired = true;
+		
+		return true;
+	}
+}
+
+// UAC
+class UltraAC : MechBallisticWeapon
+{
+	string baseName;
+	int jamChance;
+	bool jammed;
+	
+	virtual void SetupUAC(double jamperc = 10)
+	{
+		baseName = displayName;
+		refireCount = 1;
+		refireDelay = fireTime*4;
+		ammoUse = 1;
+		jamChance = jamperc;
+	}
+
+	override void Defaults()
+	{	
+		template = true;
+	}
+	
+	virtual void SetJammed(bool onoff)
+	{
+		jammed = onoff;
+		if( jammed) displayName = "\c[Red]" .. baseName .. " - JAMMED\c[White]";
+		if(!jammed) displayName = baseName;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		if(random[UACRNG](0,100) <= jamChance && refire >= refireCount)
+		{
+			// Weapon jammed
+			cooldown = 3.0 * TICRATE;
+			SetJammed(true);
+			return true;
+		}
+		
+		return super.Fire(firepos);
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if( jammed && cooldown <= 0)
+		{
+			SetJammed(false);
+		}
+	}
+}

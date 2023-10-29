@@ -1,12 +1,6 @@
 // Lasers
-class SmallLaser : MechWeapon
+class SmallLaser : MechLaserWeapon
 {
-	MechLaser laser;
-	double laserHeat;
-	double laserRange;
-	class<MechLaser> laserType;
-	Color laserColor;
-
 	override void Defaults()
 	{	
 		DisplayName = "SMALLLASER";
@@ -30,58 +24,6 @@ class SmallLaser : MechWeapon
 		sndItemName = "Betty/Item/Laser";
 	}
 	
-	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
-	{
-		super.getDescription(flavorText, statName, statValue);
-		statName.Push(" ");
-		statValue.Push(" ");
-		
-		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", (damage * fireTime * MechHardpoint.DMGSCALE) ));
-		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f", (laserHeat/6.5) * fireTime) );
-		statName.Push("COOLDOWN");
-		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
-		
-		statName.Push(" ");
-		statValue.Push(" ");
-		statName.Push("MAX RANGE");
-		statValue.Push(String.Format("%d", laserRange));
-		statName.Push("OPTIMAL RANGE");
-		statValue.Push(String.Format("%d", range));
-		
-		statName.Push(" ");
-		statValue.Push(" ");
-		statName.Push("DPS");
-		statValue.Push(String.Format("%.2f", damage*TICRATE));
-		statName.Push("HPS");
-		statValue.Push(String.Format("%.2f", laserHeat*TICRATE));
-		statName.Push("DPH");
-		statValue.Push(String.Format("%d", damage / laserHeat));
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		WeapSound(fireSound);
-		laser = MechLaser.FireLaser(parent, firePos, damage, fireTime, range, laserRange, laserType);
-		laser.shade = laserColor;
-		return true;
-	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		if(laser) 
-		{
-			modifyHeat(laserHeat);
-			modifyEnergy(energyUse);
-			if(mech.engine && mech.engine.energy < energyUse)
-			{
-				// Disable laser if low energy
-				laser.Destroy();
-			}
-		}
-	}
 }
 class ERSmallLaser : SmallLaser
 {
@@ -102,8 +44,6 @@ class ERSmallLaser : SmallLaser
 }
 class SmallPulseLaser : SmallLaser
 {
-	double pulseSpeed;
-
 	override void Defaults()
 	{	
 		DisplayName = "SMLPULSELASER";
@@ -127,22 +67,9 @@ class SmallPulseLaser : SmallLaser
 		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
 	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		if(laser) 
-		{	
-			laser.alpha = (sin(laser.getAge()*pulseSpeed));
-			bool prevInvisible = laser.bInvisible;
-			laser.bInvisible = laser.alpha <= 0;
-			if(laser.bInvisible != prevInvisible) 
-				WeapSound("Laser/Pulse");
-		}
-	}
 }
 
-class MediumLaser : SmallLaser
+class MediumLaser : MechLaserWeapon
 {
 	override void Defaults()
 	{	
@@ -183,7 +110,7 @@ class ERMediumLaser : MediumLaser
 		sndItemName = "Betty/Item/ERLaser";
 	}
 }
-class MediumPulseLaser : SmallPulseLaser
+class MediumPulseLaser : MediumLaser
 {
 	override void Defaults()
 	{	
@@ -210,7 +137,7 @@ class MediumPulseLaser : SmallPulseLaser
 	}
 }
 
-class LargeLaser : SmallLaser
+class LargeLaser : MechLaserWeapon
 {
 	override void Defaults()
 	{	
@@ -251,7 +178,7 @@ class ERLargeLaser : LargeLaser
 		sndItemName = "Betty/Item/ERLaser";
 	}
 }
-class LargePulseLaser : SmallPulseLaser
+class LargePulseLaser : LargeLaser
 {
 	override void Defaults()
 	{	
@@ -280,11 +207,8 @@ class LargePulseLaser : SmallPulseLaser
 }
 
 // Missiles
-class SRM2 : MechWeapon
+class SRM2 : MechMissileWeapon
 {
-	bool doConverge;
-	double spread;
-	
 	override void Defaults()
 	{	
 		DisplayName = "SRM2";
@@ -306,84 +230,9 @@ class SRM2 : MechWeapon
 		damagable = true;
 		sndItemName = "Betty/Item/SRM";
 	}
-	
-	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
-	{
-		super.getDescription(flavorText, statName, statValue);
-		statName.Push(" ");
-		statValue.Push(" ");
-		
-		let projDefs = GetDefaultByType(projType);
-		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
-		
-		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE) * refireCount ));
-		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f", heat * refireCount));
-		statName.Push("FIRE RATE");
-		statValue.Push(String.Format("%.1f/s", 1.0 / (refireDelay / double(TICRATE))));
-		statName.Push("COOLDOWN");
-		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
-		
-		statName.Push(" ");
-		statValue.Push(" ");
-		if(projDefs.minRange > 0)
-		{
-			statName.Push("MIN RANGE");
-			statValue.Push(String.Format("%d", projDefs.minRange));
-		}
-		statName.Push("MAX RANGE");
-		statValue.Push(String.Format("%d", projDefs.maxRange));
-		
-		statName.Push(" ");
-		statValue.Push(" ");
-		statName.Push("DPS");
-		statValue.Push(
-			String.Format(
-				"%.2f", 
-				(projDefs.trueDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
-			) 
-		);
-		statName.Push("HPS");
-		statValue.Push(String.Format("%.2f", (heat*refireCount) / cooldownSeconds) );
-		statName.Push("DPH");
-		statValue.Push(String.Format("%d", (projDefs.trueDamage*refireCount) / (heat*refireCount)) );
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		// Setup weapon refire on the first Fire call.
-		if(!refire) return DoRefire();
-		
-		double slotNum = refireCount - refire;
-		double row = floor(slotNum / 3.0);
-		
-		double xoffs = 4 * (slotNum - (row*3.0));
-		double yoffs = 4 * row;
-
-		// Adjust to scale. Y Scale is unsupported.
-		vector2 mslSpread = (
-			frandom[MissileSpread](-spread, spread),
-			frandom[MissileSpread](-spread, spread)
-		) * parent.scale.X;
-		xoffs *= parent.Scale.X;
-		yoffs *= parent.Scale.X;
-		
-		// Only play weapon Fire sound on the first true Fire call.
-		if(refire == refireCount) WeapSound(fireSound);
-		
-		// Shoot projectile.
-		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y + xoffs, firePos.z - yoffs, doConverge, mslSpread.x, mslSpread.y));
-		proj.master = mech.driver;
-		proj.homingTarget = homingTarget;
-		
-		modifyHeat(heat);
-		depleteAmmo(ammoUse);
-		return true;
-	}
 }
 
-class SRM4 : SRM2
+class SRM4 : MechMissileWeapon
 {
 	override void Defaults()
 	{	
@@ -408,7 +257,7 @@ class SRM4 : SRM2
 		damagable = true;
 	}
 }
-class SRM6 : SRM2
+class SRM6 : MechMissileWeapon
 {
 	override void Defaults()
 	{	
@@ -445,11 +294,7 @@ class SSRM2 : SRM2
 		ammoType = "SSRMAmmo";
 		cooldownTime += TICRATE;
 		weight = 1.0;
-	}
-	
-	override bool CanFire()
-	{
-		return super.canFire() && homingTarget;
+		requiresTarget = true;
 	}
 }
 class SSRM4 : SRM4
@@ -462,11 +307,7 @@ class SSRM4 : SRM4
 		ammoType = "SSRMAmmo";
 		cooldownTime += TICRATE;
 		weight = 2.0;
-	}
-	
-	override bool CanFire()
-	{
-		return super.canFire() && homingTarget;
+		requiresTarget = true;
 	}
 }
 class SSRM6 : SRM6
@@ -480,16 +321,12 @@ class SSRM6 : SRM6
 		cooldownTime += TICRATE;
 		weight = 3.0;
 		size = 2.0;
-	}
-	
-	override bool CanFire()
-	{
-		return super.canFire() && homingTarget;
+		requiresTarget = true;
 	}
 }
 
 // LRM 5,10,15,20
-class LRM5 : SRM2
+class LRM5 : MechMissileWeapon
 {
 	override void Defaults()
 	{	
@@ -513,15 +350,10 @@ class LRM5 : SRM2
 		fireSound = "Missile/LRM5";
 		sndItemName = "Betty/Item/LRM";
 		damagable = true;
-	}
-	
-	override bool canFire()
-	{
-		// Only fire if we've got a lock.
-		return super.canFire() && homingTarget;
+		requiresTarget = true;
 	}
 }
-class LRM10 : LRM5
+class LRM10 : MechMissileWeapon
 {
 	override void Defaults()
 	{	
@@ -545,6 +377,7 @@ class LRM10 : LRM5
 		fireSound = "Missile/LRM10";
 		sndItemName = "Betty/Item/LRM";
 		damagable = true;
+		requiresTarget = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -552,7 +385,7 @@ class LRM10 : LRM5
 		return super.Fire(firePos);
 	}
 }
-class LRM15 : LRM5
+class LRM15 : MechMissileWeapon
 {
 	override void Defaults()
 	{	
@@ -576,6 +409,7 @@ class LRM15 : LRM5
 		fireSound = "Missile/LRM15";
 		sndItemName = "Betty/Item/LRM";
 		damagable = true;
+		requiresTarget = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -583,7 +417,7 @@ class LRM15 : LRM5
 		return super.Fire(firePos);
 	}
 }
-class LRM20 : LRM5
+class LRM20 : MechMissileWeapon
 {
 	override void Defaults()
 	{	
@@ -607,6 +441,7 @@ class LRM20 : LRM5
 		fireSound = "Missile/LRM20";
 		sndItemName = "Betty/Item/LRM";
 		damagable = true;
+		requiresTarget = true;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -616,12 +451,8 @@ class LRM20 : LRM5
 }
 
 // Ballistics
-class AC2 : MechWeapon
+class AC2 : MechBallisticWeapon
 {
-	bool justFired;
-	Sound reloadSound;
-	double spread;
-
 	override void Defaults()
 	{	
 		DisplayName = "AC/2";
@@ -642,148 +473,37 @@ class AC2 : MechWeapon
 		spread = 0;
 		damagable = true;
 	}
-	
-	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
-	{
-		super.getDescription(flavorText, statName, statValue);
-		statName.Push(" ");
-		statValue.Push(" ");
-		
-		let projDefs = GetDefaultByType(projType);
-		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
-		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
-		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
-	
-		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE)));
-		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f", heat));
-		statName.Push("FIRE RATE");
-		statValue.Push(String.Format("%.1f/s", 1.0 / cooldownSeconds));
-		statName.Push("COOLDOWN");
-		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
-		
-		statName.Push(" ");
-		statValue.Push(" ");
-		if(projDefs.minRange > 0)
-		{
-			statName.Push("MIN RANGE");
-			statValue.Push(String.Format("%d", projDefs.minRange));
-		}
-		statName.Push("MAX RANGE");
-		statValue.Push(String.Format("%d", projDefs.maxRange));
-		statName.Push("OPTIMAL RANGE");
-		statValue.Push(String.Format("%d", projDefs.maxRange * 0.5));
-		statName.Push("PROJ SPEED");
-		statValue.Push( String.Format("%d m/s", metersPerSeconds) );
-		
-		statName.Push(" ");
-		statValue.Push(" ");
-		statName.Push("DPS");
-		statValue.Push(String.Format("%.2f", projDefs.trueDamage * (1.0 / cooldownSeconds) ));
-		
-		if(heat > 0)
-		{
-			statName.Push("HPS");
-			statValue.Push(String.Format("%.2f", heat / cooldownSeconds));
-			statName.Push("DPH");
-			statValue.Push(String.Format("%d", projDefs.trueDamage / heat));
-		}
-	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		if( justFired && (cooldown <= S_GetLength(reloadSound) * 36.0) && checkAmmo() >= ammoUse )
-		{
-			// If we've just fired and fireTime has ended, play reload sound.
-			parent.A_StartSound(reloadSound, CHAN_BODY, CHANF_OVERLAP);
-			justFired = false;
-		}
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		// Setup weapon refire on the first Fire call.
-		if(!refire && refireCount > 0) DoRefire();
-	
-		vector2 projSpread = (
-			frandom[BallisticSpread](-spread, spread),
-			frandom[BallisticSpread](-spread, spread)
-		) * parent.scale.X;
-	
-		WeapSound(fireSound);
-		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
-		proj.master = mech.driver;
-
-		modifyHeat(heat);
-		depleteAmmo(ammoUse);
-		justFired = true;
-		
-		return true;
-	}
 }
-class UltraAC2 : AC2
+class UltraAC2 : UltraAC
 {
-	string baseName;
-	int jamChance;
-	bool jammed;
-	
-	virtual void SetupUAC(double jamperc = 10)
-	{
-		baseName = displayName;
-		refireCount = 1;
-		refireDelay = fireTime*4;
-		ammoUse = 1;
-		jamChance = jamperc;
-	}
-
 	override void Defaults()
-	{	
-		super.Defaults();
+	{
+		displayName = "UAC/2";
+		mountType = "Ballistic";
+	
 		heat = 1.0;
 		weight = 7.0;
 		size = 3.0;
 		energyUse = 0.05; // Magnetic loading system uses reactor power.
 		ammoType = "UAC2Ammo";
-		displayName = "UAC/2";
+
+		ammoUse = 1;
+		fireTime     = 4;
 		cooldownTime = ceil(0.1 * TICRATE);
+		
+		projType = "Autocannon2";
+		ammoType = "UAC2Ammo";
+		fireSound = "Ballistic/Autocannon2";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
+		spread = 0;
+		damagable = true;
 		
 		SetupUAC();
 	}
-	
-	virtual void SetJammed(bool onoff)
-	{
-		jammed = onoff;
-		if( jammed) displayName = "\c[Red]" .. baseName .. " - JAMMED\c[White]";
-		if(!jammed) displayName = baseName;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		if(random[UACRNG](0,100) <= jamChance && refire >= refireCount)
-		{
-			// Weapon jammed
-			cooldown = 3.0 * TICRATE;
-			SetJammed(true);
-			return true;
-		}
-		
-		return super.Fire(firepos);
-	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		
-		if( jammed && cooldown <= 0)
-		{
-			SetJammed(false);
-		}
-	}
 }
 
-class AC5 : AC2
+class AC5 : MechBallisticWeapon
 {
 	override void Defaults()
 	{	
@@ -810,7 +530,7 @@ class AC5 : AC2
 		return super.Fire(firePos);
 	}
 }
-class UltraAC5 : UltraAC2
+class UltraAC5 : UltraAC
 {
 	override void Defaults()
 	{	
@@ -841,7 +561,7 @@ class UltraAC5 : UltraAC2
 	}
 }
 
-class AC10 : AC2
+class AC10 : MechBallisticWeapon
 {
 	override void Defaults()
 	{	
@@ -868,7 +588,7 @@ class AC10 : AC2
 		return super.Fire(firePos);
 	}
 }
-class UltraAC10 : UltraAC2
+class UltraAC10 : UltraAC
 {
 	override void Defaults()
 	{	
@@ -899,7 +619,7 @@ class UltraAC10 : UltraAC2
 	}
 }
 
-class AC20 : AC2
+class AC20 : MechBallisticWeapon
 {
 	override void Defaults()
 	{	
@@ -926,7 +646,7 @@ class AC20 : AC2
 		return super.Fire(firePos);
 	}
 }
-class UltraAC20 : UltraAC2
+class UltraAC20 : UltraAC
 {
 	override void Defaults()
 	{	
@@ -957,7 +677,7 @@ class UltraAC20 : UltraAC2
 	}
 }
 
-class MachineGun : AC2
+class MachineGun : MechBallisticWeapon
 {
 	Sound mgunFire;
 	int fireCounter;
@@ -994,7 +714,7 @@ class MachineGun : AC2
 	} 
 }
 
-class GaussRifle : AC2
+class GaussRifle : MechBallisticWeapon
 {
 	override void Defaults()
 	{	
@@ -1026,7 +746,7 @@ class GaussRifle : AC2
 	override void OnDestroyed()
 	{
 		if(!parent) return;
-		mech.betty.Push(String.Format("Betty/ItemDestroyed/%s", getClassName()));
+		super.OnDestroyed();
 		
 		// Yeah, pretty bad idea to get one of these guys crit...
 		// Massive capacitor banks plus a hole, turns out, don't mix too well.
@@ -1035,7 +755,7 @@ class GaussRifle : AC2
 }
 
 // PPC
-class PPC : AC2
+class PPC : MechBallisticWeapon
 {	
 	override void Defaults()
 	{	
@@ -1060,7 +780,6 @@ class PPC : AC2
 	override bool Fire(vector3 firePos)
 	{
 		A_Recoil(-3);
-		
 		return super.Fire(firePos);
 	}
 }

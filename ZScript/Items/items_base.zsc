@@ -9,6 +9,10 @@ class MechItem : Object
 	uint amount;
 	double weight;
 	Sound sndItemName;
+	bool template; // If true, this item is not returned on Init. 
+	bool essential; // If true, item is added to the inventory by default.
+	bool hidden; // If true, item is hidden from inventory screen.
+	bool infinite; // Item cannot be depleted.
 	
 	enum ItemActionError 
 	{
@@ -37,7 +41,8 @@ class MechItem : Object
 			item.damagable = false;
 			item.Defaults();
 		}
-		return item;
+	
+		return (item && item.template) ? NULL : item;
 	}
 	
 	clearscope virtual void GetUIColors(out int fontColor, out int bgColor)
@@ -407,8 +412,13 @@ class MechDynamicStructure : MechItem
 	}
 }
 
-class MechUtility : MechItem abstract {}
-
+class MechUtility : MechItem 
+{
+	override void Defaults()
+	{
+		template = true;
+	}
+}
 class MechArmor : MechUtility
 {
 	double armorWeight;
@@ -419,7 +429,10 @@ class MechArmor : MechUtility
 
 	override void Defaults()
 	{
+		// Setup default armor flags
+		essential = infinite = hidden = true;
 		damagable = false;
+		
 		size = 0; 
 		structType = "MechDynamicStructure";
 		structureSlots = 0;
@@ -1223,6 +1236,8 @@ class I_MechItemStorage : Inventory
 	MechItem takeItem(int index, bool deplete = true)
 	{
 		let item = items[index];
+		if(item.infinite) return item.MakeCopy();
+
 		MechItem output = (item.amount > 1) ? item.MakeCopy() : item;	
 		if(deplete) depleteItem(item);
 		
@@ -1231,6 +1246,7 @@ class I_MechItemStorage : Inventory
 	
 	void depleteItem(MechItem item)
 	{	
+		if(item.infinite) return;
 		if(item.amount > 1)
 			item.amount--;
 		else
@@ -1250,7 +1266,7 @@ class I_MechItemStorage : Inventory
 			let stackItem = validItems[i];
 			if(stackItem && stackItem.CanStack(item))
 			{
-				stackItem.amount++;
+				if(!item.infinite) stackItem.amount++;
 				return; // Successfully stacked item.
 			}
 		}
@@ -1266,14 +1282,26 @@ class I_MechItemStorage : Inventory
 		{
 			from.GiveInventory("I_MechItemStorage", 1);
 			itm = I_MechItemStorage(from.FindInventory("I_MechItemStorage"));
+			
+			// Add essential items.
+			foreach(cls : AllClasses) 
+			{
+				let item = (class<MechItem>)(cls);
+				if(!item) continue;
 				
+				let itemInstance = MechItem.Init(item);
+				if(itemInstance && itemInstance.essential)
+					itm.AddItem(itemInstance);
+				else if(itemInstance)
+					itemInstance.Destroy();
+			}
+			
 			// Debug: give all items
 			foreach(cls : AllClasses)
 			{
 				let item = (class<MechItem>)(cls);
 				if(!item) continue;
-				if(item.getClassName() == "MechUtility" || item.getClassName() == "MechStructure") continue;
-				
+
 				let itemInstance = MechItem.Init(item);
 				if( itemInstance && (!itemInstance.movable || itemInstance.displayName == "") )
 				{
@@ -1284,7 +1312,8 @@ class I_MechItemStorage : Inventory
 				// Give 25 of each item.
 				for(int i = 0; i < 25; i++)
 				{
-					itm.AddItem(MechItem.Init(item));
+					if(itemInstance)
+						itm.AddItem(itemInstance);	
 				}
 			}
 		}

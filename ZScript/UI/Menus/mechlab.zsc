@@ -631,8 +631,8 @@ class MenuItemsInvContainer : MenuElement
 		{
 			let item = inv.items[i];
 			
-			// Skip armor items
-			if(item is "MechArmor") continue;
+			// Skip hidden items
+			if(item.hidden) continue;
 			
 			skipItem = false;
 			for(int x = 0; x < tabs.Size(); x++)
@@ -1034,7 +1034,7 @@ class MechInvItem : MenuElement
 			);
 			
 			// Quantity
-			if(!dragging || grayed)
+			if( (!dragging || grayed) && !item.infinite )
 			{
 				int itemAmount = grayed ? item.amount - 1: item.amount; 
 				MWDrawer.DrawString(
