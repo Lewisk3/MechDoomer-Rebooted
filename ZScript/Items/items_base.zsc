@@ -174,7 +174,7 @@ class MechItem : Object
 	{
 		if(!damagable || hp <= 0) return;
 	
-		if( sndItemName && hp >= 10 && int(hp) < 10 )
+		if( sndItemName && hp >= 10 && int(hp-dmg) < 10 )
 		{
 			mech.betty.Push(sndItemName);
 			mech.betty.Push("Betty/Item/Damaged");
