@@ -279,7 +279,7 @@ class MechHardpoint : MechPart
 		int toHit = random[ItmeHitChance](0,20) >= 16;
 		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
 		
-		if(items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
+		if(noArmor && items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
 			bool criticalHit = random[HardpointCrit](0,100) <= 3; // 3 percent chance of crit.
 			

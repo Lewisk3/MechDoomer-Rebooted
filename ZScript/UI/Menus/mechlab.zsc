@@ -444,21 +444,27 @@ class MenuItemsInvContainer : MenuElement
 			MenuElement.Create("MechWeaponSortTab", "tabEnergy", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		energyTab.Setup("Energy", "", textScale:(tabTextScale,tabTextScale));
+		energyTab.parentContainer = self;
 		energyTab.weapType = "Energy";
+		energyTab.active = false;
 		tabOffs.x += tabSpacing;
 		
 		let ballisticsTab = MechWeaponSortTab(
 			MenuElement.Create("MechWeaponSortTab", "tabBallistic", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		ballisticsTab.Setup("Ballistics", "", textScale:(tabTextScale,tabTextScale));
+		ballisticsTab.parentContainer = self;
 		ballisticsTab.weapType = "Ballistic";
+		ballisticsTab.active = false;
 		tabOffs.x += tabSpacing;
 		
 		let missileTab = MechWeaponSortTab(
 			MenuElement.Create("MechWeaponSortTab", "tabMissile", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		missileTab.Setup("Missiles", "", textScale:(tabTextScale,tabTextScale));
+		missileTab.parentContainer = self;
 		missileTab.weapType = "Missile";
+		missileTab.active = false;
 		tabOffs.x = 0;
 		tabOffs.y += tabSpacing * (0.05+(tabSize.y/tabSize.x));	
 		
@@ -466,13 +472,16 @@ class MenuItemsInvContainer : MenuElement
 			MenuElement.Create("MechItemSortTab", "tabAmmo", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		ammoTab.Setup("Ammo", "", textScale:(tabTextScale,tabTextScale));
+		ammoTab.parentContainer = self;
 		ammoTab.sortCls = "MechAmmo";
+		ammoTab.active = false;
 		tabOffs.x += tabSpacing;
 		
 		let equipmentTab = MechEquipmentSortTab(
 			MenuElement.Create("MechEquipmentSortTab", "tabEquipment", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		equipmentTab.Setup("Equipment", "", textScale:(tabTextScale,tabTextScale));
+		equipmentTab.parentContainer = self;
 		equipmentTab.active = false;
 		tabOffs.x += tabSpacing;
 		
@@ -480,6 +489,8 @@ class MenuItemsInvContainer : MenuElement
 			MenuElement.Create("MechArmorSortTab", "tabArmor", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
 		armorTab.Setup("ArmorParts", "", textScale:(tabTextScale,tabTextScale));
+		armorTab.parentContainer = self;
+		armorTab.active = false;
 		tabOffs.x += tabSpacing;
 		
 		vector2 utilButtonPos = (pos.x + 8, pos.y + size.y + 30);
@@ -901,12 +912,13 @@ class MechContainerTab : MenuButton
 
 class MechItemSortTab : MechContainerTab
 {
+	MenuItemsInvContainer parentContainer;
 	class<MechItem> sortCls;
 		
 	override void Init()
 	{
 		super.Init();
-		active = true;
+		active = false;
 	}
 	
 	// Return true to sort item out of list 
@@ -914,10 +926,26 @@ class MechItemSortTab : MechContainerTab
 	{
 		return (!active && (item is sortCls));
 	}
+	
+	override void OnPressed()
+	{
+		super.OnPressed();
+		foreach(tab : parentContainer.tabs)
+		{
+			if(tab == self) continue;
+			tab.active = false;
+		}
+	}
 }
 class MechWeaponSortTab : MechItemSortTab
 {
 	string weapType;
+	
+	override void Init()
+	{
+		super.Init();
+		active = true;
+	}
 	
 	override bool doFilterItem(MechItem item)
 	{
@@ -931,7 +959,7 @@ class MechEquipmentSortTab : MechItemSortTab
 {
 	override bool doFilterItem(MechItem item)
 	{
-		bool filter = (item is "MechEngine") || (item is "MechUtility");
+		bool filter = (item is "MechEngine") || (item is "MechUtility") || (item is "AMS");
 		return (!active && filter);
 	}
 }
