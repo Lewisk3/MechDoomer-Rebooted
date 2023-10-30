@@ -29,6 +29,7 @@ class DrivableMech : DrivableObject
 	double healthPerc; // Health percent taking into account all hardpoints.
 	int mechbayID; // Used for saving mechs to mechbays.
 	bool noItemSlots; // If true, prevents any items from being equipped.
+	MechChassisStructure chassisStructure;
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 
@@ -152,6 +153,9 @@ class DrivableMech : DrivableObject
 			weaponGroups.Push(new("MechWeaponGroup"));
 		
 		super.PostBeginPlay();
+				
+		// Structure
+		MechChassisStructure.AddToMech(self, "MechChassis_Standard");
 				
 		// Equip stuff
 		SetupItems();
@@ -469,14 +473,11 @@ class DrivableMech : DrivableObject
 		// Camera(s)
 		camDrone = ThirdpersonCamera.Create(1,0,20, -100, 60);
 		AttachPart(camDrone, self);
-		
-		// Apply intrinsic weight.
-		weight += maxWeight / 10.;
 	}
-	
+		
 	virtual void SetupItems()
 	{
-		
+
 	}
 	
 	void ToggleCamera()

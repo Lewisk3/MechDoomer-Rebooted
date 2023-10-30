@@ -32,7 +32,7 @@ class MechHeatsink : MechUtility
 	
 	override void OnDetach()
 	{
-		super.OnAttach();
+		super.OnDetach();
 		mech.maxHeat -= buffer;
 	}
 	
@@ -105,19 +105,43 @@ class MechFerroStructure : MechDynamicStructure
 
 class MechArmor_Ferro : MechArmor
 {
+	double efficiency;
+
 	override void Defaults()
 	{
 		super.Defaults();
 		structType = "MechFerroStructure";
 		structureSlots = 14;
+		efficiency = 0.12; // 12% more effective than Standard Armor.
 		
-		armorWeight = 0.03;
+		armorWeight = 0.05 * (1.0 - efficiency);
 		damageMod = 1.0;
 		displayName = "Ferro-fibrous";
 	}
 }
 
 // Chassis structures
+class MechChassis_Standard : MechChassisStructure
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 0;
+		displayName = "Standard";
+		chassisWeightPercent = 1.0;
+	}
+}
+
+class MechChassis_EndoSteel : MechChassisStructure
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 14;
+		displayName = "Endosteel";
+		chassisWeightPercent = 0.5;
+	}
+}
 
 // Arm structures
 class MechStructure : MechItem 

@@ -481,30 +481,10 @@ class MenuItemsInvContainer : MenuElement
 		);
 		armorTab.Setup("ArmorParts", "", textScale:(tabTextScale,tabTextScale));
 		tabOffs.x += tabSpacing;
-	
-		// Util buttons
-		Array<MechItem> stdArmor;
-		Array<MechItem> ferroArmor;
-		mechlab.inv.FindItems("MechArmor_Standard", stdArmor);
-		mechlab.inv.FindItems("MechArmor_Ferro", ferroArmor);
-		if(stdArmor.Size() > 0 && ferroArmor.Size() > 0)
-		{
-			vector2 utilButtonSize = (size.x * 0.45, size.x * 0.2);
-			vector2 utilButtonPos = (pos.x + 8, pos.y + size.y + 30);
-			let utilStandardArmor = MechlabUtilityButton(
-				MenuElement.Create("MechlabUtilityButton", "STDArmorButton", parentMenu, utilButtonPos, utilButtonSize)
-			);
-			utilStandardArmor.Setup(mechlab, MechUtility(stdArmor[0]));
-			utilButtonPos.x += utilButtonSize.x * 1.15;
-			
-			let utilFerroArmor = MechlabUtilityButton(
-				MenuElement.Create("MechlabUtilityButton", "FerroArmorButton", parentMenu, utilButtonPos, utilButtonSize)
-			);
-			utilFerroArmor.Setup(mechlab, MechUtility(ferroArmor[0]));
-			
-			utils.Push(utilStandardArmor);
-			utils.Push(utilFerroArmor);
-		}
+		
+		vector2 utilButtonPos = (pos.x + 8, pos.y + size.y + 30);
+		utilButtonPos.y += SetupUtilButtons("MechArmor_Standard", "MechArmor_Ferro", utilButtonPos);
+		utilButtonPos.y += SetupUtilButtons("MechChassis_Standard", "MechChassis_Endosteel", utilButtonPos);
 		
 		tabs.Push(energyTab);
 		tabs.Push(ballisticsTab);
@@ -512,6 +492,34 @@ class MenuItemsInvContainer : MenuElement
 		tabs.Push(ammoTab);
 		tabs.Push(equipmentTab);
 		tabs.Push(armorTab);
+	}
+	
+	double SetupUtilButtons(class<MechItem> itemOne, class<MechItem> itemTwo, vector2 buttonPos)
+	{
+		// Util buttons
+		vector2 utilButtonSize = (size.x * 0.45, size.x * 0.2);
+	
+		let utilItemOne = MechUtility(mechlab.inv.FindItem(itemOne));
+		let utilItemTwo = MechUtility(mechlab.inv.FindItem(itemTwo));
+
+		if(utilItemOne && utilItemTwo)
+		{
+			let utilOne = MechlabUtilityButton(
+				MenuElement.Create("MechlabUtilityButton", "UtilButton1", parentMenu, buttonPos, utilButtonSize)
+			);
+			utilOne.Setup(mechlab, utilItemOne);
+			buttonPos.x += utilButtonSize.x * 1.15;
+			
+			let utilTwo = MechlabUtilityButton(
+				MenuElement.Create("MechlabUtilityButton", "UtilButton2", parentMenu, buttonPos, utilButtonSize)
+			);
+			utilTwo.Setup(mechlab, utilItemTwo);
+			
+			utils.Push(utilOne);
+			utils.Push(utilTwo);
+		}
+		
+		return utilButtonSize.y + 20;
 	}
 	
 	static void DrawItemStats(MechMenu_Mechlab mechlab, MechItem invItem, vector2 pos, double width)
@@ -771,7 +779,7 @@ class MenuItemsInvContainer : MenuElement
 			vector2 boxScale = ((size.x*1.0) / boxRes.x, (size.x * 0.25) / boxRes.y);
 			vector2 boxPos = (pos.x, pos.y) + (0.5, size.y + 21);
 			
-			for(int i = 0; i < utilities; i++)
+			for(int i = 0; i < utils.Size(); i+=2)
 			{
 				let utilButtonOne = utils[i];
 				let utilButtonTwo = utils[i+1];
@@ -780,6 +788,7 @@ class MenuItemsInvContainer : MenuElement
 				utilButtonOne.Draw(dT);
 				utilButtonTwo.Draw(dT);
 				MWDrawer.DrawImage("Graphics/Mechlab/toggleBox.png", boxPos, scale:boxScale, texOffs:(0,0));
+				boxPos.y += (boxRes.y * boxScale.y);
 			}
 		}
 	}
@@ -1290,6 +1299,7 @@ class MechlabUtilityButton : MenuButton
 		{
 			bgColor = "Gray";
 			fontColor = Font.CR_Black;
+			MenuItemsInvContainer.DrawItemStats(mechlab, util, (340,570), 350);
 		}
 		
 		if(active)

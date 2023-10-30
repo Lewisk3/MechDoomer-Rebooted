@@ -135,7 +135,7 @@ class MechItem : Object
 		parent = part;
 		part.items.Push(self);
 		OnAttach();
-		
+				
 		part.slots += size;
 		part.mech.weight += weight;
 		return IAE_SUCCESS;
@@ -167,7 +167,8 @@ class MechItem : Object
 	
 	play virtual void OnDetach()
 	{
-		// When detached from parent.
+		// Reattach dynamic structures
+		MechDynamicStructure.ReattachAll(mech);
 	}
 	
 	clearscope virtual string GetDesc()
@@ -304,6 +305,8 @@ class MechAmmo : MechItem
 
 class MechDynamicStructure : MechItem
 {
+	int prevFreeslots;
+
 	override void Defaults()
 	{
 		movable = false;
@@ -311,6 +314,22 @@ class MechDynamicStructure : MechItem
 		size = 0;
 		nosave = true;
 		displayName = "Structure";
+	}
+	
+	play static void ReattachAll(DrivableMech mech)
+	{	
+		Array<MechHardpoint> hardpoints;
+		mech.getHardPoints(hardpoints);
+		
+		Array<MechDynamicStructure> dynStructs;
+		foreach(hardpoint : hardpoints) foreach(item : hardpoint.items)
+		{
+			let dynItem = MechDynamicStructure(item);
+			if(dynItem) dynStructs.Push(dynItem);
+		}
+		
+		foreach(dynItem : dynStructs) dynItem.TryDetach(true);
+		foreach(dynItem : dynStructs) dynItem.TryAttach(mech.torso);
 	}
 
 	override void GetUIColors(out int fontColor, out int bgColor)
@@ -358,21 +377,19 @@ class MechDynamicStructure : MechItem
 		Array<MechHardpoint> hardpoints;
 		mech.getHardPoints(hardpoints);
 		
-		for(int i = 0; i < hardpoints.Size(); i++)
+		// Sort hardpoint priorities
+		foreach(hardpoint : hardpoints)
 		{
-			let hardpoint = hardpoints[i];
-			uint curSlots = 0;
-			
-			for(int x = 0; x < hardpoint.items.Size(); x++)
+			int curSlots = 0;
+			foreach(item : hardpoint.items)
 			{
-				let item = hardpoint.items[x];
 				if(item is "MechDynamicStructure") continue;
 				curSlots += item.size;
 			}
 			curSlots += hardpoint.countItems("MechDynamicStructure", true);
 			
-			if(curSlots < hardpoint.maxSlots)
-				return hardpoint;
+			int freeSlots = hardpoint.maxSlots - curSlots;
+			if(freeSlots > 0) return hardpoint;
 		}
 		
 		return NULL;
@@ -388,24 +405,31 @@ class MechDynamicStructure : MechItem
 		}
 	}
 	
+	override void OnDetach()
+	{
+		// Don't do anything special
+	}
+	
 	override void DoEffect()
 	{
 		super.DoEffect();
+		int curFreeslots = getFreeslots();
+		MechHardpoint freeHardpoint = findFreeslots(mech);
 		
 		if(parent.healthPoints <= 0) return; // Do not move if we're in a dead hardpoint.
-		if( (getFreeslots() <= 1 && !findFreeslots(mech)) && size < 1 )
+		if( (curFreeslots <= 1 && !freeHardpoint) && size < 1 )
 		{
 			size = 1;
 			parent.slots++;
 		} 
 		
-		if(findFreeslots(mech) && size > 0)
+		if(freeHardpoint && size > 0)
 		{
 			size = 0;
 			parent.slots--;
 		}
 		
-		if(getFreeslots() < 0 || findFreeslots(mech) != parent)
+		if( curFreeslots < 0 && freeHardpoint != parent )
 		{
 			ReAttach();
 		}
@@ -557,6 +581,107 @@ class MechArmor : MechUtility
 		mech.weight -= (armorAmount * armorWeight);
 		armorAmount = 0;
 
+		if(structureSlots > 0)
+		{
+			MechItem structSlot;
+			while(structSlot = mech.findItem(structType))
+				structSlot.TryDetach(forced:true);
+		}
+	}
+}
+
+class MechChassisStructure : MechUtility
+{
+	double chassisWeightPercent;
+	class<MechDynamicStructure> structType;
+	int structureSlots;
+
+	override void Defaults()
+	{
+		// Setup default armor flags
+		essential = infinite = hidden = true;
+		damagable = false;
+		
+		size = 0; 
+		structType = "MechDynamicStructure";
+		structureSlots = 0;
+		chassisWeightPercent = 1.0;
+	}
+		
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		statName.Push("CHASSIS WEIGHT");
+		statValue.Push(String.Format("%d%%", chassisWeightPercent*100.0));
+		
+		statName.Push("CRITICALS");
+		statValue.Push(String.Format("%d", structureSlots));
+	}
+	
+	play static bool addToMech(DrivableMech mech, class<MechChassisStructure> type = "MechChassisStructure")
+	{
+		let ar = MechItem.Init(type);
+		if(ar) return ar.TryAttach(mech.torso) == IAE_SUCCESS;
+		return false;
+	}
+		
+	override int TryAttach(MechHardpoint part)
+	{
+		let mech = part.mech;
+		if(!mech) return IAE_FAIL;
+		if(mech.noItemSlots) return IAE_NOSLOTS;
+		self.mech = part.mech;
+		
+		let prevStructure = mech.chassisStructure;
+		mech.chassisStructure = NULL;
+		if(prevStructure) prevStructure.OnDetach();
+		
+		int fail = IAE_SUCCESS;
+		double weight = getChassisWeight();
+		if( (mech.weight + weight) > mech.maxWeight ) fail = IAE_OVERWEIGHT; 
+		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
+			fail = IAE_NOSLOTS;
+			
+		if(fail != IAE_SUCCESS)
+		{
+			prevStructure.TryAttach(part);
+		}
+		else
+		{
+			mech.chassisStructure = self;
+			OnAttach();
+		}
+		return fail;
+	}
+	
+	virtual double GetChassisWeight()
+	{
+		if(!mech) return 0;
+		return (mech.maxWeight / 10.0) * chassisWeightPercent;
+	}
+	
+	override bool isEquipped(DrivableMech mech)
+	{
+		return mech && mech.chassisStructure.getClassName() == getClassName();
+	}
+	
+	override bool TryDetach(bool forced)
+	{
+		OnDetach();
+		return true;
+	}
+	
+	override void OnAttach()
+	{
+		mech.weight += getChassisWeight();
+		for(int i = 0; i < structureSlots; i++)
+			mech.torso.AddItem(structType);
+	}
+		
+	override void OnDetach()
+	{
+		// Remove structural weight from mech.
+		mech.weight -= getChassisWeight();
+		
 		MechItem structSlot;
 		while(structSlot = mech.findItem(structType))
 			structSlot.TryDetach(forced:true);
@@ -1083,6 +1208,7 @@ class MechWeapon : MechItem
 	}
 	override void OnDetach()
 	{
+		super.OnDetach();
 		if(mount) mount.unmountItem(); // Clear mech mount point.
 	}
 	
@@ -1225,12 +1351,21 @@ class I_MechItemStorage : Inventory
 	
 	clearscope void FindItems(class<MechItem> itemCls, Array<MechItem> result, bool subclass = false)
 	{
-		for(int i = 0; i < items.Size(); i++)
+		foreach(item : items)
 		{
-			let item = items[i];
-			if( ((item is itemCls) && subclass) || item.getClass() == itemCls )
+			if(item.IsTypeOf(itemCls, subclass))
 				result.Push(item);
 		}
+	}
+	
+	clearscope MechItem FindItem(class<MechItem> itemCls, bool subclass = false)
+	{
+		foreach(item : items)
+		{
+			if(item.IsTypeOf(itemCls, subclass))
+				return item;
+		}
+		return NULL;
 	}
 	
 	MechItem takeItem(int index, bool deplete = true)
