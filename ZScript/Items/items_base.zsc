@@ -837,32 +837,32 @@ class MechEngine : MechItem
 		return (32.4*(100./mech.maxWeight)) / (baserating/rating); 
 	}
 		
-	clearscope static double speedToKPH(double spd, double scalar = 1.0)
+	clearscope static double speedToKPH(double spd)
 	{
 		double unitsPerSecond = spd * TICRATE;
 		double unitsPerHour = unitsPerSecond * 3600.0;
-		return scalar * (( unitsPerHour * UTOCM ) / 100000.0);
+		return (( unitsPerHour * UTOCM ) / 100000.0);
 	}
 	
 	// Holy fuck this is a mess LMFAO
 	const MOVEFRICMOD   = 0.94/DrivableMech.MECHFRICTION;
 	const MOVEACCELREAL = 15.66666564814815 * MOVEFRICMOD;
 	const MOVESPEED_MOD = 10 * MOVEFRICMOD; 
-	clearscope static double getMechKPHSpeed(double KPH, double scalar = 1.0)
+	clearscope static double getMechKPHSpeed(double KPH)
 	{
 		double unitsPerHour = (KPH*100000.0) / UTOCM;
 		double unitsPerSecond = unitsPerHour / 3600.0;
 		
 		unitsPerSecond /= MOVESPEED_MOD;
-		unitsPerSecond *= scalar;
+		unitsPerSecond *= sv_mdr_mechspeedscale;
 		
 		return unitsPerSecond / TICRATE;
 	}
 	
-	clearscope static double mechSpeedToKPH(double spd, double scalar)
+	clearscope static double mechSpeedToKPH(double spd)
 	{
-		double kph = speedToKPH(spd, scalar);
-		return kph * (MOVESPEED_MOD / MOVEACCELREAL);
+		double kph = speedToKPH(spd);
+		return kph * ((MOVESPEED_MOD/sv_mdr_mechspeedscale) / MOVEACCELREAL);
 	}
 	
 	virtual void AutoDetectEngine()
@@ -1062,7 +1062,7 @@ class MechWeapon : MechItem
 	class<MechAmmo> ammoType;
 	class<MechProjectile> projType;
 	double energyUse;
-	
+
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
 		let weap = MechWeapon(self);
@@ -1139,6 +1139,11 @@ class MechWeapon : MechItem
 		return am ? MechAmmo(am).curAmmo : 0;
 	}
 	
+	play virtual void preFire()
+	{
+		// Called when fire button is pressed on this weapon or weapon group.
+	}
+	
 	clearscope virtual bool canFire()
 	{
 		bool ammoCheck = ammoUse <= 0 || checkAmmo() >= ammoUse;
@@ -1212,6 +1217,11 @@ class MechWeapon : MechItem
 		if(mount) mount.unmountItem(); // Clear mech mount point.
 	}
 	
+	clearscope virtual double getCooldownTime()
+	{
+		return cooldownTime + fireTime;
+	}
+	
 	play static void FireWeapons(Array<MechWeapon> weaps, Array<MechWeaponGroup> groups, uint grp = 0, bool instantFire = false)
 	{		
 		let group = grp > 0 ? groups[grp-1] : NULL;
@@ -1245,6 +1255,7 @@ class MechWeapon : MechItem
 					}
 					// console.printf("Firing (Chainfire): %s on %s (%d)", weap.getClassName(), weap.parent.getClassName(), curIndex);
 					
+					weap.preFire();
 					if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.getFirePos()) )
 					{
 						// Alert monsters
@@ -1253,9 +1264,13 @@ class MechWeapon : MechItem
 						
 						weap.modifyHeat(weap.heat);
 						weap.modifyEnergy(weap.energyUse);
-						weap.cooldown += (weap.cooldownTime + weap.fireTime);
+						weap.cooldown += weap.getCooldownTime();
 						group.weapCycle = weap.fireTime;
 						group.prevWeapFired = weap;
+					}
+					else
+					{
+						group.prevWeapFired = weap; // Skip weapon if we cannot fire it.
 					}
 					
 					break;
@@ -1264,6 +1279,7 @@ class MechWeapon : MechItem
 			}
 			
 			// Fire normally
+			weap.preFire();
 			if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.getFirePos()))
 			{
 				// Alert monsters
@@ -1272,7 +1288,7 @@ class MechWeapon : MechItem
 			
 				weap.modifyHeat(weap.heat);
 				weap.modifyEnergy(weap.energyUse);
-				weap.cooldown += (weap.cooldownTime + weap.fireTime);
+				weap.cooldown += weap.getCooldownTime();
 				group.weapCycle = weap.fireTime;
 			}
 		}

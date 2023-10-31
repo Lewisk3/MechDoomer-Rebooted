@@ -519,7 +519,7 @@ class DrivableMech : DrivableObject
 		while(weap && !weap.checkSelectable()) 
 		{
 			selectedWeapon--;
-			if(selectedWeapon < 1) selectedWeapon = 1;
+			if(selectedWeapon < 1) selectedWeapon = weaps.Size();
 			weap = weaps[selectedWeapon-1];
 		}
 		return weap;

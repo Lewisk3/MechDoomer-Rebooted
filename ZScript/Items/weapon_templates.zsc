@@ -4,6 +4,9 @@ class MechLaserWeapon : MechWeapon
 	MechLaser laser;
 	double laserHeat;
 	double laserRange;
+	bool continuous;
+	int contLaserTime, maxLaserTime; // Applicable to continuous lasers, if the laser is continuously fired longer than this, it stops firing.
+	bool firingLaser;
 	class<MechLaser> laserType;
 	Color laserColor;
 	double pulseSpeed;
@@ -44,17 +47,51 @@ class MechLaserWeapon : MechWeapon
 		statValue.Push(String.Format("%d", damage / laserHeat));
 	}
 	
+	override double getCooldownTime()
+	{
+		return continuous ? fireTime : super.getCooldownTime();
+	}
+	
+	// Called so long as the weapon's fire button is held.
+	override void preFire()
+	{
+		if(!continuous || !laser) return;
+		
+		// Continuous laser firing
+		if(canFire() && laser.time <= 1)
+		{
+			laser.time = fireTime;
+			if(maxLaserTime) contLaserTime += fireTime;
+		}
+		
+		if(maxLaserTime > 0 && contLaserTime > 0)
+			cooldown = cooldownTime * (contLaserTime / double(maxLaserTime));
+		
+		// If we've been firing continuously for too long.
+		if(contLaserTime >= maxLaserTime)
+		{
+			// Destroy laser
+			laser.Destroy();
+			cooldown = cooldownTime;
+			contLaserTime = 0;
+		}
+	}
+		
 	override bool Fire(vector3 firePos)
 	{
+		if(laser) return true;
+		
 		WeapSound(fireSound);
 		laser = MechLaser.FireLaser(parent, firePos, damage, fireTime, range, laserRange, laserType);
 		laser.shade = laserColor;
+		contLaserTime = fireTime;
 		return true;
 	}
 	
 	override void DoEffect()
 	{
 		super.DoEffect();
+		
 		if(laser) 
 		{
 			modifyHeat(laserHeat);

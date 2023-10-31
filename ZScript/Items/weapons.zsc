@@ -8,7 +8,7 @@ class SmallLaser : MechLaserWeapon
 		heat = 0; // Initial heat.
 		weight = 0.5;
 				
-		fireTime     = floor(0.75 * TICRATE);
+		fireTime     = floor(0.4 * TICRATE);
 		cooldownTime = 1 * TICRATE;
 		
 		range = 150; // Meters
@@ -51,21 +51,23 @@ class SmallPulseLaser : SmallLaser
 		heat = 0; // Initial heat.
 		weight =1.0;
 				
-		fireTime     = floor(0.50 * TICRATE);
+		fireTime     = floor(0.1 * TICRATE);
 		cooldownTime = floor(0.75 * TICRATE);
+		maxLaserTime = floor(1.75 * TICRATE);
 		
 		laserRange = 220; // Meters
 		range = 110;
-		damage = convertDMG(3.50, fireTime);
-		laserHeat = convertHeat(1.35, fireTime); // Laserbeam heat.
-		pulseSpeed = 70;
-		energyUse = 0.15 / double(fireTime);
+		damage = convertDMG(3.50, maxLaserTime);
+		laserHeat = convertHeat(2.70, maxLaserTime); // Laserbeam heat.
+		pulseSpeed = 90;
+		energyUse = 0.02 / double(fireTime);
 		
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
 		laserColor = "Red";
 		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
+		continuous = true; 
 	}
 }
 
@@ -77,7 +79,7 @@ class MediumLaser : MechLaserWeapon
 		mountType = "Energy";
 		weight = 1;
 		
-		fireTime     = floor(0.90 * TICRATE);
+		fireTime     = floor(0.4 * TICRATE);
 		cooldownTime = 2 * TICRATE;
 		
 		laserRange = 540; // Meters
@@ -119,21 +121,23 @@ class MediumPulseLaser : MediumLaser
 		heat = 0; // Initial heat.
 		weight = 2.0;
 				
-		fireTime     = floor(0.60 * TICRATE);
+		fireTime     = floor(0.1 * TICRATE);
 		cooldownTime = floor(1.50 * TICRATE);
+		maxLaserTime = floor(3.0 * TICRATE);
 		
 		laserRange = 440; // Meters
 		range = 220;
-		damage = convertDMG(6.0, fireTime);
-		laserHeat = convertHeat(3.80, fireTime); // Laserbeam heat.
-		pulseSpeed = 50;
-		energyUse = 0.4 / double(fireTime);
+		damage = convertDMG(6.0, maxLaserTime);
+		laserHeat = convertHeat(7.60, maxLaserTime); // Laserbeam heat.
+		pulseSpeed = 70;
+		energyUse = 0.04 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
 		laserColor = "Green";
 		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
+		continuous = true; 
 	}
 }
 
@@ -146,7 +150,7 @@ class LargeLaser : MechLaserWeapon
 		weight = 5.0;
 		size = 2;
 		
-		fireTime     = floor(1.10 * TICRATE);
+		fireTime     = floor(0.5 * TICRATE);
 		cooldownTime = 3 * TICRATE;
 		
 		laserRange = 900; // Meters
@@ -188,21 +192,23 @@ class LargePulseLaser : LargeLaser
 		weight = 7.0;
 		size = 2;
 				
-		fireTime     = floor(0.67 * TICRATE);
-		cooldownTime = floor(2.50 * TICRATE);
+		fireTime     = floor(0.1 * TICRATE);
+		cooldownTime = floor(3.0 * TICRATE);
+		maxLaserTime = floor(4.25 * TICRATE);
 		
 		laserRange = 740; // Meters
 		range = 370;
-		damage = convertDMG(10.0, fireTime);
-		laserHeat = convertHeat(7.25, fireTime); // Laserbeam heat.
-		energyUse = 0.6 / double(fireTime);
-		pulseSpeed = 40;
+		damage = convertDMG(10.0, maxLaserTime);
+		laserHeat = convertHeat(14.5, maxLaserTime); // Laserbeam heat.
+		energyUse = 0.06 / double(fireTime);
+		pulseSpeed = 50;
 		
 		fireSound = "Laser/Large";
 		laserType = "MechPulseLaser";
 		laserColor = "Blue";
 		sndItemName = "Betty/Item/PulseLaser";
 		damagable = true;
+		continuous = true; 
 	}
 }
 

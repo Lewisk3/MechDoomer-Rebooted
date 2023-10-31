@@ -64,12 +64,15 @@ class MechLaser : MechLaserBeam
 
 	override void BeamTick()
 	{
-		A_StartSound(fireSound, flags:CHANF_LOOPING);
+		if(!master && enabled) A_StartSound(fireSound, CHAN_BODY, flags:CHANF_LOOPING);
+		if(!enabled) A_StopSound(CHAN_BODY);
+		
 		if(MechLaser(master)) 
 		{
 			alpha = master.alpha;
 			bInvisible = master.bInvisible;
 			enabled = MechLaser(master).enabled;
+			time = MechLaser(master).time;
 		}
 		
 		// Implement custom laser logic here.		
