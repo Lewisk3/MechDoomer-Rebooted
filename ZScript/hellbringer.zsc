@@ -72,8 +72,8 @@ class Hellbringer_Cockpit : MechCockpit
 		// Head component
 		Radius 2;
 		Height 2;
-		MechHardpoint.Vitals 18, 15;
-		MechHardpoint.SetupArmor 18, 0;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
 	}
 }
 
@@ -84,8 +84,8 @@ class Hellbringer_LeftLeg : MechLeftLeg
 		// Leg Stuff
 		Radius 6;
 		Height 40;
-		MechHardpoint.Vitals 60, 30;
-		MechHardpoint.SetupArmor 60, 0;
+		MechHardpoint.Vitals 40, 20;
+		MechHardpoint.SetupArmor 40, 0;
 	}	
 }
 class Hellbringer_RightLeg : MechRightLeg
@@ -96,8 +96,8 @@ class Hellbringer_RightLeg : MechRightLeg
 		Radius 6;
 		Height 40;
 		
-		MechHardpoint.Vitals 60, 30;
-		MechHardpoint.SetupArmor 60, 0;
+		MechHardpoint.Vitals 40, 20;
+		MechHardpoint.SetupArmor 40, 0;
 	}	
 }
 
@@ -111,8 +111,8 @@ class Hellbringer_CenterTorso : MechTorso
 		Radius 10;
 		Height 30;
 		
-		MechHardpoint.Vitals 84, 42;
-		MechHardpoint.SetupArmor 70, 14;
+		MechHardpoint.Vitals 60, 30;
+		MechHardpoint.SetupArmor 52, 8;
 		MechHardpoint.RearArmor true;
 	}	
 	
@@ -130,8 +130,8 @@ class Hellbringer_LeftTorso : MechSideTorso
 		Height 35;
 		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
 		
-		MechHardpoint.Vitals 60, 30;
-		MechHardpoint.SetupArmor 48, 12;
+		MechHardpoint.Vitals 48, 24;
+		MechHardpoint.SetupArmor 42, 6;
 		MechHardpoint.RearArmor true;
 	}	
 	
@@ -150,8 +150,8 @@ class Hellbringer_RightTorso : MechSideTorso
 		Height 35;
 		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
 		
-		MechHardpoint.Vitals 60, 30;
-		MechHardpoint.SetupArmor 48, 12;
+		MechHardpoint.Vitals 48, 24;
+		MechHardpoint.SetupArmor 42, 6;
 		MechHardpoint.RearArmor true;
 	}	
 	
@@ -172,8 +172,8 @@ class Hellbringer_LeftArm : MechArm
 		MechHardpoint.HitBox 10,30, 0,-12,-30;
 		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
 
-		MechHardpoint.Vitals 40, 20;
-		MechHardpoint.SetupArmor 40, 0;
+		MechHardpoint.Vitals 36, 18;
+		MechHardpoint.SetupArmor 36, 0;
 	}
 
 	override void SetupMounts()
@@ -190,8 +190,8 @@ class Hellbringer_RightArm : Hellbringer_LeftArm
 		MechHardpoint.HitBox 10,30, 0,12,-30;
 		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
 
-		MechHardpoint.Vitals 40, 20;
-		MechHardpoint.SetupArmor 40, 0;
+		MechHardpoint.Vitals 36, 18;
+		MechHardpoint.SetupArmor 36, 0;
 	}
 	
 	override void SetupMounts()
