@@ -443,8 +443,10 @@ class DrivableMech : DrivableObject
 		if(from == rightTorso) return torso;
 		if(from ==    leftArm) return leftTorso;
 		if(from ==   rightArm) return rightTorso;
-		if(from ==    leftLeg) return leftTorso;
-		if(from ==   rightLeg) return rightTorso;
+		
+		// Used to be side torsos, but this felt really shitty if ammo exploded in the leg.
+		if(from ==    leftLeg) return NULL; 
+		if(from ==   rightLeg) return NULL;
 		
 		return NULL;
 	}

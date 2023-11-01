@@ -453,6 +453,7 @@ class DrivableObjectPart : DrivableComponent
 	double animSpeed;
 	vector3 followPos;
 	vector3 animOffsets;
+	vector3 animOffsInterp;
 	vector3 parentOffset;
 	vector3 angles;
 	
@@ -528,7 +529,8 @@ class DrivableObjectPart : DrivableComponent
 	{
 		if(!parent) return;
 		
-		vector3 offs = parentOffset + animOffsets;
+		animOffsInterp = DrivablesMath.Lerp3D(animOffsInterp, animOffsets, 0.2);
+		vector3 offs = parentOffset + animOffsInterp;
 		followPos = parent.OffsetPos(offs.x,offs.y,offs.z);	
 	}
 		

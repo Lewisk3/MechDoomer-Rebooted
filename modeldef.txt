@@ -247,6 +247,22 @@ Model MechAAM
 	FrameIndex MODL A 0 0
 }
 
+// Mount stuff
+Model LaserMountDeco
+{
+	Path "models/"	
+	Model 0 "mounts/mnt_laser.obj"
+	SurfaceSkin 0 0 "vfx/mountBody.png"
+	SurfaceSkin 0 1 "vfx/laserGlass.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset 180
+	Scale 2.0 2.0 2.0
+	
+	FrameIndex MODL A 0 0
+}
+
 // Hellbringer
 Model Hellbringer_CenterTorso
 {

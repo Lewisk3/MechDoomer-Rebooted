@@ -28,6 +28,7 @@ version "4.10.0"
 #include "ZScript/Items/engines.zsc"
 #include "ZScript/Items/weapon_templates.zsc"
 #include "ZScript/Items/weapons.zsc"
+#include "ZScript/Items/mountdeco.zsc"
 
 // Mech Basics
 #include "ZScript/Mech/mech_base.zsc"

@@ -1,0 +1,64 @@
+class MechMountDeco : EffectsActor
+{
+	vector3 offs;
+	MechWeapon src;
+	
+	Property MountOffset : offs;
+	
+	Default
+	{
+		Scale 1.5;
+		MechMountDeco.MountOffset (0, 0, 0);
+	}
+	
+	static MechMountDeco Attach(MechWeapon src, class<MechMountDeco> type, vector3 offs = (0,0,0))
+	{
+		let mountDeco = MechMountDeco(Spawn(type));
+		if(mountDeco)
+		{
+			mountDeco.src = src;
+			mountDeco.offs += offs;
+		}
+		
+		return mountDeco;
+	}
+	
+	virtual void followMountPos()
+	{
+		if(!src.parent || !src.mount) return;
+		vector3 mountPos = src.mount.pos + offs;
+
+		double sc = src.parent.Scale.X;
+		mountPos = src.parent.OffsetPos(mountPos.x * sc, mountPos.y * sc, mountPos.z * sc);
+		
+		SetOrigin(mountPos, true);
+		angle = src.parent.angle; 
+		pitch = src.parent.pitch;
+		roll = src.parent.roll;
+		A_SetScale(default.scale.X * src.parent.scale.X);
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		// Determine when this mount needs to go away.
+		// We don't need to pass mech to weapons to check if they're equipped.	
+		if(!src || !src.isEquipped(null) || src.checkDestroyed())
+		{
+			Destroy();
+			return;
+		}
+	
+		followMountPos();
+	}
+
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}
+
+class LaserMountDeco : MechMountDeco {}

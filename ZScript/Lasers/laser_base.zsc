@@ -93,7 +93,7 @@ class MechLaserBeam : Actor
 	}
 	
 	virtual vector3 getSourcePos()
-	{
+	{		
 		vector3 srcPos = (source.pos.xy, source.pos.z + (source.height * 0.5));
 		if(source.player) srcPos.z = source.player.viewz;
 		
@@ -143,6 +143,18 @@ class MechLaserBeam : Actor
 		);
 		
 		vector3 finalPos = level.vec3offset(getSourcePos(), curOffs);
+		
+		// Handle things differently for drivables.
+		let dcm = DrivableComponent(source);
+		if(dcm) 
+		{
+			// No idea why this has to be handled soo manually, but for lasers, for some reason it does.
+			let qDir = Quat.FromAngles(dcm.angle, dcm.pitch, dcm.roll);
+			vector3 vDir = qDir * (offsets.x, -offsets.y, offsets.z);
+			
+			finalPos = level.vec3offset(dcm.pos, vDir);
+		}
+		
 		SetOrigin(finalPos, true);
 		curPos = finalPos;
 		

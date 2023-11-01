@@ -20,8 +20,10 @@ class SmallLaser : MechLaserWeapon
 		fireSound = "Laser/Small";
 		laserType = "MechLaser";
 		laserColor = "Red";
-		damagable = true;
 		sndItemName = "Betty/Item/Laser";
+		mountDeco = "LaserMountDeco";
+		
+		damagable = true;
 	}
 	
 }
@@ -40,6 +42,7 @@ class ERSmallLaser : SmallLaser
 		
 		laserColor = "Yellow";
 		sndItemName = "Betty/Item/ERLaser";
+		mountDeco = "LaserMountDeco";
 	}
 }
 class SmallPulseLaser : SmallLaser
@@ -66,6 +69,8 @@ class SmallPulseLaser : SmallLaser
 		laserType = "MechPulseLaser";
 		laserColor = "Red";
 		sndItemName = "Betty/Item/PulseLaser";
+		mountDeco = "LaserMountDeco";
+		
 		damagable = true;
 		continuous = true; 
 	}
@@ -92,6 +97,8 @@ class MediumLaser : MechLaserWeapon
 		laserType = "MechLaser";
 		laserColor = "Green";
 		sndItemName = "Betty/Item/Laser";
+		mountDeco = "LaserMountDeco";
+		
 		damagable = true;
 	}
 }
@@ -110,6 +117,7 @@ class ERMediumLaser : MediumLaser
 		
 		laserColor = "Cyan";
 		sndItemName = "Betty/Item/ERLaser";
+		mountDeco = "LaserMountDeco";
 	}
 }
 class MediumPulseLaser : MediumLaser
@@ -136,6 +144,8 @@ class MediumPulseLaser : MediumLaser
 		laserType = "MechPulseLaser";
 		laserColor = "Green";
 		sndItemName = "Betty/Item/PulseLaser";
+		mountDeco = "LaserMountDeco";
+		
 		damagable = true;
 		continuous = true; 
 	}
@@ -162,8 +172,10 @@ class LargeLaser : MechLaserWeapon
 		fireSound = "Laser/Large";
 		laserType = "MechLaser";
 		laserColor = "Blue";
-		damagable = true;
 		sndItemName = "Betty/Item/Laser";
+		mountDeco = "LaserMountDeco";
+		
+		damagable = true;
 	}
 }
 class ERLargeLaser : LargeLaser
@@ -180,6 +192,7 @@ class ERLargeLaser : LargeLaser
 		
 		laserColor = "Purple";
 		sndItemName = "Betty/Item/ERLaser";
+		mountDeco = "LaserMountDeco";
 	}
 }
 class LargePulseLaser : LargeLaser
@@ -207,6 +220,8 @@ class LargePulseLaser : LargeLaser
 		laserType = "MechPulseLaser";
 		laserColor = "Blue";
 		sndItemName = "Betty/Item/PulseLaser";
+		mountDeco = "LaserMountDeco";
+		
 		damagable = true;
 		continuous = true; 
 	}

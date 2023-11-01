@@ -79,7 +79,7 @@ class MechItem : Object
 	// Called when item is added to inventory (Not attached to a mech)
 	virtual void OnInventoryAdd() {}
 	
-	clearscope virtual bool isEquipped(DrivableMech mech)
+	clearscope virtual bool isEquipped(DrivableMech mech = NULL)
 	{
 		return !!parent;
 	}
@@ -1062,6 +1062,11 @@ class MechWeapon : MechItem
 	class<MechAmmo> ammoType;
 	class<MechProjectile> projType;
 	double energyUse;
+	
+	MechMountDeco mountDecoObject;
+	class<MechMountDeco> mountDeco;
+	vector3 mountDecoOffs;
+	
 
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
@@ -1072,6 +1077,11 @@ class MechWeapon : MechItem
 			if(weap.mountType ~== "ballistic") bgColor = 0xA00000FF;
 			if(weap.mountType ~== "missile"  ) bgColor = 0xA000FF00;
 		}
+	}
+	
+	override bool isEquipped(DrivableMech mech)
+	{
+		return !!parent && (mount || mountType == "NONE");
 	}
 	
 	// Convert from spreadsheet data.
@@ -1138,7 +1148,7 @@ class MechWeapon : MechItem
 		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType));
 		return am ? MechAmmo(am).curAmmo : 0;
 	}
-	
+		
 	play virtual void preFire()
 	{
 		// Called when fire button is pressed on this weapon or weapon group.
@@ -1196,6 +1206,7 @@ class MechWeapon : MechItem
 		if(success == IAE_SUCCESS && !noMount)
 		{
 			mnt.mountItem(self);
+			OnMount();
 			mount = mnt;
 		}
 		
@@ -1210,6 +1221,15 @@ class MechWeapon : MechItem
 	override void OnInventoryAdd()
 	{
 		group = 1; // Reset weapon groupings
+	}
+	
+	play virtual MechMountDeco OnMount()
+	{
+		// Setup mount deco if defined.
+		if(!mountDeco) return NULL;
+		mountDecoObject = MechMountDeco.Attach(self, mountDeco, mountDecoOffs);
+		
+		return mountDecoObject;
 	}
 	override void OnDetach()
 	{

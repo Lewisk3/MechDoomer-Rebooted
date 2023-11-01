@@ -36,3 +36,17 @@ material texture models/mechs/hellbringer/hellbringer.png {
 	specularlevel 0.3
 	glossiness 10
 }
+
+material texture models/vfx/mountBody.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+
+material texture models/vfx/laserGlass.png {
+	// shader "shaders/simsun.fp"
+	brightmap "models/mechs/c_glass.png"
+	brightness 1.0
+	specularlevel 0.8
+	glossiness 50
+}

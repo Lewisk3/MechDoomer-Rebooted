@@ -157,9 +157,9 @@ class Hellbringer_RightTorso : MechSideTorso
 	
 	override void SetupMounts()
 	{
-		AddMountPoint("Energy", 15, -7, 10);
-		AddMountPoint("Energy", 15, -7, 5);
-		AddMountPoint("Energy", 15, -7, 0);
+		AddMountPoint("Energy", 14, -7, 30);
+		AddMountPoint("Energy", 16, -7, 25);
+		AddMountPoint("Energy", 18, -7, 20);
 	}
 }
 
@@ -178,7 +178,7 @@ class Hellbringer_LeftArm : MechArm
 
 	override void SetupMounts()
 	{
-		AddMountPoint("Energy", 30, -14, -25);
+		AddMountPoint("Energy", 30, -14, -27);
 		// AddMountPoint("Energy", 30, -14, -30);
 	}
 }
@@ -196,7 +196,7 @@ class Hellbringer_RightArm : Hellbringer_LeftArm
 	
 	override void SetupMounts()
 	{
-		AddMountPoint("Energy", 30, 14, -25);
+		AddMountPoint("Energy", 30, 14, -27);
 		// AddMountPoint("Energy", 30, 14, -30);
 	}
 }
