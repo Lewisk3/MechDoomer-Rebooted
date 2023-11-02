@@ -188,6 +188,8 @@ class MechLaserBeam : Actor
 		
 		// Do linetrace to determine aim distance.
 		double zoffs = source.player ? (source.player.viewz-source.pos.z) : source.height * 0.5;
+		if(dcm) zoffs = 0;
+		
 		source.LineTrace(angle, maxDist, pitch - 90, 0, zoffs+offsets.z-bob.y, offsets.x, offsets.y-bob.x, data:hitData);
 		
 		// Scale to Distance.

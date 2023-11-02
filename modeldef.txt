@@ -294,6 +294,23 @@ Model MGunMountDeco
 	FrameIndex MODL A 0 0
 }
 
+Model MissileMountDeco
+{
+	Path "models/"	
+	Model 0 "mounts/mnt_missile.obj"
+	SurfaceSkin 0 0 "vfx/mountBody.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_body.png"
+	SurfaceSkin 0 3 "missiles/missile_head.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset 90
+	Scale 0.2 0.2 0.2
+	
+	FrameIndex MODL A 0 0
+}
+
 
 // Hellbringer
 Model Hellbringer_CenterTorso

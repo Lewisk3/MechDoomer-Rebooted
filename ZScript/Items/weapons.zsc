@@ -248,8 +248,10 @@ class SRM2 : MechMissileWeapon
 		projType = "MechSRM";
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM2";
-		damagable = true;
 		sndItemName = "Betty/Item/SRM";
+		mountDeco = "MissileMountDeco";
+		
+		damagable = true;
 	}
 }
 
@@ -275,6 +277,8 @@ class SRM4 : MechMissileWeapon
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM4";
 		sndItemName = "Betty/Item/SRM";
+		mountDeco = "MissileMountDeco";
+		
 		damagable = true;
 	}
 }
@@ -301,6 +305,8 @@ class SRM6 : MechMissileWeapon
 		ammoType = "SRMAmmo";
 		fireSound = "Missile/SRM6";
 		sndItemName = "Betty/Item/SRM";
+		mountDeco = "MissileMountDeco";
+		
 		damagable = true;
 	}
 }
@@ -370,6 +376,8 @@ class LRM5 : MechMissileWeapon
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM5";
 		sndItemName = "Betty/Item/LRM";
+		mountDeco = "MissileMountDeco";
+		
 		damagable = true;
 		requiresTarget = true;
 	}
@@ -461,6 +469,8 @@ class LRM20 : MechMissileWeapon
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM20";
 		sndItemName = "Betty/Item/LRM";
+		mountDeco = "MissileMountDeco";
+		
 		damagable = true;
 		requiresTarget = true;
 	}
@@ -491,6 +501,7 @@ class AC2 : MechBallisticWeapon
 		fireSound = "Ballistic/Autocannon2";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
 		spread = 0;
 		damagable = true;
 	}
@@ -517,6 +528,7 @@ class UltraAC2 : UltraAC
 		fireSound = "Ballistic/Autocannon2";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
 		spread = 0;
 		damagable = true;
 		

@@ -137,7 +137,16 @@ class Hellbringer_LeftTorso : MechSideTorso
 	
 	override void SetupMounts()
 	{
-		AddMountPoint("Missile", 15, 2, 30);
+		// Top 3
+		let msl = AddMountPoint("Missile", -12, 11, 47);
+		msl.newOffset(-12, 11 - 4.5, 47);
+		msl.newOffset(-12, 11 - 9.5, 47);
+		
+		// Bottom 3
+		msl.newOffset(-12, 11, 47 - 3.25);
+		msl.newOffset(-12, 11 - 4.5, 47 - 3.25);
+		msl.newOffset(-12, 11 - 9.5, 47 - 3.25);
+		
 		AddMountPoint("Ballistic", 25, 10, 13);
 		AddMountPoint("Ballistic", 25, 10, 10);
 	}

@@ -175,30 +175,50 @@ class MechMissileWeapon : MechWeapon
 		statValue.Push(String.Format("%d", (projDefs.trueDamage*refireCount) / (heat*refireCount)) );
 	}
 	
+	override vector3 getFirePos()
+	{
+		int missileSlot = !refire ? 0 : (refireCount - refire);
+		return mount.getPos(index:missileSlot);
+	}
+	
+	override MechMountDeco OnMount()
+	{
+		// Setup mount deco if defined.
+		if(!mountDeco) return NULL;
+		
+		for(int i = 0; i < min(mount.countOffsets(), refireCount); i++)
+			mountDecoObject = MechMountDeco.Attach(self, mountDeco, i);
+		
+		return mountDecoObject;
+	}
+	
 	override bool Fire(vector3 firePos)
 	{
 		// Setup weapon refire on the first Fire call.
 		if(!refire) return DoRefire();
 		
+		/*
 		double slotNum = refireCount - refire;
 		double row = floor(slotNum / 3.0);
 		
 		double xoffs = 4 * (slotNum - (row*3.0));
 		double yoffs = 4 * row;
-
+		
+		xoffs *= parent.Scale.X;
+		yoffs *= parent.Scale.X;
+		*/
+		
 		// Adjust to scale. Y Scale is unsupported.
 		vector2 mslSpread = (
 			frandom[MissileSpread](-spread, spread),
 			frandom[MissileSpread](-spread, spread)
 		) * parent.scale.X;
-		xoffs *= parent.Scale.X;
-		yoffs *= parent.Scale.X;
-		
+
 		// Only play weapon Fire sound on the first true Fire call.
 		if(refire == refireCount) WeapSound(fireSound);
 		
 		// Shoot projectile.
-		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y + xoffs, firePos.z - yoffs, doConverge, mslSpread.x, mslSpread.y));
+		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, doConverge, mslSpread.x, mslSpread.y));
 		proj.master = mech.driver;
 		proj.homingTarget = homingTarget;
 		

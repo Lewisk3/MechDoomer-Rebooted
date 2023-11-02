@@ -364,6 +364,10 @@ class DrivableObject : DrivableComponent
 	
 	override bool Used(Actor user)
 	{	
+		// Don't take a driver who's already driving something.
+		if(user != driver && user.FindInventory("I_DrivingObject"))
+			return false;
+	
 		// Pilot
 		if(!driver) 
 			TakePilot(user);

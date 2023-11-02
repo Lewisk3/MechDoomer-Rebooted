@@ -1065,6 +1065,7 @@ class MechWeapon : MechItem
 	
 	MechMountDeco mountDecoObject;
 	class<MechMountDeco> mountDeco;
+	double mountDecoScale;
 	vector3 mountDecoOffs;
 	
 
@@ -1206,8 +1207,8 @@ class MechWeapon : MechItem
 		if(success == IAE_SUCCESS && !noMount)
 		{
 			mnt.mountItem(self);
-			OnMount();
 			mount = mnt;
+			OnMount();
 		}
 		
 		return success;
@@ -1227,7 +1228,7 @@ class MechWeapon : MechItem
 	{
 		// Setup mount deco if defined.
 		if(!mountDeco) return NULL;
-		mountDecoObject = MechMountDeco.Attach(self, mountDeco, mountDecoOffs);
+		mountDecoObject = MechMountDeco.Attach(self, mountDeco);
 		
 		return mountDecoObject;
 	}

@@ -59,7 +59,10 @@ class HardpointMount : Object
 {
 	MechHardpoint hardpoint;
 	string type;
-	vector3 pos;
+	Array<double> fwPos;
+	Array<double> lrPos;
+	Array<double> udPos;
+	
 	MechItem mountedItem;
 	
 	static HardpointMount Create(MechHardpoint hp, vector3 pos, string type)
@@ -68,10 +71,32 @@ class HardpointMount : Object
 		if(mnt)
 		{
 			mnt.hardpoint = hp;
-			mnt.pos = pos;
+			mnt.newOffset(pos.x,pos.y,pos.z);
 			mnt.type = type;
 		}
 		return mnt;
+	}
+	
+	int countOffsets()
+	{
+		return fwPos.Size();
+	}
+	
+	virtual int newOffset(double fw, double lr, double ud)
+	{
+		fwPos.Push(fw);
+		lrPos.Push(lr);
+		udPos.Push(ud);
+		
+		return fwPos.Size()-1;
+	}
+	
+	virtual vector3 getOffset(int index)
+	{
+		if(index >= fwPos.Size()) 
+			index = index%(fwPos.Size()-1);
+			
+		return (fwPos[index], lrPos[index], udPos[index]);
 	}
 	
 	virtual void mountItem(MechItem item)
@@ -83,9 +108,9 @@ class HardpointMount : Object
 		mountedItem = NULL;
 	}
 	
-	virtual vector3 getPos(bool absolute = false)
+	virtual vector3 getPos(bool absolute = false, int index = 0)
 	{
-		vector3 adjustedPos = pos * hardpoint.scale.X;
+		vector3 adjustedPos = getOffset(index) * hardpoint.scale.X;
 		return absolute ? hardpoint.OffsetPos(adjustedPos.x,adjustedPos.y,adjustedPos.z) : adjustedPos;
 	}
 }
@@ -438,11 +463,11 @@ class MechHardpoint : MechPart
 		return max(hitboxRadius, radius);
 	}
 	
-	virtual void addMountPoint(string type, double fw, double lr, double ud)
+	virtual HardpointMount addMountPoint(string type, double fw, double lr, double ud)
 	{
-		mountPoints.Push( 
-			HardpointMount.Create(self, (fw,lr,ud), type)
-		);
+		let mnt = HardpointMount.Create(self, (fw,lr,ud), type);
+		mountPoints.Push(mnt);
+		return mnt;
 	}
 	
 	clearscope virtual HardpointMount findMountPoint(string type)
