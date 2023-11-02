@@ -73,7 +73,10 @@ class EffectsHelper Abstract
 		let dir = Quat.FromAngles(shooter.angle, shooter.pitch, shooter.roll);
 		vector3 offsetPos = dir * (forward, -leftright, updown);
 		
-		vector3 shooterPos = (shooter.pos.xy, shooter.pos.z + shooter.height * 0.5);
+		double addz = shooter.height * 0.5;
+		if(DrivableComponent(shooter)) addz = 0;
+		
+		vector3 shooterPos = (shooter.pos.xy, shooter.pos.z + addz);
 		if(shooter.player) shooterPos.z = shooter.player.viewz;
 		offsetPos = level.vec3offset(offsetPos, shooterPos);
 		

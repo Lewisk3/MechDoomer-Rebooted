@@ -138,8 +138,8 @@ class Hellbringer_LeftTorso : MechSideTorso
 	override void SetupMounts()
 	{
 		AddMountPoint("Missile", 15, 2, 30);
-		AddMountPoint("Ballistic", 15, 8,  1);
-		AddMountPoint("Ballistic", 15, 8, -6);
+		AddMountPoint("Ballistic", 25, 10, 13);
+		AddMountPoint("Ballistic", 25, 10, 10);
 	}
 }
 class Hellbringer_RightTorso : MechSideTorso

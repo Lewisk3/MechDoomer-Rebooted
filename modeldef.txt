@@ -263,6 +263,38 @@ Model LaserMountDeco
 	FrameIndex MODL A 0 0
 }
 
+Model PPCMountDeco
+{
+	Path "models/"	
+	Model 0 "mounts/mnt_ppc.obj"
+	SurfaceSkin 0 0 "vfx/mountBody.png"
+	SurfaceSkin 0 1 "vfx/mountBody.png"
+	SurfaceSkin 0 2 "vfx/laserGlass.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset 180
+	Scale 5.0 5.0 5.0
+	
+	FrameIndex MODL A 0 0
+}
+
+Model MGunMountDeco
+{
+	Path "models/"	
+	Model 0 "mounts/mnt_mgun.obj"
+	SurfaceSkin 0 0 "vfx/mountBody.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "vfx/c_simple.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	Scale 10.0 10.0 10.0
+	
+	FrameIndex MODL A 0 0
+}
+
+
 // Hellbringer
 Model Hellbringer_CenterTorso
 {

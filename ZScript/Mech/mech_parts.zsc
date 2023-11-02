@@ -838,7 +838,8 @@ class MechTorso : MechHardpoint
 		lookingPos = mech.head.lookingPos;
 		
 		let localPlayer = players[consoleplayer].mo;
-		bInvisible = healthPoints > 0 && (mech.camActive == mech.cam) && (mech.driver == localPlayer);
+		bool localView = (mech.driver == localPlayer) && (mech.camActive == mech.cam);
+		bInvisible = healthPoints > 0 && localView;
 		
 		vector3 shake = (
 			random[RecoilFXRNG](-1,1) * recoilShake.x,

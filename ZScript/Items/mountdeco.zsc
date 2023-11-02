@@ -35,13 +35,14 @@ class MechMountDeco : EffectsActor
 		angle = src.parent.angle; 
 		pitch = src.parent.pitch;
 		roll = src.parent.roll;
+
 		A_SetScale(default.scale.X * src.parent.scale.X);
 	}
 	
 	override void Tick()
 	{
 		super.Tick();
-		
+			
 		// Determine when this mount needs to go away.
 		// We don't need to pass mech to weapons to check if they're equipped.	
 		if(!src || !src.isEquipped(null) || src.checkDestroyed())
@@ -62,3 +63,31 @@ class MechMountDeco : EffectsActor
 }
 
 class LaserMountDeco : MechMountDeco {}
+class PPCMountDeco : MechMountDeco {}
+class MGunMountDeco : MechMountDeco 
+{
+	double spin, spinAccel;
+	int prevAmmo;
+
+	override void followMountPos()
+	{
+		super.followMountPos();
+		int curAmmo = src.checkAmmo();
+		if(curAmmo != prevAmmo)
+		{
+			prevAmmo = curAmmo;
+			spinAccel += 5;
+		}
+		
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		spin += min(50, spinAccel);
+		roll += spin;
+		
+		spinAccel *= 0.98;
+	}	
+}

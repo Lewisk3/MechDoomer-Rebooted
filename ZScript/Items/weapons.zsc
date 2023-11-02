@@ -720,6 +720,9 @@ class MachineGun : MechBallisticWeapon
 		fireSound = "";
 		mgunFire = "Ballistic/MachineGun";
 		sndItemName = "Betty/Item/Machinegun";
+		mountDeco = "MGunMountDeco";
+		mountDecoOffs = (-10,0,0);
+		
 		spread = 1.2;
 		damagable = true;
 	}
@@ -731,6 +734,7 @@ class MachineGun : MechBallisticWeapon
 			WeapSound(mgunFire, 0.5, randomPitch:true);
 			fireCounter = 0;
 		}
+		
 		return super.Fire(firePos);
 	} 
 }
@@ -795,6 +799,8 @@ class PPC : MechBallisticWeapon
 		ammoType = "";
 		fireSound = "Energy/PPC";
 		sndItemName = "Betty/Item/PPC";
+		mountDeco = "PPCMountDeco";
+		
 		damagable = true;
 	}
 	
@@ -817,6 +823,7 @@ class ERPPC : PPC
 		projType = "RangedParticleCannon";
 		fireSound = "Energy/PPC";
 		sndItemName = "Betty/Item/ERPPC";
+		
 		damagable = true;
 	}
 }
