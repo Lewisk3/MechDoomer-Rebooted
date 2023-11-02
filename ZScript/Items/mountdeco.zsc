@@ -74,8 +74,9 @@ class PPCMountDeco : MechMountDeco {}
 class MissileMountDeco : MechMountDeco 
 {
 	override void Tick()
-	{
+	{	
 		super.Tick();
+		if(!src || !src.mount) return;
 		
 		int curAmmo = src.checkAmmo();
 		bool noAmmo = (curAmmo < (mountIndex+1));

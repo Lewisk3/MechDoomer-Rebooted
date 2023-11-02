@@ -145,13 +145,13 @@ class MechItem : Object
 	{
 		if(!movable && !forced || !parent) return false;
 		uint id = parent.items.Find(self);
-		OnDetach();
 		
 		parent.items.Delete(id);
 		parent.slots -= size;
 		parent.mech.weight -= weight;
-		parent = NULL;
+		OnDetach();
 		
+		parent = NULL;
 		return true;
 	}
 	
@@ -1144,7 +1144,7 @@ class MechWeapon : MechItem
 	
 	clearscope virtual int checkAmmo()
 	{
-		if(!ammoType) return int.max;
+		if(!ammoType || !parent) return int.max;
 		let am = MechAmmo(parent.FindItem(ammoType));
 		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType));
 		return am ? MechAmmo(am).curAmmo : 0;
