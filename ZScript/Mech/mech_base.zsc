@@ -620,8 +620,8 @@ class DrivableMech : DrivableObject
 			UserCmd cmd = driver.player.cmd;
 		}
 		
-		if(getDriverBtn(BT_JUMP, DriverBtns.BTS_DOWN))
-			vel.z += 4;
+		if(getDriverBtn(BT_JUMP, DriverBtns.BTS_PRESSED) && onground)
+			vel.z += 12;
 			
 		
 		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
@@ -759,14 +759,16 @@ class DrivableMech : DrivableObject
 			angle = DrivablesMath.LerpDegrees(angle, moveAngle, 0.1);
 			throttle = 1.0 * maxSpdMod * (fm < 0 ? 0.5 : 1.0);
 			
-			vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * throttle);
+			vel += DrivablesMath.VecFromAngles(moveAngle, pitch, moveSpeed * abs(accel));
 		}
 		else
 		{
 			throttle *= 0.7;
 		}
 		
-		accel = fm < 0 ? -throttle : throttle;
+		int accelSign = fm < 0 ? -1 : 1;
+		double moveAmt = accelKPH / moveSpeedKPH;
+		accel = accelSign * DrivablesMath.Lerp(abs(accel), throttle, moveAmt / 10.);
 	}
 	
 	virtual void DoShutdown()
@@ -920,10 +922,11 @@ class DrivableMech : DrivableObject
 	{	
 		super.DoPhysics();
 		
-		if(sv_mdr_simplemechmovement)
-			DoStaticAcceleration();
-		else
+		if(!sv_mdr_simplemechmovement)
 			DoThrottleAcceleration();
+			
+		double airFriction = 0.997;
+		vel.xy *= onground ? MECHFRICTION : airFriction;
 	}
 	
 	// For traditional mechwarrior styled movement.
@@ -953,21 +956,8 @@ class DrivableMech : DrivableObject
 		// Friction
 		angVel *= 0.75;
 		legVel *= 0.75;
-		if(onground) 
-			vel *= MECHFRICTION;
-		else
-			vel.xy *= min(0.98, MECHFRICTION * 1.1);
 	}
-	
-	// For mech-assault styled movement
-	virtual void DoStaticAcceleration()
-	{
-		if(onground) 
-			vel *= MECHFRICTION;
-		else
-			vel.xy *= min(0.98, MECHFRICTION * 1.1);
-	}
-	
+		
 	clearscope virtual double GetSpd()
 	{
 		return !onground ? 0 : vel.xy.length() + abs((angVel+legVel) * 0.5);
