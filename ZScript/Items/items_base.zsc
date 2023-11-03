@@ -1067,6 +1067,7 @@ class MechWeapon : MechItem
 	class<MechMountDeco> mountDeco;
 	double mountDecoScale;
 	vector3 mountDecoOffs;
+	vector3 fireOffs;
 	
 
 	override void GetUIColors(out int fontColor, out int bgColor)
@@ -1216,7 +1217,7 @@ class MechWeapon : MechItem
 	
 	virtual vector3 getFirePos()
 	{
-		return mount.getPos();
+		return mount.getPos() + (fireOffs * parent.scale.X);
 	}
 	
 	override void OnInventoryAdd()

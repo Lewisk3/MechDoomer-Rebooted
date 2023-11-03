@@ -57,3 +57,5 @@ version "4.10.0"
 // Drivable Mechs
 #include "ZScript/hellbringer.zsc"
 
+
+#include "ZScript/cine_drone.zsc"

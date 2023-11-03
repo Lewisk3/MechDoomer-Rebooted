@@ -45,8 +45,16 @@ material texture models/vfx/mountBody.png {
 
 material texture models/vfx/laserGlass.png {
 	// shader "shaders/simsun.fp"
-	brightmap "models/mechs/c_glass.png"
+	brightmap "models/vfx/laserGlass.png"
 	brightness 1.0
 	specularlevel 0.8
 	glossiness 50
 }
+
+material texture models/vfx/orange_glow.png {
+	// shader "shaders/simsun.fp"
+	brightmap "models/vfx/orange_glow.png"
+	brightness 1.0
+	specularlevel 0.8
+}
+

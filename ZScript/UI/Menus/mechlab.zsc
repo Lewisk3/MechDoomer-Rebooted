@@ -129,6 +129,32 @@ class MechHardpointContainer : MenuElement
 		}
 	}
 	
+	virtual void DrawHardpointMount(Name type, Array<HardpointMount> mounts, vector2 drawPos, double iconScale = 1.0)
+	{
+		Name mountType = type;
+		string mountGraphic = "";
+		vector2 txtPos = drawPos + (15, -8);
+		
+		switch(mountType)
+		{
+			case 'energy':
+				mountGraphic = "Graphics/mechlab/energyIcon.png";
+			break;
+			case 'ballistic':
+				mountGraphic = "Graphics/mechlab/ballisticIcon.png";
+			break;
+			case 'missile':
+				mountGraphic = "Graphics/mechlab/missileIcon.png";
+			break;
+			case 'pds':
+				mountGraphic = "Graphics/mechlab/pdsIcon.png";
+			break;
+		}
+		
+		MWDrawer.DrawImage(mountGraphic, drawPos, scale:(iconScale,iconScale));
+		MWDrawer.DrawString("ConsoleFont", ""..int(mounts.Size()), txtPos, translation:Font.CR_GREEN); 
+	}
+	
 	override void Draw(double dT)
 	{
 		if(!mechlab) return;
@@ -147,13 +173,15 @@ class MechHardpointContainer : MenuElement
 		
 		MWDrawer.DrawString("SmallFont", containerName, topBarPos + (5,-10), translation:Font.CR_BLACK, scale:(0.8,1.0)); 
 		
-		Array<HardpointMount> energyPoints, ballisticPoints, missilePoints;
+		Array<HardpointMount> energyPoints, ballisticPoints, missilePoints, podPoints;
 		hardpoint.getMountPoints(energyPoints, "Energy");
 		hardpoint.getMountPoints(ballisticPoints, "Ballistic");
 		hardpoint.getMountPoints(missilePoints, "Missile");
+		hardpoint.getMountPoints(podPoints, "PDS");
 		filterMountpoints(energyPoints);
 		filterMountpoints(ballisticPoints);
 		filterMountpoints(missilePoints);
+		filterMountpoints(podPoints);
 		
 		double frontArmor = floor(hardpoint.armorPoints);
 		double rearArmor = floor(hardpoint.hasRearArmor ? hardpoint.rearArmor : -1);
@@ -177,15 +205,18 @@ class MechHardpointContainer : MenuElement
 		MWDrawer.DrawString("ConsoleFont", "STRUCTURE", topBarPos + (5,80), translation:Font.CR_GRAY); 
 		MWDrawer.DrawString("ConsoleFont", ""..max(0,int(ceil(hardpoint.healthPoints))), topBarPos + (160,80), translation:Font.CR_RED); 
 		
-		double iconScale = 0.60;
-		MWDrawer.DrawImage("Graphics/mechlab/energyIcon.png", topBarPos + (30,113), scale:(iconScale,iconScale));
-		MWDrawer.DrawString("ConsoleFont", ""..int(energyPoints.Size()), topBarPos + (45,105), translation:Font.CR_GREEN); 
+		double iconScale = 0.5;
+		vector2 mountOffs = (10,113);
+		double spacing = 50;
 		
-		MWDrawer.DrawImage("Graphics/mechlab/ballisticIcon.png", topBarPos + (95,113), scale:(iconScale,iconScale));
-		MWDrawer.DrawString("ConsoleFont", ""..int(ballisticPoints.Size()), topBarPos + (105,105), translation:Font.CR_GREEN); 
-		
-		MWDrawer.DrawImage("Graphics/mechlab/missileIcon.png", topBarPos + (155,113), scale:(iconScale,iconScale));
-		MWDrawer.DrawString("ConsoleFont", ""..int(missilePoints.Size()), topBarPos + (170,105), translation:Font.CR_GREEN); 
+		DrawHardpointMount('energy', energyPoints, topBarPos + mountOffs, iconScale);
+		mountOffs.x += spacing;
+		DrawHardpointMount('ballistic', ballisticPoints, topBarPos + mountOffs, iconScale);
+		mountOffs.x += spacing;
+		DrawHardpointMount('missile', missilePoints, topBarPos + mountOffs, iconScale);
+		mountOffs.x += spacing;
+		DrawHardpointMount('pds', podPoints, topBarPos + mountOffs, iconScale);
+		mountOffs.x += spacing;
 		
 		// Background
 		MWDrawer.Fill("Black", pos.x,pos.y, size.x, size.y);

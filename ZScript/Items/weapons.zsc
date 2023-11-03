@@ -502,6 +502,10 @@ class AC2 : MechBallisticWeapon
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
 		
+		fireOffs = (15,0,0);
+		mountDecoScale = 0.6;
+		mountDeco = "ACMountDeco";
+		
 		spread = 0;
 		damagable = true;
 	}
@@ -529,6 +533,10 @@ class UltraAC2 : UltraAC
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
 		
+		fireOffs = (15,0,0);
+		mountDecoScale = 0.6;
+		mountDeco = "ACMountDeco";
+		
 		spread = 0;
 		damagable = true;
 		
@@ -555,6 +563,11 @@ class AC5 : MechBallisticWeapon
 		fireSound = "Ballistic/Autocannon5";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.0;
+		mountDeco = "ACMountDeco";
+		
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -583,6 +596,11 @@ class UltraAC5 : UltraAC
 		fireSound = "Ballistic/Autocannon5";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.0;
+		mountDeco = "ACMountDeco";
+		
 		damagable = true;
 		
 		SetupUAC(20); // UAC known to be more jam-prone.
@@ -613,6 +631,11 @@ class AC10 : MechBallisticWeapon
 		fireSound = "Ballistic/Autocannon10";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.3;
+		mountDeco = "ACMountDeco";
+		
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -641,6 +664,11 @@ class UltraAC10 : UltraAC
 		fireSound = "Ballistic/Autocannon10";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.3;
+		mountDeco = "ACMountDeco";
+		
 		damagable = true;
 		
 		SetupUAC();		
@@ -671,6 +699,11 @@ class AC20 : MechBallisticWeapon
 		fireSound = "Ballistic/Autocannon20";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.75;
+		mountDeco = "ACMountDeco";
+		
 		damagable = true;
 	}
 	override bool Fire(vector3 firePos)
@@ -699,6 +732,11 @@ class UltraAC20 : UltraAC
 		fireSound = "Ballistic/Autocannon20";
 		reloadSound = "Ballistic/Autocannon/Reload";
 		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.75;
+		mountDeco = "ACMountDeco";
+		
 		damagable = true;
 		
 		SetupUAC(20); // This needs to jam more often for balance, because holy shit are UAC20s scary.	
@@ -733,7 +771,7 @@ class MachineGun : MechBallisticWeapon
 		mgunFire = "Ballistic/MachineGun";
 		sndItemName = "Betty/Item/Machinegun";
 		mountDeco = "MGunMountDeco";
-		mountDecoOffs = (-10,0,0);
+		fireOffs = (10,0,0);
 		
 		spread = 1.2;
 		damagable = true;
@@ -812,6 +850,7 @@ class PPC : MechBallisticWeapon
 		fireSound = "Energy/PPC";
 		sndItemName = "Betty/Item/PPC";
 		mountDeco = "PPCMountDeco";
+		disableMountRecoil = true;
 		
 		damagable = true;
 	}
@@ -835,6 +874,9 @@ class ERPPC : PPC
 		projType = "RangedParticleCannon";
 		fireSound = "Energy/PPC";
 		sndItemName = "Betty/Item/ERPPC";
+		mountDeco = "ERPPCMountDeco";
+		mountDecoScale = 1.25;
+		mountDecoOffs = (0,0,-1);
 		
 		damagable = true;
 	}
@@ -848,7 +890,7 @@ class AMS : MechWeapon
 	{
 		displayName = "AMS";
 		ammoType = "AMSAmmo";
-		mountType = "NONE"; // Doesn't take a mount position.
+		mountType = "PDS";
 		weight = 0.5;
 		
 		fireTime = 2;
@@ -862,6 +904,9 @@ class AMS : MechWeapon
 		projType = "MechAAM";
 		sndItemName = "Betty/Item/AMS";
 		fireSound = "Missile/AMS";
+		mountDeco = "AMSMountDeco";
+		fireOffs = (0,0,3);
+		
 		damagable = true;
 	}
 	
@@ -907,12 +952,7 @@ class AMS : MechWeapon
 		
 		return true;
 	}
-	
-	override vector3 getFirePos()
-	{
-		return (0,0,parent.getHeight());
-	}
-	
+		
 	override void DoEffect()
 	{
 		super.DoEffect();

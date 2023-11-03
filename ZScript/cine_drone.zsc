@@ -1,0 +1,85 @@
+
+class CineDrone : DrivableObject
+{
+	Quat curRotation;
+
+	Default
+	{
+		Radius 16;
+		Height 16;
+		-SOLID;
+		+NOGRAVITY;
+		// +NOINTERACTION;
+	}
+	
+	override void DoPhysics()
+	{
+		vel *= 0.9;
+	}
+	
+	override void TakePilot(Actor user)
+	{
+		super.TakePilot(user);
+		SetDriverCamera(self);
+	}	
+			
+	override void OnDrive()
+	{	
+		double fw, lr;
+		[fw, lr] = getMoveInputs();
+		
+		// Update view
+		double scalar = (360 / 65536.0);
+
+		UserCmd cmd = driver.player.cmd;
+		double cmdYaw   =  cmd.yaw   * scalar;
+		double cmdPitch = -cmd.pitch * scalar;
+		double cmdRoll  =  cmd.roll  * scalar;
+		
+		// Create quaternion based on look delta
+		Quat input = Quat.FromAngles(cmdYaw, cmdPitch, cmdRoll);
+		
+		// Offset our current rotation quaternion with look delta.
+		curRotation *= input;
+		
+		// Create quaternion based off our current facing direction
+		// interpolate it to our new rotation based off our input delta.
+		Quat r = Quat.FromAngles(angle, pitch, roll);
+		r = Quat.SLerp(r, curRotation, 0.4);
+
+		// Set angles to new look direction
+		vector3 eulerAngles = DrivablesMath.GetEuler(r);
+		A_SetAngle(eulerAngles.x, SPF_Interpolate);
+		A_SetPitch(eulerAngles.y, SPF_Interpolate);
+		A_SetRoll(eulerAngles.z, SPF_Interpolate);
+	
+		// Movement
+		vector3 dir;
+		dir.z = (cmd.buttons & BT_JUMP) ? 1 : (cmd.buttons & BT_CROUCH) ? -1 : 0; 
+		
+		if(fw || lr) dir.xy = (fw, lr).Unit();
+		
+		vector3 wishDir = Quat.FromAngles(angle, pitch, roll) * (dir.x, -dir.y, dir.z);
+		vel += wishDir * 1.8;
+	}
+	
+	override void UpdateDriver()
+	{
+		driver.vel *= 0;
+		driver.player.vel *= 0;
+		driver.bInvisible = true;
+	}
+	
+	override void postBeginPlay()
+	{
+		super.postBeginPlay();
+		curRotation = Quat.FromAngles(angle, pitch, roll);
+	}
+	
+	States
+	{
+		Spawn:
+			PLSS A -1;
+		stop;
+	}
+}

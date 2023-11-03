@@ -239,6 +239,7 @@ class MechBallisticWeapon : MechWeapon
 	bool justFired;
 	Sound reloadSound;
 	double spread;
+	bool disableMountRecoil;
 
 	override void Defaults()
 	{	
@@ -301,6 +302,18 @@ class MechBallisticWeapon : MechWeapon
 			// If we've just fired and fireTime has ended, play reload sound.
 			parent.A_StartSound(reloadSound, CHAN_BODY, CHANF_OVERLAP);
 			justFired = false;
+		}
+	}
+	
+	override void A_Recoil(double pitchAmt, double pushBack)
+	{
+		super.A_Recoil(pitchAmt, pushBack);
+		
+		// Push mount back, if present.
+		if(mountDecoObject && !disableMountRecoil) 
+		{
+			double mountRecoil = (pitchAmt * 12.0);
+			mountDecoObject.animOffs.x += mountRecoil;
 		}
 	}
 	

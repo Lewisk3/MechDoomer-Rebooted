@@ -28,7 +28,11 @@ class MechMountDeco : EffectsActor
 	virtual void followMountPos()
 	{
 		if(!src.parent || !src.mount) return;
-		vector3 mountPos = src.mount.getOffset(mountIndex) + offs + src.mountDecoOffs + animOffs;
+		
+		double itemMountScale = src.mountDecoScale;
+		if(!itemMountScale) itemMountScale = 1.0;
+		
+		vector3 mountPos = src.mount.getOffset(mountIndex) + (offs*itemMountScale) + src.mountDecoOffs + animOffs;
 
 		double sc = src.parent.Scale.X;
 		mountPos = src.parent.OffsetPos(mountPos.x * sc, mountPos.y * sc, mountPos.z * sc);
@@ -37,9 +41,6 @@ class MechMountDeco : EffectsActor
 		angle = src.parent.angle; 
 		pitch = src.parent.pitch;
 		roll = src.parent.roll;
-		
-		double itemMountScale = src.mountDecoScale;
-		if(!itemMountScale) itemMountScale = 1.0;
 		
 		A_SetScale(default.scale.X * src.parent.scale.X * itemMountScale);
 	}
@@ -68,8 +69,34 @@ class MechMountDeco : EffectsActor
 	}
 }
 
+class AMSMountDeco : MechMountDeco {}
+
 class LaserMountDeco : MechMountDeco {}
-class PPCMountDeco : MechMountDeco {}
+class PPCMountDeco : MechMountDeco 
+{
+	Default
+	{
+		MechMountDeco.MountOffset (-5,0,0);
+	}
+}
+
+class ERPPCMountDeco : PPCMountDeco {}
+
+class ACMountDeco : MechMountDeco 
+{
+	Default
+	{
+		MechMountDeco.MountOffset (-15,0,0);
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		// Setup maximum recoil offset(s)
+		animOffs.x = min(15, animOffs.x);
+	}
+}
 
 class MissileMountDeco : MechMountDeco 
 {

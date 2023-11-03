@@ -296,4 +296,27 @@ class DrivablesMath Abstract
 	{
         return -(d * v) - (k * (p - r));
     }
+	
+	
+	// Get angle, pitch, roll from Quaternion q.
+	static vector3 GetEuler(Quat q)
+	{
+        // Roll
+        double sinRCosP = 2 * (q.w * q.x + q.y * q.z);
+        double cosRCosP = 1 - 2 * (q.x * q.x + q.y * q.y);
+        double roll = Atan2(sinRCosP, cosRCosP);
+
+        // Pitch
+        double sinP = 2 * (q.w * q.y - q.z * q.x);
+        double pitch;
+        if (Abs(sinP) >= 1) pitch = 90 * (sinP < 0 ? -1 : 1);
+        else pitch = Asin(sinP);
+
+        // Yaw
+        double sinYCosP = 2 * (q.w * q.z + q.x * q.y);
+        double cosYCosP = 1 - 2 * (q.y * q.y + q.z * q.z);
+        double yaw = Atan2(sinYCosP, cosYCosP);
+
+        return (yaw, pitch, roll);
+	}
 }
