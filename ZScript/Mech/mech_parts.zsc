@@ -850,6 +850,7 @@ class MechTorso : MechHardpoint
 	double rollBob, rollBobTimer;
 	double turnDir;
 	double prevAngle, prevPitch;
+	bool infiniteTurnRange;
 	
 	Property TurnRange : turnMax;
 	Property PitchRange : pitchMin, pitchMax;
@@ -904,7 +905,7 @@ class MechTorso : MechHardpoint
 		double rolldistort = ( turnDir * pitch );
 		
 		pitch = clamp(pitch, -pitchMin, pitchMax);
-		DrivablesMath.ClampAngles(angle, LegAng, turnMax);
+		if(!infiniteTurnRange) DrivablesMath.ClampAngles(angle, LegAng, turnMax);
 		
 		// Roll distortion
 		A_SetRoll(rolldistort + rollBob, SPF_INTERPOLATE);

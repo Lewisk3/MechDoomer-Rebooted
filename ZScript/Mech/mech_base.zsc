@@ -667,6 +667,15 @@ class DrivableMech : DrivableObject
 		// UI controls.
 		WeaponsInteraction();
 		
+		// Movement
+		if(sv_mdr_simplemechmovement)
+			DoSimpleMovement(fm, sm);
+		else
+			DoTankMovement(fm, sm);
+	}
+	
+	virtual void DoTankMovement(double fm, double sm)
+	{
 		// Movement Math
 		double throttleSpeed = 0.025;
 		double throttleMove = throttleSpeed * DrivablesMath.sign(fm);		
@@ -675,7 +684,9 @@ class DrivableMech : DrivableObject
 		throttle += throttleMove;
 		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
 		
-				
+		let mtorso = MechTorso(torso);
+		if(mtorso) mtorso.infiniteTurnRange = false;	
+		
 		// Slow down while turning
 		if(vel.xy.length())
 		{
@@ -715,8 +726,32 @@ class DrivableMech : DrivableObject
 					
 		driver.angle += angVel;
 		if(abs(throttle) < throttleSpeed) throttle = 0;
+	}
+	
+	virtual void DoSimpleMovement(double fm, double sm)
+	{
+		// Movement Math
+		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
 		
-		// if(!fm) throttle *= 0.95;
+		let mtorso = MechTorso(torso);
+		if(mtorso) mtorso.infiniteTurnRange = true;	
+		
+		if( (fm || sm) && onground && moveSpeedKPH > 0 )
+		{
+			vector2 moveDir = (fm, -sm).Unit();
+			double moveAngle = driver.angle + atan2(moveDir.y, moveDir.x);
+			
+			angle = DrivablesMath.LerpDegrees(angle, moveAngle, 0.1);
+			throttle = 1.0 * maxSpdMod * (fm < 0 ? 0.5 : 1.0);
+			
+			vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * throttle);
+		}
+		else
+		{
+			throttle *= 0.7;
+		}
+		
+		accel = fm < 0 ? -throttle : throttle;
 	}
 	
 	virtual void DoShutdown()
@@ -870,8 +905,17 @@ class DrivableMech : DrivableObject
 	{	
 		super.DoPhysics();
 		
+		if(sv_mdr_simplemechmovement)
+			DoStaticAcceleration();
+		else
+			DoThrottleAcceleration();
+	}
+	
+	// For traditional mechwarrior styled movement.
+	virtual void DoThrottleAcceleration()
+	{
 		// Movement
-		double adjustedMoveSpeed = moveSpeed; // * Scale.X;
+		double adjustedMoveSpeed = moveSpeed;
 		if(onground && moveSpeedKPH > 0)
 		{
 			bool decel = (throttle < accel);
@@ -894,6 +938,15 @@ class DrivableMech : DrivableObject
 		// Friction
 		angVel *= 0.75;
 		legVel *= 0.75;
+		if(onground) 
+			vel *= MECHFRICTION;
+		else
+			vel.xy *= min(0.98, MECHFRICTION * 1.1);
+	}
+	
+	// For mech-assault styled movement
+	virtual void DoStaticAcceleration()
+	{
 		if(onground) 
 			vel *= MECHFRICTION;
 		else
