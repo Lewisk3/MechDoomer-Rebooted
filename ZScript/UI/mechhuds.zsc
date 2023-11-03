@@ -734,7 +734,11 @@ class MechHUD : VehicleHUD
 		
 		double degreeSize = 2*scale;
 		vector2 compassOffs = (ang*degreeSize, 0);
-		vector2 torsoOffs = (DrivablesMath.AngleDiff(torsoAng, ang)*degreeSize, 0);
+		
+		double legsAngleDiff = DrivablesMath.AngleDiff(torsoAng, ang);
+		double legCompassPos = sin(legsAngleDiff) * 100;
+		
+		vector2 torsoOffs = (legCompassPos*degreeSize, 0);
 		
 		// Draw alignment arrows.
 		vector2 alignOne = compassPos + (8, -32);
