@@ -65,6 +65,19 @@ class HardpointMount : Object
 	
 	MechItem mountedItem;
 	
+	clearscope static string getMountGraphic(Name mountType)
+	{
+		switch(mountType)
+		{
+			case 'energy'   : return "Graphics/mechlab/energyIcon.png";
+			case 'ballistic': return "Graphics/mechlab/ballisticIcon.png";
+			case 'missile'  : return "Graphics/mechlab/missileIcon.png";
+			case 'pds'      : return "Graphics/mechlab/pdsIcon.png";
+		}
+		
+		return "";
+	}
+	
 	static HardpointMount Create(MechHardpoint hp, vector3 pos, string type)
 	{	
 		let mnt = new("HardpointMount");

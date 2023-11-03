@@ -129,30 +129,14 @@ class MechHardpointContainer : MenuElement
 		}
 	}
 	
-	virtual void DrawHardpointMount(Name type, Array<HardpointMount> mounts, vector2 drawPos, double iconScale = 1.0)
+	virtual void DrawHardpointMount(Name type, int count, vector2 drawPos, double iconScale = 1.0)
 	{
 		Name mountType = type;
-		string mountGraphic = "";
+		string mountGraphic = HardpointMount.getMountGraphic(type);
 		vector2 txtPos = drawPos + (15, -8);
 		
-		switch(mountType)
-		{
-			case 'energy':
-				mountGraphic = "Graphics/mechlab/energyIcon.png";
-			break;
-			case 'ballistic':
-				mountGraphic = "Graphics/mechlab/ballisticIcon.png";
-			break;
-			case 'missile':
-				mountGraphic = "Graphics/mechlab/missileIcon.png";
-			break;
-			case 'pds':
-				mountGraphic = "Graphics/mechlab/pdsIcon.png";
-			break;
-		}
-		
 		MWDrawer.DrawImage(mountGraphic, drawPos, scale:(iconScale,iconScale));
-		MWDrawer.DrawString("ConsoleFont", ""..int(mounts.Size()), txtPos, translation:Font.CR_GREEN); 
+		MWDrawer.DrawString("ConsoleFont", ""..count, txtPos, translation:Font.CR_GREEN); 
 	}
 	
 	override void Draw(double dT)
@@ -209,13 +193,13 @@ class MechHardpointContainer : MenuElement
 		vector2 mountOffs = (10,113);
 		double spacing = 50;
 		
-		DrawHardpointMount('energy', energyPoints, topBarPos + mountOffs, iconScale);
+		DrawHardpointMount('energy', energyPoints.Size(), topBarPos + mountOffs, iconScale);
 		mountOffs.x += spacing;
-		DrawHardpointMount('ballistic', ballisticPoints, topBarPos + mountOffs, iconScale);
+		DrawHardpointMount('ballistic', ballisticPoints.Size(), topBarPos + mountOffs, iconScale);
 		mountOffs.x += spacing;
-		DrawHardpointMount('missile', missilePoints, topBarPos + mountOffs, iconScale);
+		DrawHardpointMount('missile', missilePoints.Size(), topBarPos + mountOffs, iconScale);
 		mountOffs.x += spacing;
-		DrawHardpointMount('pds', podPoints, topBarPos + mountOffs, iconScale);
+		DrawHardpointMount('pds', podPoints.Size(), topBarPos + mountOffs, iconScale);
 		mountOffs.x += spacing;
 		
 		// Background
@@ -596,7 +580,7 @@ class MenuItemsInvContainer : MenuElement
 		MWDrawer.Fill("Gray",  descPos.x,   descPos.y,    boxWidth,      boxHeight);
 		MWDrawer.Fill("Black", descPos.x+3, descPos.y+3, boxWidth - 6, boxHeight - 6);
 		
-		double itemNameSize = boxWidth * 0.8;
+		double itemNameSize = boxWidth * 0.75;
 		MWDrawer.Fill(itemColor, descPos.x + ((boxWidth - itemNameSize) * 0.5), descPos.y + 20., itemNameSize, 20);
 		
 		// Text Shadow
@@ -608,6 +592,26 @@ class MenuItemsInvContainer : MenuElement
 			(descPos.x+(boxWidth*0.5), descPos.y + (descFont.getHeight()*2.0) + 5), 
 			MWDrawer.SS_TEXT_CENTER, Font.CR_WHITE
 		);
+		
+		// Mount Type Icon
+		let weapItem = MechWeapon(invItem);
+		if(weapItem)
+		{
+			vector2 mountPos = ( descPos.x + 15, descPos.y + 15 );
+			MWDrawer.Fill("Gray", descPos.x, descPos.y, 32,32, 1.0);
+			
+			double mountScale = 0.8; 
+			
+			string itemMountGraphic = HardpointMount.getMountGraphic(weapItem.mountType);
+			if(itemMountGraphic) 
+			{
+				// Shadow
+				MWDrawer.DrawImage(itemMountGraphic, mountPos + (4,4), alpha:0.65, scale:(mountScale,mountScale), tint:0xFF000000);
+				
+				// Base
+				MWDrawer.DrawImage(itemMountGraphic, mountPos, scale:(mountScale,mountScale));
+			}
+		}
 		
 		// Flavor text
 		vector2 flavorTextPos = (descPos.x+10, descPos.y + 50);
