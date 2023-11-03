@@ -852,6 +852,8 @@ class MechTorso : MechHardpoint
 	double prevAngle, prevPitch;
 	bool infiniteTurnRange;
 	
+	Property InfiniteTurnRange : infiniteTurnRange;
+	
 	Property TurnRange : turnMax;
 	Property PitchRange : pitchMin, pitchMax;
 	Property TurnSpeed : turnSpeed, pitchSpeed;
@@ -861,6 +863,7 @@ class MechTorso : MechHardpoint
 		MechTorso.TurnSpeed 90, 90;
 		MechTorso.TurnRange 90;
 		MechTorso.PitchRange 40, 40;
+		MechTorso.InfiniteTurnRange false;
 		MechHardpoint.Slots 12;
 		MechHardpoint.UIGraphics "paperdoll_CT.png", "paperdoll_SK_CT.png";
 		MechHardpoint.ExplosionType "ReactorExplosion";

@@ -4,3 +4,5 @@ server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;
 server bool sv_mdr_exitanytime = false;
 server bool sv_mdr_simplemechmovement = false;
+
+user bool cl_mdr_throttledecay = true;

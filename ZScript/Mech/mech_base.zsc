@@ -111,6 +111,9 @@ class DrivableMech : DrivableObject
 		GROUPFLG_FIVE  = 1 << 4
 	};
 	
+	// CVars
+	CVar cv_throttleDecay;
+	
 	Default
 	{
 		-SHOOTABLE;
@@ -279,6 +282,12 @@ class DrivableMech : DrivableObject
 		}
 	}
 	
+	virtual void FetchCVars()
+	{
+		if(!driver.player) return;
+		cv_throttleDecay = CVar.GetCVar("cl_mdr_throttledecay", driver.player);
+	}
+	
 	override void TakePilot(Actor user)
 	{
 		if(head && head.healthPoints <= 0)
@@ -292,6 +301,7 @@ class DrivableMech : DrivableObject
 		driver.A_SetScale(0,0);
 		driver.A_SetSize(8,8);
 		driver.angle = torso.angle;
+		FetchCVars();
 		
 		if(cam)
 		{
@@ -685,7 +695,7 @@ class DrivableMech : DrivableObject
 		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
 		
 		let mtorso = MechTorso(torso);
-		if(mtorso) mtorso.infiniteTurnRange = false;	
+		if(mtorso) mtorso.infiniteTurnRange = mtorso.default.infiniteTurnRange;	
 		
 		// Slow down while turning
 		if(vel.xy.length())
@@ -726,6 +736,11 @@ class DrivableMech : DrivableObject
 					
 		driver.angle += angVel;
 		if(abs(throttle) < throttleSpeed) throttle = 0;
+		
+		// Throttle decay
+		if(cv_throttleDecay && cv_throttleDecay.getBool() && !fm)
+			throttle *= 0.94;
+		
 	}
 	
 	virtual void DoSimpleMovement(double fm, double sm)
