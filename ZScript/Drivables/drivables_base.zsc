@@ -5,6 +5,7 @@ class I_DrivingObject : Inventory
 	uint oldscrBlocks;
 	State defaultWeaponState;
 	
+	/*
 	override void PreTravelled()
 	{
 		source.ChangeStatNum(STAT_TRAVELLING);
@@ -18,6 +19,7 @@ class I_DrivingObject : Inventory
 		source.SetOrigin(Owner.pos, false);
 		resetDriver = true;
 	}
+	*/
 	
 	override void ModifyDamage(int damage, Name damageType, out int newdamage, bool passive, Actor inflictor, Actor source, int flags)
 	{
