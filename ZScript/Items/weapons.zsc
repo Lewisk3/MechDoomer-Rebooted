@@ -701,7 +701,7 @@ class AC20 : MechBallisticWeapon
 		sndItemName = "Betty/Item/Autocannon";
 		
 		fireOffs = (15,0,0);
-		mountDecoScale = 1.75;
+		mountDecoScale = 1.5;
 		mountDeco = "ACMountDeco";
 		
 		damagable = true;
@@ -734,7 +734,7 @@ class UltraAC20 : UltraAC
 		sndItemName = "Betty/Item/Autocannon";
 		
 		fireOffs = (15,0,0);
-		mountDecoScale = 1.75;
+		mountDecoScale = 1.5;
 		mountDeco = "ACMountDeco";
 		
 		damagable = true;

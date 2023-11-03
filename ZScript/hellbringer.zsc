@@ -192,8 +192,6 @@ class Hellbringer_LeftArm : MechArm
 	{
 		AddMountPoint("Energy", 30, -14, -27);
 		// AddMountPoint("Energy", 30, -14, -30);
-		
-		AddMountPoint("Ballistic", 30, -14, -32);
 	}
 }
 
@@ -212,7 +210,5 @@ class Hellbringer_RightArm : Hellbringer_LeftArm
 	{
 		AddMountPoint("Energy", 30, 14, -27);
 		// AddMountPoint("Energy", 30, 14, -30);
-		
-		AddMountPoint("Ballistic", 30, 14, -32);
 	}
 }

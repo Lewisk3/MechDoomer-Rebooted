@@ -32,6 +32,7 @@ class DrivableMech : DrivableObject
 	MechChassisStructure chassisStructure;
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
+	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
 
 	MechWeapon prevWeapFired;
 	MechArmor armorType;
@@ -161,7 +162,9 @@ class DrivableMech : DrivableObject
 		SetupItems();
 			
 		// Autoscale
-		A_SetScale(Scale.X * getAutoFitScale() * sv_mdr_mechscale); 
+		cachedAutoFit = getAutoFitScale();
+		cachedScale = sv_mdr_mechscale;
+		A_SetScale(Scale.X * cachedAutoFit * cachedScale); 
 		
 		// Start shutdown
 		shutdown = true;
@@ -613,14 +616,7 @@ class DrivableMech : DrivableObject
 		
 		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
 		{
-		/*	let it = torso.AddItem("MechDoubleHeatsink");
-			if(!it) it = leftTorso.AddItem("MechDoubleHeatsink");			
-			if(!it) it = rightTorso.AddItem("MechDoubleHeatsink");		
-			if(!it) it = leftArm.AddItem("MechDoubleHeatsink");
-			if(!it) it = rightArm.AddItem("MechDoubleHeatsink");			
-			if(!it) it = leftLeg.AddItem("MechDoubleHeatsink");
-			if(!it) it = rightLeg.AddItem("MechDoubleHeatsink"); */
-			A_SetScale(1.0);
+			// Unused 
 		}
 		
 		bool clicked = getDriverBtn(BT_ATTACK, DriverBtns.BTS_PRESSED);
@@ -965,6 +961,13 @@ class DrivableMech : DrivableObject
 		{
 			let grp = weaponGroups[i];
 			if(grp) grp.DoEffect();
+		}
+		
+		// mdr mechscale
+		if(cachedScale != sv_mdr_mechscale)
+		{
+			A_SetScale(cachedAutoFit * sv_mdr_mechscale); 
+			cachedScale = sv_mdr_mechscale;
 		}
 		
 		// Get aim position

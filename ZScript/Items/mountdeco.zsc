@@ -31,6 +31,7 @@ class MechMountDeco : EffectsActor
 		
 		double itemMountScale = src.mountDecoScale;
 		if(!itemMountScale) itemMountScale = 1.0;
+		itemMountScale *= src.mount.decoScale;
 		
 		vector3 mountPos = src.mount.getOffset(mountIndex) + (offs*itemMountScale) + src.mountDecoOffs + animOffs;
 

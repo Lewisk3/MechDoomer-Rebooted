@@ -62,6 +62,7 @@ class HardpointMount : Object
 	Array<double> fwPos;
 	Array<double> lrPos;
 	Array<double> udPos;
+	double decoScale;
 	
 	MechItem mountedItem;
 	
@@ -78,7 +79,7 @@ class HardpointMount : Object
 		return "";
 	}
 	
-	static HardpointMount Create(MechHardpoint hp, vector3 pos, string type)
+	static HardpointMount Create(MechHardpoint hp, vector3 pos, string type, double scale = 1.0)
 	{	
 		let mnt = new("HardpointMount");
 		if(mnt)
@@ -86,6 +87,7 @@ class HardpointMount : Object
 			mnt.hardpoint = hp;
 			mnt.newOffset(pos.x,pos.y,pos.z);
 			mnt.type = type;
+			mnt.decoScale = scale;
 		}
 		return mnt;
 	}
@@ -476,9 +478,9 @@ class MechHardpoint : MechPart
 		return max(hitboxRadius, radius);
 	}
 	
-	virtual HardpointMount addMountPoint(string type, double fw, double lr, double ud)
+	virtual HardpointMount addMountPoint(string type, double fw, double lr, double ud, double scale = 1.0)
 	{
-		let mnt = HardpointMount.Create(self, (fw,lr,ud), type);
+		let mnt = HardpointMount.Create(self, (fw,lr,ud), type, scale);
 		mountPoints.Push(mnt);
 		return mnt;
 	}
