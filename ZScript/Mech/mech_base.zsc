@@ -112,7 +112,7 @@ class DrivableMech : DrivableObject
 	};
 	
 	// CVars
-	CVar cv_throttleDecay;
+	transient CVar cv_throttleDecay;
 	
 	Default
 	{
@@ -1040,6 +1040,9 @@ class DrivableMech : DrivableObject
 		
 		// Get aim position
 		aimingPos = DrivablesMath.getActorAim(cam);
+		
+		// Might need to fetch CVars again if loaded from a save.
+		if(driver && driver.player && !cv_throttleDecay) FetchCVars();
 	}
 	
 	States
