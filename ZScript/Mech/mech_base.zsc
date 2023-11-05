@@ -777,7 +777,7 @@ class DrivableMech : DrivableObject
 		}
 		
 		int accelSign = fm < 0 ? -1 : 1;
-		double moveAmt = accelKPH / moveSpeedKPH;
+		double moveAmt = !moveSpeedKPH ? 1 : accelKPH / moveSpeedKPH;
 		accel = accelSign * DrivablesMath.Lerp(abs(accel), throttle, moveAmt / 10.);
 	}
 	

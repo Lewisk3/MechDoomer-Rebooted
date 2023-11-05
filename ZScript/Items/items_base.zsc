@@ -329,7 +329,11 @@ class MechDynamicStructure : MechItem
 		}
 		
 		foreach(dynItem : dynStructs) dynItem.TryDetach(true);
-		foreach(dynItem : dynStructs) dynItem.TryAttach(mech.torso);
+		foreach(dynItem : dynStructs) 
+		{
+			dynItem.size = 0; // Item will fail to reattach unless this is set first.
+			dynItem.TryAttach(mech.torso);
+		}
 	}
 
 	override void GetUIColors(out int fontColor, out int bgColor)

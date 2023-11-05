@@ -63,6 +63,7 @@ Laser/Large "Sounds/Weapons/laser_large.wav"
 Laser/Impact "Sounds/Weapons/laser_hit.wav"
 Laser/Pulse "Sounds/Weapons/pulselaser.wav"
 Laser/Pulse/Impact "Sounds/Weapons/pulselaser_hit.wav"
+$volume Laser/Pulse 0.3
 
 Missile/SRM2 "Sounds/Weapons/missile_srm2.wav"
 Missile/SRM4 "Sounds/Weapons/missile_srm4.wav"
@@ -117,7 +118,7 @@ $limit Laser/Loop   0;
 $limit Laser/Small  0;
 $limit Laser/Medium 0;
 $limit Laser/Large  0;
-$limit Laser/Pulse 0;
+$limit Laser/Pulse 2;
 $limit Laser/Pulse/Impact 0;
 $limit Ballistic/Autocannon2  0;
 $limit Ballistic/Autocannon5  0;
