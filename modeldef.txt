@@ -286,12 +286,15 @@ Model PPCMountDeco
 Model ERPPCMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_ppc.obj"
-	SurfaceSkin 0 0 "vfx/c_simple.png"
+	Model 0 "mounts/mnt_erppc.obj"
+	
+	SurfaceSkin 0 1 "vfx/c_simple.png"
 	SurfaceSkin 0 1 "vfx/mountBody.png"
 	SurfaceSkin 0 2 "vfx/orange_glow.png"
 	SurfaceSkin 0 3 "vfx/orange_glow.png"
 	SurfaceSkin 0 4 "vfx/laserGlass.png"
+	
+	
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
@@ -333,9 +336,6 @@ Model AMSMountDeco
 	FrameIndex MODL A 0 0
 }
 
-
-
-
 Model MissileMountDeco
 {
 	Path "models/"	
@@ -367,6 +367,24 @@ Model ACMountDeco
 	DONTCULLBACKFACES
 	AngleOffset 0
 	Scale 0.05 0.05 0.05
+	
+	FrameIndex MODL A 0 0
+}
+
+Model GaussMountDeco
+{
+	Path "models/"	
+	Model 0 "mounts/mnt_gauss.obj"
+	SurfaceSkin 0 0 "vfx/c_simple.png"
+	SurfaceSkin 0 1 "vfx/orange_glow.png"
+	SurfaceSkin 0 2 "vfx/mountBody.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
+	SurfaceSkin 0 4 "vfx/mountBody.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset 0
+	Scale 0.12 0.12 0.12
 	
 	FrameIndex MODL A 0 0
 }

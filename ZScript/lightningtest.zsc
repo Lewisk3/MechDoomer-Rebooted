@@ -1,0 +1,278 @@
+class LightningCanvasHandler : EventHandler
+{
+	const ENABLED = 0;
+
+	ui double lightningTimer, clearTimer, lightningAlpha;
+	ui double prevMS;
+	ui double deltaTime;
+	
+	ui void DrawLightLine(Canvas cv, vector2 from, vector2 to, double thicc, Color col)
+	{
+		cv.DrawThickLine(from.x, from.y, to.x, to.y, thicc, col);
+		//MWDrawer.DrawThickLine(from.x, from.y, to.x, to.y, thicc, col);
+	}
+	
+	ui void DoLightningBolt(Canvas cv, vector2 from, vector2 to, double strength, double step = 0.02)
+	{
+		vector2 boltTo = to;
+		vector2 prevPos;
+		double boltWidth = frandom[UIBoltRNG](1.0,6.0);
+		for(double i = 0; i < 1.0; i += step)
+		{
+			double boltStr = strength * (1.0 - i);
+			boltTo = Actor.RotateVector(boltTo, frandom[UIBoltRNG](-boltStr,boltStr));
+			
+			vector2 diff = boltTo-from;
+			if(diff ~== (0,0)) continue;
+			
+			vector2 dir = (boltTo-from).Unit();
+			double  len = (boltTo-from).Length();
+			
+			vector2 finalPos = dir * (len * i);
+			if( !(prevPos ~== (0,0)) )
+			{
+				vector2 posDiff = (finalPos-prevPos).Unit();
+				
+				DrawLightLine(cv, from + prevPos, from + finalPos, 2.5*(boltWidth*0.5), 0xFF0043ff);
+				DrawLightLine(cv, from + prevPos, from + finalPos, 2.0*(boltWidth*0.75), 0xFF3167fe);
+				DrawLightLine(cv, from + prevPos, from + finalPos, 1.5*(boltWidth*0.8), 0xFF7296fa);
+				DrawLightLine(cv, from + prevPos, from + finalPos, 1.0*(boltWidth*0.9), 0xFFadc0f6);
+				DrawLightLine(cv, from + prevPos, from + finalPos, 0.5*(boltWidth), 0xFFFFFFFF);
+			}
+			prevPos = finalPos;
+		}
+	}
+	
+	override void RenderOverlay(RenderEvent e)
+	{
+		if(!ENABLED) return;
+		
+		let tex = TexMan.CheckForTexture("CNVS");
+		Canvas cv = TexMan.GetCanvas("CNVS");
+		
+		double w, h;
+		[w, h] = TexMan.GetSize(tex);
+	
+		// Settings
+		vector2 from = (w/2.0,0);
+		vector2 to = (w/2.0, h);
+		double stepPerc = 0.02;
+		double strength = 5;
+		double lightTime = 8;
+		double clearTime = 30;
+		
+		// Render
+		vector2 dir;
+		double len;
+		vector2 prevPos;
+		if( lightningTimer >= lightTime )
+		{
+			for(int i = 0; i < random[UIBoltAmt](1,6); i++)
+			{
+				DoLightningBolt(cv, from, to, strength, stepPerc);
+				to = Actor.RotateVector((to - from), frandom[UIBoltRNG](-20,20)) + from;
+			}
+			
+			//timer = 0;
+			lightningAlpha = lightningTimer = 0;
+		}
+		if(clearTimer >= clearTime)
+		{
+			cv.Dim(0xFF000000, 1.0, 0,0,w,h);
+			clearTimer = 0;
+		}
+		cv.Dim(0xFF000000, lightningAlpha, 0,0,w,h);
+		lightningAlpha = DrivablesMath.Lerp(lightningAlpha, 1.0, 0.005 * deltaTime);
+		MWDrawer.DrawImage("CNVS", (256,256));
+		
+		// Keep track of time, always.
+		if(!prevMS)
+		{
+		  prevMS = MSTimeF();
+		  return;
+		}
+		double ftime = MSTimeF()-prevMS;
+		prevMS = MSTimeF();
+		double dtime = 1000.0 / 60.0;
+		deltatime = (ftime/dtime);    
+		clearTimer += deltaTime;
+		lightningTimer += deltaTime;
+	}
+}
+
+
+class UnlimitedPower : Actor
+{
+	Default
+	{
+		+NOINTERACTION;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		let plr = players[consoleplayer].mo;
+		if(!plr) return;
+		
+		if(random(0,100) <= 50 || !(level.maptime%4))
+		{	
+			let p = LightningParticle(Spawn("LightningParticle", pos));
+			if(p) 
+			{
+				p.follow = plr;
+				p.followOffs = (16,frandom(-3,3),frandom(-5,5) - 10);
+			}
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A -1;
+		stop;
+	}
+}
+
+class LightningParticle : Actor
+{
+	Actor follow;
+	vector3 followOffs;
+	
+	uint lnflags;
+	double curScaleFactor, desiredScale;
+	int flashtics;
+	
+	Property FlashTic : flashtics;
+	flagdef DOFLASH : lnflags, 0;
+
+	Default
+	{
+		Radius 1;
+		+NOINTERACTION;
+		RenderStyle "AddShaded";
+		Alpha 1.0;
+		Scale 0.01;
+		+ROLLSPRITE;
+		+BRIGHT;
+	}
+	
+	override void Tick()
+	{			
+		if (isFrozen()) return;
+		
+		if(!bDOFLASH || flashtics == 0) 
+			bInvisible = false;
+		else if(!(level.time%flashtics))
+			bInvisible = !bInvisible;
+		
+		//animation:
+		if (tics != -1) 
+		{
+			if(tics > 0) tics--;
+			while (!tics) 
+				if(!SetState(CurState.NextState)) return;
+		}
+		
+		FSpawnParticleParams pset;
+		if(follow)
+		{
+			Quat dir = Quat.FromAngles(follow.angle, follow.pitch, follow.roll);
+			vector3 followPos = (follow.pos.xy, follow.pos.z + (follow.height * 0.5));
+			
+			vector2 bob = (0,0);
+			if(follow.player) 
+			{
+				followPos.z = follow.player.viewz;
+			//	follow.player.cheats |= CF_INTERPVIEW;
+		
+				let psp = follow.player.GetPSprite(PSP_WEAPON);
+				bob = PlayerPawn(follow).BobWeapon(1.0);
+				
+				bob.x += psp.x;
+				bob.y += (psp.y - 32);
+				bob.x *= 0.031;
+				bob.y *= 0.035;
+			}
+			
+			vector3 followOffsBob = (followOffs.x, followOffs.y - bob.x, followOffs.z - bob.y);
+			vector3 offs = dir * followOffsBob;	
+			SetOrigin(level.vec3offset(followPos, offs), true);
+			
+			
+			TextureID partTextures[4] = {
+				TexMan.CheckForTexture("Sprites/LTNGA0.png"), 
+				TexMan.CheckForTexture("Sprites/LTNGB0.png"), 
+				TexMan.CheckForTexture("Sprites/LTNGC0.png"), 
+				TexMan.CheckForTexture("Sprites/LTNGD0.png")
+			};
+
+			if( random(0,100) <= 5 )
+			{
+				pset.color1 = fillcolor;
+				pset.style = STYLE_Add;
+				pset.pos = pos + (dir * (0, frandom(-3,3), frandom(-5,5)));
+				pset.lifetime = 8;
+				
+				for(int i = 0; i < 5; i++)
+				{
+					pset.texture = partTextures[random(0,3)];
+					pset.vel = dir * (frandom(0,3), frandom(-3,3), frandom(-3,3));
+					pset.size = frandom(0.2,1.0);
+					pset.startalpha = 3.0;
+					pset.startroll = frandom(-180,180);
+					pset.vel += follow.vel;
+					
+					level.SpawnParticle(pset);
+				}
+			}
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 0; // When does nodelay ever actually work? 
+			TNT1 "#" 1
+			{ 
+				SetShade("Cyan");
+				frame = random[LightningSetup](0,3); 
+				A_SetRoll(frandom[LightningSetup](-180,180));
+				A_SetScale(default.Scale.X * 0.01);
+				desiredScale = frandom[LightningSetup](0.8,1.2);
+				alpha = 0.01;
+			}
+		SpawnLoop:
+			LTNG "#" 1
+			{
+				alpha += 0.1;
+				curScaleFactor = DrivablesMath.Lerp(curScaleFactor, desiredScale, 0.25);
+				A_SetScale(default.Scale.X * curScaleFactor);
+				
+				if( abs(curScaleFactor-desiredScale) <= 0.1 )
+					return ResolveState("Fadeout");
+					
+				return ResolveState(null);
+			}
+		loop;
+		
+		Fadeout:
+			"####" "#" 1 A_FadeOut(0.5);
+		wait;
+	}
+}
+
+class LightningCanvasActor : Actor
+{
+	Default
+	{
+		+NOINTERACTION;
+	}
+	
+	States
+	{
+		Spawn:
+			LTNG A -1;
+		stop;
+	}
+}

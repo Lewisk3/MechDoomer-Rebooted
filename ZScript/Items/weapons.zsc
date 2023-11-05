@@ -809,6 +809,8 @@ class GaussRifle : MechBallisticWeapon
 		fireSound = "Ballistic/GaussRifle";
 		reloadSound = "Ballistic/GaussRifle/Reload";
 		sndItemName = "Betty/Item/GaussRifle";
+		mountDeco = "GaussMountDeco";
+		
 		damagable = true;
 	}
 	

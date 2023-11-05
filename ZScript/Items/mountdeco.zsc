@@ -85,17 +85,31 @@ class ERPPCMountDeco : PPCMountDeco {}
 
 class ACMountDeco : MechMountDeco 
 {
+	double maxFWOffs;
+	
+	Property MaxRecoil : maxFWOffs;
+
 	Default
 	{
 		MechMountDeco.MountOffset (-15,0,0);
+		ACMountDeco.MaxRecoil 10;
 	}
 	
 	override void Tick()
 	{
-		super.Tick();
-		
 		// Setup maximum recoil offset(s)
-		animOffs.x = min(15, animOffs.x);
+		animOffs.x = max(-maxFWOffs, animOffs.x);
+		
+		super.Tick();
+	}
+}
+
+class GaussMountDeco : ACMountDeco
+{
+	Default
+	{
+		MechMountDeco.MountOffset (-10,0,0);
+		ACMountDeco.MaxRecoil 10;
 	}
 }
 
