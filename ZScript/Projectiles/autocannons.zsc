@@ -111,7 +111,7 @@ class MechAutocannon : MechProjectile
 	
 	virtual void DoDebris()
 	{
-		if(overlay || !bMISSILE) return; // Overlays do not have debris.
+		if(overlay || died) return; // Overlays do not have debris.
 
 		Array<Actor> debris;
 		EffectsHelper.SpawnFX("AutocannonDebris", random[DebrisAmt](10,20), pos, (angle+180, -pitch, roll), 3, (5,5,5), (45,30,0), 3, spawnedActors:debris);
@@ -120,6 +120,8 @@ class MechAutocannon : MechProjectile
 		{
 			if(debris[i]) AutocannonDebris(debris[i]).debrisScale = scale.X;
 		}
+		
+		died = true;
 	}
 	
 	States
@@ -377,8 +379,9 @@ class MGBullet : MechAutocannon
 
 	override void DoDebris()
 	{
-		if(!bMISSILE) return;
+		if(died) return;
 		SpawnEffect("AutocannonExplosion", pos);
+		died = true;
 	}
 
 	States

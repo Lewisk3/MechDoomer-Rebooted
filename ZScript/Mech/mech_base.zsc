@@ -25,6 +25,7 @@ class DrivableMech : DrivableObject
 	double curHeat, maxHeat, maxKelvin;
 	double moveSpeed, moveSpeedKPH;
 	double weight, maxWeight;
+	int powerupCycleTics; // Tics to full powerup.
 	double selectedWeapon, selectedGroup; // For UI stuff.
 	double healthPerc; // Health percent taking into account all hardpoints.
 	int mechbayID; // Used for saving mechs to mechbays.
@@ -278,6 +279,10 @@ class DrivableMech : DrivableObject
 		}
 		else
 		{
+			if(targetProgress < 1.0) DoCockpitSound("Mech/Target/Locking", flags:CHANF_NOSTOP, volume:0.3);
+			if(targetProgress < 1.0 && targetProgress + targetSpeed >= 1.0) 
+				DoCockpitSound("Mech/Target/Locked");
+				
 			targetProgress = min(1.0, targetProgress + targetSpeed); 
 		}
 	}
@@ -489,6 +494,12 @@ class DrivableMech : DrivableObject
 		camDrone = ThirdpersonCamera.Create(1,0,20, -100, 60);
 		AttachPart(camDrone, self);
 	}
+	
+	void DoCockpitSound(Sound snd, int channel = CHAN_BODY, int flags = CHANF_OVERLAP, double volume = 1.0)
+	{
+		if(!head) return;
+		head.A_StartSound(snd, channel, flags, volume);
+	}
 		
 	virtual void SetupItems()
 	{
@@ -590,7 +601,10 @@ class DrivableMech : DrivableObject
 			Actor prevTarget = curTarget;
 			AcquireTarget();
 			if(curTarget != prevTarget)
+			{
 				betty.Push("Betty/Targetting");
+				DoCockpitSound("Mech/Target/New");
+			}
 		}
 						
 		// Group customization
@@ -619,11 +633,7 @@ class DrivableMech : DrivableObject
 		{
 			UserCmd cmd = driver.player.cmd;
 		}
-		
-		if(getDriverBtn(BT_JUMP, DriverBtns.BTS_PRESSED) && onground)
-			vel.z += 12;
-			
-		
+	
 		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
 		{
 			// Unused 
@@ -775,7 +785,7 @@ class DrivableMech : DrivableObject
 	{
 		throttle = 0;
 		betty.Push("Betty/ShuttingDown");
-		A_StartSound("Reactor/Shutdown", flags:CHANF_OVERLAP);
+		DoCockpitSound("Reactor/Shutdown");
 		shutdown = true;
 		
 		torso.oldAngleOffs.y = 10;
@@ -784,7 +794,9 @@ class DrivableMech : DrivableObject
 	
 	virtual void DoPowerup()
 	{
-		A_StartSound("Reactor/Powerup", flags:CHANF_OVERLAP);
+		DoCockpitSound("Reactor/Powerup");
+		betty.Push("Betty/Powerup");
+		powerupCycleTics = 35*2;
 		shutdown = false;
 		
 		torso.oldAngleOffs.y = 0;
@@ -849,6 +861,12 @@ class DrivableMech : DrivableObject
 		
 		if(curHeat <= kelvinToBHU(500.0)) heatCritical = false;
 		
+		if(getHeatPerc() >= 0.85)
+			DoCockpitSound("Mech/OverheatWarning", CHAN_ITEM, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
+		else if(head) 
+			head.A_StopSound(CHAN_ITEM);
+			
+		
 		// System buttons (Active regardless of power-state)
 		if(getExtBtn(BT_POWERCYCLE, DriverBtns.BTS_PRESSED))
 		{
@@ -859,7 +877,7 @@ class DrivableMech : DrivableObject
 		}
 			
 		// Override shutdown
-		if ( getExtBtn(BT_OVRSHUTDWN, DriverBtns.BTS_PRESSED) )
+		if ( getExtBtn(BT_OVRSHUTDWN, DriverBtns.BTS_PRESSED) && !shutdown )
 		{
 			overrideShutdown = !overrideShutdown;
 			if(overrideShutdown) betty.Push("Betty/Shutdown/Override");
@@ -871,8 +889,11 @@ class DrivableMech : DrivableObject
 			betty.Push("Betty/DamageCritical");
 		healthPerc = getHealthyPercent();
 		
+		// Powerup and shutdown states.
+		powerupCycleTics = max(0, powerupCycleTics-1);
+		if(shutdown || powerupCycleTics > 0) return;
+		
 		// Movement code.
-		if(shutdown) return;
 		
 		// Get movement speed.
 		if(engine) 

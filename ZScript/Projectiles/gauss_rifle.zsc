@@ -118,12 +118,13 @@ class GaussCannon : MechProjectile
 			let ACDebris = AutocannonDebris(part);
 			if(ACDebris) ACDebris.debrisScale = scale.X * frandom[DebrisRNG](1.0,5.0);
 		}
+		died = true;
 	}
 
 	override void HandleRanges()
 	{
 		super.HandleRanges();
-		if(!bMISSILE) return;
+		if(died) return;
 		
 		double fric = 1.0 - (curDist / (maxRange*0.8));
 		

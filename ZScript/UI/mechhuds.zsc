@@ -2,7 +2,7 @@ class MechHUD : VehicleHUD
 {
 	vector3 torsoAim, leftArmAim, rightArmAim;
 	
-	double chainBlink, powerupTics, lockingRotation, curThrottle, curHeat;
+	double chainBlink, powerupTics, weapPowerupTics, lockingRotation, curThrottle, curHeat;
 	int chainGroup; // For chainfire animation.
 		
 	override void Draw(RenderEvent e)
@@ -152,7 +152,7 @@ class MechHUD : VehicleHUD
 		}
 		else
 		{
-			powerupTics = POWERANIM; // 2 seconds to powerup.
+			powerupTics = weapPowerupTics = POWERANIM; // 2 seconds to powerup.
 		}
 		
 		bool debugInv = mech.getExtBtn(DrivableMech.BT_PEEKINV, DriverBtns.BTS_DOWN);
@@ -298,6 +298,27 @@ class MechHUD : VehicleHUD
 		double thrHeight = abs(curThrottle) * (barSize.y - 3);
 		DrawRect(0xCCFFFF00, throttlePos + (2,barSize.y-2 - thrHeight), (barSize.x-3, 4), flags:flags);
 		
+		// Jump Jets
+		let [jjfuel, jjThrottled] = MechJumpJet.getRemainingFuel(mech);
+		if(jjfuel >= 0)
+		{
+			Color jjColor = 0xCC00C3FF;
+			Color jjLowColor = 0xCCD400C3;
+			if(jjThrottled) jjColor = jjLowColor;
+			
+			vector2 jjBarSize = barSize * 0.5;
+			vector2 jjBarPos = (
+				throttlePos.x,
+				throttlePos.y + (barSize.y-2)
+			) + (40, -jjBarSize.y);
+				
+			double jjFuelHeight = (1.0-(jjfuel/100.0)) * (jjBarSize.y - 3);
+		
+			DrawRect(0, jjBarPos - (2,2), jjBarSize + (3,3)); 			
+			DrawRect(jjColor, jjBarPos + (0, jjFuelHeight), jjBarSize - (0, jjFuelHeight + 3), flags:flags);
+		}
+		
+		
 		vector2 txtScale = (0.75,0.75);
 		vector2 kphPos = throttlePos + (-(barSize.x), barSize.y+10);
 		vector2 txtPos = throttlePos + (10, -15);
@@ -353,12 +374,15 @@ class MechHUD : VehicleHUD
 		double weapCount = weaps.Size();
 				
 		// Powerup animation
-		if(powerupTics > 0) 
+		if(mech.powerupCycleTics > 0) return;
+		
+		if(weapPowerupTics > 0) 
 		{
-			double scaleMod = 1.0 - (powerupTics / POWERANIM);
-			weapCount = weaps.Size() - DrivablesMath.fmap(powerupTics, 0, POWERANIM, 1, weaps.Size()); 
+			double scaleMod = 1.0 - (weapPowerupTics / POWERANIM);
+			weapCount = weaps.Size() - DrivablesMath.fmap(weapPowerupTics, 0, POWERANIM, 1, weaps.Size()); 
 			weapBarScale *= scaleMod;
 			yoff *= scaleMod;
+			weapPowerupTics -= deltaTime;
 		}
 		
 		if(!weapCount) return;

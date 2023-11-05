@@ -8,7 +8,7 @@ class MechMissile : MechProjectile
 	override void Tick()
 	{
 		super.Tick();	
-		if(level.isFrozen()) return;
+		if(level.isFrozen() || died) return;
 		
 		if(curDist < maxRange) 
 		{
@@ -26,7 +26,7 @@ class MechMissile : MechProjectile
 				}
 			}
 		}
-		if(bMISSILE) HandleRanges();
+		HandleRanges();
 		
 		if(curDist < minRange || curDist >= maxRange) 
 			trueDamage = 0;
@@ -37,8 +37,7 @@ class MechMissile : MechProjectile
 	override void HandleRanges()
 	{
 		super.HandleRanges();
-		if(!bMISSILE) return;
-		
+
 		// Missile ran out of fuel.
 		if(curDist > maxRange)
 		{
@@ -46,7 +45,7 @@ class MechMissile : MechProjectile
 			if(pitch < 90) pitch += 1;
 		}
 	}
-
+	
 	States
 	{
 		Spawn:
@@ -62,7 +61,7 @@ class MechMissile : MechProjectile
 		Death:
 			MODL A 10
 			{
-				bMISSILE = false;
+				died = true;
 				if(curDist > minRange)
 				{
 					EffectsHelper.SpawnFX("MissileEmber", 25, pos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);

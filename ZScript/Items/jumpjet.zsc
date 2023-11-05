@@ -1,0 +1,297 @@
+class MechJumpJet : MechUtility
+{
+	JumpJetExhaust exhaust;
+
+	int jetTic;
+	double prevZ;
+	double fuel;
+	double thrust;
+	double fuelTime;
+	double rechargeRate;
+	double shakeIntensity;
+	bool throttled;
+
+	override void Defaults()
+	{
+		damagable = true;
+		size = 1;
+		weight = 0.5;
+		displayName = "Jump Jet";
+		fuelTime = 10.0; // 10 seconds of fuel
+		rechargeRate = 10.0; // 10 seconds to recharge
+		shakeIntensity = 3;
+	}
+	
+	static double, bool getRemainingFuel(DrivableMech mech)
+	{
+		// Gets the average feul left in all jumpjets.
+		Array<MechItem> jets;
+		mech.findAllItems("MechJumpJet", true, jets);
+		
+		double curFuel;
+		bool throttling = false;
+		foreach(item : jets)
+		{
+			let jet = MechJumpJet(item);
+			if(!jet) continue;
+			
+			curFuel += jet.fuel;
+			throttling |= jet.throttled;
+		}
+		
+		return !jets.Size() ? -1 : curFuel / double(jets.Size()), throttling;
+	}
+	
+	virtual void PlayJetSound()
+	{
+		let mech = parent.mech; 
+		if(!mech) return;
+		
+		Sound snd = "JumpJet/Light";
+		
+		if(mech.maxWeight > 35)
+			snd = "JumpJet/Medium";
+		
+		if(mech.maxWeight > 55)
+			snd = "JumpJet/Heavy";
+		
+		if(mech.maxWeight > 85)
+			snd = "JumpJet/Assault";
+		
+		parent.A_StartSound(snd, CHAN_ITEM, CHANF_LOOPING|CHANF_NOSTOP);
+	}
+	
+	virtual void updateThrust(DrivableMech mech)
+	{
+		// We need to convert this from msec to UPT
+		thrust = DrivableMech.MetersToUnits(GetAcceleration(mech)) / double(TICRATE);
+	}
+	
+	// Here for whoever wants to override this for addons or whatever.
+	virtual double GetAcceleration(DrivableMech mech)
+	{
+		// Each JJ provide 30m of thrust,
+		// JJ have 1 turn of fuel, so 10 seconds - 3 meters of thrust per second.
+		// This is a but much, so I've turned it down substantially.
+		
+		// 0.05
+		double thrustMod = 0.02 / DrivablesMath.fmap(mech.maxWeight, 25, 100, 0.1, 1.0);
+		return 3.0 * thrustMod;
+	}
+	virtual void rechargeFuel()
+	{
+		fuel += 100.0 / double(rechargeRate * TICRATE);
+	}
+	virtual void consumeFuel()
+	{
+		fuel -= 100.0 / double(fuelTime * TICRATE);
+	}
+	
+	virtual void adjustWeight(DrivableMech mech)
+	{
+		if(!mech) return;
+				
+		weight = 0.5;
+		if(mech.maxWeight > 55) weight += 0.5;
+		if(mech.maxWeight > 85) weight += 1;
+	}
+	
+	override int TryAttach(MechHardpoint part)
+	{
+		// JumpJets cannot be equipped on arms or on the head component.
+		if(part is "MechArm" || part is "MechCockpit")
+			return IAE_INVALID;
+	
+		adjustWeight(part.mech);
+		return super.TryAttach(part);
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue, mechInfo);
+		
+		flavorText = "When equipped, provides upwards thrust so-long as the jump key is held down and fuel is available.";
+		
+		// New Line
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		if(mechInfo) 
+		{
+			adjustWeight(mechInfo);
+			updateThrust(mechInfo);
+		
+			// Lets convert thrust to kilojoules for fun.
+			double mechKG = mechInfo.maxWeight * 907.185;
+			double accel = GetAcceleration(mechInfo); // meters per second
+			double newtonMeters = (mechKG * (thrust*thrust*TICRATE*fuelTime)) / fuelTime;
+			double Joules = newtonMeters;
+			
+			statName.Push("THRUST");
+			statValue.Push(String.Format("%.2f J", Joules));	
+		}
+		
+		statName.Push("AIR TIME");
+		statValue.Push(String.Format("%.1f s", fuelTime));	
+		statName.Push("RECHARGE");
+		statValue.Push(String.Format("%.1f s", rechargeRate));	
+		
+		statValue[1] = String.Format("%.2f", weight);
+	}
+	
+	override void OnDetach()
+	{	
+		super.OnDetach();
+		if(exhaust) exhaust.Destroy();
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		let mech = parent.mech;
+		if(!mech || !mech.engine || mech.shutdown) return;
+				
+		let [runMP, walkMP] = mech.engine.getRunWalkMP(mech);
+		double maxJump = walkMP;
+		
+		let driver = mech.driver;
+		if(!driver) return;
+		
+		updateThrust(parent.mech);
+		
+		let jetDir = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
+		vector3 basePos = parent.pos + (0,0,max(parent.height, parent.hitboxHeight)*0.5);
+		vector3 exhaustPos = level.vec3offset(basePos, jetDir * (-8,0,0)); 
+		
+		if( mech.getDriverBtn(BT_JUMP, DriverBtns.BTS_DOWN) && fuel > 0 && (jetTic || fuel >= 30) )
+		{
+			double jumpDist = DrivableMech.unitsToKM(abs(mech.pos.z - prevZ)) * 1000.0;
+			PlayJetSound();
+			
+			if(!exhaust)
+			{
+				exhaust = JumpJetExhaust(Actor.Spawn("JumpJetExhaust", exhaustPos));
+				if(exhaust) exhaust.A_SetScale(exhaust.Scale.X * parent.Scale.X);
+			}
+			else
+			{
+				exhaust.SetOrigin(exhaustPos, true);
+			}
+			
+			if(jumpDist < (maxJump * 0.5)) 
+			{
+				mech.bNOGRAVITY = true;
+				mech.vel.z += thrust;
+				throttled = false;
+			}
+			else
+			{
+				mech.bNOGRAVITY = mech.default.bNOGRAVITY;
+				throttled = true;
+			}
+			
+			if(!jetTic) 
+			{
+				prevZ = mech.pos.z;
+				jetTic = level.maptime;
+			}
+			
+			consumeFuel();
+			MechTorso(mech.torso).recoilShake = (shakeIntensity, shakeIntensity*0.5, shakeIntensity);
+		}
+		else
+		{
+			if(exhaust) exhaust.Destroy();
+			parent.A_StopSound(CHAN_ITEM);
+			mech.bNOGRAVITY = mech.default.bNOGRAVITY;
+			throttled = false;
+			rechargeFuel();
+		}
+		
+		fuel = clamp(fuel, 0, 100);
+		if(jetTic && mech.onground) jetTic = 0;
+	}
+}
+
+
+class JumpJetExhaust : EffectsActor
+{
+	Default
+	{
+		Scale 0.5;
+		Alpha 0.8;
+		Damage 128;
+		RenderStyle "Add";
+		+INTERPOLATEANGLES;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		Scale.Y = -Scale.X;
+		
+		if(!(getAge() % 3))
+		{
+			let smk = Spawn("JumpJetSmoke", pos + (0,0,-15*(scale.x/0.75)));
+			if(smk) smk.A_SetScale(smk.Scale.X * Scale.X);	
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			FLML ABCDEFGHIJKLMNOPQRSTUVWXYZ 1 Bright;
+		loop;
+	}
+}
+
+class JumpJetSmoke : EffectsActor
+{
+	double rollvel;
+	vector2 wind_dir;
+	Default
+	{
+		Scale 0.3;
+		RenderStyle "Translucent";
+		+ROLLSPRITE;
+	}
+	
+	override void BeginPlay()
+	{	
+		alpha = frandom[JetFX](0.5, 1.0);
+		A_SetScale(frandom[JetFX](default.scale.x * 0.15, default.scale.x));
+		rollvel = frandom[JetFX](-2.0, 2.0);
+		wind_dir = AngleToVector(frandom[JetFX](0,180), frandom[JetFX](-0.005, 0.005)); 
+		super.BeginPlay();
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		vel.z -= 0.1;
+		
+		SetOrigin(level.vec3offset(pos, vel), true);
+		A_SetRoll(roll + rollvel, SPF_INTERPOLATE);
+		vel += wind_dir * frandom[JetFX](0.25, 1.0);
+		if(getAge() <= 20)
+			A_SetScale(Scale.X * 0.96, Scale.Y * 0.96);
+	}
+	
+	States
+	{
+		Spawn:
+			MXP1 ACEGIKMOQSUWY 1 Bright;
+			MXP1 BDFHJLNPRTV 1 Bright;
+		Smoke:
+			TNT1 A 0 A_SetScale(Scale.X * 5.0);
+			SMKE "#" 1 { frame = random[JetFX](0, 23); }
+		SmokeLoop:
+			SMKE "#" 1 
+			{
+				A_SetScale(Scale.X * 1.07, Scale.Y * 1.07);
+				A_FadeOut(0.03);
+			}
+		wait;
+	}
+}

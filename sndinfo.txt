@@ -27,12 +27,19 @@ Betty/Item/SRM "Sounds/Betty/Items/srm.wav"
 Betty/Item/LRM "Sounds/Betty/Items/lrm.wav"
 Betty/Item/Heatsink "Sounds/Betty/Items/heatsink.wav"
 Betty/Item/AMS "Sounds/Betty/Items/AMS.wav"
+Betty/Powerup "Sounds/Betty/powercycle.wav"
 
 // Mech explosions
 Mech/Explosion/Hardpoint1 "Sounds/Mech/hardpoint_explosion1.wav";
 Mech/Explosion/Hardpoint2 "Sounds/Mech/hardpoint_explosion2.wav";
 Mech/Explosion/Hardpoint3 "Sounds/Mech/hardpoint_explosion3.wav";
 $random Mech/Explosion/Hardpoint { Mech/Explosion/Hardpoint1 Mech/Explosion/Hardpoint2 Mech/Explosion/Hardpoint3 }
+
+Mech/Land "Sounds/Mech/heavyland.wav"
+Mech/Target/New "Sounds/Mech/newtarget.wav"
+Mech/Target/Locking "Sounds/Mech/lockingtarget.wav"
+Mech/Target/Locked "Sounds/Mech/newtarget.wav"
+Mech/OverheatWarning "Sounds/Mech/overheating.wav"
 
 // Ambient mech sounds
 Torso/Twist     "Sounds/Ambient/torso_twist.wav"
@@ -90,6 +97,11 @@ IMPACT2 "Sounds/Weapons/impact2.wav"
 IMPACT3 "Sounds/Weapons/impact3.wav"
 IMPACT4 "Sounds/Weapons/impact4.wav"
 $random Generic/Impact { IMPACT1 IMPACT2 IMPACT3 IMPACT4 }
+
+JumpJet/Light   "Sounds/JumpJets/jet_light.wav"  
+JumpJet/Medium  "Sounds/JumpJets/jet_mediuum.wav"
+JumpJet/Heavy   "Sounds/JumpJets/jet_heavy.wav"
+JumpJet/Assault "Sounds/JumpJets/jet_assault.wav"
 
 // Volume
 $volume Laser/Loop 0.5;

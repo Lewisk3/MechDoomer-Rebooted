@@ -759,6 +759,10 @@ class MechEngine : MechItem
 		{
 			statName.Push("TOP SPEED");
 			statValue.Push(String.Format("%.2f KPH", getKPH(mechInfo)));
+			
+			let [runMP, walkMP] = getRunWalkMP(mechInfo);
+			statName.Push("JUMP RANGE");
+			statValue.Push(String.Format("%d", walkMP));
 		}
 	}
 	
@@ -804,7 +808,7 @@ class MechEngine : MechItem
 		return tons;
 	}
 	
-	double getPowerGeneration()
+	virtual double getPowerGeneration()
 	{
 		// Loosely based on fusion reaction power density.
 		double tons = weight;
@@ -817,6 +821,15 @@ class MechEngine : MechItem
 		if(type == Type_XL	  ) gen *= 1.5;
 		if(type == Type_XXL   ) gen *= 2.0;
 		return gen * 0.1;
+	}
+	
+	int, int getRunWalkMP(DrivableMech mech, double hexSize = 30.0)
+	{
+		if(!mech) return 0, 0;
+		
+		int runMP = round( (getKPH(mech) / 10.8) * hexSize );
+		int walkMP = ceil(runMP * 0.6);
+		return runMP, walkMP;
 	}
 	
 	virtual string getTypeStr()

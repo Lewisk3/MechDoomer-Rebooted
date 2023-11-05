@@ -26,7 +26,7 @@ class ParticleCannon : MechProjectile
 	{
 		super.Tick();
 		
-		if(level.isFrozen()) return;
+		if(level.isFrozen() || died) return;
 		
 		HandleRanges();
 	}
@@ -94,6 +94,7 @@ class ParticleCannon : MechProjectile
 			TNT1 A 1
 			{
 				// PPC explosion
+				died = true;
 				if(curDist > minRange) SpawnEffect("PPCExplosion", pos);
 			}
 		stop;

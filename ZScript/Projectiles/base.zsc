@@ -12,6 +12,7 @@ class MechProjectile : FastProjectile
 	Sound impactSnd;
 	bool stopHoming;
 	bool fullVolumeImpact;
+	bool died; // Needed because projectiles are fucking jank sometimes in this engine.
 	
 	Property Ranges : minRange, maxRange;
 	Property FirePitch : firePitch;
@@ -33,7 +34,7 @@ class MechProjectile : FastProjectile
 		super.Tick();
 		
 		// Determine geometric collision.
-		if( !bMISSILE || vel ~== (0,0,0) ) return;
+		if( died || vel ~== (0,0,0) ) return;
 		
 		FLineTraceData lt;
 		LineTrace(angle, radius + vel.Length(), pitch, data:lt);
@@ -109,6 +110,7 @@ class MechProjectile : FastProjectile
 		if( !(victim is "DrivableObjectPart") ) damageMod = 2.7; 
 		
 		victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
+		
 		return super.SpecialMissileHit(victim);
 	}
 	

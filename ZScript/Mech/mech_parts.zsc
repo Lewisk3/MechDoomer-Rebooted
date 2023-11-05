@@ -321,7 +321,7 @@ class MechHardpoint : MechPart
 		
 		if(noArmor && items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
-			bool criticalHit = random[HardpointCrit](0,100) <= 3; // 3 percent chance of crit.
+			bool criticalHit = random[HardpointCrit](0,100) <= (type == 'MechHeat' ? 1 : 10); // 10 percent chance of crit, if heat damage then 1% chance.
 			
 			double itemDmg = (criticalHit ? 100 : (hpDmg*20.0));
 			Array<MechItem> itemList;
@@ -850,8 +850,9 @@ class MechTorso : MechHardpoint
 	double rollBob, rollBobTimer;
 	double turnDir;
 	double prevAngle, prevPitch;
-	bool infiniteTurnRange;
+	double zAccel;
 	
+	bool infiniteTurnRange;
 	Property InfiniteTurnRange : infiniteTurnRange;
 	
 	Property TurnRange : turnMax;
@@ -896,7 +897,7 @@ class MechTorso : MechHardpoint
 		roll += (recoilAngles.z + shake.z) * 0.5;
 		recoilAngles *= 0.6;
 		recoilShake *= 0.92;
-		
+			
 		ClampAngles();
 	}
 	
@@ -929,6 +930,18 @@ class MechTorso : MechHardpoint
 			rollBobTimer += mech.getSpd();
 		}
 		
+		// We hit the ground, apply recoil based on falling speed.
+		if(mech.vel.z == 0 && zAccel < 0)
+		{
+			pitchBobVel -= (zAccel * 0.5);
+			double fallFriction = 1.0 - (clamp(abs(zAccel), 1, 15) / 15.0);
+			mech.vel *= fallFriction;
+			
+			// Hit the ground sound.
+			if(mech.legs && fallFriction <= 0.8) 
+				mech.legs.A_StartSound("Mech/Land", flags:CHANF_OVERLAP);
+		}
+		
 		pitchBob = clamp(pitchBobVel, -8, 8);
 
 		double toAngle = driver.angle;
@@ -940,10 +953,12 @@ class MechTorso : MechHardpoint
 			toAngle = angle;
 			toPitch = pitch;
 		}
+				
+		zAccel = mech.vel.z * 0.5;
 
 		// Set angles
 		DrivablesMath.AngleSlerp(angle, toAngle, turnSpeed / double(TICRATE));
-		DrivablesMath.AngleSlerp(pitch, toPitch, pitchSpeed / double(TICRATE));
+		DrivablesMath.AngleSlerp(pitch, toPitch + zAccel, pitchSpeed / double(TICRATE));
 				
 		// Turn sound
 		if( abs(angle-prevAngle) >= 2 || abs(pitch-prevPitch) >= 2 )
