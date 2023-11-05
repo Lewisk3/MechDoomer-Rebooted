@@ -251,13 +251,13 @@ Model MechAAM
 Model LaserMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_laser.obj"
+	Model 0 "mounts/mnt_laser.md3"
 	SurfaceSkin 0 0 "vfx/mountBody.png"
 	SurfaceSkin 0 1 "vfx/laserGlass.png"
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
-	AngleOffset 180
+	AngleOffset 90
 	Scale 2.0 2.0 2.0
 	
 	FrameIndex MODL A 0 0
@@ -266,7 +266,7 @@ Model LaserMountDeco
 Model PPCMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_ppc.obj"
+	Model 0 "mounts/mnt_ppc.md3"
 	SurfaceSkin 0 0 "vfx/c_simple.png"
 	SurfaceSkin 0 1 "vfx/mountBody.png"
 	SurfaceSkin 0 2 "vfx/orange_glow.png"
@@ -277,7 +277,7 @@ Model PPCMountDeco
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
-	AngleOffset 180
+	AngleOffset 90
 	Scale 0.07 0.07 0.07
 	
 	FrameIndex MODL A 0 0
@@ -286,7 +286,7 @@ Model PPCMountDeco
 Model ERPPCMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_erppc.obj"
+	Model 0 "mounts/mnt_erppc.md3"
 	
 	SurfaceSkin 0 1 "vfx/c_simple.png"
 	SurfaceSkin 0 1 "vfx/mountBody.png"
@@ -298,7 +298,7 @@ Model ERPPCMountDeco
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
-	AngleOffset 180
+	AngleOffset 90
 	Scale 0.07 0.07 0.07
 	
 	FrameIndex MODL A 0 0
@@ -307,13 +307,14 @@ Model ERPPCMountDeco
 Model MGunMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_mgun.obj"
+	Model 0 "mounts/mnt_mgun.md3"
 	SurfaceSkin 0 0 "vfx/mountBody.png"
 	SurfaceSkin 0 1 "vfx/c_simple.png"
 	SurfaceSkin 0 2 "vfx/c_simple.png"
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
+	AngleOffset -90
 	Scale 10.0 10.0 10.0
 	
 	FrameIndex MODL A 0 0
@@ -323,7 +324,7 @@ Model MGunMountDeco
 Model AMSMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_ams.obj"
+	Model 0 "mounts/mnt_ams.md3"
 	SurfaceSkin 0 0 "vfx/mountBody.png"
 	SurfaceSkin 0 1 "vfx/c_simple.png"
 	SurfaceSkin 0 2 "vfx/mountBody.png"
@@ -339,7 +340,7 @@ Model AMSMountDeco
 Model MissileMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_missile.obj"
+	Model 0 "mounts/mnt_missile.md3"
 	SurfaceSkin 0 0 "vfx/mountBody.png"
 	SurfaceSkin 0 1 "vfx/c_simple.png"
 	SurfaceSkin 0 2 "missiles/missile_body.png"
@@ -347,7 +348,7 @@ Model MissileMountDeco
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
-	AngleOffset 90
+	AngleOffset 0
 	Scale 0.2 0.2 0.2
 	
 	FrameIndex MODL A 0 0
@@ -356,7 +357,7 @@ Model MissileMountDeco
 Model ACMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_autocannon.obj"
+	Model 0 "mounts/mnt_autocannon.md3"
 	SurfaceSkin 0 0 "vfx/mountBody.png"
 	SurfaceSkin 0 1 "vfx/c_simple.png"
 	SurfaceSkin 0 2 "vfx/orange_glow.png"
@@ -365,7 +366,7 @@ Model ACMountDeco
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
-	AngleOffset 0
+	AngleOffset -90
 	Scale 0.05 0.05 0.05
 	
 	FrameIndex MODL A 0 0
@@ -374,7 +375,7 @@ Model ACMountDeco
 Model GaussMountDeco
 {
 	Path "models/"	
-	Model 0 "mounts/mnt_gauss.obj"
+	Model 0 "mounts/mnt_gauss.md3"
 	SurfaceSkin 0 0 "vfx/c_simple.png"
 	SurfaceSkin 0 1 "vfx/orange_glow.png"
 	SurfaceSkin 0 2 "vfx/mountBody.png"
@@ -383,7 +384,7 @@ Model GaussMountDeco
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
-	AngleOffset 0
+	AngleOffset -90
 	Scale 0.12 0.12 0.12
 	
 	FrameIndex MODL A 0 0
