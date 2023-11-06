@@ -19,7 +19,7 @@ class MechAutocannon : MechProjectile
 	{
 		super.Tick();
 		
-		if(level.isFrozen()) return;
+		if(level.isFrozen() || died) return;
 		
 		if(velSource)
 			vel = velSource.vel;

@@ -51,6 +51,8 @@ class MechProjectile : FastProjectile
 	{
 		if(impactSnd) // Play Impact sound effect.
 			playImpactSound();
+						
+		died = true;
 	}
 	
 	virtual double getBaseSpeed()
@@ -69,6 +71,7 @@ class MechProjectile : FastProjectile
 	
 	virtual void playImpactSound()
 	{
+		if(died) return;
 		if(fullVolumeImpact)
 			S_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP, attenuation:ATTN_NONE);
 		else
@@ -95,7 +98,7 @@ class MechProjectile : FastProjectile
 	
 	override int SpecialMissileHit(Actor victim)
 	{	
-		if(died) return 1;
+		if(died || !victim.bSHOOTABLE || victim.bCORPSE || !victim.bSOLID) return 1;
 		
 		let hardpoint = MechHardpoint(target);
 		let hitHardpoint = MechHardpoint(victim);

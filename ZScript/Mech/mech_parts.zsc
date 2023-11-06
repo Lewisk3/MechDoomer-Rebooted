@@ -600,6 +600,7 @@ class MechHardpoint : MechPart
 		{
 			for(int i = items.Size()-1; i >= 0; i--)
 			{
+				if(i >= items.Size()) break;
 				let item = items[i];
 				if(!item) 
 				{
