@@ -13,7 +13,7 @@ class WireFrame_Handler : EventHandler
 	override void RenderOverlay(RenderEvent e)
 	{		
 		if(map_enabled) DrawWireFrame(e);
-		if(actors_enabled) DrawHitboxes(e, true);
+		if(actors_enabled) DrawHitboxes(e, onlyMechs:false);
 	}
 	
 	ui static int getLineAlpha(double dist, double maxDist = 4096)
@@ -219,7 +219,7 @@ class WireFrame_Handler : EventHandler
 				if(isNonLocalMech) 
 					DrawHardpointBox(view, mechHP, mechHB);
 			}
-			if( (!isMech && onlyMechs) || !isNonLocalMech ) continue;
+			if( (!isMech || !isNonLocalMech) && onlyMechs ) continue;
 						
 			// LR, FB, UD factors of radius and height respectively.
 			vector3 FTL = (-1, -1, 0);

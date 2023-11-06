@@ -147,7 +147,7 @@ class Hellbringer_LeftTorso : MechSideTorso
 		msl.newOffset(-12, 11 - 4.5, 47 - 3.25);
 		msl.newOffset(-12, 11 - 9.5, 47 - 3.25);
 		
-		AddMountPoint("Ballistic", 15, 10, 13);
+		AddMountPoint("Ballistic", 15, 10, 15);
 		AddMountPoint("Ballistic", 15, 10, 10);
 	}
 }

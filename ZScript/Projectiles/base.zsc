@@ -13,6 +13,8 @@ class MechProjectile : FastProjectile
 	bool stopHoming;
 	bool fullVolumeImpact;
 	bool died; // Needed because projectiles are fucking jank sometimes in this engine.
+	int ripCount, ripMax;
+	Array<Actor> rippedActors;
 	
 	Property Ranges : minRange, maxRange;
 	Property FirePitch : firePitch;
@@ -21,6 +23,7 @@ class MechProjectile : FastProjectile
 	Property ImpactSound : impactSnd;
 	Property GlobalImpactSound : fullVolumeImpact;
 	Property SpeedKPH : speedKPH;
+	Property RipperCount : ripMax;
 	
 	Default
 	{
@@ -90,8 +93,15 @@ class MechProjectile : FastProjectile
 		vel = DrivablesMath.VecFromAngles(angle, pitch, Speed);
 	}
 	
+	
+	// I have no earthly idea how projectiles work in this engine, but it makes no sense at all.
+	// Doesn't matter what I return here sometimes, on some projectiles, for some reason.
+	// So I'm forced to manually force them into their death state, AND mark them as dead, through "died".
+	// I didn't want this mod to contain messy code but, GZDoom decided otherwise.
 	override int SpecialMissileHit(Actor victim)
 	{	
+		if(died) return 1;
+
 		let hardpoint = MechHardpoint(target);
 		let hitHardpoint = MechHardpoint(victim);
 		let hitMechBox = MechHitbox(victim);
@@ -101,6 +111,9 @@ class MechProjectile : FastProjectile
 		
 		if( victim == target || victim == master || hitMechPart )
 			return 1; // Ignore actor.
+			
+		// Don't rip through mechs
+		if(hitHardpoint || hitMechBox) bRIPPER = false;
 		
 		if(impactSnd) // Play Impact sound effect.
 			playImpactSound();
@@ -109,10 +122,26 @@ class MechProjectile : FastProjectile
 		double damageMod = 1.0;
 		if( !(victim is "DrivableObjectPart") ) damageMod = 2.7; 
 		
-		victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
+		if(!bRIPPER || rippedActors.Find(victim) == rippedActors.Size())
+		{
+			victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
+			if(bRIPPER && ripCount < ripMax)
+			{
+				rippedActors.Push(victim);
+				ripCount++;
+				OnRip(victim);
+				return 1; // Ignore actor, don't explode, but still deal damage.
+			}
+		}
 		
-		return super.SpecialMissileHit(victim);
+		// No idea why I have to handle this shit entirely manually, if I don't the projectiles simply do not die, ever.
+		SetState(ResolveState("XDeath"));
+		died = true;
+		
+		return -1;
 	}
+	
+	virtual void OnRip(Actor victim) {}
 	
 	virtual Actor SpawnEffect(class<Actor> trail, vector3 spawnPos)
 	{

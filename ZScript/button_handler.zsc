@@ -9,7 +9,7 @@ class MechButtons_Handler : EventHandler
 			if(!plrInfo || !playerInGame[i]) continue;
 			let plr = players[i].mo;
 			I_MechItemStorage.Get(plr);
-		}		
+		}	
 	}
 	
 	override void InterfaceProcess(ConsoleEvent e)
@@ -29,7 +29,6 @@ class MechButtons_Handler : EventHandler
 		
 		if(drvObj && drvObj.source) 
 		{
-	
 			bool btnState = cmd.IndexOf("+") != -1 ? true : false; 
 			cmd.Remove(0,1);
 			cmd = cmd.MakeLower();

@@ -38,6 +38,7 @@ class DrivableMech : DrivableObject
 	MechWeapon prevWeapFired;
 	MechArmor armorType;
 	Array<MechWeaponGroup> weaponGroups;
+	Actor exitedPilot; // Holds the driver after they exit, used to prevent getting stuck after exiting.
 	
 	vector3 aimingPos;
 	
@@ -293,6 +294,12 @@ class DrivableMech : DrivableObject
 		cv_throttleDecay = CVar.GetCVar("cl_mdr_throttledecay", driver.player);
 	}
 	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if( other == driver || other == exitedPilot ) return false;
+		return super.CanCollideWith(other, passive);
+	}
+	
 	override void TakePilot(Actor user)
 	{
 		if(head && head.healthPoints <= 0)
@@ -325,6 +332,7 @@ class DrivableMech : DrivableObject
 			return;
 		}
 	
+		exitedPilot = driver;
 		driver.SetOrigin(OffsetPos(30,0,0), true);
 		driver.A_SetScale(driver.default.Scale.X, driver.default.Scale.Y);
 		driver.A_SetSize(driver.default.Radius, driver.default.Height);
@@ -692,6 +700,13 @@ class DrivableMech : DrivableObject
 			DoSimpleMovement(fm, sm);
 		else
 			DoTankMovement(fm, sm);
+			
+		// Linedef activation
+		let ln = blockingLine;
+		if(ln && !!(ln.activation & (SPAC_Cross|SPAC_AnyCross)) )
+		{
+			ln.Activate(driver, level.PointOnLineSide(driver.pos.xy, ln), SPAC_Cross|SPAC_AnyCross);
+		}
 	}
 	
 	virtual void DoTankMovement(double fm, double sm)
@@ -905,6 +920,18 @@ class DrivableMech : DrivableObject
 			moveSpeed = moveSpeedKPH = 0;
 		
 		DriverInteraction();
+		
+		// Crossable lines
+		if(pos.z <= floorz)
+		{
+			let blockLines = BlockLinesIterator.Create(self);	
+			while(blockLines.Next())		
+			{
+				let ln = blockLines.CurLine;
+				bool crossable = ln.activation & (SPAC_Cross|SPAC_AnyCross);
+				if(crossable) ln.Activate(driver, level.PointOnLineSide(pos.xy, ln), SPAC_Cross); 
+			}
+		}
 	}
 	
 	virtual void modifyHeat(double amt)
@@ -1054,6 +1081,9 @@ class DrivableMech : DrivableObject
 		
 		// Might need to fetch CVars again if loaded from a save.
 		if(driver && driver.player && !cv_throttleDecay) FetchCVars();
+		
+		// Clear exited pilot once they're a sufficient distance away.
+		if(exitedPilot && Distance2D(exitedPilot) >= (128 * scale.X)) exitedPilot = NULL;
 	}
 	
 	States

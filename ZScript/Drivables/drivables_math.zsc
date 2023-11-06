@@ -185,6 +185,27 @@ class DrivablesMath Abstract
 		let diff = level.vec2diff(one, two);
 		return ( (diff.x**2) + (diff.y**2) ); 
 	}
+	
+	
+	static vector2 PointOnLine(Line ln, vector2 p) 
+    {
+		//original by user Grumdrig at StackOverflow -k
+		//https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+		
+		vector2 v = ln.v1.p;
+		vector2 w = ln.v2.p;
+		double l2 = (v-w).length()*(v-w).length(); //there was pow() function here.. -k 
+		if (l2 == 0.0) return v;
+		double t = max(0.0, min(1.0, (p - v) dot (w - v) / l2));
+		vector2 projection = v + t * (w - v);  // Projection falls on the segment
+		return projection;
+    }
+	
+	static double DistanceToLine(Line ln, vector2 p)
+	{
+		vector2 diff = level.vec2diff(p, PointOnLine(ln, p));
+		return diff.Length();
+	}
 
 	static vector3 getAxes(double angle, double pitch, double roll)
 	{

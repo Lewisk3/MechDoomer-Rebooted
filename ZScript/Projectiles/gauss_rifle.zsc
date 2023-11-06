@@ -15,6 +15,9 @@ class GaussCannon : MechProjectile
 		MechProjectile.SpeedKPH 2200;
 		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
 		// MechProjectile.GlobalImpactSound true;
+		
+		+RIPPER;
+		MechProjectile.RipperCount 6;
 	}
 
 	override void PostBeginPlay()
@@ -51,6 +54,11 @@ class GaussCannon : MechProjectile
 		
 		if( !(GetAge()%5) )
 			LightningSparks();
+	}
+	
+	override void OnRip(Actor victim)
+	{
+		Shockwave(pos, 0.2 * Scale.X, 0xFF313de8); 
 	}
 	
 	void FireGaussBeam(Color col, double size, double startAlpha)

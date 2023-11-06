@@ -6,6 +6,8 @@ class MechLaser : MechLaserBeam
 	double dropoff_range;
 	Sound fireSound, impactSound;
 	MechLaser core;
+	double dmgAccumulator;
+	Actor curVictim;
 	
 	Property FiringSound : fireSound, impactSound;
 
@@ -107,10 +109,18 @@ class MechLaser : MechLaserBeam
 		double curDist = hitData.Distance;
 		double trueDamage = laserdamage * min(1.0, 1.0 - ((curDist - dropoff_range) / (maxDist - dropoff_range)) );
 
+		if(curVictim != hitActor) 
+		{
+			curVictim = hitActor;
+			dmgAccumulator = 0;
+		}
+
 		if(hitActor) 
 		{
-			double damageMod = 1.0;
-			if(!(hitActor is "DrivableObjectPart")) damageMod = 2.7;
+			if(!(hitActor is "DrivableObjectPart")) 
+			{
+				trueDamage /= (MechHardpoint.DMGSCALE * 5.0);
+			}
 			
 			hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Fire");
 			if(!hitSomething)
@@ -120,7 +130,10 @@ class MechLaser : MechLaserBeam
 			}
 		}
 		else
+		{
 			hitSomething = false;
+			dmgAccumulator = 0;
+		}
 
 		let lasdec = Spawn("MWLaserDecal", hitPos);
 		lasdec.angle = angle;

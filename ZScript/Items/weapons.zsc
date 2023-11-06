@@ -652,7 +652,7 @@ class UltraAC10 : UltraAC
 		mountType = "Ballistic";
 		heat = 5.0;
 		weight = 9.0;
-		size = 5.0;
+		size = 7.0;
 		energyUse = 0.12;
 		
 		ammoUse = 1;
@@ -897,7 +897,7 @@ class AMS : MechWeapon
 		
 		fireTime = 2;
 		cooldownTime = 16;
-		range = 270;
+		range = 120;
 		ammoUse = 1;
 		
 		refireCount = 8;

@@ -377,6 +377,27 @@ Model GaussMountDeco
 	Path "models/"	
 	Model 0 "mounts/mnt_gauss.md3"
 	SurfaceSkin 0 0 "vfx/c_simple.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "vfx/orange_glow.png"
+	SurfaceSkin 0 3 "vfx/orange_glow.png"
+	SurfaceSkin 0 4 "vfx/c_simple.png"
+	SurfaceSkin 0 5 "vfx/mountBody.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	PitchOffset 90
+	AngleOffset 90
+	Scale 0.08 0.08 0.08
+	
+	FrameIndex MODL A 0 0
+}
+
+/* OLD
+Model GaussMountDeco
+{
+	Path "models/"	
+	Model 0 "mounts/mnt_gauss.md3"
+	SurfaceSkin 0 0 "vfx/c_simple.png"
 	SurfaceSkin 0 1 "vfx/orange_glow.png"
 	SurfaceSkin 0 2 "vfx/mountBody.png"
 	SurfaceSkin 0 3 "vfx/c_simple.png"
@@ -389,6 +410,7 @@ Model GaussMountDeco
 	
 	FrameIndex MODL A 0 0
 }
+*/
 
 
 // Hellbringer

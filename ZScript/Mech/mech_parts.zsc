@@ -12,6 +12,13 @@ class MechPart : DrivableObjectPart
 		Height 0;
 	}
 	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(!mech) return super.CanCollideWith(other, passive);
+		
+		return mech.CanCollideWith(other, passive);
+	}
+		
 	override void OnAttach()
 	{
 		mech = getMech();
@@ -30,14 +37,22 @@ class MechPart : DrivableObjectPart
 
 class MechHitbox : DrivableObjectPart
 {	
+	MechHardpoint hardpoint;
+	
 	Default
 	{
 		+SHOOTABLE;
 	}
+		
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(!hardpoint || !hardpoint.mech) return super.CanCollideWith(other, passive);	
+		return hardpoint.mech.CanCollideWith(other, passive);
+	}
 	
 	override void Tick()
 	{
-		let hardpoint = MechHardpoint(parent);
+		hardpoint = MechHardpoint(parent);
 		if(hardpoint && hardpoint.healthPoints <= 0)
 			bSOLID = bSHOOTABLE = false;
 		else
@@ -281,7 +296,6 @@ class MechHardpoint : MechPart
 	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
 	{
 		double hpDmg = damage;
-		
 		if(type == 'MechHeat') 
 		{			
 			// Radiate local heat to armor
