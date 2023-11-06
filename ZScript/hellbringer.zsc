@@ -19,8 +19,8 @@ class MechHellbringer : DrivableMech
 		
 		// Hardpoints
 		torso      = AddHardpoint("Hellbringer_CenterTorso", 0,0,-2, hips);
-		leftTorso  = AddHardpoint("Hellbringer_LeftTorso",  0,-20,0, torso);
-		rightTorso = AddHardpoint("Hellbringer_RightTorso", 0, 20,0, torso);
+		leftTorso  = AddHardpoint("Hellbringer_LeftTorso",  0,-16,0, torso);
+		rightTorso = AddHardpoint("Hellbringer_RightTorso", 0, 16,0, torso);
 		
 		leftLeg = AddHardpoint("Hellbringer_LeftLeg",  0,-14,0, legs);
 		rightLeg = AddHardpoint("Hellbringer_RightLeg", 0, 14,0, legs);
@@ -28,7 +28,7 @@ class MechHellbringer : DrivableMech
 		leftArm  = AddHardpoint("Hellbringer_LeftArm",  -5,-5,30, leftTorso);
 		rightArm = AddHardpoint("Hellbringer_RightArm", -5, 5,30, rightTorso);
 		
-		head = AddHardpoint("Hellbringer_Cockpit", 15,0,30, torso);
+		head = AddHardpoint("Hellbringer_Cockpit", 0,0,35, torso);
 		cam  = AddPart("CockpitCamera", 0,0,4, head);
 	}
 	
@@ -70,8 +70,8 @@ class Hellbringer_Cockpit : MechCockpit
 	Default
 	{
 		// Head component
-		Radius 2;
-		Height 2;
+		Radius 4;
+		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
 	}
@@ -108,7 +108,7 @@ class Hellbringer_CenterTorso : MechTorso
 		MechTorso.TurnSpeed 99, 99;
 		MechTorso.TurnRange 95;
 		MechTorso.PitchRange 25, 25;
-		Radius 10;
+		Radius 8;
 		Height 30;
 		
 		MechHardpoint.Vitals 60, 30;
@@ -126,7 +126,7 @@ class Hellbringer_LeftTorso : MechSideTorso
 {
 	Default
 	{
-		Radius 6;
+		Radius 7;
 		Height 35;
 		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
 		
@@ -138,24 +138,24 @@ class Hellbringer_LeftTorso : MechSideTorso
 	override void SetupMounts()
 	{
 		// Top 3
-		let msl = AddMountPoint("Missile", -12, 11, 47);
-		msl.newOffset(-12, 11 - 4.5, 47);
-		msl.newOffset(-12, 11 - 9.5, 47);
+		let msl = AddMountPoint("Missile", -12, 7, 47);
+		msl.newOffset(-12, 7 - 4.5, 47);
+		msl.newOffset(-12, 7 - 9.5, 47);
 		
 		// Bottom 3
-		msl.newOffset(-12, 11, 47 - 3.25);
-		msl.newOffset(-12, 11 - 4.5, 47 - 3.25);
-		msl.newOffset(-12, 11 - 9.5, 47 - 3.25);
+		msl.newOffset(-12, 7, 47 - 3.25);
+		msl.newOffset(-12, 7 - 4.5, 47 - 3.25);
+		msl.newOffset(-12, 7 - 9.5, 47 - 3.25);
 		
-		AddMountPoint("Ballistic", 15, 10, 15);
-		AddMountPoint("Ballistic", 15, 10, 10);
+		AddMountPoint("Ballistic", 15, 6, 15);
+		AddMountPoint("Ballistic", 15, 6, 10);
 	}
 }
 class Hellbringer_RightTorso : MechSideTorso
 {
 	Default
 	{
-		Radius 6;
+		Radius 7;
 		Height 35;
 		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
 		
@@ -166,12 +166,12 @@ class Hellbringer_RightTorso : MechSideTorso
 	
 	override void SetupMounts()
 	{
-		AddMountPoint("Energy", 14, -7, 30);
-		AddMountPoint("Energy", 16, -7, 25);
-		AddMountPoint("Energy", 18, -7, 20);
+		AddMountPoint("Energy", 14, -3, 30);
+		AddMountPoint("Energy", 16, -3, 25);
+		AddMountPoint("Energy", 18, -3, 20);
 		
 		// AMS
-		AddMountPoint("PDS", 0, -7, 40);
+		AddMountPoint("PDS", 0, -2, 40);
 	}
 }
 

@@ -201,12 +201,12 @@ class WireFrame_Handler : EventHandler
 		while(act = Actor(it.Next()))
 		{
 			if(!act.bSOLID && !act.bMISSILE) continue;
-			if( act == cam || act.bInvisible || (act is "EffectsActor") ) continue;
+			if( act == cam || (act is "EffectsActor") ) continue;
 			double actDist = cam.Distance3D(act);
 			
 			bool isMech = (act is "MechHardpoint" || act is "MechHitbox");
 			bool isNonLocalMech = false;
-			
+
 			if(isMech) 
 			{
 				DrivableMech mech = NULL;

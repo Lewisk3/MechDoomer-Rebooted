@@ -16,7 +16,6 @@ class GaussCannon : MechProjectile
 		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
 		// MechProjectile.GlobalImpactSound true;
 		
-		+RIPPER;
 		MechProjectile.RipperCount 6;
 	}
 

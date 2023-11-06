@@ -288,13 +288,12 @@ Model ERPPCMountDeco
 	Path "models/"	
 	Model 0 "mounts/mnt_erppc.md3"
 	
-	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 0 "vfx/c_simple.png"
 	SurfaceSkin 0 1 "vfx/mountBody.png"
 	SurfaceSkin 0 2 "vfx/orange_glow.png"
 	SurfaceSkin 0 3 "vfx/orange_glow.png"
 	SurfaceSkin 0 4 "vfx/laserGlass.png"
-	
-	
+
 	USEACTORPITCH
 	USEACTORROLL
 	DONTCULLBACKFACES
