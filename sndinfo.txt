@@ -30,9 +30,9 @@ Betty/Item/AMS "Sounds/Betty/Items/AMS.wav"
 Betty/Powerup "Sounds/Betty/powercycle.wav"
 
 // Mech explosions
-Mech/Explosion/Hardpoint1 "Sounds/Mech/hardpoint_explosion1.wav";
-Mech/Explosion/Hardpoint2 "Sounds/Mech/hardpoint_explosion2.wav";
-Mech/Explosion/Hardpoint3 "Sounds/Mech/hardpoint_explosion3.wav";
+Mech/Explosion/Hardpoint1 "Sounds/Mech/hardpoint_explosion1.wav"
+Mech/Explosion/Hardpoint2 "Sounds/Mech/hardpoint_explosion2.wav"
+Mech/Explosion/Hardpoint3 "Sounds/Mech/hardpoint_explosion3.wav"
 $random Mech/Explosion/Hardpoint { Mech/Explosion/Hardpoint1 Mech/Explosion/Hardpoint2 Mech/Explosion/Hardpoint3 }
 
 Mech/Land "Sounds/Mech/heavyland.wav"
@@ -49,8 +49,8 @@ Engine/Back		"Sounds/Ambient/engine_decel.wav"
 Legs/Accel		"Sounds/Ambient/accel.wav"
 Legs/Decel		"Sounds/Ambient/decel.wav"
 Legs/Footstep	"Sounds/Ambient/footstep.ogg"
-$volume Legs/Footstep 0.25;
-$limit Legs/Footstep 0;
+$volume Legs/Footstep 0.25
+$limit Legs/Footstep 0
 
 Reactor/Powerup "Sounds/Reactor/powerup.wav"
 Reactor/Shutdown "Sounds/Reactor/shutdown.wav"
@@ -72,7 +72,7 @@ Missile/LRM5  "Sounds/Weapons/missile_lrm5.wav"
 Missile/LRM10 "Sounds/Weapons/missile_lrm10.wav"
 Missile/LRM15 "Sounds/Weapons/missile_lrm15.wav" 
 Missile/LRM20 "Sounds/Weapons/missile_lrm20.wav"
-Missile/AMS "Sounds/Weapons/ams_fire.wav";
+Missile/AMS "Sounds/Weapons/ams_fire.wav"
 Missile/Explosion "Sounds/Weapons/missile_explosion.wav"
 
 Ballistic/Autocannon2  "Sounds/Weapons/ac2_fire.wav"
@@ -91,7 +91,7 @@ Energy/PPC "Sounds/Weapons/ppc_fire.wav"
 Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
 Energy/PPC/Thunder "Sounds/Weapons/ppc_thunder.wav"
 Energy/PPC/Ambient "Sounds/Weapons/ppc_ambient.wav"
-//$volume Energy/PPC/Thunder 5.0;
+//$volume Energy/PPC/Thunder 5.0
 
 IMPACT1 "Sounds/Weapons/impact1.wav"
 IMPACT2 "Sounds/Weapons/impact2.wav"
@@ -105,38 +105,38 @@ JumpJet/Heavy   "Sounds/JumpJets/jet_heavy.wav"
 JumpJet/Assault "Sounds/JumpJets/jet_assault.wav"
 
 // Volume
-$volume Laser/Loop 0.5;
-$volume Missile/Explosion 0.5;
-$volume Generic/Impact 0.5;
-$volume Ballistic/Autocannon2  0.75;
-$volume Ballistic/Autocannon5  0.75;
-$volume Ballistic/Autocannon10 0.75;
-$volume Ballistic/Autocannon20 0.75;
+$volume Laser/Loop 0.5
+$volume Missile/Explosion 0.5
+$volume Generic/Impact 0.5
+$volume Ballistic/Autocannon2  0.75
+$volume Ballistic/Autocannon5  0.75
+$volume Ballistic/Autocannon10 0.75
+$volume Ballistic/Autocannon20 0.75
 
 // Limits
-$limit Laser/Loop   0;
-$limit Laser/Small  0;
-$limit Laser/Medium 0;
-$limit Laser/Large  0;
-$limit Laser/Pulse 2;
-$limit Laser/Pulse/Impact 0;
-$limit Ballistic/Autocannon2  0;
-$limit Ballistic/Autocannon5  0;
-$limit Ballistic/Autocannon10 0;
-$limit Ballistic/Autocannon20 0;
-$limit Ballistic/GaussRifle   0;
-$limit Ballistic/Gauss/Impact 0;
-$limit Energy/PPC 			  0;
-$limit Energy/PPC/Impact	  0;
-$limit Laser/Pulse/Impact 0;
-$limit Energy/PPC/Thunder  0;
+$limit Laser/Loop   0
+$limit Laser/Small  0
+$limit Laser/Medium 0
+$limit Laser/Large  0
+$limit Laser/Pulse 2
+$limit Laser/Pulse/Impact 0
+$limit Ballistic/Autocannon2  0
+$limit Ballistic/Autocannon5  0
+$limit Ballistic/Autocannon10 0
+$limit Ballistic/Autocannon20 0
+$limit Ballistic/GaussRifle   0
+$limit Ballistic/Gauss/Impact 0
+$limit Energy/PPC 			  0
+$limit Energy/PPC/Impact	  0
+$limit Laser/Pulse/Impact 0
+$limit Energy/PPC/Thunder  0
 
-$limit Generic/Impact 0;
+$limit Generic/Impact 0
 
-$limit Missile/SRM2 0;
-$limit Missile/SRM4 0;
-$limit Missile/SRM6 0;
-$limit Missile/Explosion 0;
+$limit Missile/SRM2 0
+$limit Missile/SRM4 0
+$limit Missile/SRM6 0
+$limit Missile/Explosion 0
 
 // Attenuation
 $rolloff Generic/Impact linear 500 2500

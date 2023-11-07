@@ -411,6 +411,18 @@ Model GaussMountDeco
 }
 */
 
+// Map deco
+Model DropshipSpace
+{
+	Path "models/"	
+	Model 0 "vfx/sky_sphere.obj"
+	Skin 0 "vfx/sky_sphere.png"
+	DONTCULLBACKFACES
+	CORRECTPIXELSTRETCH
+	Scale 10.0 10.0 10.0
+	
+	FrameIndex MODL A 0 0
+}
 
 // Hellbringer
 Model Hellbringer_CenterTorso

@@ -12,6 +12,11 @@ class MechButtons_Handler : EventHandler
 		}	
 	}
 	
+	override void WorldLoaded(WorldEvent e)
+	{
+		// level.NextMap = "MAP31";
+	}
+	
 	override void InterfaceProcess(ConsoleEvent e)
 	{
 		let mechlab = MechMenu(Menu.getCurrentMenu());

@@ -1,0 +1,14 @@
+class DropshipSpace : EffectsActor
+{
+	Default
+	{
+		Scale 50.0;
+	}
+
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}

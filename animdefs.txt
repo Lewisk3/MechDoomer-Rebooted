@@ -1,1 +1,2 @@
 cameratexture HideHUD 4096 2160
+cameratexture DROPSHIPWINDOW 640 480 fit 256 256 

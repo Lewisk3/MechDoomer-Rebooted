@@ -10,4 +10,5 @@ DoomEdNums
 	15421 = "SmallTree"
 	15422 = "MediumTree"
 	15423 = "LargeTree"
+	15469 = "DropshipSpace"
 }

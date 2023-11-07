@@ -54,6 +54,7 @@ version "4.10.0"
 
 // Decorations
 #include "ZScript/Decorations/trees.zsc"
+#include "ZScript/Decorations/skyboxes.zsc"
 
 // Drivable Mechs
 #include "ZScript/hellbringer.zsc"
