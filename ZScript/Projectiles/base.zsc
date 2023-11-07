@@ -118,8 +118,7 @@ class MechProjectile : FastProjectile
 
 		// Hit a non-vehicle
 		double damageMod = 1.0;
-		
-		//if( !(victim is "DrivableObjectPart") ) damageMod = 2.7; 
+		if( !(victim is "DrivableObjectPart") ) damageMod = 1.75; 
 		
 		if(!ripMax || rippedActors.Find(victim) == rippedActors.Size())
 		{

@@ -75,6 +75,13 @@ class DrivableMech : DrivableObject
 	// UI
 	ui VehicleHUD activeHUD; // Mech's currently active HUD. 
 	
+	// Data management
+	I_SaveMechData MechSerializer;
+	
+	// If not NULL, the mech will automatically take this pilot upon creation.
+	// Set to NULL after pilot is taken.
+	Actor autoTakePilot; 
+	
 	Property Acceleration : accelKPH, decelKPH;
 	Property MaxHeat : maxHeat, maxKelvin;
 	Property MaxWeight : maxWeight;
@@ -134,20 +141,13 @@ class DrivableMech : DrivableObject
 		DrivableMech.HUD_Class "MechHUD";
 	}
 	
-	/*
 	override void PreTravelled()
 	{
 		super.PreTravelled();
-		driver.GiveInventory("I_SaveMechData", 1);
+		
+		// Save mech to serializer
+		if(MechSerializer) MechSerializer.SaveMechData(self);
 	}
-	
-	override void Travelled()
-	{
-		super.Travelled();
-		let tempData = driver.FindInventory("I_SaveMechData");
-		if(tempData) driver.RemoveInventory(tempData);
-	}
-	*/
 
 	override void PostBeginPlay()
 	{
@@ -173,6 +173,9 @@ class DrivableMech : DrivableObject
 		
 		// Start shutdown
 		shutdown = true;
+		
+		// Default selection
+		selectedWeapon = 1;
 	}
 	
 	virtual string getHardpointTypeName(MechHardpoint hp)
@@ -330,6 +333,14 @@ class DrivableMech : DrivableObject
 			SetDriverCamera(camActive);
 		}
 		
+		// Setup mech save data
+		if(!driver.FindInventory("I_SaveMechData"))
+			driver.GiveInventory("I_SaveMechData", 1);
+		
+		// Save mech
+		MechSerializer = I_SaveMechData(driver.FindInventory("I_SaveMechData"));
+		if(MechSerializer) MechSerializer.SaveMechData(self);
+		
 		// Update UseRange
 		if(PlayerPawn(driver)) PlayerPawn(driver).UseRange = 128;
 	}
@@ -340,6 +351,12 @@ class DrivableMech : DrivableObject
 			console.printf("\c[Red]Mech must be shutdown before exiting.\c[White]");
 			return;
 		}
+		
+		// TODO: Think of a way to do multiplayer compatibility so mech's aren't
+		// duplicated between players.
+		
+		// Save mech data
+		if(MechSerializer) MechSerializer.SaveMechData(self);
 	
 		exitedPilot = driver;
 		driver.SetOrigin(OffsetPos(30,0,0), true);
@@ -517,7 +534,7 @@ class DrivableMech : DrivableObject
 		if(!head) return;
 		head.A_StartSound(snd, channel, flags, volume);
 	}
-		
+	
 	virtual void SetupItems()
 	{
 
@@ -572,6 +589,10 @@ class DrivableMech : DrivableObject
 	{
 		Array<MechWeapon> weaps, filteredWeaps;
 		getAllWeapons(weaps, readDeadHardpoints:true);
+	
+		// This is clearscope and is called from UI, so we need to make sure
+		// we don't access this with a selectedWeapon of 0.
+		if(selectedWeapon < 0 || selectedWeapon > weaps.Size()) return NULL;
 		
 		return weaps[selectedWeapon-1];
 	}
@@ -593,9 +614,9 @@ class DrivableMech : DrivableObject
 		}
 		
 		if(filteredWeaps.Size() <= 0) return;
+		if(selectedWeapon < 0) selectedWeapon = 1;
+		if(selectedWeapon > weaps.Size()) selectedWeapon = weaps.Size();		
 		
-		if(!selectedWeapon) selectedWeapon = 1;
-		if(selectedWeapon > weaps.Size()) selectedWeapon = weaps.Size();
 		MechWeapon weap = weaps[selectedWeapon-1];
 		
 		// Get next weapon if current is destroyed.
@@ -1035,9 +1056,15 @@ class DrivableMech : DrivableObject
 		return degreeSeconds / 140.0; // Needs to be recalculated if turn friction is changed.
 	}
 	
+	virtual MechEngine GetEngine()
+	{
+		engine = MechEngine(FindItem("MechEngine", true));		
+		return engine;
+	}
+	
 	override void Tick()
 	{
-		engine = MechEngine(FindItem("MechEngine", true));
+		GetEngine(); // Update engine.
 		super.Tick();
 		
 		if(!betty) 
@@ -1094,6 +1121,16 @@ class DrivableMech : DrivableObject
 		
 		// Clear exited pilot once they're a sufficient distance away.
 		if(exitedPilot && Distance2D(exitedPilot) >= (128 * scale.X)) exitedPilot = NULL;
+		
+		// Automatically take pilot if given one.
+		// Everything needs a couple tics to setup properly before this is done.
+		if(autoTakePilot && GetAge() > 4)
+		{
+			torso.angle = autoTakePilot.angle;
+			TakePilot(autoTakePilot);
+			autoTakePilot = NULL;
+			shutdown = false;
+		}
 	}
 	
 	States
@@ -1229,6 +1266,8 @@ class MechLoader : Actor
 
 class I_SaveMechData : Inventory
 {
+	int activeMechID; // Currently active mech by MechbayID.
+	
 	Array<MechSaveData> mechsData;
 
 	virtual void saveMechData(DrivableMech mech)
@@ -1271,11 +1310,26 @@ class I_SaveMechData : Inventory
 				mechsData.Insert(mech.mechbayID-1, data);
 			}
 		}	
-		console.printf("Saved to mechbay: %d", mech.mechbayID);
+		// console.printf("Saved to mechbay: %d", mech.mechbayID);
 	}
 	
-	virtual DrivableMech loadMechData(uint index, vector3 atPos)
+	static DrivableMech getMechbayMech(int mechbayID)
 	{
+		DrivableMech curMech;
+		let it = ThinkerIterator.Create("DrivableMech");
+		while(curMech = DrivableMech(it.Next()))
+		{
+			if(curMech.mechbayID-1 == mechbayID)
+				return curMech;
+		}
+		return NULL;
+	}
+	
+	virtual DrivableMech loadMechData(int index, vector3 atPos)
+	{
+		// Don't attempt to load an empty mechbay.
+		if(index >= mechsData.Size()) return NULL;
+		
 		let mechData = mechsData[index];
 		
 		// Destroy old mechs of this same type.
@@ -1293,6 +1347,7 @@ class I_SaveMechData : Inventory
 		{
 			mech.noItemSlots = true;
 			mech.mechbayID = index+1;
+			mech.MechSerializer = self; // Restore mech save data serializer.
 			
 			// Mech loader needs to be spawned to ensure that mech is 
 			// properly initialized with noItemSlots before mech data is 
@@ -1314,6 +1369,8 @@ class I_SaveMechData : Inventory
 		let btns = plr.cmd.buttons;
 		let obtns = plr.oldbuttons;
 		
+		// Saving and loading debug
+		/*
 		if( (btns & BT_RELOAD) && !(obtns & BT_RELOAD) )
 		{
 			if(mechsData.Size() <= 0) return;
@@ -1332,5 +1389,6 @@ class I_SaveMechData : Inventory
 			
 			saveMechData(mech);
 		}
+		*/
 	}
 }

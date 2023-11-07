@@ -1,6 +1,6 @@
 GameInfo
 {
-	AddEventHandlers = "MechHUD_Handler", "MechButtons_Handler", "Wireframe_Handler"
+	AddEventHandlers = "MechHUD_Handler", "MechInteraction_Handler", "Wireframe_Handler", "MechDropship_Handler"
 	CursorPic = "Graphics/Mechlab/menuCursor_HD.png"
 }
 
@@ -11,4 +11,5 @@ DoomEdNums
 	15422 = "MediumTree"
 	15423 = "LargeTree"
 	15469 = "DropshipSpace"
+	15470 = "MechBay"
 }

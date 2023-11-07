@@ -1,5 +1,9 @@
-class MechButtons_Handler : EventHandler
+class MechInteraction_Handler : EventHandler
 {
+	string dropshipMap;
+	DrivableMech mechlab_curmech;
+	Actor mechlab_invsource;
+
 	// Setup MechItems for players
 	override void WorldTick()
 	{
@@ -12,17 +16,41 @@ class MechButtons_Handler : EventHandler
 		}	
 	}
 	
-	override void WorldLoaded(WorldEvent e)
+	play void OpenMechlab(DrivableMech mech, PlayerPawn invSource)
 	{
-		// level.NextMap = "MAP31";
+		mechlab_invsource = invSource;
+		mechlab_curmech = mech;
+		Menu.SetMenu("MechMenu_Mechlab");
+		SendInterfaceEvent(invSource.PlayerNumber(), "mechlab.update");
+	}
+	
+	override void WorldUnloaded(WorldEvent e)
+	{
+		// Call vehicle travelling virtuals
+		let it = ThinkerIterator.Create("DrivableObject");
+		DrivableObject vehicle;
+		while(vehicle = DrivableObject(it.Next())) 
+			vehicle.PreTravelled();
 	}
 	
 	override void InterfaceProcess(ConsoleEvent e)
-	{
-		let mechlab = MechMenu(Menu.getCurrentMenu());
-		if(mechlab) mechlab.processPlayEvent(e.Player, e.Name);
-	}
+	{	
+		string cmd = e.Name;
 	
+		let mechlab = MechMenu_Mechlab(Menu.getCurrentMenu());
+		if(mechlab) 
+		{
+			mechlab.processPlayEvent(e.Player, e.Name);
+			
+			if(cmd == 'mechlab.update')
+			{
+				mechlab.invSource = mechlab_invsource;
+				mechlab.mech = mechlab_curmech;
+				mechlab.InitElements();
+			}
+		}
+	}
+		
 	// Moar keys
 	override void NetworkProcess(ConsoleEvent e)
 	{
@@ -59,11 +87,12 @@ class MechButtons_Handler : EventHandler
 			
 			if(cmd ~== "mw_openmechlab" && e.Player == consoleplayer)
 			{
-				Menu.SetMenu("MechMenu_Mechlab");
+				OpenMechlab(DrivableMech(drvObj.source), plr.mo);
 			}
-			
-			MechMenu_Mechlab.processMechlabEvents(e, drvObj.source);
-		}	
+		}
+				
+		if(mechlab_curmech && mechlab_invsource)
+			MechMenu_Mechlab.processMechlabEvents(e, PlayerPawn(mechlab_invsource), mechlab_curmech);
 		
 		// Cheats and Debug
 		Array<string> args;

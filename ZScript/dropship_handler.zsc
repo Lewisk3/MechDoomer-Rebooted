@@ -1,0 +1,143 @@
+class MechDropship_Handler : StaticEventHandler
+{
+	string dropshipMap;
+	bool usingMechlab;
+	
+	virtual void RestoreActiveMechs()
+	{
+		// Spawn active mech and put the driver in it.
+		for(int i = 0; i < MAXPLAYERS; i++)
+		{
+			PlayerInfo plrInfo = players[i];
+			if(!plrInfo || !playerInGame[i]) continue;
+			let plr = players[i].mo;
+			
+			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+			if(mechData) console.printf("Found save data with active mech #%d", mechData.activeMechID);
+			if(mechData && mechData.activeMechID > 0)
+			{
+				let mech = mechData.loadMechData(mechData.activeMechID-1, plr.pos);
+				if(mech) 
+				{
+					mech.angle = plr.angle;
+					mech.autoTakePilot = plr;
+				}
+			}
+		}	
+	}
+	
+	override void WorldLoaded(WorldEvent e)
+	{
+		Name curMap = level.mapname;
+		
+		if(curmap != "DROPSHIP")
+		{
+			dropshipMap = level.NextMap;
+			level.NextMap = "DROPSHIP";
+			console.printf("Next map cached: %s", dropshipMap);
+			
+			RestoreActiveMechs();
+		}
+		else
+		{
+			level.NextMap = dropshipMap;
+			console.printf("Next map is: %s", dropshipMap);
+		}
+		
+	}
+	
+	override void UITick()
+	{	
+		let activeMenu = Menu.getCurrentMenu();
+		let mechlabMenu = MechMenu_Mechlab(activeMenu);
+		
+		// Mark mechlab as closed.
+		if( usingMechlab && !mechlabMenu)
+			EventHandler.SendNetworkEvent("mw_status_closedmechlab");
+		
+		// Mark mechlab as opened
+		if(!usingMechlab && mechlabMenu)
+			EventHandler.SendNetworkEvent("mw_status_openedmechlab");
+	}
+	
+	override void NetworkProcess(ConsoleEvent e)
+	{	
+		string cmd = e.Name;
+	
+		// TODO: Make this Multiplayer compatible via inventory item boolean per-player.
+		// 2023 and we still using inventory hacks, ZScript FTW.
+		
+		if(cmd ~== "mw_status_openedmechlab")
+			usingMechlab = true;
+		
+		if(cmd ~== "mw_status_closedmechlab")
+			usingMechlab = false;
+	}
+}
+
+// Dropship mechbay callbacks
+class MechbayScripts abstract play
+{
+	static int OpenMechlab(Actor activator, int mechbayID)
+	{
+		let plr = PlayerPawn(activator);
+		let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+		DrivableMech mech = I_SaveMechData.getMechbayMech(mechbayID-1);
+		if(!mech || !plr) return 0;
+		
+		evh.OpenMechlab(mech, plr);
+		return 1;
+	}
+	
+	static void SaveMechbayData(Actor activator)
+	{
+		let it = ThinkerIterator.Create("MechBay");
+		MechBay bay;
+		while(bay = MechBay(it.Next()))
+		{
+			if(bay.mechData && bay.mech)
+				bay.mechData.SaveMechData(bay.mech);
+		}
+	}
+	
+	static bool IsMechlabActive(Actor activator)
+	{
+		let evh = MechDropship_Handler(StaticEventHandler.Find("MechDropship_Handler"));
+		return !evh ? false : evh.usingMechlab;
+	}
+	
+	static void SetActiveMech(Actor activator, int mechbayID)
+	{
+		let mechData = I_SaveMechData(activator.FindInventory("I_SaveMechData"));
+		if(!mechData) return;
+		console.printf("Setting active mech to #%d", mechbayID);
+		mechData.activeMechID = mechbayID;
+	}
+}
+
+// Mechbay actors
+class MechBay : EffectsActor
+{
+	int mechbayID;
+	I_SaveMechData mechData;
+	DrivableMech mech;
+
+	override void Activate(Actor activator)
+	{
+		console.printf("Attempting to load from: %d", args[0]);
+	
+		mechbayID = args[0];
+		mechData = I_SaveMechData(activator.FindInventory("I_SaveMechData"));
+		if(!mechData) return;
+		
+		// Load mech
+		mech = mechData.LoadMechData(mechbayID-1, pos);
+	}
+
+	States
+	{
+		Spawn:
+			PLSS A -1;
+		stop;
+	}
+}

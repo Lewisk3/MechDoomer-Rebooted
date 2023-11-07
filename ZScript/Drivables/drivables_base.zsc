@@ -4,6 +4,11 @@ class I_DrivingObject : Inventory
 	bool disableWeapons, disableDamage, resetDriver;
 	uint oldscrBlocks;
 	State defaultWeaponState;
+
+	// A lot of this traveling code is going to be commented out, currently it's
+	// only used to signal to a vehicle that it's about to get thanos snapped out of the game
+	// this allows for a vehicle to potentially save all of it's relevant data to an inventory
+	// item on the player before-hand.
 	
 	/*
 	override void PreTravelled()
@@ -15,9 +20,9 @@ class I_DrivingObject : Inventory
 	override void Travelled()
 	{	
 		source.ChangeStatNum(STAT_DEFAULT);
-		source.Travelled();
 		source.SetOrigin(Owner.pos, false);
 		resetDriver = true;
+		source.Travelled();
 	}
 	*/
 	
@@ -221,14 +226,17 @@ class DrivableObject : DrivableComponent
 	
 	virtual void PreTravelled()
 	{
+		/*
 		if(!driver) return;
 		for(int i = 0; i < parts.Size(); i++)
 		{
 			let part = parts[i];
 			if(part) part.ChangeStatNum(STAT_TRAVELLING);
 		}
+		*/
 	}
 	
+	/*
 	virtual void Travelled()
 	{
 		if(!driver) return;
@@ -238,6 +246,7 @@ class DrivableObject : DrivableComponent
 			if(part) part.ChangeStatNum(STAT_DEFAULT);
 		}
 	}
+	*/
 	
 	void SetDriverCamera(Actor cam, double FOV = 0)
 	{

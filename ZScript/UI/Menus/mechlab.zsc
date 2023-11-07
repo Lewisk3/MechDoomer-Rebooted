@@ -1395,14 +1395,19 @@ class MechMenu_Mechlab : MechMenu
 	I_MechItemStorage inv;
 	MechLabCursor cursor;
 	DrivableMech mech;
+	Actor invSource;
 	
 	override void InitElements() 
 	{
+		elements.Clear(); // Repopulate elements
 		// Get active mech.
+		/*
 		let drvObj = I_DrivingObject.Get(players[consoleplayer].mo);
 		if(drvObj && drvObj.source) mech = DrivableMech(drvObj.source);
-		if(!mech || !mech.driver) return;
-		inv = I_MechItemStorage(mech.driver.FindInventory("I_MechItemStorage"));
+		*/
+		
+		if(!mech || !invSource) return;
+		inv = I_MechItemStorage(invSource.FindInventory("I_MechItemStorage"));
 	
 		vector2 hpSlotsPos = (840,325);
 		double slotsWidth = 196;
@@ -1469,12 +1474,12 @@ class MechMenu_Mechlab : MechMenu
 		EventHandler.SendInterfaceEvent(playerNumber, String.Format("item.error.%s", errorMessage));
 	}
 	
-	play static void processMechlabEvents(ConsoleEvent e, DrivableObject veh)
+	play static void processMechlabEvents(ConsoleEvent e, PlayerPawn source, DrivableObject veh)
 	{
 		// Menu events
 		let mech = DrivableMech(veh);
 		if(!mech) return;
-		let inv = I_MechItemStorage.Get(players[e.Player].mo);
+		let inv = I_MechItemStorage.Get(source);
 		
 		string menuCmd = e.Name;
 		Array<String> menuArgs;

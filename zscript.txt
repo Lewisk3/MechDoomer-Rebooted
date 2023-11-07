@@ -11,7 +11,10 @@ version "4.10.0"
 #include "ZScript/UI/mechhuds.zsc"
 #include "ZScript/UI/stringhelper.zsc"
 #include "ZScript/UI/wireframe.zsc"
-#include "ZScript/button_handler.zsc"
+
+// Non-UI Event Handlers
+#include "ZScript/mechs_handler.zsc"
+#include "ZScript/dropship_handler.zsc" // Dropship events and ACS callback
 
 #include "ZScript/UI/Menus/menus_base.zsc"
 #include "ZScript/UI/Menus/mechlab.zsc"
