@@ -514,17 +514,20 @@ class MechHUD : VehicleHUD
 			vector2 weapOffs = groupOffs + (-100, weapHeight * 0.5);
 			Color tint = Font.CR_White;
 			
+			// Get ammunition count
+			int weapAmmoCount = weap.countAmmo();
 			string ammoCount = "INF";
-			if(weap.ammoType) ammoCount = String.Format("\c[Gray]%d", mech.countAllAmmo(weap.ammoType));
+			
+			if(weapAmmoCount < int.max) 
+				ammoCount = String.Format("\c[Gray]%d", weap.countAmmo());
+			
+			// Range
+			let [minrange, optrange, maxrange] = weap.getRanges();
 			
 			let laserWeap = SmallLaser(weap);
-			string weapRange = String.Format("%dm", laserWeap ? laserWeap.laserRange : weap.range);
-			if(weap.projType) 
-			{
-				let defs = GetDefaultByType(weap.projType);
-				weapRange = String.Format("%dm", defs.maxrange);
-			}
-		
+			string weapRange = String.Format("%dm", maxrange > 0 ? maxrange : optrange);
+			
+			// Weapon name
 			if(destroyed) 
 				tint = Font.CR_DarkRed;
 			

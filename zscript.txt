@@ -54,6 +54,7 @@ version "4.10.0"
 #include "ZScript/Projectiles/autocannons.zsc"
 #include "ZScript/Projectiles/gauss_rifle.zsc"
 #include "ZScript/Projectiles/ppcs.zsc"
+#include "ZScript/Projectiles/flamer.zsc"
 
 // Decorations
 #include "ZScript/Decorations/trees.zsc"

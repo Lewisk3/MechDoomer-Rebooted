@@ -124,8 +124,8 @@ class MechBay : EffectsActor
 
 	override void Activate(Actor activator)
 	{
-		console.printf("Attempting to load from: %d", args[0]);
-	
+		bInvisible = true;
+		
 		mechbayID = args[0];
 		mechData = I_SaveMechData(activator.FindInventory("I_SaveMechData"));
 		if(!mechData) return;

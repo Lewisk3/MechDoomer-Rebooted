@@ -432,7 +432,10 @@ class MechHardpoint : MechPart
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
 		double trueDamage = double(damage) * DMGSCALE;
-		double hitAngle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
+		double hitAngle = 0;
+		
+		if(inflictor || source)
+			hitangle = DrivablesMath.angleDiff(angleTo(inflictor ? inflictor : source), self.angle);		
 		
 		bool behind = abs(hitAngle) > 100;
 		bool isProj = inflictor && (MechProjectile(inflictor) || inflictor.bMISSILE);

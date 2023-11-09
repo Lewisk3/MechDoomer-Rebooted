@@ -248,12 +248,14 @@ class MechAmmo : MechItem
 	
 	override bool isTypeOf(class<MechItem> item, bool subclass)
 	{
+		if(curAmmo <= 0) return false;
+		
 		return getClass() == item || baseAmmoClass == item;
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
-		bgColor = 0xA0FF00FF;
+		bgColor = curAmmo <= 0 ? 0xA0000000 : 0xA0FF00FF;
 	}
 	
 	virtual void SetupAmmo()
@@ -278,6 +280,8 @@ class MechAmmo : MechItem
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue);
+		if(curAmmo <= 0) flavorText = "\c[Yellow]DEPLETED";
+		
 		statName.Push(" ");
 		statValue.Push(" ");
 		
@@ -298,8 +302,11 @@ class MechAmmo : MechItem
 		super.DoEffect();
 		
 		// Discard when depleted.
+		
+		/*
 		if(curAmmo <= 0) 
 			TryDetach(forced:true);
+		*/
 	}
 }
 
@@ -1079,6 +1086,7 @@ class MechWeapon : MechItem
 	class<MechAmmo> ammoType;
 	class<MechProjectile> projType;
 	double energyUse;
+	MechAmmo loadedAmmo;
 	
 	MechMountDeco mountDecoObject;
 	class<MechMountDeco> mountDeco;
@@ -1160,14 +1168,38 @@ class MechWeapon : MechItem
 		if(parent) parent.A_StartSound(snd, CHAN_WEAPON, flags:CHANF_OVERLAP, volume:vol, pitch:randomPitch ? frandom[SFXRNG](0.6,1.0) : 0);
 	}
 	
+	play virtual void reloadAmmo()
+	{
+		if(!ammoType || !parent) return;
+		
+		loadedAmmo = MechAmmo(parent.FindItem(ammoType));
+		if(!loadedAmmo) 
+			loadedAmmo = MechAmmo(parent.mech.FindItem(ammoType));
+	}
+	
+	
 	clearscope virtual int checkAmmo()
 	{
-		if(!ammoType || !parent) return int.max;
-		let am = MechAmmo(parent.FindItem(ammoType));
-		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType));
-		return am ? MechAmmo(am).curAmmo : 0;
+		return !loadedAmmo ? 0 : loadedAmmo.curAmmo;
 	}
+	
+	clearscope virtual int countAmmo()
+	{
+		if(!ammoType || !parent) return int.max;
+		return parent.mech.countAllAmmo(ammoType);
+	}
+	
+	// minrange, optimal range, maximum range
+	clearscope virtual double, double, double getRanges()
+	{
+		double maxRange = 0;
+		let projDefs = GetDefaultByType(projType);
 		
+		if(projDefs) maxrange = projDefs.maxRange;
+				
+		return minrange, range, maxrange;
+	}
+	
 	play virtual void preFire()
 	{
 		// Called when fire button is pressed on this weapon or weapon group.
@@ -1175,29 +1207,26 @@ class MechWeapon : MechItem
 	
 	clearscope virtual bool canFire()
 	{
-		bool ammoCheck = ammoUse <= 0 || checkAmmo() >= ammoUse;
+		bool ammoCheck = ammoUse <= 0 || countAmmo() >= ammoUse;
 		bool energyCheck = energyUse <= 0 || (mech.engine && mech.engine.energy >= energyUse);
 		return ammoCheck && energyCheck;
 	}
 	
 	play virtual void depleteAmmo(int amt)
 	{
-		if(!ammoType) return;
-		let am = MechAmmo(parent.FindItem(ammoType));
-		if(!am) am = MechAmmo(parent.mech.FindItem(ammoType));
+		if(checkAmmo() <= 0) reloadAmmo();
+		if(loadedAmmo) loadedAmmo.curAmmo -= amt;
 		
-		double prevAmmoCount = mech.countAllAmmo(ammoType);
 		double criticalAmmo = ammoUse*3.0;
+		double ammoAmount = countAmmo();
+		double prevAmmoCount = ammoAmount + amt;
 		
-		if(am) am.curAmmo -= amt;
-		double ammoCount = mech.countAllAmmo(ammoType);
-		
-		if(prevAmmoCount > 0 && ammoCount <= 0)
+		if(prevAmmoCount > 0 && ammoAmount <= 0)
 		{
 			if(sndItemName) mech.betty.Push(sndItemName);
 			mech.betty.Push("Betty/Ammo/Depleted");
 		}
-		else if(prevAmmoCount > criticalAmmo && ammoCount <= criticalAmmo)
+		else if(prevAmmoCount > criticalAmmo && ammoAmount <= criticalAmmo)
 		{
 			if(sndItemName) mech.betty.Push(sndItemName);
 			mech.betty.Push("Betty/Ammo/Critical");

@@ -13,3 +13,20 @@ DoomEdNums
 	15469 = "DropshipSpace"
 	15470 = "MechBay"
 }
+
+// Prevent cluster text from appearing when the dropship map is loaded.
+cluster 5  {exittext = ""}
+cluster 6  {exittext = ""}
+cluster 7  {exittext = ""}
+cluster 8  {exittext = ""}
+cluster 9  {exittext = ""}
+cluster 10 {exittext = ""}
+cluster 11 {exittext = ""}
+
+Map DROPSHIP "Dropship"
+{
+	levelnum = 0
+	cluster = 0
+	NoIntermission
+	NoClusterText
+}

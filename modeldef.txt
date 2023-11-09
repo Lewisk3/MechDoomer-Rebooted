@@ -416,7 +416,7 @@ Model DropshipSpace
 {
 	Path "models/"	
 	Model 0 "vfx/sky_sphere.obj"
-	Skin 0 "vfx/sky_sphere.png"
+	Skin 0 "vfx/sky_sphere2.png"
 	DONTCULLBACKFACES
 	CORRECTPIXELSTRETCH
 	Scale 10.0 10.0 10.0

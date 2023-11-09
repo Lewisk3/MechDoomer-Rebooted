@@ -1,0 +1,255 @@
+
+// Never fired, just used to define properties
+class MechFlamer : MechProjectile abstract
+{
+	double heatDamage;
+	class<MechFlamerEffect> effect;
+	
+	Property FlamerEffect : effect;
+	Property HeatDamage : heatDamage;
+
+	Default
+	{
+		MechProjectile.Dmg 0.1 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 90;
+		MechProjectile.SpeedKPH 100;
+		MechProjectile.ImpactSound "";
+		DamageType 'Fire';
+		
+		MechFlamer.FlamerEffect "MechFlamerEffect";
+		MechFlamer.HeatDamage 1;
+	}
+	
+	static MechFlamerEffect Fire(Actor source, class<MechFlamer> type, vector3 fromPos, vector3 facingPos, bool damaging = true)
+	{
+		let defs = GetDefaultByType(type);
+		if(!defs) return NULL;
+		
+		let flame = MechFlamerEffect(Spawn(defs.effect, fromPos));
+		if(flame)
+		{
+			flame.target = source;
+			flame.maxRangeUnits = DrivableMech.MetersToUnits(defs.maxRange);
+			flame.A_SetDamageType(defs.damageType);
+			
+			// Get velocity
+			vector3 aimAngles = level.SphericalCoords(fromPos, facingPos, (0,0));
+			
+			flame.angle = -aimAngles.x;
+			flame.pitch = -aimAngles.y;
+			flame.heat = defs.heatDamage;
+			
+			Quat dir = Quat.FromAngles(flame.angle, flame.pitch, source.roll);
+			flame.vel = (dir * (1.0,0,0)) * MechProjectile.GetSpeedFromKPH(defs.speedKPH);
+			
+			if(damaging) flame.trueDamage = defs.trueDamage;
+		}
+		return flame;
+	}
+}
+
+// Taken from HaloDoom; if it aint broke don't fix it.
+class MechFlamerEffect : EffectsActor
+{
+	double rollDir, trueDamage, heat;
+	double maxRangeUnits;
+	double defScale;
+	int lifeTime;
+	
+	Default
+	{
+		RenderStyle "Translucent";
+		+BRIGHT;
+		Speed 10;
+		Scale 0.08;
+		+ROLLSPRITE;
+		+FLOAT;
+		
+		Damage 0;
+		Radius 16; 
+		Height 8;
+	}
+
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		
+		lifeTime = ceil(maxRangeUnits / vel.Length());
+		
+		roll = frandom[FlamerFX](-180,180);
+		double mScale = target ? target.Scale.X : 1.0;
+		double scaleMod = frandom[FlamerFX](0.95,1.05) * mScale;
+		
+		A_SetScale(
+			default.Scale.X * scaleMod, 
+			default.Scale.Y * scaleMod * randompick[FlamerFX](-1,1)
+		);
+		defScale = scale.X;
+		
+		angle += frandom[FlamesWindFX](-0.12,0.12);
+		pitch += frandom[FlamesWindFX](-0.09,0.09);
+		rollDir = randompick[FlamerFX](-1,1);
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		if(isFrozen()) return;
+		
+		double shadeAlpha = DrivablesMath.Lerp(0, 3.0, GetAge() / 15.0);
+		if(shadeAlpha < 1.0)
+		{
+			A_SetRenderStyle(alpha, STYLE_AddShaded);
+			
+			Color shadeCol = MWDrawerColor.HSLtoRGB( 270 / 360.0, 1.0, 0.40); 
+			SetShade(shadeCol);
+		}
+		else
+			A_SetRenderStyle(alpha, STYLE_Add);
+		
+		// Check collision before moving.
+		vector3 toPos = level.vec3offset(pos, vel);
+		FCheckPosition posCheck;
+		
+		bool zCollsion = (toPos.z < floorz || toPos.z > ceilingz);
+		if( !CheckMove(toPos.xy, tm:posCheck) || zCollsion )
+		{
+			bool validate = true;
+			Line ln = blockingLine;			
+			
+			if ( ln && (ln.flags & Line.ML_BLOCKMONSTERS) )
+				validate = false;
+			
+			if(validate)
+			{
+				vel.xy *= 0;
+				vel.z = zCollsion ? 0 : vel.z * 0.25;
+				toPos = level.vec3offset(pos, vel);
+			}
+		}
+		SetOrigin(toPos, true);
+		
+		angle += frandom[FlamesWindFX](-0.12,0.12);
+		pitch += frandom[FlamesWindFX](-0.09,0.09);
+		roll += frandom[FlamerFX](0.1,1.0) * rollDir;
+		
+		A_SetScale(
+			Scale.X * 1.02, 
+			Scale.Y * 1.02
+		);
+		
+		if(Scale.X > defScale * 2.0) A_SetScale(defScale * 2.0);
+		alpha = DrivablesMath.Lerp(alpha, 0, getAge() / double(lifeTime));
+		
+		// Process actor collisions
+		let blockingIt = BlockThingsIterator.Create(self, 16);
+		Actor victim;
+
+		while(blockingIt.Next())
+		{
+			victim = blockingIt.Thing;
+			if(!victim) continue;
+			
+			if(Distance2D(victim) > radius) continue;
+			if(!victim.bSHOOTABLE) continue;
+			if(victim == target) continue;
+			
+			let hardpoint = MechHardpoint(target);
+			let hitMechBox = MechHitbox(victim);
+			let hitHardpoint = MechHardpoint(victim);
+			
+			if(!hitHardpoint && hitMechBox) 
+				hitHardpoint = MechHardpoint(hitMechBox.parent);
+
+			bool hitMechPart = hitHardpoint && hardpoint && hitHardpoint.mech == hardpoint.mech;
+			
+			if( victim == target || victim == master || hitMechPart )
+				continue; // Ignore actor.
+			
+			// Do not attack every frame.
+			if( !(GetAge()%2) )
+			{
+				double damageMod = 1.0;
+				if( !(victim is "DrivableObjectPart") ) damageMod = 5.0; 
+				victim.DamageMobJ(target, master, trueDamage * damageMod, damageType);
+				
+				// Increase heat-level of mech if hit.
+				if(hitHardpoint) 
+				{
+					hitHardpoint.adjustLocalHeat(heat*2.0); 
+					hitHardpoint.mech.modifyHeat(heat);
+				}
+			}
+			alpha = 0;
+		}
+
+		if(alpha <= 0.1) Destroy();
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 0 NoDelay A_Jump(255, random[WeapFX](0,10));
+			MXP1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 2;
+			MXP1 ABCDEFGH 1;
+			MXP1 IJKLMNOP 1
+			{
+				A_FadeOut(0.01);
+				if( !(level.maptime%4) && !isFrozen() )
+				{
+					let smoke = Spawn("MechFlamerSmoke", pos);
+					smoke.A_SetScale(Scale.X * 0.5, Scale.Y * 0.5);
+					smoke.vel = vel * 0.35;
+				}
+			}
+			MXP1 QRSTU 1;
+			MXP1 V 1;
+		wait;
+	}
+}
+
+class MechFlamerSmoke : EffectsActor
+{
+	double rollvel;
+	double upforce;
+	vector2 wind_dir;
+	Default
+	{
+		Scale 1.0;
+		+ROLLSPRITE;
+	}
+	
+	override void BeginPlay()
+	{	
+		alpha = frandom[WeapFX](0.5, 1.0);
+		A_SetScale(frandom[WeapFX](default.scale.x * 0.15, default.scale.x));
+		rollvel = frandom[WeapFX](-2.0, 2.0);
+		upforce = frandom[WeapFX](0.015, 0.08) * 0.25;
+		wind_dir = AngleToVector(frandom[WeapFX](0,180), frandom[WeapFX](-0.005, 0.005)); 
+		super.BeginPlay();
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		SetOrigin(level.vec3offset(pos, vel), true);
+		A_SetRoll(roll + rollvel, SPF_INTERPOLATE);
+		vel += wind_dir * frandom[WeapFX](0.25, 1.0);
+		A_SetScale(Scale.X * 1.02, Scale.Y * 1.02);
+	}
+	
+	States
+	{
+		Spawn:	
+			TNT1 A 0;
+			SMKE "#" 1 { frame = random[WeapFX](0, 23); }
+		SpawnLoop:
+			SMKE "#" 1
+			{
+				vel.z += upforce * 0.5;
+				A_FadeOut(0.01);
+			}
+		wait;
+	}
+}

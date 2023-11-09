@@ -122,6 +122,8 @@ class DrivableMech : DrivableObject
 	
 	// CVars
 	transient CVar cv_throttleDecay;
+	transient CVar cv_run;
+	transient CVar cv_analogthrottle;
 	
 	Default
 	{
@@ -304,6 +306,8 @@ class DrivableMech : DrivableObject
 	{
 		if(!driver.player) return;
 		cv_throttleDecay = CVar.GetCVar("cl_mdr_throttledecay", driver.player);
+		cv_run = CVar.GetCVar("cl_run", driver.player); 
+		cv_analogthrottle = CVar.GetCVar("cl_mdr_analogthrottle", driver.player); 
 	}
 	
 	override bool CanCollideWith(Actor other, bool passive)
@@ -743,10 +747,15 @@ class DrivableMech : DrivableObject
 	{
 		// Movement Math
 		double throttleSpeed = 0.025;
-		double throttleMove = throttleSpeed * DrivablesMath.sign(fm);		
+		double throttleMove = throttleSpeed * DrivablesMath.sign(fm);
+		
+		bool running = cv_run && cv_run.getBool();
+		double normFM = clamp((fm / (gameinfo.normforwardmove[0]*256.)) * (running ? 0.5 : 1), -1, 1);	
+		bool analogThrottle = abs(normFM) < 1.0 && (cv_analogthrottle && cv_analogthrottle.getBool());
+	
+		throttle = analogThrottle ? normFM : throttle + throttleMove;
 		
 		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
-		throttle += throttleMove;
 		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
 		
 		let mtorso = MechTorso(torso);
@@ -760,7 +769,7 @@ class DrivableMech : DrivableObject
 			double pushBack = (dist * (omega*0.02));
 			vector2 dir = AngleToVector(angle);
 			angVel -= DrivablesMath.sign(angVel)*(pushBack * 3.0); 
-			vel.xy -= dir * pushBack;
+			vel.xy -= dir * (pushBack * 2.0);
 		}
 		
 		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
@@ -1232,9 +1241,9 @@ class MechLoader : Actor
 		}
 		
 		// Attach engine, armor and internal structure
-		mech.torso.addItem(data.engineType);
-		MechArmor.addToMech(mech, data.armorType);
-		MechChassisStructure.addToMech(mech, data.chassisStructure);
+		if(data.engineType) mech.torso.addItem(data.engineType);
+		if(data.armorType ) MechArmor.addToMech(mech, data.armorType);
+		if(data.chassisStructure) MechChassisStructure.addToMech(mech, data.chassisStructure);
 		
 		// Move non-critical structures
 		for(int i = 0; i < hardpoints.Size(); i++)
@@ -1276,9 +1285,9 @@ class I_SaveMechData : Inventory
 		let data = MechSaveData(new(mech.saveDataType));	
 		data.mechType = mech.getClass();
 		data.weaponGroups.Copy(mech.weaponGroups);
-		data.engineType = mech.engine.getClass();
-		data.armorType = mech.armorType.getClass();
-		data.chassisStructure = mech.chassisStructure.getClass();
+		data.engineType = mech.engine ? mech.engine.getClass() : NULL;
+		data.armorType = mech.armorType ? mech.armorType.getClass() : NULL;
+		data.chassisStructure = mech.chassisStructure ? mech.chassisStructure.getClass() : NULL;
 		data.Cache(mech);
 		
 		Array<MechHardpoint> hardpoints;

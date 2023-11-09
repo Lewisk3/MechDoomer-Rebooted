@@ -88,6 +88,11 @@ class MechLaserWeapon : MechWeapon
 		return true;
 	}
 	
+	override double, double, double GetRanges()
+	{
+		return minrange, laserRange, 0;
+	}
+	
 	override void DoEffect()
 	{
 		super.DoEffect();

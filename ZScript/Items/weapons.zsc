@@ -884,6 +884,66 @@ class ERPPC : PPC
 	}
 }
 
+class Flamer : MechWeapon
+{
+	Sound beginFireSound;
+	const CHAN_FLMR = 20;
+
+	Actor activeFlame;
+	override void Defaults()
+	{
+		displayName = "FLAMER";
+		mountType = "Energy";
+		weight = 1;
+		size = 1;
+		heat = 0.5;
+		energyUse = 0.02;
+		
+		fireTime = 1;
+		cooldownTime = 1;
+		range = 90;
+		
+		projType = "MechFlamer";
+		sndItemName = "Betty/Item/Flamer";
+		fireSound = "Energy/Flamer/Loop";
+		beginFireSound = "Energy/Flamer/Start";
+		mountDeco = "ACMountDeco";
+		mountDecoScale = 0.5;
+		
+		damagable = true;
+	}
+		
+	override bool Fire(vector3 firePos)
+	{
+		if(!activeFlame)
+			parent.A_StartSound(beginFireSound, CHAN_FLMR+1, CHANF_OVERLAP);
+	
+		vector3 absFirePos = parent.OffsetPos(firePos.x, firePos.y, firePos.z);
+		let flame = MechFlamer.Fire(parent, (class<MechFlamer>)(projType), absFirePos, parent.lookingPos, damaging:true);
+		if(flame) 
+		{
+			flame.master = mech.driver;
+			flame.vel += mech.vel;
+			activeFlame = flame;
+		}
+		return true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if(activeFlame && activeFlame.getAge() > 4) 
+			activeFlame = NULL;
+		
+		// Sound Effect
+		if(activeFlame) 
+			parent.A_StartSound(fireSound, CHAN_FLMR, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
+		else
+			parent.A_StopSound(CHAN_FLMR);
+	}
+}
+
 class AMS : MechWeapon
 {
 	Actor curTarget;
@@ -934,6 +994,13 @@ class AMS : MechWeapon
 	{
 		return false;
 	}
+	
+
+	override double, double, double getRanges()
+	{
+		return 0, range, 0;
+	}
+
 	
 	override bool Fire(vector3 firePos)
 	{

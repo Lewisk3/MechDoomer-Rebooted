@@ -91,6 +91,10 @@ Energy/PPC "Sounds/Weapons/ppc_fire.wav"
 Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
 Energy/PPC/Thunder "Sounds/Weapons/ppc_thunder.wav"
 Energy/PPC/Ambient "Sounds/Weapons/ppc_ambient.wav"
+
+Energy/Flamer/Start "Sounds/Weapons/flamethrower_start.wav"
+Energy/Flamer/Loop  "Sounds/Weapons/flamethrower_loop.wav"
+
 //$volume Energy/PPC/Thunder 5.0
 
 IMPACT1 "Sounds/Weapons/impact1.wav"
