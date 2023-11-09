@@ -6,4 +6,4 @@ server bool sv_mdr_exitanytime = false;
 server bool sv_mdr_simplemechmovement = false;
 
 user bool cl_mdr_throttledecay = true;
-user bool cl_mdr_analogthrottle = true;
+user bool cl_mdr_analogthrottle = false;
