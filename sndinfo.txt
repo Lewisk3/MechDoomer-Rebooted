@@ -49,7 +49,7 @@ Engine/Back		"Sounds/Ambient/engine_decel.wav"
 Legs/Accel		"Sounds/Ambient/accel.wav"
 Legs/Decel		"Sounds/Ambient/decel.wav"
 Legs/Footstep	"Sounds/Ambient/footstep.ogg"
-$volume Legs/Footstep 0.25
+// $volume Legs/Footstep 0.75
 $limit Legs/Footstep 0
 
 Reactor/Powerup "Sounds/Reactor/powerup.wav"

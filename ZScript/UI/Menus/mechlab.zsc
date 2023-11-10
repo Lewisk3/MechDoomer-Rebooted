@@ -177,8 +177,11 @@ class MechHardpointContainer : MenuElement
 		MWDrawer.DrawString("ConsoleFont", "ARMOR", topBarPos + (5,9), translation:Font.CR_GRAY); 
 		
 		// Armor Points
-		double reserveArmorPoints = ceil(hardpoint.maxArmor - (max(0,frontArmor) + max(0, rearArmor)));
+		double reserveArmorPoints = hardpoint.getReserveArmorPoints(); //ceil(hardpoint.maxArmor - (max(0,frontArmor) + max(0, rearArmor)));
 		MWDrawer.DrawString("ConsoleFont", ""..int(reserveArmorPoints), topBarPos + (160,9), translation:Font.CR_BLUE); 
+		
+		// Damage
+		MWDrawer.DrawString("ConsoleFont", String.Format("-%d", round(hardpoint.armorDamage)), topBarPos + (95,9), translation:Font.CR_RED, scale:(0.75,0.75)); 
 		
 		MWDrawer.DrawString("ConsoleFont", ""..int(frontArmor), topBarPos + (rearArmor >= 0 ? size.x*0.25 : size.x*0.4,45));
 		if(rearArmor >= 0)
@@ -378,7 +381,7 @@ class MechItemSlot : MenuElement
 	
 	override bool checkDraggable()
 	{
-		return !disabled && slotItem && slotItem.movable;
+		return slotItem && slotItem.movable;
 	}
 	
 	override void updateDragPos(MenuCursor cursor)
@@ -397,7 +400,7 @@ class MechItemSlot : MenuElement
 		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));
 		string itemIDs = mechlab.mech.getMechItemIndex(slotItem);
 				
-		if( mouseOverContainer && (mouseOverContainer == container || mouseOverContainer.disabled) ) 
+		if( mouseOverContainer && mouseOverContainer == container ) 
 		{
 			// Drop
 			pos = defaultPos; 
@@ -500,10 +503,10 @@ class MenuItemsInvContainer : MenuElement
 		equipmentTab.active = false;
 		tabOffs.x += tabSpacing;
 		
-		let armorTab = MechArmorSortTab(
-			MenuElement.Create("MechArmorSortTab", "tabArmor", parentMenu, pos+tabPos+tabOffs, tabSize)
+		let armorTab = MechRepairKitSortTab(
+			MenuElement.Create("MechRepairKitSortTab", "tabRepair", parentMenu, pos+tabPos+tabOffs, tabSize)
 		);
-		armorTab.Setup("ArmorParts", "", textScale:(tabTextScale,tabTextScale));
+		armorTab.Setup("Repair Kits", "", textScale:(tabTextScale,tabTextScale));
 		armorTab.parentContainer = self;
 		armorTab.active = false;
 		tabOffs.x += tabSpacing;
@@ -583,14 +586,20 @@ class MenuItemsInvContainer : MenuElement
 		double itemNameSize = boxWidth * 0.75;
 		MWDrawer.Fill(itemColor, descPos.x + ((boxWidth - itemNameSize) * 0.5), descPos.y + 20., itemNameSize, 20);
 		
+		// Autofit display name
+		double itemNameScale = 1.0;
+		double fitX = itemNameSize - 16;
+		double itemNameWidth = descFont.StringWidth(invItem.displayName) * itemNameScale * 2.0;
+		double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
+		
 		// Text Shadow
 		MWDrawer.DrawString(descFont, invItem.displayName,
 			(descPos.x+(boxWidth*0.5) + 2, descPos.y + (descFont.getHeight()*2.0) + 7), 
-			MWDrawer.SS_TEXT_CENTER, Font.CR_BLACK
+			MWDrawer.SS_TEXT_CENTER, Font.CR_BLACK, scale:(itemNameScale*fitScale, itemNameScale)
 		);
 		MWDrawer.DrawString(descFont, invItem.displayName,
 			(descPos.x+(boxWidth*0.5), descPos.y + (descFont.getHeight()*2.0) + 5), 
-			MWDrawer.SS_TEXT_CENTER, Font.CR_WHITE
+			MWDrawer.SS_TEXT_CENTER, Font.CR_WHITE, scale:(itemNameScale*fitScale, itemNameScale)
 		);
 		
 		// Mount Type Icon
@@ -628,7 +637,7 @@ class MenuItemsInvContainer : MenuElement
 		}
 		
 		// Stats
-		vector2 lnPos = descPos + (10, 50 + (flavorTextHeight+20));
+		vector2 lnPos = descPos + (10, 50 + flavorTextHeight + 10);
 		for(int s = 0; s < itemStatName.Size(); s++)
 		{
 			string ln = itemStatName[s];
@@ -998,11 +1007,11 @@ class MechEquipmentSortTab : MechItemSortTab
 		return (!active && filter);
 	}
 }
-class MechArmorSortTab : MechItemSortTab
+class MechRepairKitSortTab : MechItemSortTab
 {
 	override bool doFilterItem(MechItem item)
 	{
-		bool filter = (item is "MechArmor");
+		bool filter = (item is "MechRepairKit");
 		return (!active && filter);
 	}
 }
@@ -1041,7 +1050,7 @@ class MechInvItem : MenuElement
 		dragging = false;
 		
 		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));		
-		if(mouseOverContainer && !mouseOverContainer.disabled)
+		if(mouseOverContainer)
 		{
 			// Equip
 			EventHandler.SendNetworkEvent(String.Format("mechlab.item.equip.%d.%d", itemID, mouseOverContainer.partID));
@@ -1096,13 +1105,18 @@ class MechInvItem : MenuElement
 			double fontScale = wScale*1.0;
 			vector2 centerPos = pos + (
 				(size.x / 2.0),
-				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
+				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 ) + 2
 			);
+			
+			// Autofit 
+			double fitX = size.x - 16;
+			double itemNameWidth = itemFont.StringWidth(item.displayName) * fontScale * 2.0;
+			double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
 			
 			MWDrawer.DrawString(
 				itemFont, item.displayName, 
 				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor,
-				scale:(fontScale, fontScale)
+				scale:(fontScale * fitScale, fontScale)
 			);
 			
 			// Quantity

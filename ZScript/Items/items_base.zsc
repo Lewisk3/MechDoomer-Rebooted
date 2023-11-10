@@ -13,6 +13,7 @@ class MechItem : Object
 	bool essential; // If true, item is added to the inventory by default.
 	bool hidden; // If true, item is hidden from inventory screen.
 	bool infinite; // Item cannot be depleted.
+	string itemDescription;
 	
 	enum ItemActionError 
 	{
@@ -21,6 +22,7 @@ class MechItem : Object
 		IAE_OVERWEIGHT  = 2,
 		IAE_INVALID 	= 3,
 		IAE_EXCLUSIVE	= 4,
+		IAE_NOTFOUND	= 5,
 		IAE_SUCCESS 	= 0xFF
 	};
 	
@@ -58,11 +60,12 @@ class MechItem : Object
 	{
 		switch(ERR_TYPE)
 		{
-			case IAE_FAIL	   : return String.Format("Failed to equip item.");
-			case IAE_NOSLOTS   : return String.Format("Not enough slots!");
-			case IAE_OVERWEIGHT: return String.Format("Overtonnage!");
-			case IAE_INVALID   : return String.Format("This item cannot be equipped here.");
-			case IAE_EXCLUSIVE : return String.Format("Only one of these items may be equipped.");
+			case IAE_FAIL	   : return ("Failed to equip item.");
+			case IAE_NOSLOTS   : return ("Not enough slots!");
+			case IAE_OVERWEIGHT: return ("Overtonnage!");
+			case IAE_INVALID   : return ("This item cannot be equipped here.");
+			case IAE_EXCLUSIVE : return ("Only one of these items may be equipped.");
+			case IAE_NOTFOUND  : return ("Missing component.");
 			
 			// No Error message.
 			case IAE_SUCCESS:
@@ -84,6 +87,11 @@ class MechItem : Object
 		return !!parent;
 	}
 	
+	clearscope void appendItemDescription(out string flavorText)
+	{
+		flavorText = itemDescription == "" ? flavorText : String.Format("%s\n%s", flavorText, itemDescription);
+	}
+	
 	clearscope virtual void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo = NULL)
 	{
 		if(checkDestroyed())
@@ -99,6 +107,7 @@ class MechItem : Object
 		{
 			flavorText = "";
 		}
+		appendItemDescription(flavorText);
 		
 		statName.Push("SLOTS");
 		statName.Push("TONS");
@@ -119,9 +128,24 @@ class MechItem : Object
 		return item;
 	}
 	
+	play virtual void Deplete(bool keepdepleted = false)
+	{
+		if(--amount <= 0 && !keepdepleted)  
+		{
+			if(parent)
+			{
+				TryDetach(forced:true);
+				Destroy();
+			}
+			else Destroy();
+		}
+	}
+	
 	play virtual int TryAttach(MechHardpoint part)
 	{
 		if(part.mech.noItemSlots) return false;
+		if(part.healthPoints <= 0) return IAE_INVALID;
+		
 		if (size > 0)
 		{
 			if( (part.slots + size) > part.maxslots ) return IAE_NOSLOTS;
@@ -269,6 +293,9 @@ class MechAmmo : MechItem
 		mech.betty.Push("Betty/AmmoExplosion");
 		parent.DoExplosionDamage(curAmmo * explosionDamage);
 		curAmmo = 0;
+		
+		// Discard item
+		TryDetach(forced:true);
 	}
 	
 	override bool CanStack(MechItem other)
@@ -281,6 +308,7 @@ class MechAmmo : MechItem
 	{
 		super.getDescription(flavorText, statName, statValue);
 		if(curAmmo <= 0) flavorText = "\c[Yellow]DEPLETED";
+		appendItemDescription(flavorText);
 		
 		statName.Push(" ");
 		statValue.Push(" ");
@@ -459,6 +487,7 @@ class MechArmor : MechUtility
 	double armorWeight;
 	double armorAmount;
 	double damageMod;
+	int armorTier; // 0 is repairable by any armor kit. 1 requires an advanced armor kit.
 	class<MechDynamicStructure> structType;
 	int structureSlots;
 
@@ -472,6 +501,7 @@ class MechArmor : MechUtility
 		structType = "MechDynamicStructure";
 		structureSlots = 0;
 		armorWeight = 0.05;
+		armorTier = 0;
 	}
 		
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -606,6 +636,7 @@ class MechChassisStructure : MechUtility
 	double chassisWeightPercent;
 	class<MechDynamicStructure> structType;
 	int structureSlots;
+	int structureTier;
 
 	override void Defaults()
 	{
@@ -617,6 +648,7 @@ class MechChassisStructure : MechUtility
 		structType = "MechDynamicStructure";
 		structureSlots = 0;
 		chassisWeightPercent = 1.0;
+		structureTier = 0;
 	}
 		
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -773,7 +805,7 @@ class MechEngine : MechItem
 			
 			let [runMP, walkMP] = getRunWalkMP(mechInfo);
 			statName.Push("JUMP RANGE");
-			statValue.Push(String.Format("%d", walkMP));
+			statValue.Push(String.Format("%d m", walkMP));
 		}
 	}
 	

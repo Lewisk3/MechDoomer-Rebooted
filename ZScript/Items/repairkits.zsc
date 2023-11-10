@@ -1,0 +1,155 @@
+class MechRepairKit : MechItem 
+{
+	double armorRepairAmount;
+	double internalRepairAmount;
+	int repairTier;
+
+	override void Defaults()
+	{
+		template = true;
+	}
+	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{		
+		bgColor = 0xFF00C0C0;
+	}
+	
+	override void GetDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		flavorText = itemDescription;
+	
+		if(armorRepairAmount)
+		{
+			statName.Push("Armor Repair: ");
+			statValue.Push(String.Format("%d", armorRepairAmount));
+		}
+		if(internalRepairAmount)
+		{
+			statName.Push("Internals Repair: ");
+			statValue.Push(String.Format("%d", internalRepairAmount));
+		}
+	}
+	
+	override int TryAttach(MechHardpoint part)
+	{
+		if(armorRepairAmount)
+		{
+			if(part.armorDamage <= 0) 
+				return IAE_INVALID;
+		
+			let curArmor = part.mech.armorType;
+			if(!curArmor) return IAE_NOTFOUND;
+			
+			if(curArmor.armorTier > repairTier) 
+				return IAE_FAIL;
+		}
+		
+		if(internalRepairAmount)
+		{
+			if(part.healthPoints >= part.maxHP) 
+				return IAE_INVALID;
+		
+			let curStructure = part.mech.chassisStructure;
+			if(!curStructure) return IAE_NOTFOUND;
+			
+			if(curStructure.structureTier > repairTier) 
+				return IAE_FAIL;
+		}
+		
+		parent = part;
+		OnAttach();
+		parent = NULL;
+		
+		return IAE_SUCCESS;
+	}
+	
+	override void OnAttach()
+	{
+		parent.Repair(armorRepairAmount, internalRepairAmount);
+	}
+}
+
+// Armor Repair
+class MechArmorRepairKit : MechRepairKit
+{
+	override void Defaults()
+	{
+		displayName = "Basic Armor Repair Kit";		 
+		armorRepairAmount = 12; // 12 points of armor per kit.
+		repairTier = 0;
+		itemDescription = "\c[Yellow]Repairs Standard Armor. Drag and drop on a damaged hardpoint to activate.";
+	}
+
+	override string GetItemErrorMessage(int ERR_TYPE)	
+	{
+		switch(ERR_TYPE)
+		{
+			case IAE_INVALID: return "Hardpoint Armor is nominal.";
+			case IAE_FAIL: return "Armor is too advanced to be repaired by this kit.";
+			default: return super.GetItemErrorMessage(ERR_TYPE);
+		}
+	}
+}
+
+class AdvArmorRepairKit : MechArmorRepairKit 
+{
+	override void Defaults()
+	{
+		displayName = "Advanced Armor Repair Kit";		 
+		armorRepairAmount = 10; // 10 points of armor per kit.
+		repairTier = 1;
+		itemDescription = "\c[Yellow]Repairs Standard or Advanced Armor. Drag and drop on a damaged hardpoint to activate.";
+	}
+}
+
+// Internals Repair
+class MechInternalsRepairKit : MechRepairKit
+{
+	override void Defaults()
+	{
+		displayName = "Basic Internal Repair Kit";		 
+		internalRepairAmount = 10;
+		repairTier = 0;
+		itemDescription = (
+			"\c[Yellow]Repairs standard internal structures." 
+			"Drag and drop on a damaged hardpoint to activate.\n"
+			"If a hardpoint has been destroyed, using this item will repair it up to 1 internal HP."
+		);
+	}
+
+	override string GetItemErrorMessage(int ERR_TYPE)	
+	{
+		switch(ERR_TYPE)
+		{
+			case IAE_INVALID: return "Internals are nominal.";
+			case IAE_FAIL: return "Mech internal structure is too advanced to be repaired by this kit.";
+			default: return super.GetItemErrorMessage(ERR_TYPE);
+		}
+	}
+	
+	override void OnAttach()
+	{
+		if(parent.healthPoints <= 0)
+		{
+			parent.Repair(0, 1);
+			return;
+		}
+		
+		super.onAttach();
+	}
+}
+
+class AdvInternalsRepairKit : MechInternalsRepairKit 
+{
+	override void Defaults()
+	{
+		displayName = "Advanced Internal Repair Kit";		 
+		internalRepairAmount = 8;
+		repairTier = 1;
+		itemDescription = (
+			"\c[Yellow]Repairs standard or advanced internal structures." 
+			"Drag and drop on a damaged hardpoint to activate.\n"
+			"If a hardpoint has been destroyed, using this item will repair it up to 1 internal HP."
+		);
+	}
+}

@@ -20,6 +20,7 @@ class MechJumpJet : MechUtility
 		fuelTime = 10.0; // 10 seconds of fuel
 		rechargeRate = 10.0; // 10 seconds to recharge
 		shakeIntensity = 3;
+		itemDescription = "When equipped, provides upwards thrust so-long as the jump key is held down and fuel is available.";
 	}
 	
 	static double, bool getRemainingFuel(DrivableMech mech)
@@ -109,8 +110,6 @@ class MechJumpJet : MechUtility
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue, mechInfo);
-		
-		flavorText = "When equipped, provides upwards thrust so-long as the jump key is held down and fuel is available.";
 		
 		// New Line
 		statName.Push(" ");

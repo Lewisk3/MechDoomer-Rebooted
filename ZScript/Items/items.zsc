@@ -73,11 +73,12 @@ class MechCASE : MechUtility
 		displayName = "C.A.S.E";
 		size = 1.0;
 		weight = 0;
+		itemDescription = "If an ammo explosion occurs, C.A.S.E prevents the damage from spreading to adjacent hardpoints.";
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
-		flavorText = "If an ammo explosion occurs, C.A.S.E prevents the damage from spreading to adjacent hardpoints.";
+		flavorText = itemDescription;
 	}
 }
 
@@ -91,6 +92,7 @@ class MechArmor_Standard : MechArmor
 		armorWeight = 0.05;
 		damageMod = 1.0;
 		displayName = "Standard";
+		armorTier = 0;
 	}
 }
 
@@ -117,6 +119,7 @@ class MechArmor_Ferro : MechArmor
 		armorWeight = 0.05 * (1.0 - efficiency);
 		damageMod = 1.0;
 		displayName = "Ferro-fibrous";
+		armorTier = 1; // Advanced armor tier
 	}
 }
 
@@ -129,6 +132,7 @@ class MechChassis_Standard : MechChassisStructure
 		structureSlots = 0;
 		displayName = "Standard";
 		chassisWeightPercent = 1.0;
+		structureTier = 0;
 	}
 }
 
@@ -140,6 +144,7 @@ class MechChassis_EndoSteel : MechChassisStructure
 		structureSlots = 14;
 		displayName = "Endosteel";
 		chassisWeightPercent = 0.5;
+		structureTier = 1; // Advanced structure tier
 	}
 }
 
@@ -149,6 +154,13 @@ class MechStructure : MechItem
 	override void Defaults()
 	{
 		template = true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+
+		if(hp <= 0 && parent.healthPoints > 0) hp = 10;
 	}
 }
 
@@ -161,11 +173,16 @@ class MechShoulder : MechStructure
 		size = 1;
 		weight = 0;
 		displayName = "Shoulder";
+		itemDescription = "\c[Red]Critical Structure Item. \nCannot be moved. \c[White]"; 
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
-		flavorText = "\c[Red]Critical Structure Item. \nCannot be moved. \c[White]"; 
+		// Stats are skipped.
+		flavorText = itemDescription; 
+		
+		statName.Push("HP");
+		statValue.Push(String.Format("%d", hp));
 	}
 }
 class MechUpperArmActuator : MechShoulder

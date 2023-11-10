@@ -968,16 +968,9 @@ class AMS : MechWeapon
 		fireSound = "Missile/AMS";
 		mountDeco = "AMSMountDeco";
 		fireOffs = (0,0,3);
+		itemDescription = "\c[Orange]Destroys missiles before they hit you.";
 		
 		damagable = true;
-	}
-	
-	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
-	{
-		super.getDescription(flavorText, statName, statValue, mechInfo);
-		string infoText = "\c[Orange]Destroys missiles before they hit you.";
-		
-		flavorText = flavorText == "" ? infoText : String.Format("%s\n%s", flavorText,infoText);
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)

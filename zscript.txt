@@ -28,11 +28,12 @@ version "4.10.0"
 #include "ZScript/Items/items_base.zsc"
 #include "ZScript/Items/items.zsc"
 #include "ZScript/Items/ammo.zsc"
-#include "ZScript/Items/engines.zsc"
+#include "ZScript/Items/repairkits.zsc"
 #include "ZScript/Items/weapon_templates.zsc"
 #include "ZScript/Items/weapons.zsc"
 #include "ZScript/Items/mountdeco.zsc"
 #include "ZScript/Items/JumpJet.zsc"
+#include "ZScript/Items/engines.zsc"
 
 // Mech Basics
 #include "ZScript/Mech/mech_base.zsc"

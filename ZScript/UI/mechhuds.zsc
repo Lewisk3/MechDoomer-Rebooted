@@ -255,7 +255,9 @@ class MechHUD : VehicleHUD
 			Vector2 ln_len = ln.v2.p;
 			
 			// Check render distance
-			if( DrivablesMath.Distance2D(ln_pos, plrpos2D) > minimap_renderdist )
+			double dist_v1 = DrivablesMath.Distance2D(ln_pos, plrpos2D);
+			double dist_v2 = DrivablesMath.Distance2D(ln_len, plrpos2D);
+			if( dist_v1 > minimap_renderdist && dist_v2 > minimap_renderdist )
 				continue;
 			
 			ln_pos = Actor.RotateVector(SwapVector(ln_pos-plrpos2D),angle+180);

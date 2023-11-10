@@ -154,6 +154,8 @@ class MechHardpoint : MechPart
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	int heatDamageTics; // Timer for heat damage on items
 	
+	double armorDamage;
+	
 	// Determines which hardpoints take the most damage while overheated.
 	double localHeat;
 	
@@ -220,7 +222,7 @@ class MechHardpoint : MechPart
 		double rearArmorTo = floor(rearArmor) + rear;
 		bool overWeight = mech.weight + (mech.armorType.armorWeight * (front + rear)) > mech.maxWeight;
 		
-		if( frontArmorTo+rearArmorTo > maxArmor || 
+		if( frontArmorTo+rearArmorTo > (maxArmor-armorDamage) || 
 		    frontArmorTo < 0 || rearArmorTo < 0 || 
 			overWeight ) return false;
 			
@@ -228,7 +230,12 @@ class MechHardpoint : MechPart
 		rearArmor = rearArmorTo;
 		return true;
 	}
-		
+	
+	clearscope int getReserveArmorPoints()
+	{
+		return ceil(maxArmor - round(armorPoints + rearArmor + armorDamage));
+	}
+	
 	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)
 	{
 		if(ratio <= 0) return MWDrawerColor.HSLtoRGB(0,1.0,0.0,1.0);
@@ -327,10 +334,12 @@ class MechHardpoint : MechPart
 					armorPoints = max(0, armorPoints-damage);	
 				}
 			}
+			
+			armorDamage = min(maxArmor, armorDamage + damage);
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.
-		int toHit = random[ItmeHitChance](0,20) >= 16;
+		int toHit = random[ItemHitChance](0,20) >= 16;
 		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
 		
 		if(noArmor && items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
@@ -556,9 +565,16 @@ class MechHardpoint : MechPart
 	
 	virtual void Repair(double armorAmt, double healthAmt)
 	{
-		armorPoints += armorAmt;
+		armorDamage -= armorAmt;
 		healthPoints += healthAmt;
-		if(healthPoints > 0) bInvisible = false; 
+		armorDamage = max(0, armorDamage);
+		healthPoints = min(maxHP, healthPoints);
+		
+		// Round fractional health and armor up to maximum.
+		if(armorDamage < 1) armorDamage = 0;
+		if(abs(healthPoints - maxHP) < 1) healthPoints = maxHP;
+		
+		if(healthPoints > 0) bInvisible = false;
 	}
 	
 	override void Tick()
@@ -593,6 +609,7 @@ class MechHardpoint : MechPart
 		// Keep maximum values non-negative.
 		maxArmor = max(0, maxArmor);
 		maxHP = max(0, maxHP);
+		armorDamage = max(0, armorDamage);
 		
 		// Ajust current armor to max armor.
 		if(armorPoints > maxArmor) 
@@ -612,7 +629,7 @@ class MechHardpoint : MechPart
 				}
 				if(!item.parent) continue;
 				
-				if(!item.checkDestroyed() && !item.disabled) 
+				if( (!item.checkDestroyed() || !item.damagable) && !item.disabled ) 
 					item.DoEffect();
 			}
 		}
@@ -813,7 +830,7 @@ class MechLegs : MechPart
 			prevSpd = spd;
 		}
 		
-		bInvisible = (mech.leftLeg && mech.leftLeg.healthPoints <= 0) && (mech.rightLeg && mech.rightLeg.healthPoints <= 0);
+		// bInvisible = (mech.leftLeg && mech.leftLeg.healthPoints <= 0) && (mech.rightLeg && mech.rightLeg.healthPoints <= 0);
 	}
 
 	States

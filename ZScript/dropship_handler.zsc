@@ -48,6 +48,8 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void UITick()
 	{	
+		if(gamestate != GS_LEVEL) return;
+		
 		let activeMenu = Menu.getCurrentMenu();
 		let mechlabMenu = MechMenu_Mechlab(activeMenu);
 		
@@ -58,6 +60,56 @@ class MechDropship_Handler : StaticEventHandler
 		// Mark mechlab as opened
 		if(!usingMechlab && mechlabMenu)
 			EventHandler.SendNetworkEvent("mw_status_openedmechlab");
+			
+		
+		// Draw mechbay info
+		Canvas cv = TexMan.GetCanvas("MechbayInfoCanvas");
+		cv.ClearScreen();
+			
+		for(int i = 0; i < 8; i++)
+		{
+			// Find mech associated with this mechbay.
+			let mech = I_SaveMechData.getMechbayMech(i);
+		
+			double w = 320;
+			double h = 200;
+			double x = 240 * i;
+			
+			if(!mech)
+			{
+				cv.DrawText("ConsoleFont", 
+					Font.CR_White, 
+					x + 30, 80, 
+					"Mechbay Empty", 
+					DTA_ScaleX, 2.0, DTA_ScaleY, 4.5
+				);
+				continue;
+			}
+			
+			// Vitals
+			double ArmorHD, ArmorCT, ArmorLT, ArmorRT, ArmorLA, ArmorRA, ArmorLL, ArmorRL;
+			double InternalHD, InternalCT, InternalLT, InternalRT, InternalLA, InternalRA, InternalLL, InternalRL;
+			[ArmorHD, InternalHD] = mech.head.getVitals();
+			[ArmorCT, InternalCT] = mech.torso.getVitals();
+			[ArmorLT, InternalLT] = mech.leftTorso.getVitals();
+			[ArmorRT, InternalRT] = mech.rightTorso.getVitals();
+			[ArmorLA, InternalLA] = mech.leftArm.getVitals();
+			[ArmorRA, InternalRA] = mech.rightArm.getVitals();
+			[ArmorLL, InternalLL] = mech.leftLeg.getVitals();
+			[ArmorRL, InternalRL] = mech.rightLeg.getVitals();
+			double armorPercent = (ArmorHD + ArmorCT + ArmorLT + ArmorRT + ArmorLA + ArmorRA + ArmorLL + ArmorRL) / 8.0;
+			double internalPercent = (InternalHD + InternalCT + InternalLT + InternalRT + InternalLA + InternalRA + InternalLL + InternalRL) / 8.0;
+			
+			string mechName = String.Format("%s - %s", mech.mechChassisName, mech.mechVariantName); 
+			
+			
+			string armorString = String.Format("\c[Blue]Armor %d%%", armorPercent * 100);
+			string healthString = String.Format("\c[Red]Internals %d%%", internalPercent * 100);
+			
+			cv.DrawText("ConsoleFont", Font.CR_White, x + 20, 20, mechName, DTA_ScaleY, 2.5);
+			cv.DrawText("ConsoleFont", Font.CR_White, x + 20, 60, armorString, DTA_ScaleY, 2.5);
+			cv.DrawText("ConsoleFont", Font.CR_White, x + 20, 90, healthString, DTA_ScaleY, 2.5);
+		}
 	}
 	
 	override void NetworkProcess(ConsoleEvent e)
