@@ -1,6 +1,5 @@
 class MechInteraction_Handler : EventHandler
 {
-	string dropshipMap;
 	DrivableMech mechlab_curmech;
 	Actor mechlab_invsource;
 

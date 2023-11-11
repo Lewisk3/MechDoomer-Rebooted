@@ -1265,7 +1265,7 @@ class MechLoader : Actor
 				let item = hardpointData.items[x];
 				if(item.nosave || item.movable) continue; // Do not restore non-save-able items.
 				
-				item.TryAttach(hardpoint);
+				item.TryAttach(hardpoint, forced:true);
 			}
 		}
 		
@@ -1285,7 +1285,7 @@ class MechLoader : Actor
 				let item = hardpointData.items[x];
 				if(item.nosave || !item.movable) continue; // Do not restore non-save-able items.
 				
-				item.TryAttach(hardpoint);
+				item.TryAttach(hardpoint, forced:true);
 			}
 		}
 		

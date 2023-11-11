@@ -180,9 +180,6 @@ class MechShoulder : MechStructure
 	{
 		// Stats are skipped.
 		flavorText = itemDescription; 
-		
-		statName.Push("HP");
-		statValue.Push(String.Format("%d", hp));
 	}
 }
 class MechUpperArmActuator : MechShoulder

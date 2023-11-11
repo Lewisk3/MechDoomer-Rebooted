@@ -1,5 +1,6 @@
 class MechItem : Object
 {
+	I_MechItemStorage inv; // Non-mech inventory
 	MechHardpoint parent;
 	DrivableMech mech;
 	double hp;
@@ -14,6 +15,7 @@ class MechItem : Object
 	bool hidden; // If true, item is hidden from inventory screen.
 	bool infinite; // Item cannot be depleted.
 	string itemDescription;
+	bool addonCapable; // If false, addon logic will be skipped for this item.
 	
 	enum ItemActionError 
 	{
@@ -80,7 +82,14 @@ class MechItem : Object
 	}
 	
 	// Called when item is added to inventory (Not attached to a mech)
-	virtual void OnInventoryAdd() {}
+	virtual void OnInventoryAdd(I_MechItemStorage destInv) 
+	{
+		inv = destInv;
+	}
+	
+	// Addon control, called when an item is dropped onto another.
+	play virtual void ApplyAddon(MechItem addon) {}
+	play virtual void OnAddon(MechItem destItem) {}
 	
 	clearscope virtual bool isEquipped(DrivableMech mech = NULL)
 	{
@@ -137,16 +146,19 @@ class MechItem : Object
 				TryDetach(forced:true);
 				Destroy();
 			}
-			else Destroy();
+			else if(inv)
+			{
+				inv.depleteItem(self);
+			}
 		}
 	}
 	
-	play virtual int TryAttach(MechHardpoint part)
+	play virtual int TryAttach(MechHardpoint part, bool forced = false)
 	{
 		if(part.mech.noItemSlots) return false;
-		if(part.healthPoints <= 0) return IAE_INVALID;
+		if(part.healthPoints <= 0 && !forced) return IAE_INVALID;
 		
-		if (size > 0)
+		if (size > 0 && !forced)
 		{
 			if( (part.slots + size) > part.maxslots ) return IAE_NOSLOTS;
 			if( (part.mech.weight + weight) > part.mech.maxWeight ) 
@@ -187,17 +199,13 @@ class MechItem : Object
 	play virtual void OnAttach()
 	{	
 		mech = parent.GetMech();
+		inv = NULL; // We're no longer located in non-mech inventory.
 	}
 	
 	play virtual void OnDetach()
 	{
 		// Reattach dynamic structures
 		MechDynamicStructure.ReattachAll(mech);
-	}
-	
-	clearscope virtual string GetDesc()
-	{
-		return "Unknown Item";
 	}
 	
 	play virtual void OnDamaged(double dmg)
@@ -242,6 +250,11 @@ class MechItem : Object
 		let engine = mech.engine;
 		if(!engine) return;
 		engine.energy -= amt;
+	}
+	
+	play virtual void Repair(int amt)
+	{
+		hp = min(10, hp+amt);
 	}
 	
 	play virtual void DoEffect()
@@ -1060,7 +1073,7 @@ class MechEngine : MechItem
 		heatsinks.Resize(0);
 	}
 	
-	override int TryAttach(MechHardpoint part)
+	override int TryAttach(MechHardpoint part, bool forced)
 	{
 		if(part.mech.FindItem("MechEngine", true))
 			return IAE_EXCLUSIVE;
@@ -1077,7 +1090,7 @@ class MechEngine : MechItem
 			return IAE_NOSLOTS;
 		}
 		
-		return super.TryAttach(part.mech.torso);
+		return super.TryAttach(part.mech.torso, forced);
 	}
 	
 	override void DoEffect()
@@ -1274,7 +1287,7 @@ class MechWeapon : MechItem
 			group &= ~gBit;
 	}
 	
-	override int TryAttach(MechHardpoint part)
+	override int TryAttach(MechHardpoint part, bool forced)
 	{
 		bool noMount = mountType == "NONE"; // This weapon doesn't have a mount position.		
 	
@@ -1282,14 +1295,14 @@ class MechWeapon : MechItem
 		let mnt = part.findMountPoint(mountType);
 		if(!mnt && !noMount) return IAE_INVALID;
 		
-		int success = super.TryAttach(part);
+		int success = super.TryAttach(part, forced);
 		if(success == IAE_SUCCESS && !noMount)
 		{
 			mnt.mountItem(self);
 			mount = mnt;
 			OnMount();
 		}
-		
+
 		return success;
 	}
 	
@@ -1298,9 +1311,19 @@ class MechWeapon : MechItem
 		return mount.getPos() + (fireOffs * parent.scale.X);
 	}
 	
-	override void OnInventoryAdd()
+	override void OnInventoryAdd(I_MechItemStorage destInv)
 	{
+		super.OnInventoryAdd(destInv);
 		group = 1; // Reset weapon groupings
+	}
+	
+	override void Repair(int amt)
+	{
+		bool destroyed = hp <= 0;
+		super.Repair(amt);
+		
+		// If weapon was previously destroyed but is now repaired, re-mount our decoration.
+		if(destroyed && hp > 0) OnMount();
 	}
 	
 	play virtual MechMountDeco OnMount()
@@ -1458,6 +1481,7 @@ class MechWeaponGroup : Object
 class I_MechItemStorage : Inventory
 {
 	Array<MechItem> items;
+	string dropshipNextMap; // Map to return to after dropship.
 	
 	Default
 	{
@@ -1522,7 +1546,7 @@ class I_MechItemStorage : Inventory
 			}
 		}
 		
-		item.OnInventoryAdd();
+		item.OnInventoryAdd(self);
 		items.Push(item);
 	}
 	

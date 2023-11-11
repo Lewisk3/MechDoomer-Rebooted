@@ -10,6 +10,7 @@ class MechHardpointContainer : MenuElement
 	double slotsWidth, slotsHeight;
 	double itemSpacing;
 	string containerName;
+	MechItemSlot mouseHoverSlot;
 	
 	Array<MechlabSquareButton> buttons;
 		
@@ -92,7 +93,8 @@ class MechHardpointContainer : MenuElement
 		fillSlot++;
 			
 		// Mouse collisions
-		mechlab.cursor.CheckCollision(curSlot);
+		if(mechlab.cursor.CheckCollision(curSlot))
+			mouseHoverSlot = curSlot;
 	}
 	
 	override void Update(double dT)
@@ -693,6 +695,7 @@ class MenuItemsInvContainer : MenuElement
 		for(int i = 0; i < inv.items.Size(); i++)
 		{
 			let item = inv.items[i];
+			if(!item) continue;
 			
 			// Skip hidden items
 			if(item.hidden) continue;
@@ -730,6 +733,7 @@ class MenuItemsInvContainer : MenuElement
 					String.Format("InvItem#%d",i), 
 					parentMenu, pos + (size.x*0.30, 0), (size.x * 0.5, 16)
 				));
+				item.mechlab = mechlab;
 				invItems[i] = item;
 			}
 			
@@ -1018,6 +1022,7 @@ class MechRepairKitSortTab : MechItemSortTab
 
 class MechInvItem : MenuElement
 {
+	Mechmenu_Mechlab mechlab;
 	MechItem item;
 	int itemID;
 	bool grayed;
@@ -1049,8 +1054,20 @@ class MechInvItem : MenuElement
 		pos = defaultPos;
 		dragging = false;
 		
-		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));		
-		if(mouseOverContainer)
+		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));	
+		let mouseOverItem = mouseOverContainer ? mouseOverContainer.mouseHoverSlot : NULL; 
+
+		// If dropped over item
+		if(mouseOverItem && mouseOverItem.slotItem && item.addonCapable && cursor.checkCollision(mouseOverItem, false) && mechlab)
+		{
+			// hardpointID:itemID
+			string destItemIDs = mechlab.mech.getMechItemIndex(mouseOverItem.slotItem);
+			
+			// Equip to Item
+			EventHandler.SendNetworkEvent(String.Format("mechlab.item.addon.%s.%d", destItemIDs, itemID));
+		}
+		// If dropped into hardpoint
+		else if(mouseOverContainer)
 		{
 			// Equip
 			EventHandler.SendNetworkEvent(String.Format("mechlab.item.equip.%d.%d", itemID, mouseOverContainer.partID));
@@ -1547,6 +1564,15 @@ class MechMenu_Mechlab : MechMenu
 					itemID = indices[1].ToInt();
 				}
 			
+				if(menuArgs[2] ~== "addon")
+				{					
+					let invItem = inv.items[menuArgs[4].toInt()];
+					let destItem = MechHardpoint(mech.parts[partID]).items[itemID];
+					
+					invItem.OnAddon(destItem);
+					destItem.ApplyAddon(invItem);
+				}
+			
 				if(menuArgs[2] ~== "equip") 
 				{
 					int toHardpointID = menuArgs[4].toInt();
@@ -1589,8 +1615,8 @@ class MechMenu_Mechlab : MechMenu
 					let srcItem = MechHardpoint(mech.parts[partID]).items[itemID];
 					if(!srcItem) return;
 					
-					srcItem.TryDetach();		
-					inv.AddItem(srcItem);
+					if(srcItem.TryDetach()) 
+						inv.AddItem(srcItem);
 				}
 			}
 		}

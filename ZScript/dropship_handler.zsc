@@ -1,6 +1,5 @@
 class MechDropship_Handler : StaticEventHandler
 {
-	string dropshipMap;
 	bool usingMechlab;
 	
 	virtual void RestoreActiveMechs()
@@ -13,7 +12,6 @@ class MechDropship_Handler : StaticEventHandler
 			let plr = players[i].mo;
 			
 			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-			if(mechData) console.printf("Found save data with active mech #%d", mechData.activeMechID);
 			if(mechData && mechData.activeMechID > 0)
 			{
 				let mech = mechData.loadMechData(mechData.activeMechID-1, plr.pos);
@@ -28,24 +26,23 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void WorldLoaded(WorldEvent e)
 	{
-		Name curMap = level.mapname;
+		let inv = I_MechItemStorage.Get(players[consoleplayer].mo);
+		if(!inv) return;
 		
+		Name curMap = level.mapname;
+
 		if(curmap != "DROPSHIP")
 		{
-			dropshipMap = level.NextMap;
-			level.NextMap = "DROPSHIP";
-			console.printf("Next map cached: %s", dropshipMap);
-			
+			inv.dropshipNextMap = level.NextMap;
+			level.NextMap = "DROPSHIP";		
 			RestoreActiveMechs();
 		}
 		else
 		{
-			level.NextMap = dropshipMap;
-			console.printf("Next map is: %s", dropshipMap);
+			level.NextMap = inv.dropshipNextMap;
 		}
-		
 	}
-	
+		
 	override void UITick()
 	{	
 		if(gamestate != GS_LEVEL) return;
@@ -85,18 +82,18 @@ class MechDropship_Handler : StaticEventHandler
 				);
 				continue;
 			}
-			
+				
 			// Vitals
 			double ArmorHD, ArmorCT, ArmorLT, ArmorRT, ArmorLA, ArmorRA, ArmorLL, ArmorRL;
 			double InternalHD, InternalCT, InternalLT, InternalRT, InternalLA, InternalRA, InternalLL, InternalRL;
-			[ArmorHD, InternalHD] = mech.head.getVitals();
-			[ArmorCT, InternalCT] = mech.torso.getVitals();
-			[ArmorLT, InternalLT] = mech.leftTorso.getVitals();
-			[ArmorRT, InternalRT] = mech.rightTorso.getVitals();
-			[ArmorLA, InternalLA] = mech.leftArm.getVitals();
-			[ArmorRA, InternalRA] = mech.rightArm.getVitals();
-			[ArmorLL, InternalLL] = mech.leftLeg.getVitals();
-			[ArmorRL, InternalRL] = mech.rightLeg.getVitals();
+			if(mech.head) 	   [ArmorHD, InternalHD] = mech.head.getVitals();
+			if(mech.torso)     [ArmorCT, InternalCT] = mech.torso.getVitals();
+			if(mech.leftTorso) [ArmorLT, InternalLT] = mech.leftTorso.getVitals();
+			if(mech.rightTorso)[ArmorRT, InternalRT] = mech.rightTorso.getVitals();
+			if(mech.leftArm)   [ArmorLA, InternalLA] = mech.leftArm.getVitals();
+			if(mech.rightArm)  [ArmorRA, InternalRA] = mech.rightArm.getVitals();
+			if(mech.leftLeg)   [ArmorLL, InternalLL] = mech.leftLeg.getVitals();
+			if(mech.rightLeg)  [ArmorRL, InternalRL] = mech.rightLeg.getVitals();
 			double armorPercent = (ArmorHD + ArmorCT + ArmorLT + ArmorRT + ArmorLA + ArmorRA + ArmorLL + ArmorRL) / 8.0;
 			double internalPercent = (InternalHD + InternalCT + InternalLT + InternalRT + InternalLA + InternalRA + InternalLL + InternalRL) / 8.0;
 			

@@ -2,6 +2,7 @@ class MechRepairKit : MechItem
 {
 	double armorRepairAmount;
 	double internalRepairAmount;
+	double itemRepairAmount;
 	int repairTier;
 
 	override void Defaults()
@@ -27,6 +28,11 @@ class MechRepairKit : MechItem
 		{
 			statName.Push("Internals Repair: ");
 			statValue.Push(String.Format("%d", internalRepairAmount));
+		}
+		if(itemRepairAmount)
+		{
+			statName.Push("Item Repair: ");
+			statValue.Push(String.Format("%d", itemRepairAmount));
 		}
 	}
 	
@@ -56,6 +62,9 @@ class MechRepairKit : MechItem
 				return IAE_FAIL;
 		}
 		
+		if(!armorRepairAmount && !internalRepairAmount)
+			return IAE_INVALID;
+		
 		parent = part;
 		OnAttach();
 		parent = NULL;
@@ -63,9 +72,51 @@ class MechRepairKit : MechItem
 		return IAE_SUCCESS;
 	}
 	
+	// Repair items
+	override void OnAddon(MechItem destItem)
+	{
+		if(!itemRepairAmount) return;
+		
+		if(destItem.hp <= 10 && destItem.parent && destItem.parent.healthPoints > 0)
+		{
+			Deplete();
+			if(destItem.hp <= 0)
+			{
+				destItem.hp = 0;
+				destItem.Repair(1);
+			}
+			else destItem.Repair(itemRepairAmount);
+		}
+	}
+	
 	override void OnAttach()
 	{
-		parent.Repair(armorRepairAmount, internalRepairAmount);
+		parent.Repair(armorRepairAmount, internalRepairAmount);	
+	}
+}
+
+class MechItemRepairKit : MechRepairKit
+{
+	override void Defaults()
+	{
+		displayName = "Item Repair Kit";		 
+		itemRepairAmount = 5;
+		repairTier = 0;
+		addonCapable = true;
+		itemDescription = (
+			"\c[Yellow]Repairs items. Drag and drop on a damaged item to activate.\n"
+			"If an item has been destroyed, using this item will repair it up to 1 HP."
+		);
+	}
+	
+	override string GetItemErrorMessage(int ERR_TYPE)	
+	{
+		switch(ERR_TYPE)
+		{
+			case IAE_INVALID: return "Repair kit cannot be used on hardpoints.";
+			case IAE_FAIL: return "Failed to repair item.";
+			default: return super.GetItemErrorMessage(ERR_TYPE);
+		}
 	}
 }
 
