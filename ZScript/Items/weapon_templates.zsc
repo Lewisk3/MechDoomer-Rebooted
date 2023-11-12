@@ -245,6 +245,7 @@ class MechBallisticWeapon : MechWeapon
 	Sound reloadSound;
 	double spread;
 	bool disableMountRecoil;
+	Actor firedProjectile;
 
 	override void Defaults()
 	{	
@@ -333,8 +334,8 @@ class MechBallisticWeapon : MechWeapon
 		) * parent.scale.X;
 	
 		WeapSound(fireSound);
-		let proj = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
-		proj.master = mech.driver;
+		firedProjectile = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
+		firedProjectile.master = mech.driver;
 
 		modifyHeat(heat);
 		depleteAmmo(ammoUse);

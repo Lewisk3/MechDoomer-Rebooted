@@ -49,7 +49,7 @@ class MechInteraction_Handler : EventHandler
 			}
 		}
 	}
-		
+			
 	// Moar keys
 	override void NetworkProcess(ConsoleEvent e)
 	{
@@ -83,6 +83,7 @@ class MechInteraction_Handler : EventHandler
 			if(cmd ~== "mw_gettarget")  drvObj.source.setExtBtn(DrivableMech.BT_GETTARGET, btnState);
 			if(cmd ~== "mw_powercycle") drvObj.source.setExtBtn(DrivableMech.BT_POWERCYCLE, btnState);
 			if(cmd ~== "mw_overrideshutdown") drvObj.source.setExtBtn(DrivableMech.BT_OVRSHUTDWN, btnState);
+			if(cmd ~== "mw_toggleweaponstate") drvObj.source.setExtBtn(DrivableMech.BT_WEAPONSTATE, btnState);
 			
 			if(cmd ~== "mw_openmechlab" && e.Player == consoleplayer)
 			{

@@ -3,7 +3,19 @@ class MechHUD : VehicleHUD
 	vector3 torsoAim, leftArmAim, rightArmAim;
 	
 	double chainBlink, powerupTics, weapPowerupTics, lockingRotation, curThrottle, curHeat;
+	double interferenceDuration;
 	int chainGroup; // For chainfire animation.
+		
+	void ToggleInterference(bool onoff, double timer, double amt = 0.45)
+	{
+		PPShader.SetEnabled("interferenceshader", onoff);
+		if(onoff)
+		{
+			PPShader.SetUniform1f("interferenceshader", "timer", timer);
+			PPShader.SetUniform1f("interferenceshader", "amount", 0.45);
+			PPShader.SetUniform1f("interferenceshader", "pixelSize", double(300.0));
+		}
+	}
 		
 	override void Draw(RenderEvent e)
 	{		
@@ -127,6 +139,14 @@ class MechHUD : VehicleHUD
 			DrawCompass();
 			DrawPaperDoll(mech);
 			DrawLockonRet(crosshairAlpha);
+			
+			if(mech.EMI >= 5)
+				interferenceDuration = 80;
+			
+			// EMI Effect
+			if(interferenceDuration > 0) interferenceDuration -= deltaTime;
+			
+			ToggleInterference(interferenceDuration > 0, e.fracTic, DrivablesMath.fmap(mech.EMI, 0, 100.0, 0.01, 0.6));
 			
 			// Draw target enemy paperdoll.
 			let mechTarget = DrivableMech(mech.curTarget);

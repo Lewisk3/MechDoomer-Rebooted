@@ -49,6 +49,11 @@ class MechItem : Object
 		return (item && item.template) ? NULL : item;
 	}
 	
+	play virtual void ToggleState()
+	{
+		// Called with toggle weapon state button is pressed.
+	}
+	
 	clearscope virtual void GetUIColors(out int fontColor, out int bgColor)
 	{		
 		if(!movable)

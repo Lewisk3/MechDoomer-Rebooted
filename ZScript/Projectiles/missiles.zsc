@@ -293,6 +293,20 @@ class MechSSRM : MechSRM
 	}
 }
 
+class MechMRM : MechMissile
+{
+	Default
+	{
+		Radius 8;
+		Height 4;
+		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 550;
+		MechProjectile.FirePitch 0;
+		MechProjectile.Homing false;
+		MechProjectile.SpeedKPH 500; 
+	}
+}
+
 class MechLRM : MechMissile
 {
 	Default

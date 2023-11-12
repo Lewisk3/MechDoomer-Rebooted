@@ -216,7 +216,7 @@ Model MechSSRM
 	FrameIndex MODL A 0 0
 }
 
-Model MechLRM
+Model MechMRM
 {
 	Path "models/missiles/"
 	Model 0 "missile_lrm.md3"
@@ -231,6 +231,20 @@ Model MechLRM
 	FrameIndex MODL A 0 0
 }
 
+Model MechLRM
+{
+	Path "models/missiles/"
+	Model 0 "missile_lrm.md3"
+	SurfaceSkin 0 0 "missile_body.png"
+	SurfaceSkin 0 1 "missile_head.png"
+	SurfaceSkin 0 2 "missile_engine.png"
+	SurfaceSkin 0 3 "missile_exhaust.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	
+	FrameIndex MODL A 0 0
+}
 
 Model MechAAM
 {

@@ -569,14 +569,18 @@ class MenuItemsInvContainer : MenuElement
 		double descFontScale = 0.9;
 		double descSpacing = 10;
 		double boxHeight = 60. + (itemStatName.Size() * ((descFont.getHeight()*2.0*descFontScale) + (descSpacing*1.2)));
-		double boxWidth = width;
-		
+		double boxWidth = width + 10;
+				
 		BrokenLines flavorTextLines = descFont.BreakLines(itemFlavorText, (boxWidth * 0.58) / descFontScale);
 		
-		double flavorTextLn = (18*(descFontScale*0.8));
+		double flavorTextLn = 10 + (2*descFontScale);
 		double flavorTextHeight = flavorTextLines.Count() * (descFont.getHeight()+flavorTextLn);
-		boxHeight += flavorTextHeight;
+		boxHeight += flavorTextLn * flavorTextLines.Count();
 		
+		// Move box up if too long
+		if(pos.y + boxHeight > MWDrawer.GetBaseHeight())
+			pos.y -= ((pos.y+boxHeight)-MWDrawer.GetBaseHeight()) + 60.0;
+
 		Color itFntCol, itemColor;
 		[itFntCol, itemColor] = MechItemSlot.GetItemColors(invItem);
 		if(!itemColor) itemColor = 0xA07F7F7F;
@@ -626,6 +630,7 @@ class MenuItemsInvContainer : MenuElement
 		
 		// Flavor text
 		vector2 flavorTextPos = (descPos.x+10, descPos.y + 50);
+		double flavorTextMaxY = 0;
 		for(int i = 0; i < flavorTextLines.Count(); i++)
 		{
 			string descLine = flavorTextLines.StringAt(i);
@@ -639,7 +644,7 @@ class MenuItemsInvContainer : MenuElement
 		}
 		
 		// Stats
-		vector2 lnPos = descPos + (10, 50 + flavorTextHeight + 10);
+		vector2 lnPos = (descPos.x + 5, flavorTextPos.y + 20);
 		for(int s = 0; s < itemStatName.Size(); s++)
 		{
 			string ln = itemStatName[s];

@@ -2,6 +2,7 @@
 // PPC
 class ParticleCannon : MechProjectile
 {
+	bool disableFieldInhibitor;
 	Default
 	{
 		// Speed 50;
@@ -22,11 +23,19 @@ class ParticleCannon : MechProjectile
 		A_StartSound("Energy/PPC/Ambient", CHAN_AUTO, CHANF_OVERLAP, 1.0, ATTN_NONE);
 	}
 
+	override void OnHit(Actor victim, DrivableMech mechVictim)
+	{
+		if(mechVictim) mechVictim.EMI += 25;
+	}
+
 	override void Tick()
 	{
 		super.Tick();
 		
 		if(level.isFrozen() || died) return;
+		
+		if(disableFieldInhibitor)
+			minRange = 0;
 		
 		HandleRanges();
 	}
@@ -95,7 +104,17 @@ class ParticleCannon : MechProjectile
 			{
 				// PPC explosion
 				died = true;
-				if(curDist > minRange) SpawnEffect("PPCExplosion", pos);
+				if(curDist > minRange) 
+				{
+					SpawnEffect("PPCExplosion", pos);
+					if(disableFieldInhibitor && curDist < default.minRange)
+					{
+						EffectsHelper.ExplodeEx(self, 8, 2048, thrustMod:0, selfDamage: 1.0);
+						let mexp = SpawnEffect("MissileExplosion", pos);
+						if(mexp) mexp.A_SetScale(mexp.Scale.X * 30.0);
+						if(mech) mech.EMI += 25;
+					}
+				}
 			}
 		stop;
 	}

@@ -35,6 +35,8 @@ class DrivableMech : DrivableObject
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
 
+	double EMI; // TODO: Electro-Magnetic interferrence, affects the HUD and targetting computer depending on how much interference is present.
+
 	MechWeapon prevWeapFired;
 	MechArmor armorType;
 	Array<MechWeaponGroup> weaponGroups;
@@ -108,7 +110,8 @@ class DrivableMech : DrivableObject
 		BT_GETTARGET  = 1 << 11,   
 		BT_PEEKINV    = 1 << 12,
 		BT_POWERCYCLE = 1 << 13,
-		BT_OVRSHUTDWN = 1 << 14
+		BT_OVRSHUTDWN = 1 << 14,
+		BT_WEAPONSTATE  = 1 << 15 // Toggles state of weapon; might be used to switch ammo-types for example.
 	};
 	
 	enum GroupBits
@@ -287,7 +290,7 @@ class DrivableMech : DrivableObject
 		double angTo = abs(Normalize180(atan2(diff.y, diff.x) - head.angle));
 		double zTo = abs( (curTarget.pos.z+curTarget.height*0.5) - head.lookingPos.z );
 		
-		if(angTo > 25 || zTo > 200) 
+		if(angTo > 25 || zTo > 200 || EMI >= 50) 
 		{
 			targetProgress *= targetDecay;
 			return;
@@ -636,7 +639,10 @@ class DrivableMech : DrivableObject
 			selectedGroup--;
 		if( getExtBtn(BT_GROUPNEXT, DriverBtns.BTS_PRESSED) )
 			selectedGroup++;	
-		
+			
+		if( getExtBtn(BT_WEAPONSTATE, DriverBtns.BTS_PRESSED) && weap )
+			weap.ToggleState();
+			
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
 		{
@@ -1167,6 +1173,9 @@ class DrivableMech : DrivableObject
 			autoTakePilot = NULL;
 			shutdown = false;
 		}
+		
+		// Interference reduces over time.
+		EMI *= 0.8;
 	}
 	
 	States

@@ -117,7 +117,8 @@ class EffectsHelper Abstract
 		{
 			if(!act.bSHOOTABLE || !src.IsVisible(act, true)) continue;
 			if(!damageBosses && act.bBOSS) continue; 
-			if(act is "MechHardpoint" || act is "MechHitbox") continue; // Do not apply explosive damage to mechs.
+			
+			if( (act is "MechHardpoint" || act is "MechHitbox") && (selfDamage <= 0) ) continue; // Do not apply explosive damage to mechs.
 			
 			double todist = src.Distance2DSquared(act) - act.radius;
 			double dmgfalloff = pow * (1. - (1./(todist - (dist*dist))));

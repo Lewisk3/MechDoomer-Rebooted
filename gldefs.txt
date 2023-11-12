@@ -58,3 +58,12 @@ material texture models/vfx/orange_glow.png {
 	specularlevel 0.8
 }
 
+
+HardwareShader PostProcess Screen
+{
+	Name "interferenceshader"
+	Shader "shaders/filmgrain.fp" 330
+	Uniform float timer
+	Uniform float amount
+	Uniform float pixelSize
+}

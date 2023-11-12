@@ -107,6 +107,10 @@ class MechProjectile : FastProjectile
 		bool hitMechPart = hitHardpoint && hardpoint && hitHardpoint.mech == hardpoint.mech;
 		hitMechPart |= hitMechBox && hardpoint && MechHardpoint(hitMechBox.parent).mech == hardpoint.mech;
 		
+		DrivableMech hitMech = NULL;
+		if(hitMechBox || hitHardpoint) 
+			hitMech = hitMechBox ? MechHardpoint(hitMechBox.parent).mech : hitHardpoint.mech;
+		
 		if( victim == target || victim == master || hitMechPart )
 			return 1; // Ignore actor.
 			
@@ -123,6 +127,7 @@ class MechProjectile : FastProjectile
 		if(!ripMax || rippedActors.Find(victim) == rippedActors.Size())
 		{
 			victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
+			OnHit(victim, hitMech); 
 			if(ripMax && ripCount < ripMax)
 			{
 				rippedActors.Push(victim);
@@ -136,6 +141,7 @@ class MechProjectile : FastProjectile
 	}
 	
 	virtual void OnRip(Actor victim) {}
+	virtual void OnHit(Actor victim, DrivableMech mechVictim) {}
 	
 	virtual Actor SpawnEffect(class<Actor> trail, vector3 spawnPos)
 	{

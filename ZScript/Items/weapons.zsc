@@ -481,6 +481,84 @@ class LRM20 : MechMissileWeapon
 	}
 }
 
+// MRM 10,20,30,40
+class MRM10 : MechMissileWeapon
+{
+	override void Defaults()
+	{	
+		DisplayName = "MRM10";
+		mountType = "Missile";
+		spread = 2.0;
+		doConverge = false;
+		ammoUse = 1;
+		
+		refireCount = 10;
+		weight = 3.0;
+		heat = 3.0;
+		size = 2;
+		refireDelay = 2;
+		
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = ceil(3.5 * TICRATE);
+		
+		projType = "MechMRM";
+		ammoType = "MRMAmmo";
+		fireSound = "Missile/LRM20";
+		sndItemName = "Betty/Item/MRM";
+		mountDeco = "MissileMountDeco";
+		
+		damagable = true;
+	}
+}
+class MRM20 : MRM10
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "MRM20";
+		
+		refireCount = 20;
+		weight = 7.0;
+		heat = 4.0;
+		size = 3;
+		cooldownTime = ceil(3.8 * TICRATE);
+		
+		fireSound = "Missile/LRM20";
+	}
+}
+class MRM30 : MRM10
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "MRM30";
+		
+		refireCount = 30;
+		weight = 10.0 / double(refireCount);
+		heat = 5.0;
+		size = 5;
+		cooldownTime = ceil(4.2 * TICRATE);
+		
+		fireSound = "Missile/LRM20";
+	}
+}
+class MRM40 : MRM10
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		DisplayName = "MRM40";
+		
+		refireCount = 40;
+		weight = 12.0;
+		heat = 6.0;
+		size = 7;
+		cooldownTime = ceil(4.6 * TICRATE);
+		
+		fireSound = "Missile/LRM20";
+	}
+}
+
 // Ballistics
 class AC2 : MechBallisticWeapon
 {
@@ -834,6 +912,8 @@ class GaussRifle : MechBallisticWeapon
 // PPC
 class PPC : MechBallisticWeapon
 {	
+	bool unsafeMode;
+	
 	override void Defaults()
 	{	
 		DisplayName = "PPC";
@@ -853,14 +933,44 @@ class PPC : MechBallisticWeapon
 		sndItemName = "Betty/Item/PPC";
 		mountDeco = "PPCMountDeco";
 		disableMountRecoil = true;
+		itemDescription = (
+			"\c[Orange]Comes equipped with a built-in Field Inhibitor, which results in a minimum range of 90m."
+			"This can be disabled by pressing the Weapon State button, however doing so will render "
+			"this weapon unsafe and cause damage to the user's mech when fired at close range."
+		);
 		
 		damagable = true;
 	}
 	
+	
+	// Toggles the field inhibitor.
+	override void ToggleState()
+	{
+		unsafeMode = !unsafeMode;
+		if(unsafeMode) 
+		{
+			displayName = "\c[Orange][ER] PPC";
+			energyUse = 1.0;
+		}
+		if(!unsafeMode) 
+		{
+			// Restore default behavior.
+			Defaults();
+		}
+	}
+	
 	override bool Fire(vector3 firePos)
 	{
+		int ret = super.Fire(firePos);
+		let firedPPC = ParticleCannon(firedProjectile);
+		if(unsafeMode && firedPPC)
+		{
+			// Can potentially scramble a mech's systems, also causes self-damage at close range.
+			firedPPC.disableFieldInhibitor = true;
+		}
+	
 		A_Recoil(-3);
-		return super.Fire(firePos);
+		return ret;
 	}
 }
 class ERPPC : PPC
@@ -879,9 +989,13 @@ class ERPPC : PPC
 		mountDeco = "ERPPCMountDeco";
 		mountDecoScale = 1.25;
 		mountDecoOffs = (0,0,-1);
+		itemDescription = "\c[Orange]Unlike the regular PPC, this has no minimum range and is completely safe to fire at close ranges.";
 		
 		damagable = true;
 	}
+	
+	// ER-PPCs don't need this behavior
+	override void ToggleState() {}
 }
 
 class Flamer : MechWeapon

@@ -42,6 +42,9 @@ Alias -mw_powercycle "netevent -mw_powercycle";
 Alias +mw_overrideshutdown "netevent +mw_overrideshutdown";
 Alias -mw_overrideshutdown "netevent -mw_overrideshutdown";
 
+Alias +mw_toggleweaponstate "netevent +mw_toggleweaponstate";
+Alias -mw_toggleweaponstate "netevent -mw_toggleweaponstate";
+
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK
 addmenukey "Fire Group 2" +ALTATTACK
@@ -61,6 +64,7 @@ addmenukey "Next Group" +mw_groupnext
 addmenukey "Previous Group" +mw_groupprev
 addmenukey "Toggle Group" +mw_grouptoggle
 addmenukey "Toggle Chainfire" +mw_groupchainfire
+addmenukey "Weapon State" +mw_toggleweaponstate
 addmenukey "Set Throttle to 0" +mw_stopmech
 addmenukey "Align Legs to Torso" +mw_alignlegs
 addmenukey "Align Torso to Legs" +mw_aligntorso
