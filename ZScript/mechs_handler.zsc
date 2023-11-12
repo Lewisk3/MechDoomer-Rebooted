@@ -13,6 +13,8 @@ class MechInteraction_Handler : EventHandler
 			let plr = players[i].mo;
 			I_MechItemStorage.Get(plr);
 			
+			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+			if(!mechData) plr.GiveInventory("I_SaveMechData", 1);
 		}	
 	}
 	

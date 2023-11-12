@@ -1,7 +1,10 @@
 class MechDropship_Handler : StaticEventHandler
 {
 	bool usingMechlab;
-	
+	bool forceDropshipMap;
+	double scrfade;
+	bool onFirstMap;
+
 	virtual void RestoreActiveMechs()
 	{
 		// Spawn active mech and put the driver in it.
@@ -20,16 +23,39 @@ class MechDropship_Handler : StaticEventHandler
 					mech.angle = plr.angle;
 					mech.autoTakePilot = plr;
 				}
-			}
+			}			
 		}	
+	}
+	
+	override void WorldTick()
+	{
+		Name curMap = level.mapname;
+		if(level.maptime >= 2 && forceDropshipMap)
+		{
+			level.ChangeLevel("DROPSHIP", flags:CHANGELEVEL_NOINTERMISSION);
+			forceDropshipMap = false;
+		}
+		if(scrfade > 0 && gamestate == GS_LEVEL)
+		{	
+			scrfade *= 0.97;
+			if(scrfade < 0.1) scrfade = 0;
+		}
 	}
 	
 	override void WorldLoaded(WorldEvent e)
 	{
 		let inv = I_MechItemStorage.Get(players[consoleplayer].mo);
 		if(!inv) return;
+		scrfade = 2.0;
+		onFirstMap = inv.dropshipNextMap == "";
 		
 		Name curMap = level.mapname;
+		if( onFirstMap )
+		{
+			// Start the player in a dropship.
+			inv.dropshipNextMap = curMap;
+			forceDropshipMap = true;
+		}
 
 		if(curmap != "DROPSHIP")
 		{
@@ -42,11 +68,25 @@ class MechDropship_Handler : StaticEventHandler
 			level.NextMap = inv.dropshipNextMap;
 		}
 	}
+	
+	override void RenderOverlay(RenderEvent e)
+	{	
+		if(scrfade > 0.01)
+		{
+			Screen.Dim(0xFF000000, scrfade, 0,0, Screen.getWidth(), Screen.getHeight());
+			
+			if(scrfade >= 1.0 && !onFirstMap) 
+			{
+				double loadAlpha = 0.5 + (cos(level.maptime * 20.0) * 0.5); 
+				MWDrawer.DrawString("ConsoleFont", "LOADING", (0,0), MWDrawer.SS_SCREEN_CENTER | MWDrawer.SS_TEXT_CENTER, Font.CR_Purple, alpha:loadAlpha);
+			}
+		}
+	}
 		
 	override void UITick()
 	{	
 		if(gamestate != GS_LEVEL) return;
-		
+	
 		let activeMenu = Menu.getCurrentMenu();
 		let mechlabMenu = MechMenu_Mechlab(activeMenu);
 		
