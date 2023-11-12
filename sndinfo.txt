@@ -72,6 +72,7 @@ Missile/LRM5  "Sounds/Weapons/missile_lrm5.wav"
 Missile/LRM10 "Sounds/Weapons/missile_lrm10.wav"
 Missile/LRM15 "Sounds/Weapons/missile_lrm15.wav" 
 Missile/LRM20 "Sounds/Weapons/missile_lrm20.wav"
+Missile/ATM "Sounds/Weapons/atm_fire.wav"
 Missile/AMS "Sounds/Weapons/ams_fire.wav"
 Missile/Explosion "Sounds/Weapons/missile_explosion.wav"
 
@@ -140,6 +141,7 @@ $limit Generic/Impact 0
 $limit Missile/SRM2 0
 $limit Missile/SRM4 0
 $limit Missile/SRM6 0
+$limit Missile/ATM 0
 $limit Missile/Explosion 0
 
 // Attenuation

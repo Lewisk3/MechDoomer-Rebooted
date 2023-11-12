@@ -131,6 +131,7 @@ class MechMissileWeapon : MechWeapon
 	bool doConverge;
 	double spread;
 	bool requiresTarget; // Weapon will not fire unless a target is locked in.
+	bool perMissileFireSound;
 	
 	override void Defaults()
 	{	
@@ -142,12 +143,22 @@ class MechMissileWeapon : MechWeapon
 		super.getDescription(flavorText, statName, statValue);
 		statName.Push(" ");
 		statValue.Push(" ");
+		readonly<MechProjectile> projDefs = NULL;
 		
-		let projDefs = GetDefaultByType(projType);
+		if(projType) projDefs = GetDefaultByType(projType);
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 		
-		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE) * refireCount ));
+		if(projDefs)
+		{
+			statName.Push("DAMAGE");
+			statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE) * refireCount ));
+		}
+		else
+		{
+			statName.Push("\c[Orange]VARIABLE MUNITIONS");
+			statValue.Push(" ");
+		}
+		
 		statName.Push("HEAT");
 		statValue.Push(String.Format("%.2f", heat * refireCount));
 		statName.Push("FIRE RATE");
@@ -155,29 +166,37 @@ class MechMissileWeapon : MechWeapon
 		statName.Push("COOLDOWN");
 		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
 		
-		statName.Push(" ");
-		statValue.Push(" ");
-		if(projDefs.minRange > 0)
+		if(projDefs)
 		{
-			statName.Push("MIN RANGE");
-			statValue.Push(String.Format("%d", projDefs.minRange));
+			statName.Push(" ");
+			statValue.Push(" ");
+			if(projDefs.minRange > 0)
+			{
+				statName.Push("MIN RANGE");
+				statValue.Push(String.Format("%d", projDefs.minRange));
+			}
+			statName.Push("MAX RANGE");
+			statValue.Push(String.Format("%d", projDefs.maxRange));
+			
+			statName.Push(" ");
+			statValue.Push(" ");
+			statName.Push("DPS");
+			statValue.Push(
+				String.Format(
+					"%.2f", 
+					(projDefs.trueDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
+				) 
+			);
 		}
-		statName.Push("MAX RANGE");
-		statValue.Push(String.Format("%d", projDefs.maxRange));
 		
-		statName.Push(" ");
-		statValue.Push(" ");
-		statName.Push("DPS");
-		statValue.Push(
-			String.Format(
-				"%.2f", 
-				(projDefs.trueDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
-			) 
-		);
 		statName.Push("HPS");
 		statValue.Push(String.Format("%.2f", (heat*refireCount) / cooldownSeconds) );
-		statName.Push("DPH");
-		statValue.Push(String.Format("%d", (projDefs.trueDamage*refireCount) / (heat*refireCount)) );
+		
+		if(projDefs)
+		{
+			statName.Push("DPH");
+			statValue.Push(String.Format("%d", (projDefs.trueDamage*refireCount) / (heat*refireCount)) );
+		}
 	}
 	
 	override vector3 getFirePos()
@@ -220,7 +239,7 @@ class MechMissileWeapon : MechWeapon
 		) * parent.scale.X;
 
 		// Only play weapon Fire sound on the first true Fire call.
-		if(refire == refireCount) WeapSound(fireSound);
+		if(refire == refireCount || perMissileFireSound) WeapSound(fireSound, randomPitch:perMissileFireSound);
 		
 		// Shoot projectile.
 		let proj = MechProjectile(EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, doConverge, mslSpread.x, mslSpread.y));

@@ -369,11 +369,16 @@ class MechItemSlot : MenuElement
 				(size.x / 2.0),
 				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
 			);
+						
+			// Autofit 
+			double fitX = size.x - 16;
+			double itemNameWidth = itemFont.StringWidth(slotItem.displayName) * fontScale * 2.0;
+			double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
 			
 			MWDrawer.DrawString(
 				itemFont, slotItem.displayName, 
 				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor,
-				alpha, scale:(fontScale, fontScale)
+				alpha, scale:(fontScale * fitScale, fontScale)
 			);
 		}
 				

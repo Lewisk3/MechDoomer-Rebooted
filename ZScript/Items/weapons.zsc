@@ -311,6 +311,128 @@ class SRM6 : MechMissileWeapon
 	}
 }
 
+// ATMs
+class ATM3 : MechMissileWeapon
+{
+	string defName;
+	Array<String> ammoTypes;
+	int ammoSelector;
+
+	override void Defaults()
+	{	
+		DisplayName = "ATM3";
+		defName = displayName;
+		mountType = "Missile";
+		
+		// Has built-in artemis-like control system.
+		spread = 1.0;
+		doConverge = true;
+		ammoUse = 1;
+		
+		heat = 2.2;
+		weight = 1.5;
+		refireCount = 3;
+		refireDelay = 2;
+		size = 2;
+				
+		fireTime     = refireDelay * refireCount;
+		cooldownTime = 3.0 * TICRATE;
+		
+		projType = "";
+		ammoType = "STDATMAmmo";
+		fireSound = "Missile/ATM";
+		sndItemName = "Betty/Item/ATM";
+		mountDeco = "MissileMountDeco";
+		perMissileFireSound = true;
+		
+		ammoTypes.Push("STDATMAmmo");
+		ammoTypes.Push("ERATMAmmo");
+		ammoTypes.Push("HEATMAmmo");
+		
+		damagable = true;
+	}
+	
+	play virtual void LoadNextAmmo()
+	{
+		ammoSelector = (ammoSelector + 1) % (ammoTypes.Size());
+		ammoType = (class<MechAmmo>)(ammoTypes[ammoSelector]);
+		reloadAmmo();
+		
+		// Switch to ammo-defined properties.
+		let curAmmo = MechSwitchableAmmo(loadedAmmo);
+		if(curAmmo)
+		{
+			displayName = String.Format("%s %s", defName, curAmmo.loadedName);
+			projType = curAmmo.ammoProj;
+		}
+	}
+	
+	override void ToggleState()
+	{
+		LoadNextAmmo();
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		// Search for available ammo
+		if(CheckAmmo() <= 0)
+		{
+			for(int i = 0; i < ammoTypes.Size(); i++) 
+			{
+				LoadNextAmmo();
+				if(CheckAmmo() > 0) break;
+			}
+		}
+	}
+}
+class ATM6 : ATM3
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		DisplayName = "ATM6";
+		defName = displayName;
+		
+		heat = 4.1;
+		weight = 3.5;
+		refireCount = 6;
+		size = 3;
+		cooldownTime = 4.0 * TICRATE;
+	}
+}
+class ATM9 : ATM3
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		DisplayName = "ATM9";
+		defName = displayName;
+		
+		heat = 5.8;
+		weight = 5;
+		refireCount = 9;
+		size = 4;
+		cooldownTime = 5.0 * TICRATE;
+	}
+}
+class ATM12 : ATM3
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		DisplayName = "ATM12";
+		defName = displayName;
+		
+		heat = 7.5;
+		weight = 7;
+		refireCount = 12;
+		size = 5;
+		cooldownTime = 5.0 * TICRATE;
+	}
+}
+
 class SSRM2 : SRM2
 {
 	override void Defaults()

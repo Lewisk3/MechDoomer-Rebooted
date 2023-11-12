@@ -753,13 +753,6 @@ class DrivableMech : DrivableObject
 			else
 				DoTankMovement(fm, sm);
 		}
-		
-		// Linedef activation
-		let ln = blockingLine;
-		if(ln && !!(ln.activation & (SPAC_Cross|SPAC_AnyCross)) )
-		{
-			ln.Activate(driver, level.PointOnLineSide(driver.pos.xy, ln), SPAC_Cross|SPAC_AnyCross);
-		}
 	}
 	
 	clearscope double, double NormalizeMoveInputs(double fm, double sm)
@@ -996,7 +989,7 @@ class DrivableMech : DrivableObject
 		// Crossable lines
 		if(pos.z <= floorz)
 		{
-			let blockLines = BlockLinesIterator.Create(self);	
+			let blockLines = BlockLinesIterator.Create(self, driver.default.radius);	
 			while(blockLines.Next())		
 			{
 				let ln = blockLines.CurLine;
@@ -1316,7 +1309,25 @@ class I_SaveMechData : Inventory
 	int activeMechID; // Currently active mech by MechbayID.
 	
 	Array<MechSaveData> mechsData;
-
+	
+	virtual void GiveMech(class<DrivableMech> mechClass)
+	{
+		let mech = DrivableMech(Spawn(mechClass));
+		if(mech)
+		{
+			// Make sure mech is setup properly.
+			mech.BeginPlay();
+			mech.PostBeginPlay();
+			mech.Tick();
+			
+			// Save the mech.
+			saveMechData(mech);
+			
+			// Remove template mech
+			mech.Destroy();
+		}
+	}
+	
 	virtual void saveMechData(DrivableMech mech)
 	{	
 		// Save basic mech data.
@@ -1404,6 +1415,15 @@ class I_SaveMechData : Inventory
 			loader.data = mechData;
 		}
 		return mech;
+	}
+	
+	override void AttachToOwner(Actor other)
+	{
+		// Give mechs
+		super.AttachToOwner(other);
+		
+		// DEBUG
+		GiveMech("MechHellbringer");
 	}
 
 	override void DoEffect()

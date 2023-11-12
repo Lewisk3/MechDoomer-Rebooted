@@ -1,3 +1,37 @@
+class MechSwitchableAmmo : MechAmmo
+{
+	string loadedName;
+	class<MechProjectile> ammoProj;
+	
+	override void Defaults()
+	{
+		super.Defaults();
+		template = true;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		if(!ammoProj) return;
+		
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		let projDefs = GetDefaultByType(ammoProj);
+		
+		statName.Push("DAMAGE");
+		statValue.Push(String.Format("%.2f", (projDefs.trueDamage * MechHardpoint.DMGSCALE) ));
+		if(projDefs.minRange > 0)
+		{
+			statName.Push("MIN RANGE");
+			statValue.Push(String.Format("%d", projDefs.minRange));
+		}
+		statName.Push("MAX RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange));
+		statName.Push("OPTIMAL RANGE");
+		statValue.Push(String.Format("%d", projDefs.maxRange * 0.5));
+	}
+}
 
 class SRMAmmo : MechAmmo
 {
@@ -199,4 +233,51 @@ class AMSAmmoHalf : AMSAmmo
 	}
 }
 
-
+class STDATMAmmo : MechSwitchableAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		template = false;
+		displayName = "ATM AMMO (Standard)";
+		maxAmmo = 105;
+		weight = 1.0;
+		explosionDamage = 2;
+		ammoProj = "MechATM_STD";
+		loadedName = "\c[Gold][STD]";
+		
+		SetupAmmo();
+	}
+}
+class ERATMAmmo : MechSwitchableAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		template = false;
+		displayName = "ATM AMMO (Extended Range)";
+		maxAmmo = 105;
+		weight = 1.0;
+		explosionDamage = 1;
+		ammoProj = "MechATM_ER";
+		loadedName = "\c[Gold][ER]";
+		
+		SetupAmmo();
+	}
+}
+class HEATMAmmo : MechSwitchableAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		template = false;
+		displayName = "ATM AMMO (High Explosive)";
+		maxAmmo = 105;
+		weight = 1.0;
+		explosionDamage = 3;
+		ammoProj = "MechATM_HE";
+		loadedName = "\c[Gold][HE]";
+		
+		SetupAmmo();
+	}
+}

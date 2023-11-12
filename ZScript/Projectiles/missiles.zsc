@@ -322,6 +322,39 @@ class MechLRM : MechMissile
 	}
 }
 
+// ATMs
+class MechATM_STD : MechMissile
+{
+	Default
+	{
+		Radius 8;
+		Height 4;
+		MechProjectile.Dmg 2 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 120, 450;
+		MechProjectile.SpeedKPH 800;
+		MechProjectile.Homing true;
+		MechMissile.HomingInaccuracy 10;
+	}
+}
+class MechATM_ER : MechATM_STD
+{
+	Default
+	{
+		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 120, 810;
+		MechProjectile.SpeedKPH 800;
+	}
+}
+class MechATM_HE : MechATM_STD
+{
+	Default
+	{
+		MechProjectile.Dmg 3 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 270;
+		MechProjectile.SpeedKPH 800;
+	}
+}
+
 class MechAAM : MechMissile // Anti-Air-Missile
 {
 	double toHit;
