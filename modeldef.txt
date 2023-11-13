@@ -57,6 +57,21 @@ Model LightningPart
 }
 
 // Ballistics
+Model LBXAutocannon
+{
+	Path "models"
+	Model 0 "ballistics/autocannon2.md3" 
+	SurfaceSkin 0 0 "missiles/missile_body.png"
+	SurfaceSkin 0 1 "vfx/c_simple.png"
+	SurfaceSkin 0 2 "missiles/missile_head.png"
+	SurfaceSkin 0 3 "vfx/c_simple.png"
+	Scale 2.0 2.0 2.0
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	
+	FrameIndex MODL A 0 0
+}
 Model Autocannon2
 {
 	Path "models"

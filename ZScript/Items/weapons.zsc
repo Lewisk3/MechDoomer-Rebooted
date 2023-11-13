@@ -54,7 +54,7 @@ class SmallPulseLaser : SmallLaser
 		heat = 0; // Initial heat.
 		weight =1.0;
 				
-		fireTime     = floor(0.1 * TICRATE);
+		fireTime     = 5 + floor(0.1 * TICRATE);
 		cooldownTime = floor(0.75 * TICRATE);
 		maxLaserTime = floor(1.75 * TICRATE);
 		
@@ -129,7 +129,7 @@ class MediumPulseLaser : MediumLaser
 		heat = 0; // Initial heat.
 		weight = 2.0;
 				
-		fireTime     = floor(0.1 * TICRATE);
+		fireTime     = 5 + floor(0.1 * TICRATE);
 		cooldownTime = floor(1.50 * TICRATE);
 		maxLaserTime = floor(3.0 * TICRATE);
 		
@@ -205,7 +205,7 @@ class LargePulseLaser : LargeLaser
 		weight = 7.0;
 		size = 2;
 				
-		fireTime     = floor(0.1 * TICRATE);
+		fireTime     = 5 + floor(0.1 * TICRATE);
 		cooldownTime = floor(3.0 * TICRATE);
 		maxLaserTime = floor(4.25 * TICRATE);
 		
@@ -743,6 +743,30 @@ class UltraAC2 : UltraAC
 		SetupUAC();
 	}
 }
+class LBXAC2 : AC2
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "LB 2-X AC";
+		mountType = "Ballistic";
+		heat = 0.40;
+		weight = 6.0;
+		size = 3.0;
+		
+		fireTime  = 2;
+		cooldownTime = ceil(0.72 * TICRATE);
+		fireCount = 2;
+		
+		projType = "LBXAutocannon";
+		ammoType = "LBX2Ammo";
+		fireSound = "Ballistic/Autocannon2";
+		mountDecoScale = 0.75;
+		
+		spread = 4.0;
+	}
+}
 
 class AC5 : MechBallisticWeapon
 {
@@ -809,6 +833,30 @@ class UltraAC5 : UltraAC
 	{
 		A_Recoil(-0.25, 0);
 		return super.Fire(firePos);
+	}
+}
+class LBXAC5 : AC5
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "LB 5-X AC";
+		mountType = "Ballistic";
+		heat = 1.0;
+		weight = 8.0;
+		size = 4.0;
+		
+		fireTime  = 2;
+		cooldownTime = ceil(1.4 * TICRATE);
+		fireCount = 5;
+		
+		projType = "LBXAutocannon";
+		ammoType = "LBX5Ammo";
+		fireSound = "Ballistic/Autocannon5";
+		mountDecoScale = 1.1;
+		
+		spread = 4.0;
 	}
 }
 
@@ -879,6 +927,30 @@ class UltraAC10 : UltraAC
 		return super.Fire(firePos);
 	}
 }
+class LBXAC10 : AC10
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "LB 10-X AC";
+		mountType = "Ballistic";
+		heat = 2.0;
+		weight = 11.0;
+		size = 6.0;
+		
+		fireTime  = 2;
+		cooldownTime = ceil(2.25 * TICRATE);
+		fireCount = 10;
+		
+		projType = "LBXAutocannon";
+		ammoType = "LBX10Ammo";
+		fireSound = "Ballistic/LBXAutocannon10";
+		mountDecoScale = 1.4;
+		
+		spread = 4.0;
+	}
+}
 
 class AC20 : MechBallisticWeapon
 {
@@ -945,6 +1017,30 @@ class UltraAC20 : UltraAC
 	{
 		A_Recoil(-2, 4);
 		return super.Fire(firePos);
+	}
+}
+class LBXAC20 : AC20
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "LB 20-X AC";
+		mountType = "Ballistic";
+		heat = 4.0;
+		weight = 14.0;
+		size = 11.0;
+		
+		fireTime  = 2;
+		cooldownTime = ceil(4 * TICRATE);
+		fireCount = 20;
+		
+		projType = "LBXAutocannon";
+		ammoType = "LBX20Ammo";
+		fireSound = "Ballistic/LBXAutocannon20";
+		mountDecoScale = 1.6;
+		
+		spread = 4.0;
 	}
 }
 

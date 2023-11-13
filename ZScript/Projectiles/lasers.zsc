@@ -63,11 +63,10 @@ class MechLaser : MechLaserBeam
 	{
 		if(core) core.Destroy();
 	}
-
-	override void BeamTick()
+	
+	override void Tick()
 	{
-		if(!master && enabled) A_StartSound(fireSound, CHAN_BODY, flags:CHANF_LOOPING);
-		if(!enabled) A_StopSound(CHAN_BODY);
+		super.Tick();
 		
 		if(MechLaser(master)) 
 		{
@@ -76,7 +75,13 @@ class MechLaser : MechLaserBeam
 			enabled = MechLaser(master).enabled;
 			time = MechLaser(master).time;
 		}
-		
+	}
+
+	override void BeamTick()
+	{
+		if(!master && enabled) A_StartSound(fireSound, CHAN_BODY, flags:CHANF_LOOPING);
+		if(!enabled) A_StopSound(CHAN_BODY);
+				
 		// Implement custom laser logic here.		
 		let hardpoint = MechHardpoint(source);
 		if(hardpoint)

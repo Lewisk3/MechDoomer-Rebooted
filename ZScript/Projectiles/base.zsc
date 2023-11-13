@@ -69,13 +69,15 @@ class MechProjectile : FastProjectile
 		return cmPerTick / UTOCM;
 	}
 	
-	virtual void playImpactSound()
+	virtual void playImpactSound(bool randomizedPitch = true)
 	{
+		double randomPitch = randomizedPitch ? 1.0 - frandom(-0.2, 0.6) : 0;
+	
 		if(died) return;
 		if(fullVolumeImpact)
-			S_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP, attenuation:ATTN_NONE);
+			S_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP, attenuation:ATTN_NONE, pitch:randomPitch);
 		else
-			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP);
+			A_StartSound(impactSnd, CHAN_AUTO, CHANF_OVERLAP, pitch:randomPitch);
 	}
 	
 	override void PostBeginPlay()

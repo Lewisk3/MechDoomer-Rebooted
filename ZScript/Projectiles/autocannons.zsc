@@ -210,6 +210,39 @@ class AutocannonSmoke : MissileSmokeTrail
 	}
 }
 
+class LBXAutocannon : MechAutocannon
+{
+	Default
+	{
+		Radius 4;
+		Height 4;
+		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 800;
+		Scale 1.0;
+		MechProjectile.SpeedKPH 1800;
+	}
+	
+	States
+	{
+		Spawn:
+			MODL A -1;
+		loop;
+	
+		Crash:
+		Death:
+		XDeath:
+			TNT1 A 1 
+			{
+				if(!overlay)
+				{
+					DoDebris();
+					SpawnEffect("AutocannonExplosion", pos);
+				}
+			}
+		stop;
+	}
+}
+
 class Autocannon2 : MechAutocannon
 {
 	Default

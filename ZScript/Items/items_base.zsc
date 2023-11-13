@@ -618,6 +618,7 @@ class MechArmor : MechUtility
 	
 	override bool isEquipped(DrivableMech mech)
 	{
+		if(!mech.armorType) return false;
 		return mech && mech.armorType.getClassName() == getClassName();
 	}
 	
@@ -722,6 +723,7 @@ class MechChassisStructure : MechUtility
 	
 	override bool isEquipped(DrivableMech mech)
 	{
+		if(!mech.chassisStructure) return false;
 		return mech && mech.chassisStructure.getClassName() == getClassName();
 	}
 	

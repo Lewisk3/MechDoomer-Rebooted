@@ -92,7 +92,7 @@ class AC2Ammo : MechAmmo
 	{
 		damagable = true;
 		displayName = "AC/2 Ammo";
-		maxAmmo = 50;
+		maxAmmo = 60;
 		weight = 1.0;
 		size = 1.0;
 		explosionDamage = 2;
@@ -106,7 +106,7 @@ class AC5Ammo : MechAmmo
 	{
 		damagable = true;
 		displayName = "AC/5 Ammo";
-		maxAmmo = 25;
+		maxAmmo = 30;
 		weight = 1.0;
 		size = 1.0;
 		explosionDamage = 5;
@@ -120,7 +120,7 @@ class AC10Ammo : MechAmmo
 	{
 		damagable = true;
 		displayName = "AC/10 Ammo";
-		maxAmmo = 10;
+		maxAmmo = 20;
 		weight = 1.0;
 		size = 1.0;
 		explosionDamage = 10;
@@ -187,6 +187,39 @@ class UAC20Ammo : AC20Ammo
 	{
 		super.Defaults();
 		displayName = "UAC/20 Ammo";
+	}
+}
+
+class LBX2Ammo : AC2Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "LB 2-X AC Ammo";
+	}
+}
+class LBX5Ammo : AC5Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "LB 5-X AC Ammo";
+	}
+}
+class LBX10Ammo : AC10Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "LB 10-X AC Ammo";
+	}
+}
+class LBX20Ammo : AC20Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "LB 20-X AC Ammo";
 	}
 }
 

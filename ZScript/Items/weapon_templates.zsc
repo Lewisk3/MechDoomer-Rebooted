@@ -104,7 +104,7 @@ class MechLaserWeapon : MechWeapon
 		
 			if(pulseSpeed > 0)
 			{
-				laser.alpha = (sin(laser.getAge()*pulseSpeed));
+				laser.alpha = (cos(laser.getAge()*pulseSpeed));
 				bool prevInvisible = laser.bInvisible;
 				laser.bInvisible = laser.alpha <= 0;
 				if(laser.bInvisible != prevInvisible) 
@@ -263,6 +263,7 @@ class MechBallisticWeapon : MechWeapon
 	bool justFired;
 	Sound reloadSound;
 	double spread;
+	double fireCount;
 	bool disableMountRecoil;
 	Actor firedProjectile;
 
@@ -347,15 +348,18 @@ class MechBallisticWeapon : MechWeapon
 		// Setup weapon refire on the first Fire call.
 		if(!refire && refireCount > 0) DoRefire();
 	
-		vector2 projSpread = (
-			frandom[BallisticSpread](-spread, spread),
-			frandom[BallisticSpread](-spread, spread)
-		) * parent.scale.X;
-	
+		for(int i = 0; i < max(1, fireCount); i++)
+		{
+			vector2 projSpread = (
+				frandom[BallisticSpread](-spread, spread),
+				frandom[BallisticSpread](-spread, spread)
+			) * parent.scale.X;
+		
+			firedProjectile = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
+			firedProjectile.master = mech.driver;
+		}
+		
 		WeapSound(fireSound);
-		firedProjectile = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
-		firedProjectile.master = mech.driver;
-
 		modifyHeat(heat);
 		depleteAmmo(ammoUse);
 		justFired = true;
