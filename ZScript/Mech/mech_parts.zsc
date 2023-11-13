@@ -582,7 +582,7 @@ class MechHardpoint : MechPart
 		super.Tick();
 		if(!mech) mech = getMech();
 		if(!mech || !parent) return;
-		if(!mech.shutdown) oldAngles = (angle, pitch, roll);
+		if(!mech.shutdown || oldAngles.length() ~== 0) oldAngles = (angle, pitch, roll);
 		
 		bool isCamera = mech.driver && mech.driver.player && mech.driver.player.Camera == self;
 		if(mech.shutdown && !isCamera) 

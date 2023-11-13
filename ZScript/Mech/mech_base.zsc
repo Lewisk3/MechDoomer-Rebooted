@@ -1164,7 +1164,7 @@ class DrivableMech : DrivableObject
 			torso.angle = autoTakePilot.angle;
 			TakePilot(autoTakePilot);
 			autoTakePilot = NULL;
-			shutdown = false;
+			//shutdown = false;
 		}
 		
 		// Interference reduces over time.

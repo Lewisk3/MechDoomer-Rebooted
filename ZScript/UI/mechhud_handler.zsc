@@ -34,7 +34,7 @@ class MechHUD_Handler : EventHandler
 	override void RenderUnderlay(RenderEvent e)
 	{
 		let mech = getPilotingMech(e);
-		if(mech && mech.HUDType) 
+		if(mech && mech.HUDType && !mech.shutdown) 
 			HideHUD();
 		else
 			ShowHUD();

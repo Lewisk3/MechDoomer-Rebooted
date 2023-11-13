@@ -22,6 +22,8 @@ class MechDropship_Handler : StaticEventHandler
 				{
 					mech.angle = plr.angle;
 					mech.autoTakePilot = plr;
+					mech.shutdown = true;
+					mech.powerupTimer = 35*2;
 				}
 			}			
 		}	
@@ -35,7 +37,7 @@ class MechDropship_Handler : StaticEventHandler
 			level.ChangeLevel("DROPSHIP", flags:CHANGELEVEL_NOINTERMISSION);
 			forceDropshipMap = false;
 		}
-		if(scrfade > 0 && gamestate == GS_LEVEL)
+		if(level.maptime >= 8 && scrfade > 0 && gamestate == GS_LEVEL)
 		{	
 			scrfade *= 0.97;
 			if(scrfade < 0.1) scrfade = 0;
@@ -46,6 +48,7 @@ class MechDropship_Handler : StaticEventHandler
 	{
 		let inv = I_MechItemStorage.Get(players[consoleplayer].mo);
 		if(!inv) return;
+		
 		scrfade = 2.0;
 		onFirstMap = inv.dropshipNextMap == "";
 		
@@ -60,6 +63,8 @@ class MechDropship_Handler : StaticEventHandler
 		if(curmap != "DROPSHIP")
 		{
 			inv.dropshipNextMap = level.NextMap;
+			if(onFirstMap) inv.dropshipNextMap = curMap;
+			
 			level.NextMap = "DROPSHIP";		
 			RestoreActiveMechs();
 		}

@@ -29,4 +29,10 @@ Map DROPSHIP "Dropship"
 	cluster = 0
 	NoIntermission
 	NoClusterText
+	
+	Outro
+	{
+		Video = "Movies/dropship.ivf"
+		Sound = "Movies/dropship.ogg"
+	}
 }
