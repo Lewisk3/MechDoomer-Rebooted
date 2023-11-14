@@ -134,7 +134,7 @@ class DrivableMech : DrivableObject
 		-SOLID;
 		
 		Radius 16;
-		Height 32;
+		Height 56;
 		Gravity 0.25;
 		Scale 1.0;
 		MaxStepHeight 36;
@@ -204,7 +204,7 @@ class DrivableMech : DrivableObject
 	virtual double getAutoFitScale()
 	{
 		// Determine mech's maximum height
-		double maxHeight = height;
+		double maxHeight = 92;
 		for(int i = 0; i < parts.Size(); i++)
 		{
 			let part = parts[i];
@@ -791,7 +791,7 @@ class DrivableMech : DrivableObject
 			double pushBack = (dist * (omega*0.02));
 			vector2 dir = AngleToVector(angle);
 			angVel -= DrivablesMath.sign(angVel)*(pushBack * 3.0); 
-			vel.xy -= dir * (pushBack * 2.0);
+			vel.xy -= dir * (pushBack * 1.25);
 		}
 		
 		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
@@ -989,12 +989,16 @@ class DrivableMech : DrivableObject
 		// Crossable lines
 		if(pos.z <= floorz)
 		{
-			let blockLines = BlockLinesIterator.Create(self, driver.default.radius);	
+			let blockLines = BlockLinesIterator.Create(self, 16);	
 			while(blockLines.Next())		
 			{
 				let ln = blockLines.CurLine;
 				bool crossable = ln.activation & (SPAC_Cross|SPAC_AnyCross);
-				if(crossable) ln.Activate(driver, level.PointOnLineSide(pos.xy, ln), SPAC_Cross); 
+				if(crossable) 
+				{
+					if(DrivablesMath.DistanceToLine(ln, pos.xy) > 16) continue;
+					ln.Activate(driver, level.PointOnLineSide(pos.xy, ln), SPAC_Cross); 
+				}
 			}
 		}
 	}
@@ -1424,6 +1428,7 @@ class I_SaveMechData : Inventory
 		
 		// DEBUG
 		GiveMech("MechHellbringer");
+		GiveMech("MechJenner");
 	}
 
 	override void DoEffect()

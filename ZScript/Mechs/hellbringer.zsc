@@ -2,8 +2,7 @@ class MechHellbringer : DrivableMech
 {
 	Default
 	{
-		Radius 46;
-		Height 92;
+		Radius 48;
 		DrivableMech.Acceleration 27, 30;
 		DrivableMech.MaxWeight 65; // In Tons.
 		DrivableMech.ChassisName "Hellbringer";
@@ -44,12 +43,13 @@ class MechHellbringer : DrivableMech
 		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
 		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
 		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
-		rightTorso.AddWeapon("AMS");
 		leftTorso.AddWeapon("SSRM6", GROUPFLG_TWO);
 		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
 		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
 		
-		leftLeg.AddItem("AMSAmmoHalf");
+		head.AddWeapon("AMS");
+		
+		leftLeg.AddItem("AMSAmmo");
 		leftLeg.AddItem("MGAmmo");
 		rightLeg.AddItem("SSRMAmmo");
 		rightLeg.AddItem("SSRMAmmo");
@@ -74,6 +74,12 @@ class Hellbringer_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		// AMS
+		AddMountPoint("PDS", 0, 8, 5);
 	}
 }
 
@@ -115,11 +121,6 @@ class Hellbringer_CenterTorso : MechTorso
 		MechHardpoint.SetupArmor 52, 8;
 		MechHardpoint.RearArmor true;
 	}	
-	
-	override void SetupMounts()
-	{
-		//AddMountPoint("", 30, 0, 10);
-	}
 }
 
 class Hellbringer_LeftTorso : MechSideTorso
@@ -133,20 +134,11 @@ class Hellbringer_LeftTorso : MechSideTorso
 		MechHardpoint.Vitals 48, 24;
 		MechHardpoint.SetupArmor 42, 6;
 		MechHardpoint.RearArmor true;
-	}	
-	
+	}
+		
 	override void SetupMounts()
 	{
-		// Top 3
-		let msl = AddMountPoint("Missile", -12, 7, 47);
-		msl.newOffset(-12, 7 - 4.5, 47);
-		msl.newOffset(-12, 7 - 9.5, 47);
-		
-		// Bottom 3
-		msl.newOffset(-12, 7, 47 - 3.25);
-		msl.newOffset(-12, 7 - 4.5, 47 - 3.25);
-		msl.newOffset(-12, 7 - 9.5, 47 - 3.25);
-		
+		SetupMountArray("Missile", -12, 7, 47, 3,2, -4.7, -3.25);
 		AddMountPoint("Ballistic", 15, 6, 15);
 		AddMountPoint("Ballistic", 15, 6, 10);
 	}
@@ -169,9 +161,6 @@ class Hellbringer_RightTorso : MechSideTorso
 		AddMountPoint("Energy", 14, -3, 30);
 		AddMountPoint("Energy", 16, -3, 25);
 		AddMountPoint("Energy", 18, -3, 20);
-		
-		// AMS
-		AddMountPoint("PDS", 0, -2, 40);
 	}
 }
 
@@ -191,7 +180,6 @@ class Hellbringer_LeftArm : MechArm
 	override void SetupMounts()
 	{
 		AddMountPoint("Energy", 30, -14, -27);
-		// AddMountPoint("Energy", 30, -14, -30);
 	}
 }
 
@@ -209,6 +197,5 @@ class Hellbringer_RightArm : Hellbringer_LeftArm
 	override void SetupMounts()
 	{
 		AddMountPoint("Energy", 30, 14, -27);
-		// AddMountPoint("Energy", 30, 14, -30);
 	}
 }

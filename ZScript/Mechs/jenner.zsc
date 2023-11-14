@@ -1,0 +1,241 @@
+class MechJenner : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 90, 113;
+		DrivableMech.MaxWeight 35; // In Tons.
+		DrivableMech.ChassisName "Jenner";
+		DrivableMech.VariantName "JR7D";
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Jenner_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Jenner_Hips",  0,0,38, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Jenner_CenterTorso", 0,0,5, hips);
+		leftTorso  = AddHardpoint("Jenner_LeftTorso",  0,-16,0, torso);
+		rightTorso = AddHardpoint("Jenner_RightTorso", 0, 16,0, torso);
+		
+		leftLeg = AddHardpoint("Jenner_LeftLeg",  0,-14,0, legs);
+		rightLeg = AddHardpoint("Jenner_RightLeg", 0, 14,0, legs);
+			
+		leftArm  = AddHardpoint("Jenner_LeftArm",  0,-14,13, leftTorso);
+		rightArm = AddHardpoint("Jenner_RightArm", 0, 14,13, rightTorso);
+		
+		head = AddHardpoint("Jenner_Cockpit", 35,0,8, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD245");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		
+		torso.AddWeapon("SRM4", GROUPFLG_THREE);
+		rightTorso.AddItem("SRMAmmo");
+		
+		rightTorso.AddItem("MechJumpJet");
+		rightTorso.AddItem("MechJumpJet");
+		leftTorso.AddItem("MechJumpJet");
+		leftTorso.AddItem("MechJumpJet");
+		torso.AddItem("MechJumpJet");
+
+		head.AddItem("MechHeatsink");
+		leftArm.AddItem("MechHeatsink");
+		leftArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		
+		// leftTorso.AddItem("AMS");
+		
+		// Weapons
+		/*
+		leftArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		leftTorso.AddWeapon("SSRM6", GROUPFLG_TWO);
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
+		
+		head.AddWeapon("AMS");
+		
+		leftLeg.AddItem("AMSAmmo");
+		leftLeg.AddItem("MGAmmo");
+		rightLeg.AddItem("SSRMAmmo");
+		rightLeg.AddItem("SSRMAmmo");
+		*/
+	}
+}
+
+/*
+4 tons = 80pts STD Armor
+[HD] - 12
+[CT] - 14
+[LT] - 10
+[RT] - 10 
+[LA] - 7 + 3 = 10
+[RA] - 7 + 3 = 10
+[LL] - 9 - 2 = 7
+[RL] - 9 - 2 = 7
+Wildcard points 2 - 2 = 0
+*/
+
+class Jenner_Hips : MechHips {}
+
+class Jenner_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Jenner_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 113; // degs second
+	}
+}
+class Jenner_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 202, 202; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 120;
+		MechTorso.PitchRange 30, 30;
+		Radius 8;
+		Height 25;
+		
+		MechHardpoint.Vitals 14, 7;
+		MechHardpoint.SetupArmor 10, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 0.8,-8.5,25.32, 2, 1, 5, 0);
+		SetupMountArray("Missile", 0.8, 2.75,25.32, 2, 1, 5, 0);
+	}
+}
+
+class Jenner_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 1;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 10,20, 0,-8,-12;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 15, -7, -2.5);
+		AddMountPoint("Energy", 15, -7, 3);
+	}
+}
+class Jenner_RightArm : Jenner_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 10,20, 0,8,-12;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 15, 7, -2.5);
+		AddMountPoint("Energy", 15, 7, 3);
+	}
+}
+
+class Jenner_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 6;
+		Height 20;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 8, 2;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		// AMS
+		AddMountPoint("PDS", -10,10,28);
+		
+	}
+}
+class Jenner_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 6;
+		Height 20;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 8, 2;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Jenner_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		MechHardpoint.Vitals 7, 5;
+		MechHardpoint.SetupArmor 7, 0;
+	}	
+}
+class Jenner_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		
+		MechHardpoint.Vitals 7, 5;
+		MechHardpoint.SetupArmor 7, 0;
+	}	
+}

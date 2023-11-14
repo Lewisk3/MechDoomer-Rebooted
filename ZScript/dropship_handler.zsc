@@ -37,6 +37,9 @@ class MechDropship_Handler : StaticEventHandler
 			level.ChangeLevel("DROPSHIP", flags:CHANGELEVEL_NOINTERMISSION);
 			forceDropshipMap = false;
 		}
+		
+		if(sv_mdr_skipmaploading) scrfade = 0;
+		
 		if(level.maptime >= 8 && scrfade > 0 && gamestate == GS_LEVEL)
 		{	
 			scrfade *= 0.97;
@@ -50,7 +53,7 @@ class MechDropship_Handler : StaticEventHandler
 		if(!inv) return;
 		
 		scrfade = 2.0;
-		onFirstMap = inv.dropshipNextMap == "";
+		onFirstMap = (inv.dropshipNextMap == "") && sv_mdr_startondropship;
 		
 		Name curMap = level.mapname;
 		if( onFirstMap )

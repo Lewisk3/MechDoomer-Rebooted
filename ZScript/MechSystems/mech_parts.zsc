@@ -535,6 +535,30 @@ class MechHardpoint : MechPart
 		}
 	}
 	
+	virtual HardpointMount SetupMountArray(string mountType, double fw, double lr, double ud, int width, int height, double spacingx, double spacingy)
+	{
+		HardpointMount mntarray = NULL; 
+		
+		vector3 curOffs = (fw, lr, ud);
+		for(int my = 0; my < height; my++)
+		{
+			for(int mx = 0; mx < width; mx++)
+			{
+				if(!mntarray)
+					mntarray = AddMountPoint(mountType, fw, lr, ud);
+				else
+					mntarray.newOffset(curOffs.x, curOffs.y, curOffs.z);
+					
+				curOffs.y += spacingx;
+				
+			}
+			curOffs.y = lr;
+			curOffs.z += spacingy;
+		}
+		
+		return mntarray;
+	}
+	
 	clearscope virtual int getWeaponID(MechWeapon weap)
 	{
 		int index = items.Find(weap);
@@ -1131,12 +1155,12 @@ class MechArm : MechHardpoint
 			A_SetPitch(pitch + torso.recoilAngles.y, SPF_INTERPOLATE);
 		}
 		
-		if( !mech.driver || mountPoints.Size() <= 0 ) return;
+		if( !mech.driver ) return;
 		
 		vector3 aimingPos = mech.aimingPos; 
 		if(mech.torsoLock) aimingPos = mech.head.lookingPos;
 		
-		vector3 shootPos = mountPoints[0].getPos(true);	
+		vector3 shootPos = mountPoints.Size() <= 0 ? torso.OffsetPos(30,0,0) : mountPoints[0].getPos(true);	
 		
 		vector2 aimAngles = (mech.driver.angle, mech.driver.pitch);
 		if(mech.torsoLock) aimAngles = (torso.angle, torso.pitch);

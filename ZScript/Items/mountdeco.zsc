@@ -120,12 +120,12 @@ class MissileMountDeco : MechMountDeco
 		super.Tick();
 		if(!src || !src.mount) return;
 		
-		int curAmmo = src.checkAmmo();
+		int curAmmo = src.countAmmo();
 		bool noAmmo = (curAmmo < (mountIndex+1));
 		bInvisible = noAmmo;
 		
 		if(noAmmo) animOffs.x = -4;
-		
+	
 		if(!src.refire) return;
 		
 		int fireIndex = (src.refireCount - src.refire) % src.mount.countOffsets();

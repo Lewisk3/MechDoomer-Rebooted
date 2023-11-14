@@ -36,9 +36,9 @@ version "4.10.0"
 #include "ZScript/Items/engines.zsc"
 
 // Mech Basics
-#include "ZScript/Mech/mech_base.zsc"
-#include "ZScript/Mech/mech_parts.zsc"
-#include "ZScript/Mech/mech_explosions.zsc"
+#include "ZScript/MechSystems/mech_base.zsc"
+#include "ZScript/MechSystems/mech_parts.zsc"
+#include "ZScript/MechSystems/mech_explosions.zsc"
 
 // Lightning Effects
 #include "ZScript/Lightning/lightning_base.zsc"
@@ -62,7 +62,8 @@ version "4.10.0"
 #include "ZScript/Decorations/skyboxes.zsc"
 
 // Drivable Mechs
-#include "ZScript/hellbringer.zsc"
+#include "ZScript/Mechs/hellbringer.zsc"
+#include "ZScript/Mechs/jenner.zsc"
 
-
+// Other
 #include "ZScript/cine_drone.zsc"
