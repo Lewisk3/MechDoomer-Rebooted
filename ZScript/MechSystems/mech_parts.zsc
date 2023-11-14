@@ -233,7 +233,7 @@ class MechHardpoint : MechPart
 	
 	clearscope int getReserveArmorPoints()
 	{
-		return ceil(maxArmor - round(armorPoints + rearArmor + armorDamage));
+		return ceil(maxArmor - (armorPoints + rearArmor + armorDamage));
 	}
 	
 	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)

@@ -183,7 +183,7 @@ class MechHardpointContainer : MenuElement
 		MWDrawer.DrawString("ConsoleFont", ""..int(reserveArmorPoints), topBarPos + (160,9), translation:Font.CR_BLUE); 
 		
 		// Damage
-		MWDrawer.DrawString("ConsoleFont", String.Format("-%d", round(hardpoint.armorDamage)), topBarPos + (95,9), translation:Font.CR_RED, scale:(0.75,0.75)); 
+		MWDrawer.DrawString("ConsoleFont", String.Format("-%.2f", hardpoint.armorDamage), topBarPos + (95,9), translation:Font.CR_RED, scale:(0.75,0.75)); 
 		
 		MWDrawer.DrawString("ConsoleFont", ""..int(frontArmor), topBarPos + (rearArmor >= 0 ? size.x*0.25 : size.x*0.4,45));
 		if(rearArmor >= 0)
