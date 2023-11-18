@@ -52,10 +52,11 @@ class MechDropship_Handler : StaticEventHandler
 		let inv = I_MechItemStorage.Get(players[consoleplayer].mo);
 		if(!inv) return;
 		
-		scrfade = 2.0;
-		onFirstMap = (inv.dropshipNextMap == "") && sv_mdr_startondropship;
-		
 		Name curMap = level.mapname;
+		
+		scrfade = 2.0;
+		onFirstMap = curmap != "DROPSHIP" && (inv.dropshipNextMap == "") && sv_mdr_startondropship;
+		
 		if( onFirstMap )
 		{
 			// Start the player in a dropship.

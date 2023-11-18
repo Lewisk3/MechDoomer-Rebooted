@@ -487,11 +487,11 @@ Model GaussMountDeco
 Model DropshipSpace
 {
 	Path "models/"	
-	Model 0 "vfx/sky_sphere.obj"
-	Skin 0 "vfx/sky_sphere2.png"
+	Model 0 "vfx/skysphere.md3"
+	Skin 0 "vfx/nasa_starmap.png"
 	DONTCULLBACKFACES
 	CORRECTPIXELSTRETCH
-	Scale 10.0 10.0 10.0
+	Scale 16.0 16.0 16.0
 	
 	FrameIndex MODL A 0 0
 }

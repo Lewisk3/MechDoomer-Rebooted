@@ -123,6 +123,17 @@ class MechArmor_Ferro : MechArmor
 	}
 }
 
+class MechArmor_ClanFerro : MechArmor_Ferro
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Clan-Ferro-fibrous";
+		structureSlots = 7;
+		armorTier = 3;
+	}
+}
+
 // Chassis structures
 class MechChassis_Standard : MechChassisStructure
 {
@@ -145,6 +156,17 @@ class MechChassis_EndoSteel : MechChassisStructure
 		displayName = "Endosteel";
 		chassisWeightPercent = 0.5;
 		structureTier = 1; // Advanced structure tier
+	}
+}
+
+class MechChassis_ClanEndoSteel : MechChassis_EndoSteel
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 7;
+		displayName = "Clan-Endosteel";
+		structureTier = 3;
 	}
 }
 

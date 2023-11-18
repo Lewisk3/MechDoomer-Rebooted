@@ -148,7 +148,7 @@ class AdvArmorRepairKit : MechArmorRepairKit
 	{
 		displayName = "Advanced Armor Repair Kit";		 
 		armorRepairAmount = 10; // 10 points of armor per kit.
-		repairTier = 1;
+		repairTier = 3;
 		itemDescription = "\c[Yellow]Repairs Standard or Advanced Armor. Drag and drop on a damaged hardpoint to activate.";
 	}
 }
@@ -196,7 +196,7 @@ class AdvInternalsRepairKit : MechInternalsRepairKit
 	{
 		displayName = "Advanced Internal Repair Kit";		 
 		internalRepairAmount = 8;
-		repairTier = 1;
+		repairTier = 3;
 		itemDescription = (
 			"\c[Yellow]Repairs standard or advanced internal structures." 
 			"Drag and drop on a damaged hardpoint to activate.\n"

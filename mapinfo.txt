@@ -27,6 +27,8 @@ Map DROPSHIP "Dropship"
 {
 	levelnum = 0
 	cluster = 0
+	Music = "Music/dropship_ambience.ogg"
+	
 	NoIntermission
 	NoClusterText
 	

@@ -48,26 +48,30 @@ class MechHUD : VehicleHUD
 			double crosshairAlpha = 0.65;
 			
 			
+			let mechTarget = DrivableMech(mech.curTarget);	
 			if(powerupTics <= 0)
 			{
 				// Draw target selection
 				let curTarget = mech.curTarget;
 				if(curTarget)
 				{
+					double targRadius = curTarget.radius;
+					double targHeight = curTarget.height;
+					
 					vector2 topLeft, topRight, bottomLeft, bottomRight, center;
 			
 					[infront, center] = MWDrawer.GetActorHUDPos(viewproj, curTarget, 0, 0, 0);
 			
-					[infront, topLeft]       = MWDrawer.GetActorHUDPos(viewproj, curTarget, -curTarget.radius, 0, 0);
+					[infront, topLeft]       = MWDrawer.GetActorHUDPos(viewproj, curTarget, -targRadius, 0, 0);
 					if(!infront) topLeft     = (0, 0);
 					
-					[infront, topRight]      = MWDrawer.GetActorHUDPos(viewproj, curTarget,  curTarget.radius, 0, 0);
+					[infront, topRight]      = MWDrawer.GetActorHUDPos(viewproj, curTarget,  targRadius, 0, 0);
 					if(!infront) topRight    = (Screen.getWidth(), 0 );
 					
-					[infront, bottomLeft]    = MWDrawer.GetActorHUDPos(viewproj, curTarget,  -curTarget.radius, 0, curTarget.height);
+					[infront, bottomLeft]    = MWDrawer.GetActorHUDPos(viewproj, curTarget,  -targRadius, 0, targHeight);
 					if(!infront) bottomLeft  = (0, Screen.getHeight());
 					
-					[infront, bottomRight]   = MWDrawer.GetActorHUDPos(viewproj, curTarget,  curTarget.radius, 0, curTarget.height);
+					[infront, bottomRight]   = MWDrawer.GetActorHUDPos(viewproj, curTarget,  targRadius, 0, targHeight);
 					if(!infront) bottomRight = (Screen.getWidth(), Screen.getHeight());
 					
 					double thickness = 4;
@@ -149,7 +153,6 @@ class MechHUD : VehicleHUD
 			ToggleInterference(interferenceDuration > 0, e.fracTic, DrivablesMath.fmap(mech.EMI, 0, 100.0, 0.01, 0.6));
 			
 			// Draw target enemy paperdoll.
-			let mechTarget = DrivableMech(mech.curTarget);
 			
 			// TODO check is mech is friendly.
 			Color targetTint = 0xA07F7F7F;

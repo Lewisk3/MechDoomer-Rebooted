@@ -275,3 +275,142 @@ Model Jenner_Legs
    FrameIndex TLE4 E 0 64
    FrameIndex TLE4 F 0 65
 }
+
+// MarauderIIC
+Model MarauderIIC_CenterTorso
+{
+	Path "models/mechs/"
+	Model 0 "MarauderIIC/MarauderIIC_torso.md3"
+	SurfaceSkin 0 0 "MarauderIIC/MarauderIIC.png"
+	SurfaceSkin 0 1 "c_glass.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	
+   FrameIndex MODL A 0 0
+}
+Model MarauderIIC_Hips
+{
+	Path "models/mechs/MarauderIIC/"
+	Model 0 "MarauderIIC_hips.md3"
+	Skin 0 "MarauderIIC.png" // Main
+	Scale 1.0 1.0 1.0
+	Offset 0 0 0
+	USEACTORPITCH
+	
+   FrameIndex MODL A 0 0
+}
+Model MarauderIIC_LeftArm
+{
+	Path "models/mechs/MarauderIIC/"
+	Model 0 "MarauderIIC_leftarm.md3"
+	SurfaceSkin 0 0 "MarauderIIC.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	
+   FrameIndex MODL A 0 0
+}
+Model MarauderIIC_RightArm
+{
+	Path "models/mechs/MarauderIIC/"
+	Model 0 "MarauderIIC_rightarm.md3"
+	SurfaceSkin 0 0 "MarauderIIC.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	
+   FrameIndex MODL A 0 0
+}
+Model MarauderIIC_Cockpit
+{
+	Path "models"
+	Model 0 "mechs/MarauderIIC/MarauderIIC_head.obj"
+	Scale 0.0005 0.0005 0.0005
+	Skin 0 "mechs/MarauderIIC/MarauderIIC_head.png" // Main
+	USEACTORPITCH
+	USEACTORROLL 
+	DONTCULLBACKFACES
+	AngleOffset 90
+	Offset -15 0 -2;
+	
+   FrameIndex MODL A 0 0
+}
+Model MarauderIIC_Legs
+{
+	Path "models/mechs/MarauderIIC/"
+	Model 0 "MarauderIIC_legs.md3"
+	Scale 1.0 1.0 1.0
+	Skin 0 "MarauderIIC.png" // Main
+	Offset 0 0 0 
+	USEACTORPITCH
+	USEACTORROLL
+	
+ // Walk
+   FrameIndex TLE1 A 0 0
+   FrameIndex TLE1 B 0 1
+   FrameIndex TLE1 C 0 2
+   FrameIndex TLE1 D 0 3
+   FrameIndex TLE1 E 0 4
+   FrameIndex TLE1 F 0 5
+   FrameIndex TLE1 G 0 6
+   FrameIndex TLE1 H 0 7
+   FrameIndex TLE1 I 0 8
+   FrameIndex TLE1 J 0 9
+   FrameIndex TLE1 K 0 10
+   FrameIndex TLE1 L 0 11
+   FrameIndex TLE1 M 0 12
+   FrameIndex TLE1 N 0 13
+   FrameIndex TLE1 O 0 14
+   FrameIndex TLE1 P 0 15
+   FrameIndex TLE1 Q 0 16
+   FrameIndex TLE1 R 0 17
+   FrameIndex TLE1 S 0 18
+   FrameIndex TLE1 T 0 19
+   FrameIndex TLE1 U 0 20
+   FrameIndex TLE1 V 0 21
+   FrameIndex TLE1 W 0 22
+   FrameIndex TLE1 X 0 23
+   FrameIndex TLE1 Y 0 24
+   FrameIndex TLE1 Z 0 25
+   FrameIndex TLE2 A 0 26
+   FrameIndex TLE2 B 0 27
+   FrameIndex TLE2 C 0 28
+   FrameIndex TLE2 D 0 29
+   FrameIndex TLE2 E 0 30
+   FrameIndex TLE2 F 0 31
+   FrameIndex TLE2 G 0 32
+   // Run
+   FrameIndex TLE3 A 0 34
+   FrameIndex TLE3 B 0 35
+   FrameIndex TLE3 C 0 36
+   FrameIndex TLE3 D 0 37
+   FrameIndex TLE3 E 0 38
+   FrameIndex TLE3 F 0 39
+   FrameIndex TLE3 G 0 40
+   FrameIndex TLE3 H 0 41
+   FrameIndex TLE3 I 0 42
+   FrameIndex TLE3 J 0 43
+   FrameIndex TLE3 K 0 44
+   FrameIndex TLE3 L 0 45
+   FrameIndex TLE3 M 0 46
+   FrameIndex TLE3 N 0 47
+   FrameIndex TLE3 O 0 48
+   FrameIndex TLE3 P 0 49
+   FrameIndex TLE3 Q 0 50
+   FrameIndex TLE3 R 0 51
+   FrameIndex TLE3 S 0 52
+   FrameIndex TLE3 T 0 53
+   FrameIndex TLE3 U 0 54
+   FrameIndex TLE3 V 0 55
+   FrameIndex TLE3 W 0 56
+   FrameIndex TLE3 X 0 57
+   FrameIndex TLE3 Y 0 58
+   FrameIndex TLE3 Z 0 59
+   FrameIndex TLE4 A 0 60
+   FrameIndex TLE4 B 0 61
+   FrameIndex TLE4 C 0 62
+   FrameIndex TLE4 D 0 63
+   FrameIndex TLE4 E 0 64
+   FrameIndex TLE4 F 0 65
+}

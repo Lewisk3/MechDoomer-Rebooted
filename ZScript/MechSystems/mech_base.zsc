@@ -91,8 +91,7 @@ class DrivableMech : DrivableObject
 	Property SaveDataFormat : saveDataType;
 	Property ChassisName : mechChassisName;
 	Property VariantName : mechVariantName;
-	Property HUD_Class : HUDType;
-	
+	Property HUD_Class : HUDType;	
 	
 	enum MechBtns
 	{
@@ -829,13 +828,14 @@ class DrivableMech : DrivableObject
 		
 	}
 	
-	virtual void DoSimpleMovement(double fm, double sm)
+	virtual void DoSimpleMovement(double fm, double sm, bool useTurnSpeed = true)
 	{
 		// Normalize FM
 		bool running = cv_run && cv_run.getBool();
 		[fm, sm] = NormalizeMoveInputs(fm, sm);
 	
 		// Movement Math
+		double legTurnDegs = (MechLegs(legs).turnSpeed / double(TICRATE)) * 2.0;
 		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
 		
 		let mtorso = MechTorso(torso);
@@ -843,13 +843,20 @@ class DrivableMech : DrivableObject
 		
 		if( (fm || sm) && onground && moveSpeedKPH > 0 )
 		{
+			// Move Inputs
 			vector2 moveDir = (fm, -sm);
 			double moveAngle = driver.angle + atan2(moveDir.y, moveDir.x);
 			
-			angle = DrivablesMath.LerpDegrees(angle, moveAngle, 0.1);			
-			throttle = (1.0 * maxSpdMod) * (!fm ? abs(sm) : abs(clamp(fm, -0.5, 1.0)));
+			// Turn rate physics
+			double lerpAmt = useTurnSpeed ? clamp(1 / (abs(angle - moveAngle) / legTurnDegs), 0.05, 0.35) : 0.1;
+			double accelDirModifier = (cos(angle), sin(angle)) dot (cos(moveAngle), sin(moveAngle));
+			if(accelDirModifier < 0) accelDirModifier = 0;
 
-			vel += DrivablesMath.VecFromAngles(moveAngle, pitch, moveSpeed * abs(accel));
+			// Move and accelerate
+			angle = DrivablesMath.LerpDegrees(angle, moveAngle, lerpAmt);			
+			throttle = (1.0 * maxSpdMod) * (!fm ? abs(sm) : abs(clamp(fm, -0.5, 1.0)));
+			
+			vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * abs(accel) * accelDirModifier);
 		}
 		else
 		{
@@ -1429,6 +1436,7 @@ class I_SaveMechData : Inventory
 		// DEBUG
 		GiveMech("MechHellbringer");
 		GiveMech("MechJenner");
+		GiveMech("MechMarauderIIC");
 	}
 
 	override void DoEffect()

@@ -25,6 +25,7 @@ class MechItem : Object
 		IAE_INVALID 	= 3,
 		IAE_EXCLUSIVE	= 4,
 		IAE_NOTFOUND	= 5,
+		IAE_TOOCOMPLEX  = 6,
 		IAE_SUCCESS 	= 0xFF
 	};
 	
@@ -73,6 +74,7 @@ class MechItem : Object
 			case IAE_INVALID   : return ("This item cannot be equipped here.");
 			case IAE_EXCLUSIVE : return ("Only one of these items may be equipped.");
 			case IAE_NOTFOUND  : return ("Missing component.");
+			case IAE_TOOCOMPLEX: return ("Mech' structure is too complex to be modified.");
 			
 			// No Error message.
 			case IAE_SUCCESS:
@@ -594,9 +596,12 @@ class MechArmor : MechUtility
 		if(mech.noItemSlots) return IAE_NOSLOTS;
 		self.mech = part.mech;
 		
-		let prevArmor = mech.armorType;
-		mech.armorType = NULL;
+		let prevArmor = mech.armorType;		
+		if(prevArmor && (prevArmor.armorTier-1) > armorTier)
+			return IAE_TOOCOMPLEX;
+		
 		if(prevArmor) prevArmor.OnDetach();
+		mech.armorType = NULL;
 		
 		int fail = IAE_SUCCESS;
 		double weight = armorWeight*getArmorPoints(mech);
@@ -629,7 +634,7 @@ class MechArmor : MechUtility
 	}
 	
 	override void OnAttach()
-	{
+	{	
 		DoEffect(); // Setup tonnage.
 		for(int i = 0; i < structureSlots; i++)
 			mech.torso.AddItem(structType);
@@ -694,8 +699,11 @@ class MechChassisStructure : MechUtility
 		self.mech = part.mech;
 		
 		let prevStructure = mech.chassisStructure;
-		mech.chassisStructure = NULL;
+		if(prevStructure && (prevStructure.structureTier-1) > structureTier)
+			return IAE_TOOCOMPLEX;
+		
 		if(prevStructure) prevStructure.OnDetach();
+		mech.chassisStructure = NULL;
 		
 		int fail = IAE_SUCCESS;
 		double weight = getChassisWeight();

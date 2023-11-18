@@ -1161,6 +1161,7 @@ class MechArm : MechHardpoint
 		if(mech.torsoLock) aimingPos = mech.head.lookingPos;
 		
 		vector3 shootPos = mountPoints.Size() <= 0 ? torso.OffsetPos(30,0,0) : mountPoints[0].getPos(true);	
+		shootPos += Quat.FromAngles(angle, pitch, roll) * (20,0,0);
 		
 		vector2 aimAngles = (mech.driver.angle, mech.driver.pitch);
 		if(mech.torsoLock) aimAngles = (torso.angle, torso.pitch);

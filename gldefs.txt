@@ -69,6 +69,16 @@ material texture models/mechs/Jenner/jenner_head.png {
 	glossiness 10
 }
 
+material texture models/mechs/MarauderIIC/marauderiic.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/MarauderIIC/marauderiic_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 
 HardwareShader PostProcess Screen

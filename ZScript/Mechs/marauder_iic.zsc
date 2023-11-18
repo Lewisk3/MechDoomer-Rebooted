@@ -1,0 +1,235 @@
+class MechMarauderIIC : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 18, 22;
+		DrivableMech.MaxWeight 85; // In Tons.
+		DrivableMech.ChassisName "Marauder";
+		DrivableMech.VariantName "IIC";
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("MarauderIIC_Legs",  0,0,0,  self);
+		hips  = AddMechPart("MarauderIIC_Hips",  -5,0,66, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("MarauderIIC_CenterTorso", 5,0,3, hips);
+		leftTorso  = AddHardpoint("MarauderIIC_LeftTorso",  -5,-18,0, torso);
+		rightTorso = AddHardpoint("MarauderIIC_RightTorso", -5, 18,0, torso);
+		
+		leftLeg = AddHardpoint("MarauderIIC_LeftLeg",   -5,-27,0, legs);
+		rightLeg = AddHardpoint("MarauderIIC_RightLeg", -5, 27,0, legs);
+			
+		leftArm  = AddHardpoint("MarauderIIC_LeftArm",  -4,-6,8, leftTorso);
+		rightArm = AddHardpoint("MarauderIIC_RightArm", -4, 6,8, rightTorso);
+		
+		head = AddHardpoint("MarauderIIC_Cockpit", 35,0,12, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD340");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		MechChassisStructure.AddToMech(self, "MechChassis_ClanEndosteel");
+		
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		
+		leftLeg.AddItem("MechDoubleHeatsink");
+		rightLeg.AddItem("MechDoubleHeatsink");
+		
+		leftArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		
+		rightArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		
+		rightTorso.AddWeapon("ERSmallLaser", GROUPFLG_THREE);
+		
+		leftTorso.AddWeapon("ERPPC", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("ERSmallLaser", GROUPFLG_THREE);
+		
+		torso.AddWeapon("ERSmallLaser", GROUPFLG_THREE);
+		torso.AddWeapon("ERSmallLaser", GROUPFLG_THREE);
+		
+		//leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		//rightTorso.AddItem("SRMAmmo");
+	}
+}
+
+/*
+11/2 tons = 230pts STD Armor (IIC uses Endo though armor points arte conserved)
+[HD] - 12
+[CT] - 46 
+[LT] - 32 - 1
+[RT] - 32 - 1
+[LA] - 28 + 6
+[RA] - 28 + 6
+[LL] - 26 - 4
+[RL] - 26 - 4
+Wildcard points 2 + 8 + 2
+*/
+
+class MarauderIIC_Hips : MechHips {}
+
+class MarauderIIC_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class MarauderIIC_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 40; // degs second
+	}
+}
+class MarauderIIC_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 90, 90; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 85;
+		MechTorso.PitchRange 30, 30;
+		Radius 10;
+		Height 30;
+		
+		MechHardpoint.Vitals 46, 23;
+		MechHardpoint.SetupArmor 36, 10;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 5, -2, 32, 0.8);
+		AddMountPoint("Energy", 5, 2, 32, 0.8);
+	}
+}
+
+class MarauderIIC_LeftArm : MechArm
+{
+	Default
+	{
+		Radius 0;
+		Height 0;
+		MechArm.ActuationRange 30;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 15,25, 50,-27,-30;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 28, 0;
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 67, -28, -13.5, 1.15);
+		AddMountPoint("Energy", 67, -28, -24.5);
+	}
+}
+class MarauderIIC_RightArm : MarauderIIC_LeftArm 
+{
+	Default
+	{
+		Radius 0;
+		Height 0;
+		MechHardpoint.HitBox 15,25, 50,27,-30;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 28, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 67, 28, -13.5, 1.15);
+		AddMountPoint("Energy", 67, 28, -24.5);
+	}
+}
+
+class MarauderIIC_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 5;
+		Height 30;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 32, 16;
+		MechHardpoint.SetupArmor 24, 8;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 5, 2, 18, 0.7); 
+		AddMountPoint("Energy", 3, 2, 20, 0.6); 
+		
+		// AMS
+		AddMountPoint("PDS", -5,5,22);
+	}
+}
+class MarauderIIC_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 5;
+		Height 30;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 32, 16;
+		MechHardpoint.SetupArmor 24, 8;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 5, -2, 18, 0.75); 
+	}
+}
+
+class MarauderIIC_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 67;
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}	
+}
+class MarauderIIC_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 67;
+		
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}	
+}
