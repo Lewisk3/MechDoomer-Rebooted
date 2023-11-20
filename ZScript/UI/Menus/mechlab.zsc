@@ -684,12 +684,16 @@ class MenuItemsInvContainer : MenuElement
 		// Scrollbar Background
 		double xoffs = scrollBar.size.x * 0.35;
 		double yoffs = 10;
-		MWDrawer.Fill(0xFF000000, scrollBar.pos.x-xoffs, pos.y-yoffs+5, scrollBar.size.x * 1.7, size.y+yoffs);
+		vector2 scrollBackgroundPos = (scrollBar.pos.x-xoffs, pos.y-yoffs+5);
+		vector2 scrollBackgroundSize = (scrollBar.size.x * 1.7, size.y+yoffs);
+		MWDrawer.Fill(0xFF000000, scrollBackgroundPos.x, scrollBackgroundPos.y, scrollBackgroundSize.x, scrollBackgroundSize.y);
 		MWDrawer.DrawRect(
 			(scrollBar.pos.x-xoffs, pos.y-yoffs+5), 
 			(scrollBar.size.x * 1.7, size.y+yoffs), 
 			edgeColor
 		);
+		
+		bool scrollHover = AABBCollision(mechlab.cursor.pos, mechlab.cursor.size, scrollBackgroundPos, scrollBackgroundSize);
 		
 		double itemSpacing = 16;
 		double startY = 20;
@@ -817,6 +821,12 @@ class MenuItemsInvContainer : MenuElement
 			double scrollPerc = scroll / scrollMax;
 			double toScrollY = pos.y + ( (size.y - scrollBar.size.y) * scrollPerc );
 			scrollBar.pos.y = toScrollY;
+						
+			if(scrollHover && mechlab.cursor.leftDown)
+			{
+				double diff = (mechlab.cursor.pos.y - scrollBackgroundPos.y) / scrollBackgroundSize.y;
+				scroll = diff * scrollMax;
+			}
 		}
 		else
 		{

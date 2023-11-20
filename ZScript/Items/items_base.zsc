@@ -1097,10 +1097,15 @@ class MechEngine : MechItem
 		int eblockSlots = blocks * (blockSize ? blockSize : engBlock.size);
 		engBlock.Destroy();
 		
+		int engTotalSlots = size + (blocks*2) * blockSize;
+		int freeSlots = MechDynamicStructure.getTotalFreeslots(part.mech);
+	
 		let lt = part.mech.leftTorso;
-		let rt = part.mech.rightTorso;
+		let rt = part.mech.rightTorso;	
+		
 		if( (lt.slots +  eblockSlots) > lt.maxslots ||
-			(rt.slots +  eblockSlots) > rt.maxslots    ) 
+			(rt.slots +  eblockSlots) > rt.maxslots ||
+			freeSlots < engTotalSlots ) 
 		{
 			return IAE_NOSLOTS;
 		}

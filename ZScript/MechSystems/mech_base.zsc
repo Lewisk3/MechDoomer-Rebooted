@@ -851,6 +851,8 @@ class DrivableMech : DrivableObject
 			double lerpAmt = useTurnSpeed ? clamp(1 / (abs(angle - moveAngle) / legTurnDegs), 0.05, 0.35) : 0.1;
 			double accelDirModifier = (cos(angle), sin(angle)) dot (cos(moveAngle), sin(moveAngle));
 			if(accelDirModifier < 0) accelDirModifier = 0;
+			
+			angVel = lerpAmt * abs(angle - moveAngle);
 
 			// Move and accelerate
 			angle = DrivablesMath.LerpDegrees(angle, moveAngle, lerpAmt);			
@@ -862,6 +864,8 @@ class DrivableMech : DrivableObject
 		{
 			throttle *= 0.7;
 		}
+		
+		angVel *= 0.75;
 		
 		int accelSign = fm < 0 ? -1 : 1;
 		double moveAmt = !moveSpeedKPH ? 1 : accelKPH / moveSpeedKPH;
@@ -1301,6 +1305,9 @@ class MechLoader : Actor
 				item.TryAttach(hardpoint, forced:true);
 			}
 		}
+		
+		// Restore weapon groups
+		mech.weaponGroups.Copy(data.weaponGroups);
 		
 		// Restore misc fields
 		data.RestoreCache(mech);

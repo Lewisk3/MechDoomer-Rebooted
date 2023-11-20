@@ -166,7 +166,7 @@ class LargeLaser : MechLaserWeapon
 		laserRange = 900; // Meters
 		range = 450;
 		damage = convertDMG(9.0, fireTime);
-		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
+		laserHeat = convertHeat(6.0, fireTime); // Laserbeam heat.
 		energyUse = 0.6 / double(fireTime);
 		
 		fireSound = "Laser/Large";
@@ -187,7 +187,7 @@ class ERLargeLaser : LargeLaser
 	
 		laserRange = 1480; // Meters
 		range = 740;
-		laserHeat = convertHeat(7.5, fireTime); // Laserbeam heat.
+		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
 		energyUse = 0.7 / double(fireTime);
 		
 		laserColor = "Purple";
@@ -212,7 +212,7 @@ class LargePulseLaser : LargeLaser
 		laserRange = 740; // Meters
 		range = 370;
 		damage = convertDMG(10.0, maxLaserTime);
-		laserHeat = convertHeat(14.5, maxLaserTime); // Laserbeam heat.
+		laserHeat = convertHeat(12.0, maxLaserTime); // Laserbeam heat.
 		energyUse = 0.06 / double(fireTime);
 		pulseSpeed = 50;
 		
