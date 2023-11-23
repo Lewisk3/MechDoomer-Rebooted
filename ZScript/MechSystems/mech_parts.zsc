@@ -535,7 +535,7 @@ class MechHardpoint : MechPart
 		}
 	}
 	
-	virtual HardpointMount SetupMountArray(string mountType, double fw, double lr, double ud, int width, int height, double spacingx, double spacingy)
+	virtual HardpointMount SetupMountArray(string mountType, double fw, double lr, double ud, int width, int height, double spacingx, double spacingy, double scale = 1.0)
 	{
 		HardpointMount mntarray = NULL; 
 		
@@ -545,7 +545,7 @@ class MechHardpoint : MechPart
 			for(int mx = 0; mx < width; mx++)
 			{
 				if(!mntarray)
-					mntarray = AddMountPoint(mountType, fw, lr, ud);
+					mntarray = AddMountPoint(mountType, fw, lr, ud, scale);
 				else
 					mntarray.newOffset(curOffs.x, curOffs.y, curOffs.z);
 					
@@ -1112,11 +1112,15 @@ class MechCockpit : MechHardpoint
 
 class MechArm : MechHardpoint
 {
+	bool alwaysConverge;
 	double aimMax;
 	double pitchMin, pitchMax;
 	double pitchOffs;
 	Property ActuationRange : aimMax;
 	property PitchRange : pitchMin, pitchMax;
+	
+	// If true, ignores the maximum actuation range, and will always fire towards the center of the driver's aim.
+	Property AlwaysConverge : alwaysConverge; 
 	
 	Default
 	{
@@ -1131,7 +1135,7 @@ class MechArm : MechHardpoint
 		super.OnAttach();
 		AddItem("MechShoulder");
 		AddItem("MechUpperArmActuator");
-		if(aimMax > 0) AddItem("MechLowerArmActuator");
+		if(aimMax > 1) AddItem("MechLowerArmActuator");
 	}
 		
 	virtual void ClampAngles(out double a, out double p)
@@ -1168,7 +1172,7 @@ class MechArm : MechHardpoint
 		vector3 sphere = level.SphericalCoords(shootPos, aimingPos, (angle, pitch));
 	
 		aimAngles -= sphere.xy;
-		ClampAngles(aimAngles.x, aimAngles.y);
+		if(!alwaysConverge) ClampAngles(aimAngles.x, aimAngles.y);
 		
 		lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
 	}

@@ -1,0 +1,211 @@
+class MechCenturion : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 48, 48;
+		DrivableMech.MaxWeight 50; // In Tons.
+		DrivableMech.ChassisName "Centurion";
+		DrivableMech.VariantName "A";
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Centurion_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Centurion_Hips",  0,0,45, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Centurion_CenterTorso", 0,0,4, hips);
+		leftTorso  = AddHardpoint("Centurion_LeftTorso",  0,-14,6, torso);
+		rightTorso = AddHardpoint("Centurion_RightTorso", 0, 14,6, torso);
+		
+		leftLeg = AddHardpoint("Centurion_LeftLeg",  0,-14,0, legs);
+		rightLeg = AddHardpoint("Centurion_RightLeg", 0, 14,0, legs);
+			
+		leftArm  = AddHardpoint("Centurion_LeftArm",  0,0,16, leftTorso);
+		rightArm = AddHardpoint("Centurion_RightArm", 0,0,16, rightTorso);
+		
+		head = AddHardpoint("Centurion_Cockpit", 8,0,34, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD200");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		torso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		torso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("AC10", GROUPFLG_ONE);
+		leftTorso.AddItem("AC10Ammo");
+		leftTorso.AddItem("AC10Ammo");
+		leftTorso.AddItem("MechHeatsink");
+		rightTorso.AddWeapon("LRM10", GROUPFLG_THREE);
+		rightTorso.AddItem("LRMAmmo");
+		rightTorso.AddItem("LRMAmmo");
+		rightTorso.AddItem("MechHeatsink");
+	}
+}
+
+/*
+8.5 tons = 170pts STD Armor
+[HD] - 12
+[CT] - 34
+[LT] - 24
+[RT] - 24
+[LA] - 20
+[RA] - 20
+[LL] - 18
+[RL] - 18
+*/
+
+class Centurion_Hips : MechHips {}
+
+class Centurion_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Centurion_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 113; // degs second
+	}
+}
+class Centurion_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 140, 140; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 130;
+		MechTorso.PitchRange 30, 30;
+		Radius 9;
+		Height 32;
+		
+		MechHardpoint.Vitals 34, 17;
+		MechHardpoint.SetupArmor 28, 6;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		// 2L
+		AddMountPoint("Energy", 10,-3,7, 0.5);
+		AddMountPoint("Energy", 10, 3,7, 0.5);
+	}
+}
+
+class Centurion_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 35;
+		MechArm.PitchRange 35, 35;
+		MechHardpoint.HitBox 6,15, 23,-7,-28;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 20, 10;
+		MechHardpoint.SetupArmor 20, 0;
+	}
+
+	override void SetupMounts()
+	{	
+		// 1B
+		AddMountPoint("Ballistic", 35,-7,-22);
+	}
+}
+class Centurion_RightArm : Centurion_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 6,15, 23, 7,-28;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 20, 10;
+		MechHardpoint.SetupArmor 20, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Centurion_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 4;
+		Height 24;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 20, 4;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		// 1PDS
+		AddMountPoint("PDS", -4,-2,26);
+	}
+}
+class Centurion_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 4;
+		Height 24;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 20, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		// 3M
+		SetupMountArray("Missile", 10.5,-8.15,15.25, 2,2, 2.75,1.75, scale:0.4);
+		SetupMountArray("Missile", 10.5,-8.15,15.25 - 3.5, 2,2, 2.75,1.75, scale:0.4);
+		SetupMountArray("Missile", 10.5,-8.15,15.25 - 5.25, 2,1, 2.75,1.75, scale:0.4);
+	}
+}
+
+class Centurion_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		MechHardpoint.Vitals 18, 9;
+		MechHardpoint.SetupArmor 18, 0;
+	}	
+}
+class Centurion_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		
+		MechHardpoint.Vitals 18, 9;
+		MechHardpoint.SetupArmor 18, 0;
+	}	
+}

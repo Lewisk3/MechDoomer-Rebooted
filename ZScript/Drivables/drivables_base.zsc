@@ -169,6 +169,7 @@ class DrivableComponent : Actor
 		+NOBLOCKMONST;
 		+DONTTHRUST;
 		+CANPASS;
+		+NOBLOOD; 
 		Scale 1.0;
 	}
 	

@@ -527,6 +527,8 @@ class LRM10 : MechMissileWeapon
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM10";
 		sndItemName = "Betty/Item/LRM";
+		mountDeco = "MissileMountDeco";
+		
 		damagable = true;
 		requiresTarget = true;
 	}
@@ -559,6 +561,8 @@ class LRM15 : MechMissileWeapon
 		ammoType = "LRMAmmo";
 		fireSound = "Missile/LRM15";
 		sndItemName = "Betty/Item/LRM";
+		mountDeco = "MissileMountDeco";
+		
 		damagable = true;
 		requiresTarget = true;
 	}

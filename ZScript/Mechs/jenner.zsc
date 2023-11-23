@@ -57,27 +57,6 @@ class MechJenner : DrivableMech
 		rightArm.AddItem("MechHeatsink");
 		rightArm.AddItem("MechHeatsink");
 		leftTorso.AddItem("MechHeatsink");
-		
-		// leftTorso.AddItem("AMS");
-		
-		// Weapons
-		/*
-		leftArm.AddWeapon("ERPPC", GROUPFLG_ONE);
-		rightArm.AddWeapon("ERPPC", GROUPFLG_ONE);
-		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
-		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
-		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
-		leftTorso.AddWeapon("SSRM6", GROUPFLG_TWO);
-		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
-		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
-		
-		head.AddWeapon("AMS");
-		
-		leftLeg.AddItem("AMSAmmo");
-		leftLeg.AddItem("MGAmmo");
-		rightLeg.AddItem("SSRMAmmo");
-		rightLeg.AddItem("SSRMAmmo");
-		*/
 	}
 }
 
@@ -149,6 +128,7 @@ class Jenner_LeftArm : MechArm
 		MechArm.PitchRange 30, 30;
 		MechHardpoint.HitBox 10,20, 0,-8,-12;
 		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		MechArm.AlwaysConverge true;
 
 		MechHardpoint.Vitals 10, 5;
 		MechHardpoint.SetupArmor 10, 0;

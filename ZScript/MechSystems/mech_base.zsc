@@ -1444,6 +1444,7 @@ class I_SaveMechData : Inventory
 		GiveMech("MechHellbringer");
 		GiveMech("MechJenner");
 		GiveMech("MechMarauderIIC");
+		GiveMech("MechCenturion");
 	}
 
 	override void DoEffect()

@@ -79,7 +79,16 @@ material texture models/mechs/MarauderIIC/marauderiic_head.png {
 	specularlevel 0.3
 	glossiness 10
 }
-
+material texture models/mechs/Centurion/centurion_full.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/Centurion/centurion_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 HardwareShader PostProcess Screen
 {

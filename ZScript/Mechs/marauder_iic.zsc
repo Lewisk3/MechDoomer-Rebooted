@@ -62,9 +62,6 @@ class MechMarauderIIC : DrivableMech
 		
 		torso.AddWeapon("ERSmallLaser", GROUPFLG_THREE);
 		torso.AddWeapon("ERSmallLaser", GROUPFLG_THREE);
-		
-		//leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
-		//rightTorso.AddItem("SRMAmmo");
 	}
 }
 
