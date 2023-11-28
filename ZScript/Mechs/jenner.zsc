@@ -128,8 +128,7 @@ class Jenner_LeftArm : MechArm
 		MechArm.PitchRange 30, 30;
 		MechHardpoint.HitBox 10,20, 0,-8,-12;
 		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
-		MechArm.AlwaysConverge true;
-
+	
 		MechHardpoint.Vitals 10, 5;
 		MechHardpoint.SetupArmor 10, 0;
 	}

@@ -897,7 +897,8 @@ class MechHips : MechPart
 	{
 		if(!mech) return;		
 		let torso = MechTorso(mech.torso);
-		A_SetPitch(torso.pitch + (torso.roll * torso.turnDir), SPF_INTERPOLATE);
+		double rollOffs = (torso.roll * torso.turnDir) * 0.5;
+		A_SetPitch(torso.pitch - rollOffs, SPF_INTERPOLATE);
 	}
 }
 
@@ -1112,7 +1113,7 @@ class MechCockpit : MechHardpoint
 
 class MechArm : MechHardpoint
 {
-	bool alwaysConverge;
+	bool unlimitedActuation;
 	double aimMax;
 	double pitchMin, pitchMax;
 	double pitchOffs;
@@ -1120,7 +1121,7 @@ class MechArm : MechHardpoint
 	property PitchRange : pitchMin, pitchMax;
 	
 	// If true, ignores the maximum actuation range, and will always fire towards the center of the driver's aim.
-	Property AlwaysConverge : alwaysConverge; 
+	Property UnlimitedActuation : unlimitedActuation; 
 	
 	Default
 	{
@@ -1172,7 +1173,7 @@ class MechArm : MechHardpoint
 		vector3 sphere = level.SphericalCoords(shootPos, aimingPos, (angle, pitch));
 	
 		aimAngles -= sphere.xy;
-		if(!alwaysConverge) ClampAngles(aimAngles.x, aimAngles.y);
+		if(!unlimitedActuation) ClampAngles(aimAngles.x, aimAngles.y);
 		
 		lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
 	}

@@ -592,7 +592,7 @@ class MechArmor : MechUtility
 	override int TryAttach(MechHardpoint part)
 	{
 		let mech = part.mech;
-		if(!mech) return IAE_FAIL;
+		if( !mech || (mech.armorType && mech.armorType.getClass() == getClass()) ) return IAE_FAIL;
 		if(mech.noItemSlots) return IAE_NOSLOTS;
 		self.mech = part.mech;
 		
@@ -1329,7 +1329,10 @@ class MechWeapon : MechItem
 	
 	virtual vector3 getFirePos()
 	{
-		return mount.getPos() + (fireOffs * parent.scale.X);
+		double offsScale = mount ? mount.decoScale : 1.0;
+		if(!offsScale) offsScale = 1.0;
+		
+		return mount.getPos() + (fireOffs * parent.scale.X * offsScale);
 	}
 	
 	override void OnInventoryAdd(I_MechItemStorage destInv)

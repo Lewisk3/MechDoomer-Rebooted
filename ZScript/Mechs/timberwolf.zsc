@@ -1,0 +1,240 @@
+class MechTimberwolf : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 30, 32;
+		DrivableMech.MaxWeight 75; // In Tons.
+		DrivableMech.ChassisName "Timberwolf";
+		DrivableMech.VariantName "Prime";
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Timberwolf_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Timberwolf_Hips",  -3,0,53, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Timberwolf_CenterTorso", 0,0,4, hips);
+		leftTorso  = AddHardpoint("Timberwolf_LeftTorso",  0,-25,27, torso);
+		rightTorso = AddHardpoint("Timberwolf_RightTorso", 0, 25,27, torso);
+		
+		leftLeg = AddHardpoint("Timberwolf_LeftLeg",  0,-20,0, legs);
+		rightLeg = AddHardpoint("Timberwolf_RightLeg", 0, 20,0, legs);
+			
+		leftArm  = AddHardpoint("Timberwolf_LeftArm",  0, 5,-8, leftTorso);
+		rightArm = AddHardpoint("Timberwolf_RightArm", 0,-5,-8, rightTorso);
+		
+		head = AddHardpoint("Timberwolf_Cockpit", 28,0,15, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Engine, Structure and Armor 
+		torso.AddItem("MechEngine_XL375");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		
+		rightTorso.AddWeapon("MachineGun", GROUPFLG_FOUR);
+		rightTorso.AddItem("MGAmmo");
+		torso.AddWeapon("MachineGun", GROUPFLG_FOUR);
+		
+		rightTorso.AddWeapon("LRM20", GROUPFLG_THREE);
+		rightTorso.AddItem("LRMAmmo");
+		leftTorso.AddWeapon("LRM20", GROUPFLG_THREE);
+		leftTorso.AddItem("LRMAmmo");
+		
+		leftTorso.AddWeapon("MediumPulseLaser", GROUPFLG_FOUR);
+		
+		/*
+		torso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		torso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("AC10", GROUPFLG_ONE);
+		leftTorso.AddItem("AC10Ammo");
+		leftTorso.AddItem("AC10Ammo");
+		leftTorso.AddItem("MechHeatsink");
+		rightTorso.AddWeapon("LRM10", GROUPFLG_THREE);
+		rightTorso.AddItem("LRMAmmo");
+		rightTorso.AddItem("LRMAmmo");
+		rightTorso.AddItem("MechHeatsink");
+		*/
+	}
+}
+
+/*
+12 tons = 240pts Clan Ferro Armor
+[HD] - 12
+[CT] - 48
+[LT] - 36
+[RT] - 36
+[LA] - 24
+[RA] - 24
+[LL] - 30
+[RL] - 30
+*/
+
+class Timberwolf_Hips : MechHips {}
+
+class Timberwolf_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Timberwolf_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 60; // degs second
+	}
+}
+class Timberwolf_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 99, 99; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 95;
+		MechTorso.PitchRange 30, 30;
+		Radius 14;
+		Height 28;
+		
+		MechHardpoint.Vitals 48, 24;
+		MechHardpoint.SetupArmor 42, 6;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		// 1B
+		AddMountPoint("Ballistic", 34, 0, 2, scale:2.0);
+	}
+}
+
+class Timberwolf_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 25;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 10,10, 23, -18,-32;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+
+	override void SetupMounts()
+	{	
+		// 2E
+		AddMountPoint("Energy", 46, -18, -26);
+		AddMountPoint("Energy", 46, -18, -29, scale:0.75);
+	}
+}
+class Timberwolf_RightArm : Timberwolf_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 10,10, 23, 18,-32;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		// 2E
+		AddMountPoint("Energy", 46, 18, -26);
+		AddMountPoint("Energy", 46, 18, -29, scale:0.75);
+	}
+}
+
+class Timberwolf_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 10;
+		Height 20;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 36, 18;
+		MechHardpoint.SetupArmor 32, 4;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		// 1E
+		AddMountPoint("Energy", 8, 14.5, -6, scale:1.0);
+		
+		// 1M
+		SetupMountArray("Missile", 17.5, -5.65 - 1.25, 3, 4,4, 4.75, 4.0);
+	}
+}
+class Timberwolf_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 10;
+		Height 20;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 36, 18;
+		MechHardpoint.SetupArmor 32, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		// 1B
+		AddMountPoint("Ballistic", 14, -10.5, -16, scale:2.0);
+		
+		// 1M
+		SetupMountArray("Missile", 17.5, -5.65, 3, 4,4, 4.75, 4.0);
+	}
+}
+
+class Timberwolf_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+}
+class Timberwolf_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+}

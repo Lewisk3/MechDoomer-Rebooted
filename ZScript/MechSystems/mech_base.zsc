@@ -982,7 +982,12 @@ class DrivableMech : DrivableObject
 		
 		// Powerup and shutdown states.
 		powerupCycleTics = max(0, powerupCycleTics-1);
-		if(shutdown || powerupCycleTics > 0) return;
+		if(shutdown || powerupCycleTics > 0) 
+		{
+			angVel *= 0.75;
+			legVel *= 0.75;
+			return;
+		}
 		
 		// Movement code.
 		
@@ -1441,10 +1446,11 @@ class I_SaveMechData : Inventory
 		super.AttachToOwner(other);
 		
 		// DEBUG
-		GiveMech("MechHellbringer");
 		GiveMech("MechJenner");
-		GiveMech("MechMarauderIIC");
 		GiveMech("MechCenturion");
+		GiveMech("MechHellbringer");
+		GiveMech("MechMarauderIIC");
+		GiveMech("MechTimberwolf");
 	}
 
 	override void DoEffect()
