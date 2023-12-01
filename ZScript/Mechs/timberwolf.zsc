@@ -205,10 +205,12 @@ class Timberwolf_RightTorso : MechSideTorso
 		MechHardpoint.RearArmor true;
 	}	
 	
+	
+	
 	override void SetupMounts()
 	{
 		// 1B
-		AddMountPoint("Ballistic", 14, -10.5, -16, scale:2.0);
+		AddMountPoint("Ballistic", 8, -14.5, -6, scale:1.0);
 		
 		// 1M
 		SetupMountArray("Missile", 17.5, -5.65, 3, 4,4, 4.75, 4.0);

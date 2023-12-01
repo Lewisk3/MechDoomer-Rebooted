@@ -1,7 +1,12 @@
 class MechInteraction_Handler : EventHandler
 {
-	DrivableMech mechlab_curmech;
-	Actor mechlab_invsource;
+	Array<DrivableMech> mechlab_curmech;
+	
+	override void OnRegister()
+	{
+		super.OnRegister();
+		mechlab_curmech.Resize(MAXPLAYERS);
+	}
 
 	// Setup MechItems for players
 	override void WorldTick()
@@ -17,13 +22,17 @@ class MechInteraction_Handler : EventHandler
 			if(!mechData) plr.GiveInventory("I_SaveMechData", 1);
 		}	
 	}
-	
-	play void OpenMechlab(DrivableMech mech, PlayerPawn invSource)
+
+	play void OpenMechlab(int PID, DrivableMech mech)
 	{
-		mechlab_invsource = invSource;
-		mechlab_curmech = mech;
-		Menu.SetMenu("MechMenu_Mechlab");
-		SendInterfaceEvent(invSource.PlayerNumber(), "mechlab.update");
+		if(!mech) return;
+		
+		mechlab_curmech[PID] = mech;
+		if(PID == consoleplayer) 
+		{
+			Menu.SetMenu("MechMenu_Mechlab");
+			SendInterfaceEvent(PID, "mechlab.update");
+		}
 	}
 	
 	override void WorldUnloaded(WorldEvent e)
@@ -38,16 +47,17 @@ class MechInteraction_Handler : EventHandler
 	override void InterfaceProcess(ConsoleEvent e)
 	{	
 		string cmd = e.Name;
-	
+		let plr = players[consoleplayer].mo;
+		
 		let mechlab = MechMenu_Mechlab(Menu.getCurrentMenu());
 		if(mechlab) 
 		{
-			mechlab.processPlayEvent(e.Player, e.Name);
+			mechlab.processPlayEvent(consoleplayer, e.Name);
 			
 			if(cmd == 'mechlab.update')
 			{
-				mechlab.invSource = mechlab_invsource;
-				mechlab.mech = mechlab_curmech;
+				mechlab.invSource = plr;
+				mechlab.mech = mechlab_curmech[consoleplayer];
 				mechlab.InitElements();
 			}
 		}
@@ -88,14 +98,11 @@ class MechInteraction_Handler : EventHandler
 			if(cmd ~== "mw_overrideshutdown") drvObj.source.setExtBtn(DrivableMech.BT_OVRSHUTDWN, btnState);
 			if(cmd ~== "mw_toggleweaponstate") drvObj.source.setExtBtn(DrivableMech.BT_WEAPONSTATE, btnState);
 			
-			if(cmd ~== "mw_openmechlab" && e.Player == consoleplayer)
-			{
-				OpenMechlab(DrivableMech(drvObj.source), plr.mo);
-			}
+			if(cmd ~== "mw_openmechlab")
+				OpenMechlab(e.Player, DrivableMech(drvObj.source));
 		}
-				
-		if(mechlab_curmech && mechlab_invsource)
-			MechMenu_Mechlab.processMechlabEvents(e, PlayerPawn(mechlab_invsource), mechlab_curmech);
+		
+		MechMenu_Mechlab.processMechlabEvents(e, mechlab_curmech[e.Player]);
 		
 		// Cheats and Debug
 		Array<string> args;

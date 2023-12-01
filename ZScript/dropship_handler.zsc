@@ -32,7 +32,7 @@ class MechDropship_Handler : StaticEventHandler
 	override void WorldTick()
 	{
 		Name curMap = level.mapname;
-		if(level.maptime >= 2 && forceDropshipMap)
+		if(level.maptime >= 2 && forceDropshipMap && !sv_mdr_disabledropship)
 		{
 			level.ChangeLevel("DROPSHIP", flags:CHANGELEVEL_NOINTERMISSION);
 			forceDropshipMap = false;
@@ -160,7 +160,12 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void NetworkProcess(ConsoleEvent e)
 	{	
+		PlayerPawn plr = players[e.Player].mo;
+		if(!plr) return;
+		
+		Array<String> args;
 		string cmd = e.Name;
+		cmd.Split(args, ":");
 	
 		// TODO: Make this Multiplayer compatible via inventory item boolean per-player.
 		// 2023 and we still using inventory hacks, ZScript FTW.
@@ -170,6 +175,20 @@ class MechDropship_Handler : StaticEventHandler
 		
 		if(cmd ~== "mw_status_closedmechlab")
 			usingMechlab = false;
+			
+		if(args.Size() > 1)
+		{
+			if(args[0] ~== "loadmech")
+			{
+				let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+				if(!mechData) return;
+				
+				int mechbayID = args[1].ToInt();
+				
+				vector3 spawnPos = level.vec3offset(plr.pos, (cos(plr.angle), sin(plr.angle), 0) * ((plr.radius*2) + 64));
+				mechData.loadMechData(mechbayID, spawnPos);
+			}	
+		}
 	}
 }
 
@@ -183,7 +202,7 @@ class MechbayScripts abstract play
 		DrivableMech mech = I_SaveMechData.getMechbayMech(mechbayID-1);
 		if(!mech || !plr) return 0;
 		
-		evh.OpenMechlab(mech, plr);
+		evh.OpenMechlab(plr.PlayerNumber(), mech);
 		return 1;
 	}
 	
