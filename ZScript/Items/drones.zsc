@@ -376,29 +376,6 @@ class FieldDroneItem : Inventory
 	}
 }
 
-class FuckOff : Inventory
-{
-	override void DoEffect()
-	{
-		super.DoEffect();
-		let plr = players[consoleplayer].mo;
-		
-		FLineTraceData wtf;
-		vector3 ltPos = level.vec3offset(
-			(plr.pos.xy, plr.player.viewz), 
-			Quat.FromAngles(plr.angle, plr.pitch, plr.roll) * (30,0,0)
-		);
-		plr.LineTrace(
-			plr.angle, 1024*1024, 
-			plr.pitch, 
-			data:wtf
-		);
-		Spawn("PlasmaBall", wtf.hitLocation);
-		Spawn("BulletPuff", ltPos);
-	}
-	
-}
-
 class MechRepairDrone : MechFieldDrone
 {
 }
