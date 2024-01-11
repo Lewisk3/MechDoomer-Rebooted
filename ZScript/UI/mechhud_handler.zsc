@@ -57,6 +57,8 @@ class MechHUD_Handler : EventHandler
 			mech.activeHUD.Update(mech);
 			mech.activeHUD.Draw(e);
 		}
+		
+		DrawOverlays(e);
 	}
 }
 

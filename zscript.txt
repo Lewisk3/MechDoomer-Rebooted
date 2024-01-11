@@ -9,6 +9,7 @@ version "4.10.0"
 #include "ZScript/UI/SBS/mwdrawer_3D.zsc"
 #include "ZScript/UI/mechhud_handler.zsc"
 #include "ZScript/UI/mechhuds.zsc"
+#include "ZScript/UI/misc_overlays.zsc"
 #include "ZScript/UI/stringhelper.zsc"
 #include "ZScript/UI/wireframe.zsc"
 
