@@ -109,7 +109,7 @@ class MechLaserBeam : Actor
 	{
 		// On impact with something
 	}
-	
+
 	override void Tick()
 	{
 		if(isFrozen()) return;

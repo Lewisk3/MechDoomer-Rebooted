@@ -34,6 +34,7 @@ version "4.10.0"
 #include "ZScript/Items/mountdeco.zsc"
 #include "ZScript/Items/JumpJet.zsc"
 #include "ZScript/Items/engines.zsc"
+#include "ZScript/Items/drones.zsc"
 
 // Mech Basics
 #include "ZScript/MechSystems/mech_base.zsc"

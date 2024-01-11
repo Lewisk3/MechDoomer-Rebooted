@@ -345,7 +345,11 @@ class DrivableMech : DrivableObject
 		
 		// Save mech
 		MechSerializer = I_SaveMechData(driver.FindInventory("I_SaveMechData"));
-		if(MechSerializer) MechSerializer.SaveMechData(self);
+		if(MechSerializer) 
+		{
+			MechSerializer.SaveMechData(self);
+			MechSerializer.lastPilotedMech = self;
+		}
 		
 		// Update UseRange
 		if(PlayerPawn(driver)) PlayerPawn(driver).UseRange = 128;
@@ -1329,7 +1333,8 @@ class MechLoader : Actor
 
 class I_SaveMechData : Inventory
 {
-	int activeMechID; // Currently active mech by MechbayID.
+	int activeMechID; // Currently active mech by MechbayID.a
+	DrivableMech lastPilotedMech;
 	
 	Array<MechSaveData> mechsData;
 	

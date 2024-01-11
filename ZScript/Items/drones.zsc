@@ -1,0 +1,361 @@
+class MechFieldDrone : Actor
+{
+	Actor source; // Actor who deployed this drone.
+	DrivableMech targetMech; // The mech to target.
+	I_SaveMechData mechData;
+	double power, maxPower; // Depletes over flight and repair time.
+	double powerUse; // Power used on flight.
+	vector3 animAngles; // Animated angles for inertial flight
+	Quat rotation;
+	
+	DroneLaserMount droneLaser;
+
+	Default
+	{
+		Radius 5;
+		Height 5;
+		Scale 0.4;
+		+INTERPOLATEANGLES;
+		+NOGRAVITY;
+		+CANPASS;
+		+DROPOFF;
+		+SLIDESONWALLS;
+		+NOBLOCKMONST;
+	}
+	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(other == source) return false;
+		return super.CanCollideWith(other, passive);
+	}
+	
+	static MechFieldDrone DeployDrone(class<MechFieldDrone> drone, Actor source)
+	{
+		let fieldDrone = MechFieldDrone(Actor.Spawn(drone));
+		if(fieldDrone)
+		{
+			fieldDrone.source = source;
+			
+			// Get target mech from source.
+			let mechData = I_SaveMechData(source.FindInventory("I_SaveMechData"));
+			if(!mechData || !mechData.lastPilotedMech) 
+				console.printf("Drone AI [WARNING]: No active mech found.");
+			else
+				fieldDrone.targetMech = mechData.lastPilotedMech;
+				
+			fieldDrone.mechData = mechData;
+			
+			fieldDrone.OnDeploy();
+		}
+		return fieldDrone;
+	}
+	
+	virtual void UpdateTargetMech()
+	{
+		if(!mechData) return;
+		targetMech = mechData.lastPilotedMech;
+	}
+	
+	virtual void OnDeploy()
+	{
+		rotation = Quat.FromAngles(angle, pitch, roll);
+		A_FollowSource((0,0,0), -1);
+		
+		droneLaser = DroneLaserMount.Setup(self, (3.25,0,-11));
+	}
+	
+	virtual void A_LookSourceDirection(double interp = 0.3)
+	{
+		if(!source) return;
+		Quat toRotation = Quat.FromAngles(source.angle, source.pitch, source.roll);
+		
+		rotation = Quat.SLerp(rotation, toRotation, interp);
+	}
+	
+	virtual void A_FollowSource(vector3 offs, double moveSpeed = 8, double lookSpeed = 0.1)
+	{
+		if(!source) return;
+		
+		offs *= Scale.X;
+		
+		Quat sourceDir = Quat.FromAngles(angle, pitch, roll);
+		
+		double bobz = 0;
+		if(source.player)
+		{
+			double viewz = source.player.viewz;
+			bobz = source.pos.z - (viewz - source.player.viewheight);
+		}
+		
+		vector3 sourcePos = (source.pos.xy, (source.pos.z + source.height) - bobz);
+		vector3 targetPos = level.vec3offset(sourcePos, sourceDir * offs);
+		double dist = DrivablesMath.Distance3D(pos, targetPos);
+		
+		if( moveSpeed < 0 || dist >= 512) 
+		{
+			SetOrigin(targetPos, true);
+			return;
+		}
+		
+		if(dist <= 128)
+			A_LookSourceDirection(lookSpeed);
+		
+		let diff = level.vec3diff(pos, targetPos).Unit();
+		vel += diff * (min(1.0, DrivablesMath.fmap(dist, 0, 256, 0, 1.0)) * moveSpeed);
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		UpdateTargetMech(); 
+		
+		vel *= 0.8;
+		animAngles *= 0.92;
+		
+		// Tilt in direction of movement
+		double inertia = 0.75;
+		
+		double UD = vel dot (rotation * (0,0,1));
+		double LR = vel dot (rotation * (0,1,0));
+		double FB = vel dot (rotation * (1,0,0));
+		
+		animAngles.x += LR * inertia; // roll
+		animAngles.y += FB * inertia; // pitch
+		
+		animAngles.x = clamp(animAngles.x, -70,70);
+		animAngles.y = clamp(animAngles.y, -30,30);
+		
+		vector3 euler = DrivablesMath.getEuler(rotation);
+		A_SetAngle(euler.x, SPF_INTERPOLATE);
+		A_SetPitch(euler.y + animAngles.y, SPF_INTERPOLATE);
+		A_SetRoll(euler.z - animAngles.x, SPF_INTERPOLATE);
+		
+		// Drone bob
+		vel += (rotation * (0,0,1)) * (cos(level.maptime * 10) * 0.05); 
+	}	
+	
+	States
+	{
+		Spawn:
+			DRON A 1;
+		goto Follow;
+		
+		Follow:
+			DRON A 1 
+			{
+				A_FollowSource( (85, -50, -25), 8, 0.1);
+			}
+		loop;
+	}
+}
+
+class DroneLaserMount : Actor
+{
+	MechFieldDrone parent;
+	Actor laserTarget;
+	vector3 targetOffs;
+	vector3 laserOffs;
+	vector3 parentOffs;
+	DroneLaserBeam laser;
+	Quat rotation;
+
+	Default
+	{
+		Height 0;
+		Radius 0;
+		+NOINTERACTION;
+	}
+	
+	static DroneLaserMount Setup(MechFieldDrone parent, vector3 mountOffs, class<DroneLaserMount> mountType = "DroneLaserMount")
+	{
+		let lasermount = DroneLaserMount(Spawn(mountType));
+		if(lasermount)
+		{	
+			lasermount.parent = parent;
+			lasermount.parentOffs = mountOffs;
+			lasermount.A_SetScale(parent.Scale.X);
+			lasermount.rotation = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
+		}
+		return lasermount;
+	}
+	
+	void FindTarget()
+	{			
+		let it = ThinkerIterator.Create();
+		Actor act;
+		double closest = laserTarget ? Distance3DSquared(laserTarget) : double.infinity;
+		double sq_mindist = 64*64;
+		double sq_maxdist = 2048*2048;
+		while (act = Actor(it.Next()))
+		{
+			double dist = Distance3DSquared(act);
+			if(dist > closest || dist < sq_mindist || dist > sq_maxdist) continue;
+			if(act == parent || act == parent.source) continue;
+			
+			if(act == self || act == target) continue;
+			if(!act.bSHOOTABLE || (target && target.player && !act.bISMONSTER) || act.bKILLED) continue;   
+			
+			LookExParams look;
+			look.FOV = 360;
+			if(!IsVisible(act, true, look)) continue; // Actor is behind wall.     
+			
+			laserTarget = act;
+			closest = dist;
+		}
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		
+		if(!parent) return;
+		
+		laserOffs = (10,0,0) * Scale.X;
+		
+		if(!laser) 
+		{
+			laser = DroneLaserBeam(DroneLaserBeam.Create(
+				self, 
+				laserOffs.x, laserOffs.y, laserOffs.z, 
+				0,0, 
+				type:"DroneLaserBeam"
+			));
+			laser.A_SetScale(laser.Scale.X * Scale.X);
+		}
+		
+		Quat followDir = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
+		Quat desiredRotation = rotation;
+		
+		if(!laserTarget) 
+		{
+			desiredRotation = followDir; 
+			FindTarget();
+		}
+		else
+		{	
+			if(laserTarget.bCORPSE || laserTarget.health <= 0) 
+			{
+				laserTarget = NULL;
+				return;
+			}
+			
+			vector3 firePos = (laserTarget.pos.xy, laserTarget.pos.z + (laserTarget.height * 0.5));
+			vector3 angles = level.sphericalCoords(pos, firePos, (0,0));
+			
+			desiredRotation = Quat.FromAngles(-angles.x, -angles.y, parent.roll);
+		}	
+		
+		vector3 desiredEuler = DrivablesMath.getEuler(desiredRotation);
+		double rotDiff = abs(angle - desiredEuler.x) + abs(pitch - desiredEuler.y);
+			
+		laser.SetEnabled(!!laserTarget && rotDiff <= 10); 
+	
+		vector3 followPos = level.vec3offset(parent.pos, followDir * (parentOffs * scale.X));
+		SetOrigin(followPos, true);
+		
+		rotation = Quat.SLerp(rotation, desiredRotation, 0.2);
+		vector3 euler = DrivablesMath.getEuler(rotation);
+		A_SetAngle(euler.x, SPF_INTERPOLATE);
+		A_SetPitch(euler.y, SPF_INTERPOLATE);
+		A_SetRoll(euler.z, SPF_INTERPOLATE);
+	}
+	
+	States
+	{	
+		Spawn:
+			LASR A -1;
+		stop;
+	}
+}
+
+class DroneLaserBeam : MechLaserBeam
+{
+	double trueDamage;
+	Property LaserDamage : trueDamage;
+
+	Default
+	{
+		Scale 1.0;
+		RenderStyle "AddShaded";
+		DroneLaserBeam.LaserDamage 1;
+		
+		MechLaserBeam.LaserColor "Red";
+	}
+	
+	override void BeamTick()
+	{
+		if( hitData.hitType != TRACE_HitNone && trueDamage > 0 ) 
+			OnImpact(hitData.HitLocation, hitData.hitActor);
+	}
+	
+	override void OnImpact(vector3 hitPos, Actor hitActor)
+	{
+		let droneSource = DroneLaserMount(source);
+		if(droneSource && hitActor == droneSource.parent.source) 
+		{
+			SetEnabled(false);
+			return;
+		}
+	
+		let lasdec = Spawn("MWLaserDecal", hitPos);
+		lasdec.angle = angle;
+		lasdec.pitch = pitch;
+		lasdec.target = self;
+	
+		if(hitActor) 
+		{
+			if(hitActor is "MechHardpoint") return; // Skip
+			
+			hitActor.DamageMobJ(self, source, trueDamage, "Fire");
+			if(alpha >= 0.7) A_StartSound("Laser/Impact", CHAN_WEAPON, flags:CHANF_NOSTOP);
+		}
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		alpha = cos(level.maptime * 20);
+		
+		if(enabled)
+		{
+			A_StartSound("Laser/Loop", flags:CHANF_LOOPING|CHANF_NOSTOP);
+		}
+		else
+		{
+			A_StopSound(CHAN_BODY);
+		}	
+	}
+}
+
+class FieldDroneItem : Inventory
+{
+	class<MechFieldDrone> droneCls;
+	
+	Property DroneClass : droneCls;
+
+	Default
+	{
+		Inventory.MaxAmount 1;
+		Inventory.Icon "CELLA0";
+		FieldDroneItem.DroneClass "MechFieldDrone";
+		
+		+INVENTORY.AUTOACTIVATE;
+	}
+	
+	override bool Use(bool pickup)
+	{
+		MechFieldDrone.DeployDrone(droneCls, Owner);
+		return true;
+	}
+	
+	States
+	{
+		Spawn:
+			PLSS A -1;
+		loop;
+	}
+}
+
+class MechRepairDrone : MechFieldDrone
+{
+}
