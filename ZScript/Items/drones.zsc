@@ -157,7 +157,8 @@ class DroneLaserMount : Actor
 	vector3 laserOffs;
 	vector3 parentOffs;
 	DroneLaserBeam laser;
-	Quat rotation;
+	Quat rotation;	
+	Quat desiredRotation;
 
 	Default
 	{
@@ -175,33 +176,52 @@ class DroneLaserMount : Actor
 			lasermount.parentOffs = mountOffs;
 			lasermount.A_SetScale(parent.Scale.X);
 			lasermount.rotation = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
+			lasermount.desiredRotation = lasermount.rotation;
 		}
 		return lasermount;
 	}
 	
 	void FindTarget()
 	{			
+		laserTarget = NULL;
 		let it = ThinkerIterator.Create();
 		Actor act;
-		double closest = laserTarget ? Distance3DSquared(laserTarget) : double.infinity;
-		double sq_mindist = 64*64;
-		double sq_maxdist = 2048*2048;
+		double closest = laserTarget ? Distance3D(laserTarget) : double.infinity;
+		double sq_mindist = 64;
+		double sq_maxdist = 2048;
 		while (act = Actor(it.Next()))
 		{
-			double dist = Distance3DSquared(act);
+			double dist = Distance3D(act);
 			if(dist > closest || dist < sq_mindist || dist > sq_maxdist) continue;
 			if(act == parent || act == parent.source) continue;
 			
 			if(act == self || act == target) continue;
 			if(!act.bSHOOTABLE || (target && target.player && !act.bISMONSTER) || act.bKILLED) continue;   
-			
-			LookExParams look;
-			look.FOV = 360;
-			if(!IsVisible(act, true, look)) continue; // Actor is behind wall.     
+			if(!CheckTargetReachable(act)) continue;
 			
 			laserTarget = act;
 			closest = dist;
 		}
+	}
+	
+	virtual bool CheckTargetReachable(Actor act)
+	{
+		if(!act) return true;
+		
+		double dist = Distance3D(act);
+		vector3 firePos = (act.pos.xy, act.pos.z + (act.height * 0.5));
+		vector3 angles = level.sphericalCoords(pos, firePos, (0,0));
+		
+		LookExParams look;
+		look.FOV = 360;
+		if(!IsVisible(act, true, look)) return false; // Actor is behind wall.  
+			
+		FLineTraceData hitData;
+		vector3 ltPos = level.vec3offset(pos, rotation * (30,0,0));
+		LineTrace(-angles.x, dist, -angles.y, TRF_ABSPOSITION, ltPos.z, ltPos.x, ltPos.y, data:hitData);
+		if(hitData.HitType == TRACE_HitActor && hitData.hitActor == act) return true;
+		
+		return false;
 	}
 	
 	override void Tick()
@@ -224,7 +244,21 @@ class DroneLaserMount : Actor
 		}
 		
 		Quat followDir = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
-		Quat desiredRotation = rotation;
+		vector3 desiredEuler = DrivablesMath.getEuler(desiredRotation);
+		double rotDiff = abs(angle - desiredEuler.x) + abs(pitch - desiredEuler.y);
+			
+		laser.SetEnabled(!!laserTarget && rotDiff <= 10); 
+	
+		vector3 followPos = level.vec3offset(parent.pos, followDir * (parentOffs * scale.X));
+		SetOrigin(followPos, true);
+		
+		rotation = Quat.SLerp(rotation, desiredRotation, 0.2);
+		vector3 euler = DrivablesMath.getEuler(rotation);
+		A_SetAngle(euler.x, SPF_INTERPOLATE);
+		A_SetPitch(euler.y, SPF_INTERPOLATE);
+		A_SetRoll(euler.z, SPF_INTERPOLATE);
+		
+		if(!CheckTargetReachable(laserTarget)) laserTarget = NULL;
 		
 		if(!laserTarget) 
 		{
@@ -244,20 +278,6 @@ class DroneLaserMount : Actor
 			
 			desiredRotation = Quat.FromAngles(-angles.x, -angles.y, parent.roll);
 		}	
-		
-		vector3 desiredEuler = DrivablesMath.getEuler(desiredRotation);
-		double rotDiff = abs(angle - desiredEuler.x) + abs(pitch - desiredEuler.y);
-			
-		laser.SetEnabled(!!laserTarget && rotDiff <= 10); 
-	
-		vector3 followPos = level.vec3offset(parent.pos, followDir * (parentOffs * scale.X));
-		SetOrigin(followPos, true);
-		
-		rotation = Quat.SLerp(rotation, desiredRotation, 0.2);
-		vector3 euler = DrivablesMath.getEuler(rotation);
-		A_SetAngle(euler.x, SPF_INTERPOLATE);
-		A_SetPitch(euler.y, SPF_INTERPOLATE);
-		A_SetRoll(euler.z, SPF_INTERPOLATE);
 	}
 	
 	States
@@ -354,6 +374,29 @@ class FieldDroneItem : Inventory
 			PLSS A -1;
 		loop;
 	}
+}
+
+class FuckOff : Inventory
+{
+	override void DoEffect()
+	{
+		super.DoEffect();
+		let plr = players[consoleplayer].mo;
+		
+		FLineTraceData wtf;
+		vector3 ltPos = level.vec3offset(
+			(plr.pos.xy, plr.player.viewz), 
+			Quat.FromAngles(plr.angle, plr.pitch, plr.roll) * (30,0,0)
+		);
+		plr.LineTrace(
+			plr.angle, 1024*1024, 
+			plr.pitch, 
+			data:wtf
+		);
+		Spawn("PlasmaBall", wtf.hitLocation);
+		Spawn("BulletPuff", ltPos);
+	}
+	
 }
 
 class MechRepairDrone : MechFieldDrone
