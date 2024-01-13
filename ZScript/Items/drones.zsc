@@ -24,10 +24,19 @@ class AssaultDrone : DeployableDrone
 		DeployableDrone.DroneClass "AssaultFieldDrone";
 		DeployableDrone.OEMBattery "BasicDroneBattery";
 	}
-	
+		
 	override void DoEffect()
 	{
 		super.DoEffect();
+		
+		bool noBattery = !battery || battery.charge <= 0;
+		bool droneDestroyed = (!dmo || (dmo && dmo.health <= 0));
+		
+		if(mount)
+		{
+			if(noBattery || droneDestroyed) 
+				UnmountDrone();
+		}
 	}
 	
 	override bool Use(bool pickup)
@@ -41,6 +50,28 @@ class AssaultDrone : DeployableDrone
 class AssaultFieldDrone : MechFieldDrone 
 {
 	DroneLaserGun droneLaser;
+
+	// Discard targets the laser cannot physically reach.
+	override bool CheckTargetReachable(Actor act)
+	{
+		if(!droneLaser) return super.CheckTargetReachable(act);
+		if(!act) return true;
+		
+		double dist = droneLaser.Distance3D(act);
+		vector3 firePos = (act.pos.xy, act.pos.z + (act.height * 0.5));
+		vector3 angles = level.sphericalCoords(droneLaser.pos, firePos, (0,0));
+		
+		LookExParams look;
+		look.FOV = 120;
+		if(!droneLaser.IsVisible(act, false, look)) return false; // Actor is behind wall.  
+			
+		FLineTraceData hitData;
+		vector3 ltPos = level.vec3offset(droneLaser.pos, droneLaser.rotation * ((30,0,0)*Scale.X));
+		droneLaser.LineTrace(-angles.x, dist, -angles.y, TRF_ABSPOSITION, ltPos.z, ltPos.x, ltPos.y, data:hitData);
+		if(hitData.HitType == TRACE_HitActor && hitData.hitActor == act) return true;
+		
+		return false;
+	}
 
 	override void OnDeploy()
 	{

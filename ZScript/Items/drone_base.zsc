@@ -24,6 +24,7 @@ class MechFieldDrone : Actor
 		+DROPOFF;
 		+SLIDESONWALLS;
 		+NOBLOCKMONST;
+		Monster; // Enables this drone to be targetted.
 	}
 		
 	override bool CanCollideWith(Actor other, bool passive)
@@ -101,8 +102,45 @@ class MechFieldDrone : Actor
 		if(dist <= 128 && lookSpeed > 0)
 			A_LookSourceDirection(lookSpeed);
 		
-		let diff = level.vec3diff(pos, targetPos).Unit();
-		vel += diff * (min(1.0, DrivablesMath.fmap(dist, 0, 256, 0, 1.0)) * moveSpeed);
+		vector3 diff = level.vec3diff(pos, targetPos);
+		if(diff.Length() > 0)
+		{
+			let dir = diff.Unit();
+			vel += dir * (min(1.0, DrivablesMath.fmap(dist, 0, 256, 0, 1.0)) * moveSpeed);
+		}
+	}
+	
+	virtual bool CheckTargetReachable(Actor act)
+	{
+		if(!act) return true;
+		
+		LookExParams look;
+		look.FOV = 120;
+		if(!IsVisible(act, false, look)) return false; // Actor is behind wall.  
+		return true;
+	}
+	
+	virtual void FindTarget(bool keepCurrent = true)
+	{			
+		if(engagingTarget && keepCurrent) return;
+		
+		engagingTarget = NULL;
+		let it = ThinkerIterator.Create();
+		Actor act;
+		double closest = engagingTarget ? Distance3D(engagingTarget) : double.infinity;
+		double sq_mindist = 64;
+		double sq_maxdist = 2048;
+		while (act = Actor(it.Next()))
+		{
+			double dist = Distance3D(act);
+			if(dist > closest || dist < sq_mindist || dist > sq_maxdist) continue;
+			if(act == self || act == source || act.master == self) continue;
+			if(!act.bSHOOTABLE || (target && target.player && !act.bISMONSTER) || act.bKILLED) continue;   
+			if(!CheckTargetReachable(act)) continue;
+			
+			engagingTarget = act;
+			closest = dist;
+		}
 	}
 	
 	virtual void A_ProcessPilot()
@@ -215,10 +253,14 @@ class MechFieldDrone : Actor
 		A_SetRoll(euler.z - animAngles.x, SPF_INTERPOLATE);
 		
 		// Drone bob
-		vel += (rotation * (0,0,1)) * (cos(level.maptime * 10) * 0.05); 
+		if(bNOGRAVITY) vel += (rotation * (0,0,1)) * (cos(level.maptime * 10) * 0.05); 
+		
+		// Discard bad targets
+		if(!CheckTargetReachable(engagingTarget)) 
+			engagingTarget = NULL;
 		
 		// Update drone mode
-		if(data) mode = data.droneMode;
+		if(data) mode = data.droneMode;			
 	}	
 	
 	// This enables state sequences to be overwritten in child classes.
@@ -242,8 +284,9 @@ class MechFieldDrone : Actor
 		goto Think;
 		
 		Think:
-			TNT1 A 0 SetDroneState(data && (!data.battery || data.battery.charge <= 0), "NoBattery");
-			TNT1 A 0 SetDroneState(data && data.mount, "Follow");
+			TNT1 A 0 SetDroneState(!data, "Spawn");
+			TNT1 A 0 SetDroneState(!data.battery || data.battery.charge <= 0, "NoBattery");
+			TNT1 A 0 SetDroneState(data.mount, "Follow");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_PASSIVE || mode == DeployableDrone.DRM_HOSTILE, "Idle");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_TURRET, "Turret");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MECHUTILITY, "Mechutil");
@@ -253,6 +296,7 @@ class MechFieldDrone : Actor
 		Follow:
 			DRON A 1 
 			{
+				if(data.CheckCombatMode()) FindTarget();
 				A_FollowSource(0.1);
 			}
 		goto Think;
@@ -260,10 +304,10 @@ class MechFieldDrone : Actor
 		Turret:
 			DRON A 1
 			{
-				// A_FollowSource(0);
+				FindTarget();
 				if(!engagingTarget)
 					rotation *= Quat.FromAngles(-2,0,0);
-				else
+				else 
 					A_LookTowards(engagingTarget, 0.02);
 			}
 		goto Think;
@@ -271,6 +315,7 @@ class MechFieldDrone : Actor
 		Idle:
 			DRON A 1
 			{
+				if(data.CheckCombatMode()) FindTarget();
 				if(engagingTarget) 
 					A_LookTowards(engagingTarget, 0.02);
 			}
@@ -305,7 +350,6 @@ class DroneLaserBase : Actor
 class DroneLaserGun : Actor
 {
 	MechFieldDrone parent;
-	Actor laserTarget;
 	vector3 targetOffs;
 	vector3 laserOffs;
 	vector3 parentOffs;
@@ -335,6 +379,7 @@ class DroneLaserGun : Actor
 		let lasermount = DroneLaserGun(Spawn(mountType));
 		if(lasermount)
 		{	
+			lasermount.master = parent;
 			lasermount.parent = parent;
 			lasermount.parentOffs = mountOffs;
 			lasermount.A_SetScale(parent.Scale.X);
@@ -349,63 +394,14 @@ class DroneLaserGun : Actor
 		}
 		return lasermount;
 	}
-	
-	void FindTarget()
-	{			
-		laserTarget = NULL;
-		let it = ThinkerIterator.Create();
-		Actor act;
-		double closest = laserTarget ? Distance3D(laserTarget) : double.infinity;
-		double sq_mindist = 64;
-		double sq_maxdist = 2048;
-		while (act = Actor(it.Next()))
-		{
-			double dist = Distance3D(act);
-			if(dist > closest || dist < sq_mindist || dist > sq_maxdist) continue;
-			if(act == parent || act == parent.source) continue;
 			
-			if(act == self || act == target) continue;
-			if(!act.bSHOOTABLE || (target && target.player && !act.bISMONSTER) || act.bKILLED) continue;   
-			if(!CheckTargetReachable(act)) continue;
-			
-			laserTarget = act;
-			closest = dist;
-		}
-		
-		if(parent) parent.engagingTarget = laserTarget;
-	}
-	
-	virtual bool CheckTargetReachable(Actor act)
-	{
-		if(!act) return true;
-		
-		double dist = Distance3D(act);
-		vector3 firePos = (act.pos.xy, act.pos.z + (act.height * 0.5));
-		vector3 angles = level.sphericalCoords(pos, firePos, (0,0));
-		
-		LookExParams look;
-		look.FOV = 120;
-		if(!IsVisible(act, false, look)) return false; // Actor is behind wall.  
-			
-		FLineTraceData hitData;
-		vector3 ltPos = level.vec3offset(pos, rotation * ((30,0,0)*Scale.X));
-		LineTrace(-angles.x, dist, -angles.y, TRF_ABSPOSITION, ltPos.z, ltPos.x, ltPos.y, data:hitData);
-		if(hitData.HitType == TRACE_HitActor && hitData.hitActor == act) return true;
-		
-		return false;
-	}
-	
 	virtual void FollowParent()
 	{
 		Quat followDir = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
 		vector3 desiredEuler = DrivablesMath.getEuler(desiredRotation);
 		double rotDiff = abs(angle - desiredEuler.x) + abs(pitch - desiredEuler.y);
-		bool inCombatMode = !parent.data ? true : parent.data.CheckCombatMode();
-		
-		if(parent.mode != DeployableDrone.DRM_MANUAL)
-		{
-			laser.SetEnabled(!!laserTarget && rotDiff <= 10 && inCombatMode); 
-		}
+
+		laser.SetEnabled(!!parent.engagingTarget && rotDiff <= 10); 
 	
 		vector3 followPos = level.vec3offset(parent.pos, followDir * (parentOffs * scale.X));
 		SetOrigin(followPos, true);
@@ -427,28 +423,42 @@ class DroneLaserGun : Actor
 		// Update rotation based on target or mode.
 		desiredRotation = followDir; 
 		
-		if(laserTarget)
+		if(parent.engagingTarget)
 		{	
-			if(laserTarget.bCORPSE || laserTarget.health <= 0) 
+			if(parent.engagingTarget.bCORPSE || parent.engagingTarget.health <= 0) 
 			{
-				laserTarget = NULL;
+				parent.engagingTarget = NULL;
 				return;
 			}
 			
-			vector3 firePos = (laserTarget.pos.xy, laserTarget.pos.z + (laserTarget.height * 0.5));
+			vector3 firePos = (
+				parent.engagingTarget.pos.xy, 
+				parent.engagingTarget.pos.z + (parent.engagingTarget.height * 0.5)
+			);
 			vector3 angles = level.sphericalCoords(pos, firePos, (0,0));
 			
 			desiredRotation = Quat.FromAngles(-angles.x, -angles.y, parent.roll);
 		}	
 		
-		if(!inCombatMode)
+		if(parent.data && !parent.data.CheckCombatMode())
 			desiredRotation = Quat.FromAngles(parent.angle, parent.pitch - 20, parent.roll);
+	}
+	
+	override void OnDestroy()
+	{
+		super.OnDestroy();
+		if(laser) laser.Destroy();
+		if(base) base.Destroy();
 	}
 	
 	override void Tick()
 	{
 		super.Tick();
-		if(!parent) return;
+		if(!parent || parent.health <= 0) 
+		{
+			Destroy();
+			return;
+		}
 		
 		// Setup Laser		
 		if(!laser) 
@@ -462,12 +472,7 @@ class DroneLaserGun : Actor
 			));
 			laser.A_SetScale(laser.Scale.X * Scale.X);
 		}
-		
-		if(!laserTarget && parent.mode != DeployableDrone.DRM_MECHUTILITY) 
-			FindTarget();
-			
-		if(!CheckTargetReachable(laserTarget)) laserTarget = NULL;
-		
+					
 		FollowParent();
 		
 		// Fix aim on crosshair if in manual mode.
@@ -495,6 +500,7 @@ class DroneLaserGun : Actor
 
 class DroneLaserBeam : MechLaserBeam
 {
+	int acc;
 	double trueDamage;
 	Property LaserDamage : trueDamage;
 
@@ -502,7 +508,7 @@ class DroneLaserBeam : MechLaserBeam
 	{
 		Scale 1.0;
 		RenderStyle "AddShaded";
-		DroneLaserBeam.LaserDamage 1;
+		DroneLaserBeam.LaserDamage 2;
 		
 		MechLaserBeam.LaserColor "Red";
 	}
@@ -516,6 +522,8 @@ class DroneLaserBeam : MechLaserBeam
 	override void OnImpact(vector3 hitPos, Actor hitActor)
 	{
 		let droneSource = DroneLaserGun(source);
+		if(!droneSource || !droneSource.parent) return;
+		
 		if(droneSource && hitActor == droneSource.parent.source) 
 		{
 			SetEnabled(false);
@@ -531,8 +539,13 @@ class DroneLaserBeam : MechLaserBeam
 		{
 			if(hitActor is "MechHardpoint") return; // Skip
 			
-			hitActor.DamageMobJ(self, source, trueDamage, "Fire");
-			if(alpha >= 0.7) A_StartSound("Laser/Impact", CHAN_WEAPON, flags:CHANF_NOSTOP);
+			acc++;
+			if(acc > 10)
+			{
+				hitActor.DamageMobJ(self, droneSource.parent, trueDamage, "Fire");
+				if(alpha >= 0.7) A_StartSound("Laser/Impact", CHAN_WEAPON, flags:CHANF_NOSTOP);
+				acc = 0;
+			}
 		}
 	}
 	
@@ -573,9 +586,9 @@ class DroneBattery : I_DontStack
 		DroneBattery.PowerOutput 8;
 	}
 	
-	override void PostBeginPlay()
+	override void BeginPlay()
 	{
-		super.PostBeginPlay();
+		super.BeginPlay();
 		Init();
 	}
 	
@@ -780,6 +793,16 @@ class DeployableDrone : I_DontStack
 			droneData.MountDroneAt(self, mountID, force);
 		
 		return !!mount;
+	}
+	
+	virtual bool UnmountDrone()
+	{
+		if(!mount) return true;
+		let droneData = I_DroneData.Get(owner);
+		if(!droneData) return false;
+		
+		droneData.UnmountDrone(self);
+		return true;
 	}
 	
 	
