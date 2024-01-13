@@ -1,0 +1,38 @@
+ 
+/*
+Model MechFieldDrone
+{
+	Path "models/"
+	Model 0 "drones/drone_base.md3"
+	SurfaceSkin 0 0 "vfx/steel1.png"
+	SurfaceSkin 0 1 "vfx/mountBody.png"
+	SurfaceSkin 0 2 "vfx/eyeglow.png"
+	SurfaceSkin 0 3 "vfx/orange_glow.png"
+	SurfaceSkin 0 4 "vfx/c_simple.png"
+	SurfaceSkin 0 5 "vfx/steel2.png"
+	SurfaceSkin 0 6 "vfx/steel2.png"
+	Scale 1.0 1.0 1.0
+	RollOffset 180
+
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+   FrameIndex DRON A 0 0
+}
+
+Model DroneLaserMount
+{
+	Path "models/"
+	Model 0 "drones/drone_laser.md3"
+	SurfaceSkin 0 0 "vfx/mountBody.png"
+	SurfaceSkin 0 1 "vfx/laserGlass.png"
+	Scale 1.0 1.0 1.0
+
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+   FrameIndex LASR A 0 0
+}
+*/

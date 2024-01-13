@@ -1620,3 +1620,12 @@ class I_MechItemStorage : Inventory
 		return itm;
 	}
 }
+
+class I_DontStack : Inventory
+{
+	override bool HandlePickup (Inventory item)
+	{
+		if (item.GetClass() == GetClass()) return false;
+		return super.HandlePickup(item);
+	}	
+}

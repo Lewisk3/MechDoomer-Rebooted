@@ -1338,6 +1338,13 @@ class I_SaveMechData : Inventory
 	
 	Array<MechSaveData> mechsData;
 	
+	Default
+	{
+		Inventory.MaxAmount 1;
+		+INVENTORY.UNDROPPABLE;
+		-INVENTORY.INVBAR;
+	}
+	
 	virtual void GiveMech(class<DrivableMech> mechClass)
 	{
 		let mech = DrivableMech(Spawn(mechClass));

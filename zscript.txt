@@ -19,6 +19,7 @@ version "4.10.0"
 
 #include "ZScript/UI/Menus/menus_base.zsc"
 #include "ZScript/UI/Menus/mechlab.zsc"
+#include "ZScript/UI/Menus/drones_menu.zsc"
 
 // Vehicle System
 #include "ZScript/drivables/drivables_math.zsc"
@@ -35,6 +36,7 @@ version "4.10.0"
 #include "ZScript/Items/mountdeco.zsc"
 #include "ZScript/Items/JumpJet.zsc"
 #include "ZScript/Items/engines.zsc"
+#include "ZScript/Items/drone_base.zsc"
 #include "ZScript/Items/drones.zsc"
 
 // Mech Basics

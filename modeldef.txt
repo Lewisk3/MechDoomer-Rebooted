@@ -466,39 +466,59 @@ Model GaussMountDeco
 // Field Drones
 Model MechFieldDrone
 {
-	Path "models/"
-	Model 0 "drones/drone_base.md3"
-	SurfaceSkin 0 0 "vfx/steel1.png"
-	SurfaceSkin 0 1 "vfx/mountBody.png"
-	SurfaceSkin 0 2 "vfx/eyeglow.png"
-	SurfaceSkin 0 3 "vfx/orange_glow.png"
-	SurfaceSkin 0 4 "vfx/c_simple.png"
-	SurfaceSkin 0 5 "vfx/steel2.png"
-	SurfaceSkin 0 6 "vfx/steel2.png"
-	Scale 1.0 1.0 1.0
-	RollOffset 180
-	
+	Path "models/drones"	
+	Model 0 "drone_base.obj"
+	Skin 0 "Drone_Texture.png"
 	USEACTORPITCH
 	USEACTORROLL
-	CORRECTPIXELSTRETCH
+	DONTCULLBACKFACES
+	Scale 10.0 10.0 10.0
+	AngleOffset 90
 	
-   FrameIndex DRON A 0 0
+	FrameIndex DRON A 0 0
+}
+Model AssaultFieldDrone
+{
+	Path "models/drones"	
+	Model 0 "drone_base.obj"
+	Skin 0 "Drone_Texture.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	Scale 10.0 10.0 10.0
+	AngleOffset 90
+	
+	FrameIndex DRON A 0 0
 }
 
-Model DroneLaserMount
+Model DroneLaserBase
 {
-	Path "models/"
-	Model 0 "drones/drone_laser.md3"
-	SurfaceSkin 0 0 "vfx/mountBody.png"
-	SurfaceSkin 0 1 "vfx/laserGlass.png"
-	Scale 1.0 1.0 1.0
-	
+	Path "models/drones"	
+	Model 0 "drone_laser_base.obj"
+	Skin 0 "Turret_Texture.png"
 	USEACTORPITCH
 	USEACTORROLL
-	CORRECTPIXELSTRETCH
+	DONTCULLBACKFACES
+	Scale 10.0 10.0 10.0
+	AngleOffset 90
 	
-   FrameIndex LASR A 0 0
+	FrameIndex MODL A 0 0
 }
+Model DroneLaserGun
+{
+	Path "models/drones"	
+	Model 0 "drone_laser_gun.obj"
+	Skin 0 "Turret_Texture.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	Scale 10.0 10.0 10.0
+	AngleOffset 90
+	
+	FrameIndex LASR A 0 0
+}
+
+
 Model DroneLaserBeam
 {
 	Path "models/lasers/"
