@@ -32,7 +32,8 @@ class AssaultDrone : DeployableDrone
 	
 	override bool Use(bool pickup)
 	{
-		DeployDrone(DRM_MANUAL);
+		DeployDrone(DRM_HOSTILE);
+		MountDrone();
 		return false;
 	}
 }

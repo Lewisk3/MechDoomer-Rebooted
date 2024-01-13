@@ -63,9 +63,18 @@ class MechFieldDrone : Actor
 		rotation = Quat.SLerp(rotation, toRotation, interp);
 	}
 	
+	virtual void A_LookTowards(Actor act, double interp = 0.3)
+	{	
+		vector3 targetPos = (act.pos.xy, act.pos.z + (act.height * 0.5));
+		vector3 angles = level.sphericalCoords(pos, targetPos, (0,0));
+		Quat toRotation = Quat.FromAngles(-angles.x, -angles.y, roll);
+		
+		rotation = Quat.SLerp(rotation, toRotation, interp);
+	}
+	
 	virtual void A_FollowSource(double lookSpeed = 0.1, bool setPos = false)
 	{
-		if(!data || !source || !data.battery) return;
+		if(!data || !source || !data.battery || !data.mount) return;
 
 		double moveSpeed = data.battery.power;
 		vector3 offs = data.mount.mountPos * Scale.X;
@@ -89,7 +98,7 @@ class MechFieldDrone : Actor
 			return;
 		}
 		
-		if(dist <= 128)
+		if(dist <= 128 && lookSpeed > 0)
 			A_LookSourceDirection(lookSpeed);
 		
 		let diff = level.vec3diff(pos, targetPos).Unit();
@@ -153,7 +162,7 @@ class MechFieldDrone : Actor
 		if(hasPower) vel += wishDir * (data.battery.power * 0.2);
 		
 		if(cmd.buttons & BT_USE) 
-			data.SetMode(DeployableDrone.DRM_FOLLOW_ACTIVE);
+			data.SetMode(DeployableDrone.DRM_HOSTILE);
 		
 		// Reset source to cached angles.
 		source.A_SetAngle(cacheAngles.z);
@@ -234,12 +243,12 @@ class MechFieldDrone : Actor
 		
 		Think:
 			TNT1 A 0 SetDroneState(data && (!data.battery || data.battery.charge <= 0), "NoBattery");
-			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_FOLLOW_PASSIVE || mode == DeployableDrone.DRM_FOLLOW_ACTIVE, "Follow");
-			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_IDLE, "Idle.Passive");
-			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_TURRET, "Idle.Active");
+			TNT1 A 0 SetDroneState(data && data.mount, "Follow");
+			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_PASSIVE || mode == DeployableDrone.DRM_HOSTILE, "Idle");
+			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_TURRET, "Turret");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MECHUTILITY, "Mechutil");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MANUAL, "PilotMode");
-		loop;
+		goto Spawn;
 		
 		Follow:
 			DRON A 1 
@@ -248,16 +257,23 @@ class MechFieldDrone : Actor
 			}
 		goto Think;
 		
-		Idle.Active:
+		Turret:
 			DRON A 1
 			{
+				// A_FollowSource(0);
 				if(!engagingTarget)
 					rotation *= Quat.FromAngles(-2,0,0);
+				else
+					A_LookTowards(engagingTarget, 0.02);
 			}
 		goto Think;
 		
-		Idle.Passive:
-			DRON A 1;
+		Idle:
+			DRON A 1
+			{
+				if(engagingTarget) 
+					A_LookTowards(engagingTarget, 0.02);
+			}
 		goto Think;
 				
 		PilotMode:
@@ -368,8 +384,8 @@ class DroneLaserGun : Actor
 		vector3 angles = level.sphericalCoords(pos, firePos, (0,0));
 		
 		LookExParams look;
-		look.FOV = 360;
-		if(!IsVisible(act, true, look)) return false; // Actor is behind wall.  
+		look.FOV = 120;
+		if(!IsVisible(act, false, look)) return false; // Actor is behind wall.  
 			
 		FLineTraceData hitData;
 		vector3 ltPos = level.vec3offset(pos, rotation * ((30,0,0)*Scale.X));
@@ -628,17 +644,35 @@ class I_DroneData : Inventory
 		-INVENTORY.INVBAR;
 	}
 	
-	virtual DroneMount MountDrone(DeployableDrone drone)
+	virtual DroneMount FindDroneMount(DeployableDrone drone)
 	{
 		foreach(mnt : droneMounts)
 		{
 			if(!mnt.drone) 
 			{
 				mnt.drone = drone;
+				drone.mount = mnt;
 				return mnt;
 			}
 		}
 		return NULL;
+	}
+	
+	virtual DroneMount MountDroneAt(DeployableDrone drone, int mountID, bool replace = true)
+	{
+		--mountID;
+		if(mountID < 0 || mountID >= droneMounts.Size()) return NULL;
+		
+		let mnt = droneMounts[mountID];
+		if(mnt.drone)
+		{
+			if(!replace) return NULL;
+			UnmountDrone(mnt.drone);
+		}
+	
+		mnt.drone = drone;
+		drone.mount = mnt;
+		return mnt;
 	}
 	
 	virtual void UnmountDrone(DeployableDrone drone)
@@ -648,6 +682,7 @@ class I_DroneData : Inventory
 			if(mnt.drone == drone)  
 			{
 				mnt.drone = NULL;
+				drone.mount = NULL;
 				break;
 			}
 		}
@@ -684,8 +719,8 @@ class DeployableDrone : I_DontStack
 	
 	enum DroneModes 
 	{
-		DRM_FOLLOW_PASSIVE = 0,
-		DRM_FOLLOW_ACTIVE = 1,
+		DRM_PASSIVE = 0,
+		DRM_HOSTILE = 1,
 		DRM_IDLE = 2,
 		DRM_MANUAL = 3,
 		DRM_MECHUTILITY = 4,
@@ -720,23 +755,33 @@ class DeployableDrone : I_DontStack
 		}
 	}
 	
-	virtual bool DeployDrone(int mode = DRM_FOLLOW_ACTIVE)
+	virtual bool DeployDrone(int mode = DRM_PASSIVE)
 	{
 		if(dmo) return true;
 			
 		let droneData = I_DroneData.Get(owner);
 		if(!droneData) return false;
 		
-		if(!mount) mount = droneData.MountDrone(self);
-		if(mount) 
-		{
-			dmo = MechFieldDrone.Deploy(self, droneCls, Owner);
-			SetMode(mode);
-			return true;
-		}
-		
-		return false;
+		dmo = MechFieldDrone.Deploy(self, droneCls, Owner);
+		SetMode(mode);
+		return true;
 	}
+	
+	virtual bool MountDrone(int mountID = -1, bool force = true)
+	{
+		if(!dmo || mount) return false;
+		
+		let droneData = I_DroneData.Get(owner);
+		if(!droneData) return false;
+		
+		if(mountID < 0 )
+			droneData.FindDroneMount(self);
+		else
+			droneData.MountDroneAt(self, mountID, force);
+		
+		return !!mount;
+	}
+	
 	
 	virtual void SetMode(int mode)
 	{
@@ -745,6 +790,6 @@ class DeployableDrone : I_DontStack
 	
 	virtual bool CheckCombatMode()
 	{
-		return droneMode == DRM_FOLLOW_ACTIVE || droneMode == DRM_TURRET;
+		return droneMode == DRM_HOSTILE || droneMode == DRM_TURRET;
 	}
 }
