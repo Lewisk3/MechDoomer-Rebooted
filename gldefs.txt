@@ -118,6 +118,14 @@ material texture models/mechs/Timberwolf/timberwolf_head.png {
 	glossiness 10
 }
 
+material texture models/drones/Drone_Texture.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.8
+	normal "models/drones/Drone_Normals.png"
+	roughness "models/drones/Drone_Roughness.png"
+	brightmap "models/drones/Drone_Bright2.png"
+}
+
 HardwareShader PostProcess Screen
 {
 	Name "interferenceshader"

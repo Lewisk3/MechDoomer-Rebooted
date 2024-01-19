@@ -29,7 +29,7 @@ class MechFieldDrone : Actor
 		
 	override bool CanCollideWith(Actor other, bool passive)
 	{
-		if(other == source) return false;
+		if( other == source || other is "MechPart" || other is "MechHitbox" ) return false;
 		return super.CanCollideWith(other, passive);
 	}
 	
@@ -158,7 +158,7 @@ class MechFieldDrone : Actor
 		}
 		
 		// Keep pilot
-		source.SetCamera(self);
+		// source.SetCamera(self);
 		source.vel *= 0;
 		source.player.vel = source.vel.xy;
 		if(source.player.ReadyWeapon)
@@ -203,7 +203,7 @@ class MechFieldDrone : Actor
 			data.SetMode(DeployableDrone.DRM_HOSTILE);
 		
 		// Reset source to cached angles.
-		source.A_SetAngle(cacheAngles.z);
+		source.A_SetAngle(cacheAngles.x);
 		source.A_SetPitch(cacheAngles.y);
 		source.A_SetRoll(cacheAngles.z);
 		source.player.cheats |= CF_INTERPVIEW;
@@ -211,7 +211,7 @@ class MechFieldDrone : Actor
 		if(data.droneMode != DeployableDrone.DRM_MANUAL)
 		{
 			// Release pilot
-			source.SetCamera(source);
+			// source.SetCamera(source);
 			source.player.cheats &= ~CF_TOTALLYFROZEN;
 			flyingManual = false;
 			
@@ -286,11 +286,11 @@ class MechFieldDrone : Actor
 		Think:
 			TNT1 A 0 SetDroneState(!data, "Spawn");
 			TNT1 A 0 SetDroneState(!data.battery || data.battery.charge <= 0, "NoBattery");
+			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MANUAL, "PilotMode");
 			TNT1 A 0 SetDroneState(data.mount, "Follow");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_PASSIVE || mode == DeployableDrone.DRM_HOSTILE, "Idle");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_TURRET, "Turret");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MECHUTILITY, "Mechutil");
-			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MANUAL, "PilotMode");
 		goto Spawn;
 		
 		Follow:

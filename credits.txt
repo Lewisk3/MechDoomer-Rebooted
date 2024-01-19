@@ -8,3 +8,5 @@ Trees
 	https://www.realm667.com/index.php/en/prop-stop-mainmenu-163-64831/vegetation-mainmenu-165-65318/1122-small-trees-a-bushes
 	The other two tree sprites are from Freedoom.
 }
+
+Drone models and textures created by inkoalawetrust.
