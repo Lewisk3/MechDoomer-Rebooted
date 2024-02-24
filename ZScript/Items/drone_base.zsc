@@ -75,9 +75,9 @@ class MechFieldDrone : Actor
 	
 	virtual void A_FollowSource(double lookSpeed = 0.1, bool setPos = false)
 	{
-		if(!data || !source || !data.battery || !data.mount) return;
+		if(!data || !source || data.charge <= 0 || !data.mount) return;
 
-		double moveSpeed = data.battery.power;
+		double moveSpeed = data.power;
 		vector3 offs = data.mount.mountPos * Scale.X;
 
 		Quat sourceDir = Quat.FromAngles(angle, pitch, roll);
@@ -149,7 +149,7 @@ class MechFieldDrone : Actor
 		if(!source.player || !data) return;
 		
 		UserCmd cmd = source.player.cmd;
-		bool hasPower = data.battery && data.battery.charge > 0;
+		bool hasPower = data.charge > 0;
 		
 		if(!flyingManual)
 		{
@@ -197,7 +197,7 @@ class MechFieldDrone : Actor
 		if(fw || lr) dir.xy = (fw, lr).Unit();
 		
 		vector3 wishDir = Quat.FromAngles(angle, pitch, roll) * (dir.x, -dir.y, dir.z);
-		if(hasPower) vel += wishDir * (data.battery.power * 0.2);
+		if(hasPower) vel += wishDir * (data.power * 0.2);
 		
 		if(cmd.buttons & BT_USE) 
 			data.SetMode(DeployableDrone.DRM_HOSTILE);
@@ -229,7 +229,7 @@ class MechFieldDrone : Actor
 		super.Tick();
 		if(pos.z <= floorz+3) SetOrigin((pos.xy, floorz+3), true);
 		
-		bNOGRAVITY = data && data.battery && data.battery.charge > 0;
+		bNOGRAVITY = data && data.charge > 0;
 		
 		vel *= 0.8;
 		animAngles *= 0.92;
@@ -285,7 +285,7 @@ class MechFieldDrone : Actor
 		
 		Think:
 			TNT1 A 0 SetDroneState(!data, "Spawn");
-			TNT1 A 0 SetDroneState(!data.battery || data.battery.charge <= 0, "NoBattery");
+			TNT1 A 0 SetDroneState(data.charge <= 0, "NoBattery");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MANUAL, "PilotMode");
 			TNT1 A 0 SetDroneState(data.mount, "Follow");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_PASSIVE || mode == DeployableDrone.DRM_HOSTILE, "Idle");
@@ -565,74 +565,6 @@ class DroneLaserBeam : MechLaserBeam
 	}
 }
 
-// Drone Inventory Presence
-class DroneBattery : I_DontStack
-{
-	DeployableDrone drone;
-	double charge; // Current battery from 0 to 100.
-	double energyUse; // Determines how long battery will last - percent degraded per second.
-	double energyUseMultiplier;
-	double power; // Power output, determines how fast a drone moves.
-	
-	Property EnergyUse : energyUse;
-	Property PowerOutput : power;
-	
-	Default
-	{
-		Tag "Basic Drone Battery";
-		-INVENTORY.INVBAR;
-		
-		DroneBattery.EnergyUse 0.84;
-		DroneBattery.PowerOutput 8;
-	}
-	
-	override void BeginPlay()
-	{
-		super.BeginPlay();
-		Init();
-	}
-	
-	virtual void Init()
-	{
-		charge = 100;
-		energyUseMultiplier = 1.0;
-	}
-	
-	override void Tick()
-	{
-		super.Tick();
-		if(drone) DroneThink();
-	}
-	
-	virtual void DroneThink()
-	{
-		// Do stuff while equipped on a drone.
-
-		// Drain battery over time
-		charge -= (energyUse / TICRATE) * energyUseMultiplier;
-		charge = clamp(charge, 0, 100);
-	}
-	
-	virtual bool Equip(DeployableDrone drone)
-	{
-		if(drone.battery && !drone.battery.Dequip()) 
-			return false;
-			
-		self.drone = drone;			
-		self.drone.battery = self;
-		return true;
-	}
-	
-	virtual bool Dequip()
-	{
-		if(!drone) return true;
-		
-		self.drone.battery = NULL;
-		self.drone = NULL;
-		return true;
-	}
-}
-
 class DroneMount : Object
 {
 	vector3 mountPos;
@@ -725,8 +657,15 @@ class I_DroneData : Inventory
 class DeployableDrone : I_DontStack
 {
 	MechFieldDrone dmo; // Drone Map Object
-	DroneBattery battery; // Battery information
 	DroneMount mount; // Mount info
+	
+	double charge; // Current battery from 0 to 100.
+	double energyUse; // Determines how long battery will last - percent degraded per second.
+	double energyUseMultiplier;
+	double power; // Power output, determines how fast a drone moves.
+	
+	Property EnergyUse : energyUse;
+	Property PowerOutput : power;
 
 	int droneMode;
 	
@@ -741,10 +680,7 @@ class DeployableDrone : I_DontStack
 	};
 	
 	class<MechFieldDrone> droneCls;
-	class<DroneBattery> defaultBatteryCls;
-	
 	Property DroneClass : droneCls;
-	Property OEMBattery : defaultBatteryCls;
 
 	Default
 	{
@@ -753,19 +689,33 @@ class DeployableDrone : I_DontStack
 		-INVENTORY.INVBAR;
 		
 		DeployableDrone.DroneClass "MechFieldDrone";
-		DeployableDrone.OEMBattery "DroneBattery";
+		DeployableDrone.EnergyUse 0.84;
+		DeployableDrone.PowerOutput 8;
 	}
 	
-	override void AttachToOwner(Actor other)
+	override void BeginPlay()
 	{
-		super.AttachToOwner(other);
-		
-		if(!battery && defaultBatteryCls)
-		{
-			let dbat = DroneBattery(Spawn(defaultBatteryCls));
-			dbat.Equip(self);
-			other.AddInventory(dbat);
-		}
+		super.BeginPlay();
+		Init();
+	}
+	
+	virtual void Init()
+	{
+		charge = 100;
+		energyUseMultiplier = 1.0;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(dmo) DroneThink();
+	}
+	
+	virtual void DroneThink()
+	{
+		// Drain battery over time
+		charge -= (energyUse / TICRATE) * energyUseMultiplier;
+		charge = clamp(charge, 0, 100);
 	}
 	
 	virtual bool DeployDrone(int mode = DRM_PASSIVE)
@@ -804,8 +754,7 @@ class DeployableDrone : I_DontStack
 		droneData.UnmountDrone(self);
 		return true;
 	}
-	
-	
+
 	virtual void SetMode(int mode)
 	{
 		self.droneMode = mode;

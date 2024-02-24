@@ -114,7 +114,7 @@ class WireFrame_Handler : EventHandler
 		let cam = e.Camera;
 		let view = MWDrawer.GetRenderEventViewProj(e, cam.CameraFOV);
 		
-		Screen.Dim("Black", 0.25, 0,0, Screen.getWidth(), Screen.getHeight());
+		Screen.Dim("Black", 1.0, 0,0, Screen.getWidth(), Screen.getHeight());
 					
 		foreach(ln : level.lines)
 		{

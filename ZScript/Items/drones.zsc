@@ -1,16 +1,4 @@
 
-// Drone Inventory Presence
-class BasicDroneBattery : DroneBattery
-{
-	Default
-	{
-		Tag "Basic Drone Battery";
-
-		DroneBattery.EnergyUse 0.84;
-		DroneBattery.PowerOutput 8;
-	}
-}
-
 class AssaultDrone : DeployableDrone
 {
 	Default
@@ -22,14 +10,15 @@ class AssaultDrone : DeployableDrone
 		-INVENTORY.INVBAR;
 		
 		DeployableDrone.DroneClass "AssaultFieldDrone";
-		DeployableDrone.OEMBattery "BasicDroneBattery";
+		DeployableDrone.EnergyUse 0.84;
+		DeployableDrone.PowerOutput 8;
 	}
 		
 	override void DoEffect()
 	{
 		super.DoEffect();
 		
-		bool noBattery = !battery || battery.charge <= 0;
+		bool noBattery = charge <= 0;
 		bool droneDestroyed = (!dmo || (dmo && dmo.health <= 0));
 		
 		if(mount)
