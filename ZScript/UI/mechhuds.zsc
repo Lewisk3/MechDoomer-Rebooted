@@ -51,6 +51,28 @@ class MechHUD : VehicleHUD
 			let mechTarget = DrivableMech(mech.curTarget);	
 			if(powerupTics <= 0)
 			{
+				if(mech.inCombatZoom) 
+				{
+					Screen.EnableStencil(true);
+					Screen.SetStencil(0, SOP_Increment, SF_AllOn);
+					DrawCombatZoom();
+					Screen.SetStencil(1, SOP_Keep, SF_AllOn);
+					
+					// We need to make sure all of the HUD projection math fits with-in the zoom rect.
+					vector2 sRes = (Screen.getWidth(), Screen.getHeight());
+					vector2 winRes = (320,200) * 1.67;
+					vector2 scale = (
+						MWDrawer.GetBaseWidth() / sRes.x,
+						MWDrawer.GetBaseHeight() / sRes.y
+					);
+					viewproj = MWDrawer.GetRenderEventViewProj(e, mech.driver.player.desiredFOV * mech.combatZoomScale);
+					viewproj.resolution = (winRes.x / scale.x, winRes.y / scale.y);
+					viewproj.screenOffs = (sRes * 0.5) - (viewproj.resolution * 0.5);
+					
+					// I have no idea why this wont suffice, instead a Stencil is needed?!?!
+					//Screen.SetClipRect(viewproj.screenOffs.x, viewproj.screenOffs.y, viewproj.resolution.x, viewproj.resolution.y);
+				}
+			
 				// Draw target selection
 				let curTarget = mech.curTarget;
 				if(curTarget)
@@ -89,6 +111,8 @@ class MechHUD : VehicleHUD
 				double distStringScale = (Screen.getWidth() / MWDrawer.getBaseWidth());
 			
 				vector2 aimScale = (0.3,0.3);
+				if(mech.inCombatZoom) aimScale *= 0.5;
+				
 				[infront, torsoAimPos] = MWDrawer.ProjectToHUD(viewproj, torsoAim, (0,0,0));
 				if(infront) MWDrawer.DrawImage("Graphics/HUD/TorsoRet.png", torsoAimPos, alpha:crosshairAlpha, scale:aimScale, absolute:true);
 				
@@ -127,6 +151,12 @@ class MechHUD : VehicleHUD
 				}
 				
 				MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
+				if(mech.inCombatZoom)
+				{
+					// Disable stencil
+					Screen.EnableStencil(false);
+					Screen.ClearStencil();
+				}
 
 				MWDrawer.DrawString("ConsoleFont", 
 					String.Format("%dm", aimDistMetersTorso), (0,40), 
@@ -201,6 +231,13 @@ class MechHUD : VehicleHUD
 			DrawDebugInv(invPos + ( 300, 400), mech.leftLeg,    "Left Leg");
 			DrawDebugInv(invPos + ( 900, 400), mech.rightLeg,   "Right Leg");
 		}
+	}
+	
+	virtual void DrawCombatZoom()
+	{
+		let plr = mech.driver.player;
+		TexMan.SetCameraToTexture(plr.camera, "ZOOMWINDOW", plr.desiredFOV * mech.combatZoomScale);
+		MWDrawer.DrawImage("ZOOMWINDOW", (0,0), MWDrawer.SS_SCREEN_CENTER, 1.0, scale:(1.67,1.67));
 	}
 	
 	virtual double GetAimDistance(MechHardpoint fromHardpoint)

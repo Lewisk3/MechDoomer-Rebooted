@@ -30,6 +30,8 @@ class DrivableMech : DrivableObject
 	double healthPerc; // Health percent taking into account all hardpoints.
 	int mechbayID; // Used for saving mechs to mechbays.
 	bool noItemSlots; // If true, prevents any items from being equipped.
+	bool inCombatZoom; // If true, combat zoom is active.
+	double combatZoomScale; // Multiplied by desiredFOV.
 	MechChassisStructure chassisStructure;
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
@@ -92,6 +94,7 @@ class DrivableMech : DrivableObject
 	Property ChassisName : mechChassisName;
 	Property VariantName : mechVariantName;
 	Property HUD_Class : HUDType;	
+	Property CombatZoom : combatZoomScale;
 	
 	enum MechBtns
 	{
@@ -110,7 +113,8 @@ class DrivableMech : DrivableObject
 		BT_PEEKINV    = 1 << 12,
 		BT_POWERCYCLE = 1 << 13,
 		BT_OVRSHUTDWN = 1 << 14,
-		BT_WEAPONSTATE  = 1 << 15 // Toggles state of weapon; might be used to switch ammo-types for example.
+		BT_WEAPONSTATE = 1 << 15, // Toggles state of weapon; might be used to switch ammo-types for example.
+		BT_ITEMMAGNET  = 1 << 16
 	};
 	
 	enum GroupBits
@@ -143,6 +147,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.PaperdollBG "Graphics/HUD/Paperdoll/paperdoll_background.png", "Graphics/HUD/Paperdoll/paperdoll_thickOutline.png";
 		DrivableMech.SaveDataFormat "MechSaveData";
 		DrivableMech.HUD_Class "MechHUD";
+		DrivableMech.CombatZoom 0.1;
 	}
 	
 	override void PreTravelled()
@@ -646,6 +651,9 @@ class DrivableMech : DrivableObject
 		if( getExtBtn(BT_WEAPONSTATE, DriverBtns.BTS_PRESSED) && weap )
 			weap.ToggleState();
 			
+		if( getDriverBtn(BT_ZOOM, DriverBtns.BTS_PRESSED) )
+			inCombatZoom = !inCombatZoom;
+			
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
 		{
@@ -688,6 +696,35 @@ class DrivableMech : DrivableObject
 		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
 		{
 			// Unused 
+			// Maybe add mech crouching? This will require modifications to a mech's leg model.
+		}
+		
+		if(getExtBtn(BT_ITEMMAGNET, DriverBtns.BTS_DOWN))
+		{
+			console.printf("X: %f, Y: %f, Z: %f", pos.x,pos.y,pos.z);
+		
+			// Pickup nearby items.
+			let itemIt = ThinkerIterator.Create("Inventory");
+			Inventory item;
+			while( item = Inventory(itemIt.Next()) )
+			{	
+				double dist = torso.Distance3D(item);
+				string itemMsg = item.PickupMessage();
+				bool validItem = itemMsg != "$TXT_DEFAULTPICKUPMSG" && itemMsg != "";
+				bool canPickup = validItem && driver.CheckSight(item) && item.CanPickup(driver) && !item.Owner;
+				
+				if( dist > 64 && dist < 256 && canPickup )
+				{
+					double str = clamp(DrivablesMath.fmap(dist, 32, 512, 0, 1.0), 0, 1.0);
+					vector3 dir = level.vec3diff(item.pos, torso.pos);
+					item.vel += dir * (0.1 * str);
+					item.vel *= 0.8;
+				}
+				else if(canPickup && dist < 64)
+				{
+					item.Touch(driver);
+				}
+			}
 		}
 		
 		bool clicked = getDriverBtn(BT_ATTACK, DriverBtns.BTS_PRESSED);

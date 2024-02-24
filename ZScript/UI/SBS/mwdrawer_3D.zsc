@@ -66,6 +66,8 @@ class MWDViewProjection : Object
 	float FOV;
 	vector3 view_pos;
 	vector3 view_ang;
+	vector2 resolution;
+	vector2 screenOffs;
 }
 
 extend class MWDrawer
@@ -101,6 +103,8 @@ extend class MWDrawer
 		vp.FOV = viewplr ? viewplr.FOV : viewer.CameraFOV;
 		vp.view_pos = (viewer.pos.xy, viewz);
 		vp.view_ang = (viewer.angle, viewer.pitch, viewer.roll);
+		vp.resolution = (Screen.getWidth(), Screen.getHeight());
+		vp.screenOffs = (0,0);
 		
 		return vp;
 	}
@@ -111,6 +115,8 @@ extend class MWDrawer
 		vp.FOV = !FOV ? (ev.Camera.player ? ev.Camera.player.FOV : 90) : FOV; // / 1.1;
 		vp.view_pos = ev.viewpos;
 		vp.view_ang = (ev.viewangle, ev.viewpitch, ev.viewroll); // ev.viewangle
+		vp.resolution = (Screen.getWidth(), Screen.getHeight());
+		vp.screenOffs = (0,0);
 		
 		return vp;
 	}
@@ -135,8 +141,8 @@ extend class MWDrawer
 		vector3 world_pos = _worldpos;
 		 				
 		// Projection variables
-		vector2 resolution = (Screen.GetWidth(), Screen.GetHeight());
-		double aspect_ratio = max(4.0 / 3, Screen.GetAspectRatio());
+		vector2 resolution = viewp.resolution;
+		double aspect_ratio = max(4.0 / 3, (viewp.resolution.x / viewp.resolution.y));
 		vector2 tan_fov_2;		
 		tan_fov_2.x = tan(hor_fov / 2) * aspect_ratio / (4.0 / 3);
 		tan_fov_2.y = tan_fov_2.x / aspect_ratio;
@@ -182,6 +188,7 @@ extend class MWDrawer
 			normal_pos.x * resolution.x,
 			normal_pos.y * resolution.y );
 
+		finalPos += viewp.screenOffs;
 		return front, finalpos;
 	}
 	

@@ -45,6 +45,9 @@ Alias -mw_overrideshutdown "netevent -mw_overrideshutdown";
 Alias +mw_toggleweaponstate "netevent +mw_toggleweaponstate";
 Alias -mw_toggleweaponstate "netevent -mw_toggleweaponstate";
 
+Alias +mw_itemmagnet "netevent +mw_itemmagnet"
+Alias -mw_itemmagnet "netevent -mw_itemmagnet"
+
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK
 addmenukey "Fire Group 2" +ALTATTACK
@@ -70,3 +73,5 @@ addmenukey "Align Legs to Torso" +mw_alignlegs
 addmenukey "Align Torso to Legs" +mw_aligntorso
 addmenukey "View Mech Inventory" +mw_peekinventory;
 addmenukey "Open Mechlab" "netevent +mw_openmechlab";
+addmenukey "Item Magnet" +mw_itemmagnet
+addmenukey "Combat Zoom" +zoom
