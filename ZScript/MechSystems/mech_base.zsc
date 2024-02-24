@@ -701,8 +701,6 @@ class DrivableMech : DrivableObject
 		
 		if(getExtBtn(BT_ITEMMAGNET, DriverBtns.BTS_DOWN))
 		{
-			console.printf("X: %f, Y: %f, Z: %f", pos.x,pos.y,pos.z);
-		
 			// Pickup nearby items.
 			let itemIt = ThinkerIterator.Create("Inventory");
 			Inventory item;

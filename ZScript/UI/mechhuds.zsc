@@ -4,6 +4,8 @@ class MechHUD : VehicleHUD
 	
 	double chainBlink, powerupTics, weapPowerupTics, lockingRotation, curThrottle, curHeat;
 	double interferenceDuration;
+	double zoomTics;
+	bool inUIZoom;
 	int chainGroup; // For chainfire animation.
 		
 	void ToggleInterference(bool onoff, double timer, double amt = 0.45)
@@ -51,7 +53,8 @@ class MechHUD : VehicleHUD
 			let mechTarget = DrivableMech(mech.curTarget);	
 			if(powerupTics <= 0)
 			{
-				if(mech.inCombatZoom) 
+				if(mech.inCombatZoom) inUIZoom = true;
+				if(inUIZoom) 
 				{
 					Screen.EnableStencil(true);
 					Screen.SetStencil(0, SOP_Increment, SF_AllOn);
@@ -71,6 +74,10 @@ class MechHUD : VehicleHUD
 					
 					// I have no idea why this wont suffice, instead a Stencil is needed?!?!
 					//Screen.SetClipRect(viewproj.screenOffs.x, viewproj.screenOffs.y, viewproj.resolution.x, viewproj.resolution.y);
+				}
+				else
+				{
+					zoomTics = 0;
 				}
 			
 				// Draw target selection
@@ -235,9 +242,31 @@ class MechHUD : VehicleHUD
 	
 	virtual void DrawCombatZoom()
 	{
+		if(mech.inCombatZoom)
+		{
+			if(zoomTics < 60) 
+				zoomTics += 4.0 * deltaTime;
+		}
+		else if(inUIZoom)
+		{
+			if(zoomTics <= 0) inUIZoom = false;
+			zoomTics -= 8.0 * deltaTime;
+		}
+		
 		let plr = mech.driver.player;
 		TexMan.SetCameraToTexture(plr.camera, "ZOOMWINDOW", plr.desiredFOV * mech.combatZoomScale);
-		MWDrawer.DrawImage("ZOOMWINDOW", (0,0), MWDrawer.SS_SCREEN_CENTER, 1.0, scale:(1.67,1.67));
+		vector2 winScale = (1.67, 1.67 * (zoomTics / 60.));
+		vector2 winSize = (320 * winScale.x,200 * winScale.y);
+		vector2 TL = ((1920, 1080) * 0.5) - winSize * 0.5;
+		vector2 TR = (TL.x + winSize.x, TL.y); 
+		vector2 BL = (TL.x, TL.y + winSize.y);	
+		vector2 BR = TL + winSize;
+		
+		MWDrawer.DrawImage("ZOOMWINDOW", (0,0), MWDrawer.SS_SCREEN_CENTER, 1.0, scale:winScale);
+		MWDrawer.DrawThickLine(TL.x, TL.y, TR.x, TR.y, 5, 0xFF00FF00);
+		MWDrawer.DrawThickLine(TL.x, TL.y, BL.x, BL.y, 5, 0xFF00FF00);
+		MWDrawer.DrawThickLine(TR.x, TR.y, BR.x, BR.y, 5, 0xFF00FF00);
+		MWDrawer.DrawThickLine(BL.x, BL.y, BR.x, BR.y, 5, 0xFF00FF00);
 	}
 	
 	virtual double GetAimDistance(MechHardpoint fromHardpoint)
