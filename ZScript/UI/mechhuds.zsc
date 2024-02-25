@@ -158,12 +158,10 @@ class MechHUD : VehicleHUD
 				}
 				
 				MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
-				if(mech.inCombatZoom)
-				{
-					// Disable stencil
-					Screen.EnableStencil(false);
-					Screen.ClearStencil();
-				}
+		
+				// Disable zoom stencil
+				Screen.EnableStencil(false);
+				Screen.ClearStencil();
 
 				MWDrawer.DrawString("ConsoleFont", 
 					String.Format("%dm", aimDistMetersTorso), (0,40), 

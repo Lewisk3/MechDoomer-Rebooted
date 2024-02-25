@@ -60,6 +60,66 @@ class MechHUD_Handler : EventHandler
 		
 		DrawOverlays(e);
 	}
+	
+	override void InterfaceProcess(ConsoleEvent e)
+	{
+		let src = players[consoleplayer];
+		let drvObj = DrivableObjectPart(src.Camera);
+		if(!drvObj) return;
+		
+		let mech = DrivableMech(drvObj.base);
+		if(!mech) return;
+		
+		Array<String> args;
+		string cmds = e.Name;
+		cmds.Split(args, ">");
+		
+		if(args[0] ~== "hud")
+		{
+			if(mech.activeHUD) 
+				mech.activeHUD.NotifyHUD(args, e.Args[0]);
+		}
+	}
+}
+
+class VehicleHUDMessage : Object ui
+{
+	double keepon;
+	double duration;
+	double lifetime;
+	double alpha;
+	string text;
+	
+	static VehicleHUDMessage Create(string txt, double lifetime, class<VehicleHUDMessage> msgClass = "VehicleHUDMessage")
+	{
+		let msg = VehicleHUDMessage(new(msgClass));
+		msg.keepon = 30;
+		msg.lifetime = lifetime;
+		msg.duration = lifetime;
+		msg.text = txt;
+		msg.alpha = 1.0;
+		
+		return msg;
+	}
+	
+	virtual void Draw(double deltaTime)
+	{
+		if(alpha <= 0) return;
+		
+		if(keepon <= 0)
+		{
+			lifetime -= deltaTime;
+			alpha = lifetime / duration;
+		}
+		else keepon -= deltaTime;
+			
+		MWDrawer.DrawString("ConsoleFont", text, (600,240), alpha:alpha);
+	}
+	
+	virtual bool ShouldCleanup()
+	{
+		return (alpha <= 0);
+	}
 }
 
 // HUD Base 
@@ -73,6 +133,58 @@ class VehicleHUD : Object ui
 	double prevMS, deltatime;
 	
 	transient Shape2D radarCircle;
+	
+	Array<VehicleHUDMessage> messages;
+
+	virtual void NotifyHUD(out Array<String> args, int duration)
+	{
+		Name type = args[1];
+		string strArg = args[2];
+		
+		switch(type)
+		{
+			case 'notify':
+				AppendMessage(CreateMessage(strArg, duration));
+			break;
+			
+			default: break;
+		}
+	}
+	
+	// Overridable for easy switching to a custom HUD message class.
+	virtual VehicleHUDMessage CreateMessage(string txt, double duration)
+	{
+		return VehicleHUDMessage.Create(txt, duration);
+	}
+	
+	virtual bool AppendMessage(VehicleHUDMessage msg)
+	{
+		// Do not add multiple, duplicate messages.
+		for(int i = messages.Size()-1; i >= 0; i--)
+		{
+			let hudmsg = messages[i];
+			if(hudmsg.text == msg.text) 
+			{
+				// Reset duration
+				hudmsg.lifetime = msg.duration;
+				
+				// Shuffle message to front.
+				messages.delete(i);
+				messages.Insert(0, hudmsg);
+				return false;
+			}
+		}
+		
+		// Add message
+		messages.Push(msg);
+		return true;
+	}
+	
+	// Here for custom HUDs which might handle drawing these differenty.
+	virtual void DrawHUDMessage(VehicleHUDMessage msg)
+	{
+		msg.Draw(deltaTime);
+	}
 
 	void drawAngledLine(double x, double y, int distance, double angle, double fov, double thickness, Color c)
 	{
@@ -215,6 +327,17 @@ class VehicleHUD : Object ui
 		double dtime = 1000.0 / ANIM_FPS;
 		deltatime = (ftime/dtime);
 		uiTics += deltaTime;
+		
+		// Render HUD messages
+		foreach(msg : messages)
+			DrawHUDMessage(msg);
+		
+		// Clean messages
+		for(int i = messages.Size()-1; i >= 0; i--)
+		{
+			if(messages[i].ShouldCleanup())
+				messages.delete(i);
+		}
 	}
 	
 	virtual void DrawDebugInv(vector2 pos, MechHardpoint hp, string title)

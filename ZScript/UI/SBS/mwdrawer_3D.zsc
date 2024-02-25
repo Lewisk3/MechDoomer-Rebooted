@@ -84,12 +84,14 @@ extend class MWDrawer
 		         pos.y * sin(angle) + pos.x * cos(angle) );
 	}
 
-	static bool, vector2 GetActorHUDPos(MWDViewProjection viewproj, Actor onactor, double xoffs=0, double yoffs=0, double zoffs=0, bool rotatecoords=true)
+	static bool, vector2 GetActorHUDPos(MWDViewProjection viewproj, Actor onactor, double xoffs=0, double yoffs=0, double zoffs=0, bool rotatecoords=true, bool rotatewithactor = false)
 	{
 		bool infront;
 		vector2 projpos;
 		
 		vector2 xyoffs = rotatecoords ? VRotate( (xoffs, yoffs), viewproj.view_ang.x ) : (xoffs, yoffs);
+		if(rotatewithactor) xyoffs = VRotate( (xoffs, yoffs), onactor.angle - 90);
+		
 		[infront, projpos] = ProjectToHUD(viewproj, onactor.pos, (xyoffs.x, xyoffs.y, zoffs) );
 		return infront, projpos;
 	}

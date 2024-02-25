@@ -530,6 +530,24 @@ Model DroneLaserBeam
 	FrameIndex MODL A 0 0
 }
 
+Model MunitionsStation
+{
+	Path "models/"	
+	Model 0 "items/ammopad.md3"
+	//SurfaceSkin 0 0 "AmmoStationCanvas"
+	SurfaceSkin 0 1 "vfx/mountBody.png"
+	SurfaceSkin 0 2 "vfx/orange_glow.png"
+	SurfaceSkin 0 3 "vfx/mountBody.png"
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	// PitchOffset 90
+	// AngleOffset 90
+	Scale 2.0 2.0 2.0
+	
+	FrameIndex MODL A 0 0
+}
+
 /* OLD
 Model GaussMountDeco
 {

@@ -1,0 +1,70 @@
+class PortableMunitions : Inventory
+{
+	Default
+	{
+		Inventory.MaxAmount 1;
+		
+		+INVENTORY.UNDROPPABLE;
+		+INVENTORY.INVBAR;
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A -1;
+		stop;
+	}
+}
+
+class MunitionsStation : Actor
+{
+	double munitions;
+	double uses;
+	
+	Property MunitionPoints : munitions;
+	Property RefillUses : uses;
+
+	Default
+	{
+		Radius 32;
+		Height 8;
+		
+		+SOLID;
+		-SHOOTABLE;
+		
+		MunitionsStation.MunitionPoints 100;
+		MunitionsStation.RefillUses 20;
+	}
+	
+	virtual void RearmMech(DrivableMech mech)
+	{
+		if(!mech.shutdown)
+		{
+			mech.SendHUDMessage("Shutdown to initiate reloading process.");
+		}
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		
+		let mechIt = ThinkerIterator.Create("DrivableMech");
+		DrivableMech mech;
+		
+		while(mech = DrivableMech(mechIt.Next()))
+		{
+			let dist = Distance3D(mech);
+			if(dist >= 32) continue;
+			
+			RearmMech(mech);
+			break;
+		}
+	}
+
+	States
+	{
+		Spawn:
+			MODL A 1;
+		loop;
+	}
+}
