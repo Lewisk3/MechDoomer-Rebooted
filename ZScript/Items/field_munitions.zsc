@@ -20,6 +20,7 @@ class MunitionsStation : Actor
 {
 	double munitions;
 	double uses;
+	double partialAmmoCounter;
 	
 	Property MunitionPoints : munitions;
 	Property RefillUses : uses;
@@ -38,10 +39,51 @@ class MunitionsStation : Actor
 	
 	virtual void RearmMech(DrivableMech mech)
 	{
-		if(!mech.shutdown)
+		// Find depleted ammo
+		Array<MechItem> ammoStructs;
+		mech.FindAllItems("MechAmmo", true, ammoStructs);
+
+		double fullAmmo; double curAmmo; double ammoPerc;
+		foreach(itm : ammoStructs)
 		{
-			mech.SendHUDMessage("Shutdown to initiate reloading process.");
+			let am = MechAmmo(itm);
+			fullAmmo += am.MaxAmmo;
+			curAmmo += am.CurAmmo;
 		}
+		ammoPerc = (curAmmo == 0 || fullAmmo == 0) ? 0 : (curAmmo / fullAmmo);
+		
+		if(ammoPerc >= 1.0)
+		{
+			mech.SendHUDMessage("\c[Orange]Mech munitions are nominal.", msgID:"MunitionSTInfo");
+			return;
+		}
+		else if(!mech.shutdown)
+		{
+			mech.SendHUDMessage("\c[Orange]Shutdown to initiate reloading process.", msgID:"MunitionSTInfo");
+			return;
+		}
+		
+		double restorePerc = 0.01;
+		foreach(itm : ammoStructs)
+		{
+			let am = MechAmmo(itm);
+			double curAmmoPerc = am.CurAmmo / am.MaxAmmo;
+			if(curAmmoPerc >= 1.0) continue;
+			
+			partialAmmoCounter += am.MaxAmmo * restorePerc;
+			if(partialAmmoCounter >= 1) 
+			{
+				am.CurAmmo += partialAmmoCounter;
+				munitions -= (default.munitions / default.uses) * (partialAmmoCounter / am.MaxAmmo);
+				
+				partialAmmoCounter = 0;
+			}
+			am.CurAmmo = min(am.CurAmmo, am.MaxAmmo);
+		}
+		console.printf("%f", munitions);
+		
+		string reloadStatus = String.Format("\c[Orange]Reloading %d\%%", ammoPerc * 100);
+		mech.SendHUDMessage(reloadStatus, msgID:"MunitionSTInfo");
 	}
 
 	override void Tick()

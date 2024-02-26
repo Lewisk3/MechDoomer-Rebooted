@@ -84,13 +84,14 @@ class MechHUD_Handler : EventHandler
 
 class VehicleHUDMessage : Object ui
 {
+	string msgID;
 	double keepon;
 	double duration;
 	double lifetime;
 	double alpha;
 	string text;
 	
-	static VehicleHUDMessage Create(string txt, double lifetime, class<VehicleHUDMessage> msgClass = "VehicleHUDMessage")
+	static VehicleHUDMessage Create(string txt, double lifetime, string msgID, class<VehicleHUDMessage> msgClass = "VehicleHUDMessage")
 	{
 		let msg = VehicleHUDMessage(new(msgClass));
 		msg.keepon = 30;
@@ -98,12 +99,17 @@ class VehicleHUDMessage : Object ui
 		msg.duration = lifetime;
 		msg.text = txt;
 		msg.alpha = 1.0;
+		msg.msgID = msgID;
 		
 		return msg;
 	}
 	
 	virtual void Draw(double deltaTime)
 	{
+		Font strFont = "ConsoleFont";
+		int strFlags = MWDrawer.SS_NOASPECTCORRECTION | MWDrawer.SS_TEXT_CENTER | MWDrawer.SS_SCREEN_TOP_CENTER;
+		vector2 strPos = (0,260);
+		
 		if(alpha <= 0) return;
 		
 		if(keepon <= 0)
@@ -112,8 +118,24 @@ class VehicleHUDMessage : Object ui
 			alpha = lifetime / duration;
 		}
 		else keepon -= deltaTime;
+		
+		// Background
+		let bgTex = TexMan.CheckForTexture("Graphics/HUD/MSGBAR.png");
+		double height = strFont.getHeight();
+		double strWidth = strFont.StringWidth(text) * 2.0;
+		vector2 bgSize; 
+		vector2 bgScale = (1,1);
+		[bgSize.x, bgSize.y] = TexMan.GetSize(bgTex);
+		bgSize = (bgSize.x * bgScale.x, bgSize.y * bgScale.y);
+		double bgScaled = (strWidth + 25) / bgSize.x;
+		
+		MWDrawer.DrawTexture(bgTex, strPos + (0,height + 3), flags:strFlags, alpha:alpha, scale:(bgScaled,1.5));
+		
+		// Shadow
+			//MWDrawer.DrawString("ConsoleFont", text, strPos+(2,2), flags:strFlags, alpha:alpha, tint:0xFF000000);
 			
-		MWDrawer.DrawString("ConsoleFont", text, (600,240), alpha:alpha);
+		// Original Text
+		MWDrawer.DrawString("ConsoleFont", text, strPos, flags:strFlags, alpha:alpha);
 	}
 	
 	virtual bool ShouldCleanup()
@@ -140,11 +162,12 @@ class VehicleHUD : Object ui
 	{
 		Name type = args[1];
 		string strArg = args[2];
+		string msgID = args[3];
 		
 		switch(type)
 		{
 			case 'notify':
-				AppendMessage(CreateMessage(strArg, duration));
+				AppendMessage(CreateMessage(strArg, duration, msgID));
 			break;
 			
 			default: break;
@@ -152,9 +175,9 @@ class VehicleHUD : Object ui
 	}
 	
 	// Overridable for easy switching to a custom HUD message class.
-	virtual VehicleHUDMessage CreateMessage(string txt, double duration)
+	virtual VehicleHUDMessage CreateMessage(string txt, double duration, string msgID)
 	{
-		return VehicleHUDMessage.Create(txt, duration);
+		return VehicleHUDMessage.Create(txt, duration, msgID);
 	}
 	
 	virtual bool AppendMessage(VehicleHUDMessage msg)
@@ -163,8 +186,11 @@ class VehicleHUD : Object ui
 		for(int i = messages.Size()-1; i >= 0; i--)
 		{
 			let hudmsg = messages[i];
-			if(hudmsg.text == msg.text) 
+			if( (hudmsg.text == msg.text) || (msg.msgID != "" && hudmsg.msgID == msg.msgID) ) 
 			{
+				// Reset text for messages that need to be modified.
+				hudmsg.text = msg.text;
+			
 				// Reset duration
 				hudmsg.lifetime = msg.duration;
 				

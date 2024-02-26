@@ -1157,10 +1157,12 @@ class DrivableMech : DrivableObject
 	}
 	
 	// Lifetime is in HUD animation tics; 60 == 1 second.
-	virtual void SendHUDMessage(string msg, int lifetime = 180)
+	virtual void SendHUDMessage(string msg, int lifetime = 180, string msgID = "")
 	{
 		if(!driver) return;
-		EventHandler.SendInterfaceEvent(driver.PlayerNumber(), String.Format("hud>notify>%s", msg), lifetime);
+		string ev = String.Format("hud>notify>%s>%s", msg, msgID);
+		
+		EventHandler.SendInterfaceEvent(driver.PlayerNumber(), ev, lifetime);
 	}
 	
 	override void Tick()
