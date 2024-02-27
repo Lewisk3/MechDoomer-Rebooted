@@ -82,10 +82,14 @@ class MechHUD : VehicleHUD
 			
 				// Draw target selection
 				let curTarget = mech.curTarget;
+				let mechTarget = DrivableMech(mech.curTarget);
 				if(curTarget)
 				{
 					double targRadius = curTarget.radius;
 					double targHeight = curTarget.height;
+					
+					if(mechTarget)
+						[targRadius, targHeight] = mechTarget.getMechSize();
 					
 					vector2 topLeft, topRight, bottomLeft, bottomRight, center;
 			

@@ -2,10 +2,35 @@ class PortableMunitions : Inventory
 {
 	Default
 	{
-		Inventory.MaxAmount 1;
+		Inventory.MaxAmount 10;
 		
 		+INVENTORY.UNDROPPABLE;
 		+INVENTORY.INVBAR;
+		
+		Inventory.Icon "AMSTA0";
+	}
+	
+	override bool Use(bool pickup)
+	{
+		// Ensure munition stations don't stack on eachother.
+		bool canUse = true;
+		let it = ThinkerIterator.Create("MunitionsStation");
+		MunitionsStation st;
+		while(st = MunitionsStation(it.Next()))
+		{
+			if(st.carrier == Owner) 
+			{
+				canUse = false;
+				break;
+			}
+		}
+		
+		if(!canUse) return false;
+		
+		let mst = Spawn("MunitionsStation", Owner.pos);
+		if(mst) mst.Used(Owner);
+		
+		return true;
 	}
 	
 	States
@@ -18,6 +43,10 @@ class PortableMunitions : Inventory
 
 class MunitionsStation : Actor
 {
+	// Ammo station can be relocated by pressing E while not in a mech.
+	Actor carrier;
+	int useWait;
+
 	double munitions;
 	double uses;
 	double partialAmmoCounter;
@@ -32,6 +61,7 @@ class MunitionsStation : Actor
 		
 		+SOLID;
 		-SHOOTABLE;
+		+INTERPOLATEANGLES;
 		
 		MunitionsStation.MunitionPoints 100;
 		MunitionsStation.RefillUses 20;
@@ -80,8 +110,7 @@ class MunitionsStation : Actor
 			}
 			am.CurAmmo = min(am.CurAmmo, am.MaxAmmo);
 		}
-		console.printf("%f", munitions);
-		
+
 		string reloadStatus = String.Format("\c[Orange]Reloading %d\%%", ammoPerc * 100);
 		mech.SendHUDMessage(reloadStatus, msgID:"MunitionSTInfo");
 	}
@@ -89,6 +118,26 @@ class MunitionsStation : Actor
 	override void Tick()
 	{
 		super.Tick();
+		
+		if(carrier)
+		{
+			A_SetRenderStyle(0.5, STYLE_Translucent);
+			let carryDir = Quat.FromAngles(carrier.angle, carrier.pitch, carrier.roll);
+			vector3 carryPos = (carrier.pos.xy, carrier.player.viewz);
+			carryPos = level.vec3offset(carryPos, carryDir * (100,0,0)); 
+			SetOrigin(carryPos, true);
+			A_SetAngle(carrier.angle + 180);
+			carrier.vel.xy *= 0.8;
+			carrier.player.cheats |= CF_INTERPVIEW;
+			
+			bool pressedUse = (carrier.player.cmd.buttons & BT_USE) && !(carrier.player.oldbuttons & BT_USE);
+			if(--useWait <= 0 && pressedUse) carrier = NULL;
+			useWait = max(0, useWait);
+			
+			return;
+		}
+		
+		A_SetRenderStyle(1.0, STYLE_Normal);
 		
 		let mechIt = ThinkerIterator.Create("DrivableMech");
 		DrivableMech mech;
@@ -101,6 +150,25 @@ class MunitionsStation : Actor
 			RearmMech(mech);
 			break;
 		}
+	}
+	
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(other == carrier) return false;
+		return super.CanCollideWith(other, passive);
+	}
+	
+	override bool Used(Actor user)
+	{
+		if(!user.player) return false;
+		
+		// Cannot pick up while driving a vehicle.
+		let drvObj = I_DrivingObject.Get(user);
+		if(drvObj) return false;
+		
+		carrier = carrier ? NULL : user;
+		useWait = 5;
+		return false;
 	}
 
 	States

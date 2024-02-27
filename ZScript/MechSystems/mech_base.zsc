@@ -225,6 +225,30 @@ class DrivableMech : DrivableObject
 		return doomguyHeight / maxHeight;
 	}
 	
+ 	clearscope virtual double, double getMechSize()
+	{
+		double maxHeight = 0;
+	
+		double curRadius;
+		foreach(part : parts)
+		{
+			let hp = MechHardpoint(part);
+			double curHeight = 0;
+	
+			if(hp)
+			{
+				curHeight = hp.pos.z + hp.height;
+				if(hp.hitboxHeight > 0) 
+					curHeight = max(curHeight, hp.pos.z + hp.hitboxPos_UD + hp.hitboxHeight);		
+			}
+		 
+			if(maxHeight < curHeight) maxHeight = curHeight;
+		
+			curRadius += part.radius;
+		}
+		return curRadius, maxHeight;
+	}
+	
 	virtual double GetMechScale()
 	{
 		// Dropship map has a fixed mechscale.
