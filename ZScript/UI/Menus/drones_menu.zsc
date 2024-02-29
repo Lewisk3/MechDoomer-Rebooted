@@ -1,13 +1,89 @@
+
+class DroneMenuContainer : MenuElement
+{
+	string gPath;
+	DroneMenu base;
+	vector2 bgScale;
+	double alpha;
+	Array<DroneMenuItem> droneItems;
+	
+	override void Init()
+	{	
+		super.Init();
+		
+		alpha = 1.0;
+		base = DroneMenu(parentMenu);
+		
+		// Graphics path
+		gPath = "Graphics/DroneUI/";
+		
+		// Offset initial position by screen middle point.
+		vector2 vRes = (MWDrawer.getBaseWidth(), MWDrawer.getBaseHeight());
+		pos += (vRes * 0.5) - (size * 0.5);
+		
+		// Scale container
+		bgScale = ScaleGraphicToCollider(gPath .. "background.png");
+		
+		// Test item
+		AddChild(base, "DroneMenuItem", "droneItem1", pos + (size - (100, 400)));
+	}
+
+	override void Draw(double dt)
+	{
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+
+		// Draw background with scale applied, centered.
+		MWDrawer.DrawImage(gPath .. "background.png", pos, drawFlags, alpha, scale:bgScale, texoffs:(0,0));
+		
+		// Debug
+		drawCollider();
+	}
+}
+
+class DroneMenuItem : MenuElement
+{
+	string bgTex;
+	DroneMenuContainer container;
+	DeployableDrone item;
+	
+	override void Init()
+	{
+		super.Init();
+		container = DroneMenuContainer(parentElement);
+		
+		bgTex = container.gPath .. "droneSlot.png";
+		ScaleColliderToGraphic(bgTex, container.bgScale);
+	}
+	
+	override void Draw(double dt)
+	{	
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+		MWDrawer.DrawImage(bgTex, pos, drawFlags, container.alpha, scale:container.bgScale, texoffs:(0,0));
+		
+		// debug
+		drawCollider();
+	}
+	
+	override void Update(double dt)
+	{	
+		
+	}
+}
+
+
 // Drone Menu
 class DroneMenu : MechMenu 
 {
 	MechLabCursor cursor;
+	DroneMenuContainer dronesContainer;
 	// I_DroneData droneData;
 	
 	override void InitElements() 
 	{
 		elements.Clear(); // Repopulate elements
-			
+	
+		dronesContainer = DroneMenuContainer(AddElement("DroneMenuContainer", "Container", (0,0), (1440,900)));
+	
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
 	}

@@ -4,10 +4,12 @@ class MenuElement : Object abstract ui
 	string Tag; // Unique Element Tag
 	bool disabled;
 	MechMenu parentMenu;
+	MenuElement parentElement;
+	Array<MenuElement> children;
 	vector2 pos;
 	vector2 size;
 	
-	static MenuElement Create(class<MenuElement> type, string tag, MechMenu parent, vector2 pos, vector2 size = (1,1))
+	static MenuElement Create(class<MenuElement> type, string tag, MechMenu parent, vector2 pos, vector2 size = (1,1), MenuElement parentElement = NULL)
 	{
 		let element = MenuElement(new(type));
 		if(element)
@@ -16,9 +18,34 @@ class MenuElement : Object abstract ui
 			element.size = size;
 			element.parentMenu = parent;
 			element.Tag = tag;
+			element.parentElement = parentElement;
 			element.Init();
 		}
 		return element;
+	}
+	
+	virtual MenuElement AddChild(MechMenu baseMenu, class<MenuElement> type, string tag, vector2 pos)
+	{
+		let child = MenuElement.Create(type, tag, baseMenu, pos, size, self);
+		children.Push(child);
+		baseMenu.elements.Push(child);
+		
+		return child;
+	}
+	
+	virtual MenuElement getChildByTag(string tag)
+	{
+		foreach(child : children)
+			if(child.tag == tag) return child;
+			
+		return NULL;
+	}
+	
+	virtual void getChildrenOfClass(Array<MenuElement> foundElements, class<MenuElement> cls, bool baseClass = false)
+	{
+		foreach(child : children)
+			if( ((child is cls) && baseClass) || child.getClass() == cls)
+				foundElements.Push(child);
 	}
 	
 	virtual void Init() {}
@@ -39,6 +66,38 @@ class MenuElement : Object abstract ui
 	virtual void updateDragPos(MenuCursor cursor) {}
 	virtual void OnDrag(MenuCursor cursor) {}
 	virtual void OnDrop(MenuCursor cursor) {}
+
+	virtual void ScaleColliderToGraphic(string graphic, vector2 graphicScale = (1,1))
+	{	
+		let tex = TexMan.CheckForTexture(graphic);
+		vector2 bgRes;
+		
+		[bgRes.x, bgRes.y] = TexMan.GetSize(tex);
+		bgRes.x *= graphicScale.x;
+		bgRes.y *= graphicScale.y;
+		
+		vector2 bgScale = (
+			bgRes.x / size.x,
+			bgRes.y / size.y
+		);
+		
+		size.x *= bgScale.x;
+		size.y *= bgScale.y;
+	}
+	
+	virtual vector2 ScaleGraphicToCollider(string graphic)
+	{	
+		let tex = TexMan.CheckForTexture(graphic);
+		vector2 bgRes;
+		
+		[bgRes.x, bgRes.y] = TexMan.GetSize(tex);
+		vector2 bgScale = (
+			size.x / bgRes.x,
+			size.y / bgRes.y
+		);
+		
+		return bgScale;
+	}
 	
 	static bool AABBCollision(vector2 pos1, vector2 size1, vector2 pos2, vector2 size2)
 	{
@@ -287,13 +346,19 @@ class MechMenu : GenericMenu
 	{
 		updateDeltaTime();
 
-		// Draw and Update Elements
+		// Draw Elements	
 		for(int i = 0; i < elements.Size(); i++)
-		{
 			elements[i].Draw(deltaTime);
-			elements[i].Update(deltaTime);
-		}
-		
+			
+		UpdateElements(deltaTime, elements);
+	}	
+	
+	ui static void UpdateElements(double deltaTime, out Array<MenuElement> elements)
+	{
+		// Update Elements	
+		foreach(element : elements)
+			element.Update(deltaTime);
+			
 		// Calculate element collisions (This is REALLY slow, sadly. However the result is pretty robust and clean code-wise collision logic)
 		for(int i = elements.Size()-1; i >= 0; i--)
 		{
@@ -306,8 +371,8 @@ class MechMenu : GenericMenu
 				
 				if(srcElement.CheckCollision(otherElement) && srcElement.IsBlocking(otherElement)) break;
 			}
-		}	
-	}	
+		}
+	}
 	
 	ui virtual void processPlayEvent(int playerNumber, string event) 
 	{

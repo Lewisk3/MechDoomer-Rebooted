@@ -28,12 +28,14 @@ class AssaultDrone : DeployableDrone
 		}
 	}
 	
+	/*
 	override bool Use(bool pickup)
 	{
 		DeployDrone(DRM_HOSTILE);
 		MountDrone();
 		return false;
 	}
+	*/
 }
 
 class AssaultFieldDrone : MechFieldDrone 

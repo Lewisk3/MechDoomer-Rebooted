@@ -874,7 +874,6 @@ class MenuItemsInvContainer : MenuElement
 }
 class MechContainerScrollBar : MenuElement
 {
-	MenuElement parentElement;
 	double scrollPos;
 	double dragYOffs;
 	double barSize;
