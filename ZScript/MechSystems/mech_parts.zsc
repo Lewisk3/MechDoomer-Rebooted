@@ -494,6 +494,11 @@ class MechHardpoint : MechPart
 		}
 	}
 	
+	clearscope vector3 getHitboxPos()
+	{
+		return OffsetPos(hitboxPos_FW, hitboxPos_LR, hitboxPos_UD);
+	}
+	
 	clearscope virtual double getHeight()
 	{
 		return max(hitboxHeight, height);
@@ -587,9 +592,11 @@ class MechHardpoint : MechPart
 		MechWeapon.FireWeapons(weaps, mech.weaponGroups, grp, instantFire);
 	}
 	
-	virtual void Repair(double armorAmt, double healthAmt)
+	virtual void Repair(double armorAmt, double healthAmt, bool restoreArmorPoints = false)
 	{
 		armorDamage -= armorAmt;
+		if(restoreArmorPoints) armorPoints += armorAmt;
+		
 		healthPoints += healthAmt;
 		armorDamage = max(0, armorDamage);
 		healthPoints = min(maxHP, healthPoints);
@@ -1008,6 +1015,7 @@ class MechTorso : MechHardpoint
 		double toPitch = driver.pitch + pitchBob;
 		
 		if(mech.centerToLegs) toAngle = angle;
+		
 		if(mech.armLock)
 		{
 			toAngle = angle;

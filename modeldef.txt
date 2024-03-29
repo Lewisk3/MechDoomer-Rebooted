@@ -477,7 +477,7 @@ Model MechFieldDrone
 	
 	FrameIndex DRON A 0 0
 }
-Model AssaultFieldDrone
+Model FieldRepairDrone
 {
 	Path "models/drones"	
 	Model 0 "drone_base.obj"

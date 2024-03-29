@@ -8,27 +8,30 @@ class MenuElement : Object abstract ui
 	Array<MenuElement> children;
 	vector2 pos;
 	vector2 size;
+	vector2 initPos;
 	
-	static MenuElement Create(class<MenuElement> type, string tag, MechMenu parent, vector2 pos, vector2 size = (1,1), MenuElement parentElement = NULL)
+	static MenuElement Create(class<MenuElement> type, string tag, MechMenu parent, vector2 pos, vector2 size = (1,1), MenuElement parentElement = NULL, bool skipInit = false)
 	{
 		let element = MenuElement(new(type));
 		if(element)
 		{
 			element.pos = pos;
+			element.initPos = pos;
 			element.size = size;
 			element.parentMenu = parent;
 			element.Tag = tag;
 			element.parentElement = parentElement;
-			element.Init();
+			if(!skipInit) element.Init();
 		}
 		return element;
 	}
 	
 	virtual MenuElement AddChild(MechMenu baseMenu, class<MenuElement> type, string tag, vector2 pos)
 	{
-		let child = MenuElement.Create(type, tag, baseMenu, pos, size, self);
+		let child = MenuElement.Create(type, tag, baseMenu, pos, size, self, skipInit:true);
 		children.Push(child);
 		baseMenu.elements.Push(child);
+		child.Init();
 		
 		return child;
 	}
@@ -51,6 +54,11 @@ class MenuElement : Object abstract ui
 	virtual void Init() {}
 	virtual void Draw(double dT) {}
 	virtual void Update(double dT) {}
+	
+	virtual void ResetPosition()
+	{
+		pos = initPos;
+	}
 	
 	virtual bool checkDraggable()
 	{
@@ -308,8 +316,9 @@ class MechMenu : GenericMenu
 	
 	virtual MenuElement AddElement(class<MenuElement> type, String tag, vector2 pos, vector2 size = (1,1))
 	{
-		let element = MenuElement.Create(type, tag, self, pos, size);
+		let element = MenuElement.Create(type, tag, self, pos, size, skipInit:true);
 		elements.Push(element);
+		element.Init();
 		
 		return element;
 	}

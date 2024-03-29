@@ -114,7 +114,8 @@ class DrivableMech : DrivableObject
 		BT_POWERCYCLE = 1 << 13,
 		BT_OVRSHUTDWN = 1 << 14,
 		BT_WEAPONSTATE = 1 << 15, // Toggles state of weapon; might be used to switch ammo-types for example.
-		BT_ITEMMAGNET  = 1 << 16
+		BT_ITEMMAGNET  = 1 << 16,
+		BT_DRONEREPAIR = 1 << 17
 	};
 	
 	enum GroupBits
@@ -582,15 +583,20 @@ class DrivableMech : DrivableObject
 	void ToggleCamera()
 	{
 		if(camActive == camDrone) 
-		{
-			SetDriverCamera(cam);
-			camActive = cam;
-		}
+			SetPilotCamera();
 		else
-		{
-			camDrone.Set(driver);
-			camActive = camDrone;
-		}
+			SetDroneCamera();
+	}
+	
+	void SetDroneCamera()
+	{
+		camDrone.Set(driver);
+		camActive = camDrone;
+	}
+	void SetPilotCamera()
+	{
+		SetDriverCamera(cam);
+		camActive = cam;
 	}
 	
 	// FFS this is ugly...
@@ -933,6 +939,9 @@ class DrivableMech : DrivableObject
 		int accelSign = fm < 0 ? -1 : 1;
 		double moveAmt = !moveSpeedKPH ? 1 : accelKPH / moveSpeedKPH;
 		accel = accelSign * DrivablesMath.Lerp(abs(accel), throttle, moveAmt / 10.);
+		
+		// Center to legs does not apply to this movement system.
+		if(centerToLegs) centerToLegs = false;
 	}
 	
 	virtual void DoShutdown()

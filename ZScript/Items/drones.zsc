@@ -1,50 +1,50 @@
 
-class AssaultDrone : DeployableDrone
+class RepairDrone : DeployableDrone
 {
+	DrivableMech mech;
+
 	Default
 	{
-		Inventory.MaxAmount 1;
-		
-		+INVENTORY.AUTOACTIVATE; // Debug
-		+INVENTORY.UNDROPPABLE;
-		-INVENTORY.INVBAR;
-		
-		DeployableDrone.DroneClass "AssaultFieldDrone";
-		DeployableDrone.EnergyUse 0.84;
-		DeployableDrone.PowerOutput 8;
+		DeployableDrone.DroneClass "FieldRepairDrone";
+		DeployableDrone.EnergyUse 0; //0.84;
+		DeployableDrone.PowerOutput 3;
 	}
-		
+	
 	override void DoEffect()
 	{
 		super.DoEffect();
 		
-		bool noBattery = charge <= 0;
-		bool droneDestroyed = (!dmo || (dmo && dmo.health <= 0));
+		// Get active mech.
+		let drvObj = I_DrivingObject.Get(Owner);
+		if(drvObj && drvObj.source) mech = DrivableMech(drvObj.source);
 		
-		if(mount)
+		if(!mech) return;
+		
+		bool repairBtn = mech.GetExtBtn(DrivableMech.BT_DRONEREPAIR, DriverBtns.BTS_DOWN);
+		
+		if(repairBtn && !dmo && mech.shutdown)
 		{
-			if(noBattery || droneDestroyed) 
-				UnmountDrone();
+			DeployDrone(DRM_MECHREPAIR);
+			FieldRepairDrone(dmo).mech = mech;
+			FieldRepairDrone(dmo).SetupHPList();
+		} 
+		else if(repairBtn && !mech.shutdown)
+		{
+			mech.SendHUDMessage("\c[Orange]Mech must be shutdown for repairs", 180, "RepairDroneMSG");	
 		}
 	}
-	
-	/*
-	override bool Use(bool pickup)
-	{
-		DeployDrone(DRM_HOSTILE);
-		MountDrone();
-		return false;
-	}
-	*/
 }
 
-class AssaultFieldDrone : MechFieldDrone 
+class FieldRepairDrone : MechFieldDrone 
 {
+	int curHP;
+	Array<MechHardpoint> hpList;
+	DrivableMech mech;
 	DroneLaserGun droneLaser;
 
-	// Discard targets the laser cannot physically reach.
 	override bool CheckTargetReachable(Actor act)
 	{
+		/*
 		if(!droneLaser) return super.CheckTargetReachable(act);
 		if(!act) return true;
 		
@@ -60,13 +60,86 @@ class AssaultFieldDrone : MechFieldDrone
 		vector3 ltPos = level.vec3offset(droneLaser.pos, droneLaser.rotation * ((30,0,0)*Scale.X));
 		droneLaser.LineTrace(-angles.x, dist, -angles.y, TRF_ABSPOSITION, ltPos.z, ltPos.x, ltPos.y, data:hitData);
 		if(hitData.HitType == TRACE_HitActor && hitData.hitActor == act) return true;
+		*/
 		
-		return false;
+		return true;
+	}
+
+	void SetupHPList()
+	{
+		hpList.Push(mech.head);
+		hpList.Push(mech.leftarm);	
+		hpList.Push(mech.rightArm);
+		hpList.Push(mech.leftTorso);
+		hpList.Push(mech.rightTorso);
+		hpList.Push(mech.torso);
+		hpList.Push(mech.leftLeg);
+		hpList.Push(mech.rightLeg);
 	}
 
 	override void OnDeploy()
 	{
 		super.OnDeploy();
 		droneLaser = DroneLaserGun.Setup(self, (8.8,0,-5.5));
+		droneLaser.disabled = true;
+		
+		if(!mech) return;
 	} 
+	
+	bool A_TrackTarget(double minDist = 256, vector3 offs = (-20,0,20))
+	{
+		A_LookTowards(engagingTarget, 0.3);
+		return A_FollowActor(engagingTarget, 0.1, minDist, offs);
+	}
+		
+	States
+	{
+		MechRepair:
+			DRON A 1 
+			{
+				bool repairBtn = mech.GetExtBtn(DrivableMech.BT_DRONEREPAIR, DriverBtns.BTS_DOWN);
+			
+				// Go through damaged mech hardpoints.
+				curHP = 0;
+				MechHardpoint hp = hpList[curHP];
+				
+				while(hp.armorDamage <= 0 || hp.healthPoints <= 0)
+				{
+					if(curHP >= hpList.Size()-1)
+						return ResolveState("DroneReturn");
+					else
+						hp = hpList[++curHP];
+				}
+				engagingTarget = hp;
+				
+				mech.SetDroneCamera();
+				if(A_TrackTarget() && hp.armorDamage > 0)
+				{
+					// Repair damage and restore armor points.
+					droneLaser.disabled = false;
+					hp.Repair(0.05, 0, true);
+				}
+					
+				return SetDroneState(!repairBtn || !mech.shutdown, "DroneReturn");
+			}
+		loop;
+		
+		DroneReturn:
+			DRON A 1
+			{			
+				droneLaser.disabled = true;
+				engagingTarget = mech.torso;
+				return SetDroneState(A_TrackTarget(8, (0,0,0)), "GoAway"); 
+			}
+		loop;
+		
+		GoAway:
+			DRON A 1 
+			{
+				mech.SetPilotCamera();
+				A_FadeOut(0.1);
+				if(alpha <= 0.01) data.UndeployDrone();
+			}
+		wait;
+	}
 }

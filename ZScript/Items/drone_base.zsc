@@ -50,10 +50,11 @@ class MechFieldDrone : Actor
 		rotation = Quat.FromAngles(angle, pitch, roll);
 		
 		// If this isn't set the actor will disappear from this world, where does it go?
-		// I'm willing to bet not even God knows. GZDoom is a perfect engine with no flaws.
+		// It becomes one with the cosmos, exceeding the corporeal boundaries in which our minds assume the cosmos to operate according to,
+		// it, in effect, becomes God. Which we must prevent at all costs, less we all be subjects to a monster of my own creation. 
+		// lol, jk
+		// GZDoom is a perfect engine with no flaws.
 		SetOrigin(source.pos, true);
-		
-		console.printf("Drone successfully deployed.");
 	}
 	
 	virtual void A_LookSourceDirection(double interp = 0.3)
@@ -73,30 +74,30 @@ class MechFieldDrone : Actor
 		rotation = Quat.SLerp(rotation, toRotation, interp);
 	}
 	
-	virtual void A_FollowSource(double lookSpeed = 0.1, bool setPos = false)
+	virtual bool A_FollowActor(Actor src, double lookSpeed = 0.1, double minDist = 256, vector3 offs = (-20,0,20), bool setPos = false)
 	{
-		if(!data || !source || data.charge <= 0 || !data.mount) return;
+		if(!data || !src || data.charge <= 0) return false;
 
 		double moveSpeed = data.power;
-		vector3 offs = data.mount.mountPos * Scale.X;
+		if(data.mount) offs = data.mount.mountPos * Scale.X;
 
-		Quat sourceDir = Quat.FromAngles(angle, pitch, roll);
+		Quat sourceDir = Quat.FromAngles(src.angle, src.pitch, src.roll);
 		
 		double bobz = 0;
-		if(source.player)
+		if(src.player)
 		{
-			double viewz = source.player.viewz;
-			bobz = source.pos.z - (viewz - source.player.viewheight);
+			double viewz = src.player.viewz;
+			bobz = src.pos.z - (viewz - src.player.viewheight);
 		}
 		
-		vector3 sourcePos = (source.pos.xy, (source.pos.z + source.height) - bobz);
+		vector3 sourcePos = (src.pos.xy, (src.pos.z + src.height) - bobz);
 		vector3 targetPos = level.vec3offset(sourcePos, sourceDir * offs);
 		double dist = DrivablesMath.Distance3D(pos, targetPos);
 		
 		if( setPos || dist >= 512) 
 		{
 			SetOrigin(targetPos, true);
-			return;
+			return false;
 		}
 		
 		if(dist <= 128 && lookSpeed > 0)
@@ -106,8 +107,10 @@ class MechFieldDrone : Actor
 		if(diff.Length() > 0)
 		{
 			let dir = diff.Unit();
-			vel += dir * (min(1.0, DrivablesMath.fmap(dist, 0, 256, 0, 1.0)) * moveSpeed);
+			vel += dir * (min(1.0, DrivablesMath.fmap(dist, 0, minDist, 0, 1.0)) * moveSpeed);
 		}
+		
+		return dist <= minDist;
 	}
 	
 	virtual bool CheckTargetReachable(Actor act)
@@ -290,14 +293,14 @@ class MechFieldDrone : Actor
 			TNT1 A 0 SetDroneState(data.mount, "Follow");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_PASSIVE || mode == DeployableDrone.DRM_HOSTILE, "Idle");
 			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_TURRET, "Turret");
-			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MECHUTILITY, "Mechutil");
+			TNT1 A 0 SetDroneState(mode == DeployableDrone.DRM_MECHREPAIR, "MechRepair");
 		goto Spawn;
 		
 		Follow:
 			DRON A 1 
 			{
 				if(data.CheckCombatMode()) FindTarget();
-				A_FollowSource(0.1);
+				A_FollowActor(source, 0.1);
 			}
 		goto Think;
 		
@@ -326,7 +329,7 @@ class MechFieldDrone : Actor
 			DRON A 0 A_JumpIf(mode != DeployableDrone.DRM_MANUAL, "Think");
 		loop;
 		
-		Mechutil:
+		MechRepair:
 			DRON A 1; // Do mech stuff here.
 		goto Think;
 	}
@@ -359,6 +362,7 @@ class DroneLaserGun : Actor
 	Quat desiredRotation;
 	Actor base;
 	double baseHeight;
+	bool disabled;
 	
 	class<Actor> baseType;
 	
@@ -400,8 +404,8 @@ class DroneLaserGun : Actor
 		Quat followDir = Quat.FromAngles(parent.angle, parent.pitch, parent.roll);
 		vector3 desiredEuler = DrivablesMath.getEuler(desiredRotation);
 		double rotDiff = abs(angle - desiredEuler.x) + abs(pitch - desiredEuler.y);
-
-		laser.SetEnabled(!!parent.engagingTarget && rotDiff <= 10); 
+		
+		if(!disabled) laser.SetEnabled(!!parent.engagingTarget && rotDiff <= 10); 
 	
 		vector3 followPos = level.vec3offset(parent.pos, followDir * (parentOffs * scale.X));
 		SetOrigin(followPos, true);
@@ -431,10 +435,24 @@ class DroneLaserGun : Actor
 				return;
 			}
 			
+			let engagingHardpoint = MechHardpoint(parent.engagingTarget);
+			
 			vector3 firePos = (
 				parent.engagingTarget.pos.xy, 
 				parent.engagingTarget.pos.z + (parent.engagingTarget.height * 0.5)
 			);
+			
+			if(engagingHardpoint && engagingHardpoint.hitboxRadius > 0)
+			{
+				vector3 hitboxPos = engagingHardpoint.getHitboxPos();
+				firePos = (
+					hitboxPos.xy, 
+					hitboxPos.z + (engagingHardpoint.hitboxHeight * 0.5)
+				);
+				
+				if(laser) laser.maxDist = level.vec3diff(firePos, pos).Length();
+			}
+			
 			vector3 angles = level.sphericalCoords(pos, firePos, (0,0));
 			
 			desiredRotation = Quat.FromAngles(-angles.x, -angles.y, parent.roll);
@@ -537,7 +555,7 @@ class DroneLaserBeam : MechLaserBeam
 	
 		if(hitActor) 
 		{
-			if(hitActor is "MechHardpoint") return; // Skip
+			if(hitActor is "MechHardpoint" || hitActor is "MechHitBox") return; // Skip
 			
 			acc++;
 			if(acc > 10)
@@ -656,6 +674,7 @@ class I_DroneData : Inventory
 
 class DeployableDrone : I_DontStack
 {
+	String UIGraphic;
 	MechFieldDrone dmo; // Drone Map Object
 	DroneMount mount; // Mount info
 	
@@ -666,6 +685,7 @@ class DeployableDrone : I_DontStack
 	
 	Property EnergyUse : energyUse;
 	Property PowerOutput : power;
+	Property UIGraphic : UIGraphic;
 
 	int droneMode;
 	
@@ -675,7 +695,7 @@ class DeployableDrone : I_DontStack
 		DRM_HOSTILE = 1,
 		DRM_IDLE = 2,
 		DRM_MANUAL = 3,
-		DRM_MECHUTILITY = 4,
+		DRM_MECHREPAIR = 4,
 		DRM_TURRET = 5
 	};
 	
@@ -688,6 +708,7 @@ class DeployableDrone : I_DontStack
 		+INVENTORY.UNDROPPABLE;
 		-INVENTORY.INVBAR;
 		
+		DeployableDrone.UIGraphic "Graphics/DroneUI/droneIcon.png";
 		DeployableDrone.DroneClass "MechFieldDrone";
 		DeployableDrone.EnergyUse 0.84;
 		DeployableDrone.PowerOutput 8;
@@ -713,12 +734,14 @@ class DeployableDrone : I_DontStack
 	
 	virtual void DroneThink()
 	{
+		if(energyUse <= 0) return;
+		
 		// Drain battery over time
 		charge -= (energyUse / TICRATE) * energyUseMultiplier;
 		charge = clamp(charge, 0, 100);
 	}
 	
-	virtual bool DeployDrone(int mode = DRM_PASSIVE)
+	virtual bool DeployDrone(int mode = DRM_MECHREPAIR)
 	{
 		if(dmo) return true;
 			
@@ -728,6 +751,13 @@ class DeployableDrone : I_DontStack
 		dmo = MechFieldDrone.Deploy(self, droneCls, Owner);
 		SetMode(mode);
 		return true;
+	}
+	
+	virtual void UndeployDrone()
+	{
+		if(!dmo) return;
+		dmo.Destroy();
+		dmo = NULL;
 	}
 	
 	virtual bool MountDrone(int mountID = -1, bool force = true)
@@ -762,6 +792,6 @@ class DeployableDrone : I_DontStack
 	
 	virtual bool CheckCombatMode()
 	{
-		return droneMode == DRM_HOSTILE || droneMode == DRM_TURRET;
+		return droneMode == DRM_HOSTILE || droneMode == DRM_TURRET || droneMode == DRM_MECHREPAIR;
 	}
 }

@@ -1,0 +1,190 @@
+
+class DroneMenuContainer : MenuElement
+{
+	string gPath;
+	DroneMenu base;
+	vector2 bgScale;
+	double alpha;
+	double scroll;
+	Array<DroneMenuItem> droneItems;
+	
+	override void Init()
+	{	
+		super.Init();
+		
+		alpha = 1.0;
+		base = DroneMenu(parentMenu);
+		
+		// Graphics path
+		gPath = "Graphics/DroneUI/";
+		
+		// Offset initial position by screen middle point.
+		vector2 vRes = (MWDrawer.getBaseWidth(), MWDrawer.getBaseHeight());
+		pos += (vRes * 0.5) - (size * 0.5);
+		
+		// Scale container
+		bgScale = ScaleGraphicToCollider(gPath .. "background.png");
+		
+		populateChildren();
+	}
+	
+	void populateChildren()
+	{
+		let plr = players[consoleplayer].mo;
+		
+		int index = 0;
+		double ySpacing = 0;
+		
+		for(Inventory item = plr.Inv; item; item = item.Inv)
+		{
+			let droneItem = DeployableDrone(item);
+			if(!droneItem) continue;
+			
+			let child = DroneMenuItem(AddChild(base, "DroneMenuItem", String.Format("droneItem%d", index), pos + size - (180, 850 - ySpacing)));
+			child.item = droneItem;
+			child.index = index;
+			
+			index++;
+			ySpacing += child.size.y + 27;
+		}
+	}
+
+	override void Draw(double dt)
+	{
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+
+		// Draw background with scale applied, centered.
+		MWDrawer.DrawImage(gPath .. "background.png", pos, drawFlags, alpha, scale:bgScale, texoffs:(0,0));
+		
+		// Debug
+		drawCollider();
+	}
+}
+
+class DroneMenuItem : MenuElement
+{
+	int index;
+	string bgTex;
+	DroneMenuContainer container;
+	DeployableDrone item;
+	
+	override void Init()
+	{
+		super.Init();
+		container = DroneMenuContainer(parentElement);
+		
+		bgTex = container.gPath .. "droneSlot.png";
+		ScaleColliderToGraphic(bgTex, container.bgScale);
+	}
+	
+	override void Draw(double dt)
+	{	
+		vector2 drawPos = (pos.x, pos.y + container.scroll);
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+		MWDrawer.DrawImage(bgTex, drawPos, drawFlags, container.alpha, scale:container.bgScale, texoffs:(0,0));
+		
+		if(item)
+		{
+			vector2 iconPos = (drawPos.x, drawPos.y + (size.y * 0.25));
+			string icon = item.UIGraphic;
+			string batteryGraphic = "Graphics/DroneUI/droneBattery.png";
+			MWDrawer.DrawImage(icon, iconPos, drawFlags, container.alpha, scale:container.bgScale, texOffs:(0,0));
+			
+			// Drone Battery
+			vector2 batteryPos = drawPos + (8, 7);
+			double batteryPerc = item.charge / 100.;
+			MWDrawer.SetClipRect(batteryPos.x, batteryPos.y, 76 * batteryPerc, 10);
+			MWDrawer.DrawImage(batteryGraphic, batteryPos, drawFlags, container.alpha, scale:container.bgScale, texOffs:(0,0));
+			MWDrawer.ClearClipRect();
+		}
+		
+		// debug
+		drawCollider();
+	}
+	
+	override bool checkDraggable()
+	{
+		return true;
+	}
+	
+	override void updateDragPos(MenuCursor cursor)
+	{
+		vector2 toPos = (
+			cursor.pos.x - (size.x * 0.5),
+			cursor.pos.y - (size.y * 0.5)
+		);
+		pos = toPos;
+	}
+	
+	override void OnDrop(MenuCursor cursor)
+	{
+		ResetPosition();
+		
+		// Deploy drone?
+		EventHandler.SendNetworkEvent("drone.deploy", index);
+	}
+	
+	override void Update(double dt)
+	{	
+		
+	}
+}
+
+
+// Drone Menu
+class DroneMenu : MechMenu 
+{
+	MechLabCursor cursor;
+	DroneMenuContainer dronesContainer;
+	// I_DroneData droneData;
+	
+	override void InitElements() 
+	{
+		elements.Clear(); // Repopulate elements
+	
+		dronesContainer = DroneMenuContainer(AddElement("DroneMenuContainer", "Container", (0,0), (1440,900)));
+	
+		// Cursor is added last, to keep always on-top.
+		cursor = MechLabCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+		
+	play static void processDroneMenuEvents(ConsoleEvent e, int droneItemIndex)
+	{
+		// Menu events
+		let plr = players[e.Player].mo;
+		
+		string menuCmd = e.Name;
+		Array<String> menuArgs;
+		menuCmd.Split(menuArgs, ".");
+		
+		DeployableDrone targetDrone;
+		
+		int index = 0;
+		for(Inventory item = plr.Inv; item; item = item.Inv)
+		{
+			let droneItem = DeployableDrone(item);
+			if(!droneItem) continue;
+			
+			if(index == droneItemIndex)
+				targetDrone = droneItem;
+		}
+		if(!targetDrone) return;
+		
+		if(menuCmd == "drone.deploy") targetDrone.DeployDrone();
+		if(menuCmd == "drone.undeploy") targetDrone.UndeployDrone();
+		if(menuCmd == "drone.mount") targetDrone.MountDrone(e.Args[1]);
+		if(menuCmd == "drone.unmount") targetDrone.UnmountDrone();
+		if(menuCmd == "drone.setmode") targetDrone.SetMode(e.Args[1]);
+	}
+	
+	override void processPlayEvent(int playerNumber, string event) 
+	{
+		Array<String> cmds;
+		event.Split(cmds, ".");
+	}
+	
+	override void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)
+	{
+		// MenuElements can call this function if they wish to relay behavior to their parent menu.
+	}
+}

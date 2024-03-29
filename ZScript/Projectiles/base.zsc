@@ -124,11 +124,12 @@ class MechProjectile : FastProjectile
 
 		// Hit a non-vehicle
 		double damageMod = 1.0;
-		if( !(victim is "DrivableObjectPart") ) damageMod = 1.75; 
+		//if( !(victim is "DrivableObjectPart") ) damageMod = 1.75; 
 		
 		if(!ripMax || rippedActors.Find(victim) == rippedActors.Size())
 		{
 			victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
+			// console.printf("Damaging for: %f damage", ceil(trueDamage * damageMod));
 			OnHit(victim, hitMech); 
 			if(ripMax && ripCount < ripMax)
 			{
