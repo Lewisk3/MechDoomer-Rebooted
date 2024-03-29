@@ -154,7 +154,7 @@ class MechHardpoint : MechPart
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	int heatDamageTics; // Timer for heat damage on items
 	
-	double armorDamage;
+	double armorDamage, rearArmorDamage;
 	
 	// Determines which hardpoints take the most damage while overheated.
 	double localHeat;
@@ -312,16 +312,20 @@ class MechHardpoint : MechPart
 		
 		if(!skipArmor)
 		{
+			bool rearHit;
 			if(isRearDamage && hasRearArmor)
 			{
 				if(mech && mech.armorType && rearArmor > 0) 
+				{
 					damage = mech.armorType.ProcessDamage(damage);
-					
+				}
+				
 				if(rearArmor > 0)
 				{
 					hpDmg = max(0, hpDmg - rearArmor);
 					rearArmor = max(0, rearArmor-damage);
 				}
+				rearHit = true;
 			}
 			else 
 			{
@@ -336,6 +340,7 @@ class MechHardpoint : MechPart
 			}
 			
 			armorDamage = min(maxArmor, armorDamage + damage);
+			if(rearHit) rearArmorDamage = min(armorDamage, rearArmorDamage + damage);
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.
@@ -537,7 +542,7 @@ class MechHardpoint : MechPart
 			if(onlyFreeMounts && mp.mountedItem) continue;
 			
 			mounts.Push(mp);
-		}
+		}	
 	}
 	
 	virtual HardpointMount SetupMountArray(string mountType, double fw, double lr, double ud, int width, int height, double spacingx, double spacingy, double scale = 1.0)
@@ -594,11 +599,20 @@ class MechHardpoint : MechPart
 	
 	virtual void Repair(double armorAmt, double healthAmt, bool restoreArmorPoints = false)
 	{
+		if(restoreArmorPoints)
+		{
+			if(rearArmorDamage > 0)
+				rearArmor += armorAmt;
+			else 
+				armorPoints += armorAmt;
+		}
+	
 		armorDamage -= armorAmt;
-		if(restoreArmorPoints) armorPoints += armorAmt;
+		rearArmorDamage -= armorAmt;
 		
 		healthPoints += healthAmt;
 		armorDamage = max(0, armorDamage);
+		rearArmorDamage = max(0, rearArmorDamage);
 		healthPoints = min(maxHP, healthPoints);
 		
 		// Round fractional health and armor up to maximum.
