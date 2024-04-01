@@ -8,8 +8,9 @@ class ShopItemsContainer : MenuElement
 		LIST_UTILITIES = 2,
 		LIST_ENGINES = 3
 	};
-	
+		
 	int listingMode;
+	int containerType;
 
 	ShopMenu base;
 	double alpha;
@@ -33,10 +34,11 @@ class ShopItemsContainer : MenuElement
 		scrollBar.size.x = 40;
 	}
 	
-	virtual void Setup(out Array<MechItem> items, out Array<class<DrivableMech> > mechs)
+	virtual void Setup(out Array<MechItem> items, out Array<class<DrivableMech> > mechs, int containerType)
 	{
 		if(items) self.items.Copy(items);
 		if(mechs) self.mechs.Copy(mechs);
+		self.containerType = containerType;
 		populateChildren();
 	}
 	
@@ -45,7 +47,7 @@ class ShopItemsContainer : MenuElement
 		ClearChildren(base, "ShopItem");
 		int itemY = 0;
 		int itemIndex = 0;
-		listHeight = 0;
+		listHeight = 0;	
 		
 		// Populate based on items list.		
 		int limit = 1000;
@@ -68,15 +70,24 @@ class ShopItemsContainer : MenuElement
 						skipItem = !(item is "MechEngine");
 					break;
 				}
+				
+				// Check if item source is in the cart, if so, skip it.
+				foreach(cartItem : base.shopCart)
+				{
+					if(cartItem.objItem == item)
+					{
+						skipItem = true;
+						break;
+					}
+				}
+				
 				if(skipItem) continue;
-			
-				// Skip items added to the cart.
-				if(base.shopCart.Find(item) != base.shopCart.Size()) continue;
 				
 				if(item.size > 0)
 				{
-					let cItem = ShopItem(AddChild(base, "ShopItem", "ItemTest", pos + (60,20 + itemY)));
+					let cItem = ShopItem(AddChild(base, "ShopItem", "ShopContainerItem", pos + (60,20 + itemY)));
 					cItem.objItem = item;
+					cItem.count = item.amount;
 					cItem.Update(0);
 					
 					itemY += cItem.size.y + 30;
@@ -107,6 +118,19 @@ class ShopItemsContainer : MenuElement
 	
 	override void Update(double dT)
 	{
+		disabled = !(base.shopMode == ShopMenu.SHOP_NEUTRAL || base.shopMode == containerType);
+		if(disabled) console.printf("Disabling container %d", containerType);
+	
+		// Update Item scroll position.
+		foreach(child : children)
+		{
+			let shopItm = ShopItem(child);
+			if(!shopItm) continue;
+			
+			// Update scroll
+			shopItm.posOffs.y = -scrollBar.curScroll;
+		}
+	
 		scroll = -scrollBar.curScroll;
 		scrollBar.itemListHeight = abs(listHeight);
 		
@@ -127,35 +151,209 @@ class ShopItemsContainer : MenuElement
 	}
 }
 
+class CartContainer : MenuElement
+{
+	ShopMenu base;
+	double alpha;
+	ShopScrollBar scrollBar;
+	double scrollVel;
+
+	override void Init()
+	{	
+		super.Init();
+		
+		alpha = 1.0;
+		base = ShopMenu(parentMenu);
+		
+		vector2 scrollBarPos = pos + (size.x - 40, 0);
+		scrollBar = ShopScrollBar(AddChild(base, "ShopScrollBar","ScrollBar", scrollBarPos));
+		scrollBar.size.x = 40;
+	}
+	
+	override void Draw(double dT)
+	{
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+
+		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, size.x, size.y, alpha, drawFlags);
+		
+		// Debug
+		drawCollider();
+	}
+	
+	virtual void RemoveFromCart(ShopItem shopItm)
+	{		
+		int cartItemIndex;
+		ShopItem cartItem = NULL;
+		foreach(item : base.shopCart)
+		{
+			cartItemIndex++;
+			bool mechInCart = shopItm.clsMech && (item.clsMech == shopItm.clsMech && item.mechbayItem == shopItm.mechbayItem);
+			if( item.objItem == shopItm.objItem || mechInCart )
+			{
+				cartItem = item;
+				break;
+			}
+		}
+		if(!cartItem) return;
+		
+		if(shopItm.objItem)
+		{
+			cartItem.count--;
+			// Restore count to old item
+			foreach(menuItem : base.elements)
+			{
+				let sItem = ShopItem(menuItem);
+				if(sItem && sItem.objItem == shopItm.objItem)
+				{
+					sItem.count++;
+					break;
+				}
+			}
+			
+			if(cartItem.count <= 0)
+			{
+				base.shopCart.Delete(cartItemIndex-1);
+				RemoveChild(shopItm);
+			}
+		}
+		else if(shopItm.clsMech)
+		{
+			// Add mech to cart.
+		}
+		
+		if(base.shopCart.Size() <= 0)
+			base.shopMode = ShopMenu.SHOP_NEUTRAL;
+	}
+	
+	virtual void AddToCart(ShopItem shopItm)
+	{
+		// Grab item container
+		let itemContainer = ShopItemsContainer(shopItm.parentElement);
+		if(!itemContainer) return;
+		
+		if( !(base.shopMode == ShopMenu.SHOP_NEUTRAL || itemContainer.containerType == base.shopMode) )
+			return; // Invalid item for current shopping mode.
+		
+		// Update shop mode to container type.
+		base.shopMode = itemContainer.containerType;
+		
+			
+	
+		ShopItem cartItem = NULL;
+		foreach(item : base.shopCart)
+		{
+			bool mechInCart = shopItm.clsMech && (item.clsMech == shopItm.clsMech && item.mechbayItem == shopItm.mechbayItem);
+			if( item.objItem == shopItm.objItem || mechInCart )
+			{
+				cartItem = item;
+				break;
+			}
+		}
+		
+		if(shopItm.objItem)
+		{
+			// Add child shopItem to container if not already present in the shopping cart.
+			if(!cartItem)
+			{
+				let cartMenuItem = ShopItem(AddChild(base, "ShopItem", "CartItem", pos));
+				cartMenuItem.objItem = shopItm.objItem;
+				cartMenuItem.count = 1;
+				cartMenuItem.Update(0);
+				cartMenuItem.inCart = true;
+								
+				base.shopCart.push(cartMenuItem);
+			}
+			else cartItem.count++;
+			shopItm.count--;
+		}
+		else if(shopItm.clsMech)
+		{
+			// Add mech to cart.
+		}
+	}
+	
+	override void Update(double dT)
+	{
+		// Get list height from shopping cart.
+		// Update positions
+		double listHeight = 0;
+		int itemY = 0;
+		foreach(item : base.shopCart)
+		{
+			item.posOffs = (10, 5 + itemY - scrollBar.curScroll);
+			itemY += item.size.y + 30;
+		}
+		listHeight = -(itemY - size.y);
+		if(listHeight > 0) listHeight = 0;
+		scrollBar.itemListHeight = abs(listHeight);
+		
+		if(CheckCollision(base.cursor, false) && base.cursor.scrollDir != 0)
+			scrollVel += (1 * base.cursor.scrollDir * dT);
+				
+		scrollVel *= 0.96;
+		scrollBar.scrollTo += scrollVel;
+		
+		if(base.shopCart.Size() <= 0)
+			base.shopMode = ShopMenu.SHOP_NEUTRAL;
+	}
+}
+
 class ShopItem : MenuElement
 {
 	// These should be treated as a union, items can either be MechItems, or a mech class.
 	MechItem objItem;
 	class<DrivableMech> clsMech;
-	ShopItemsContainer container;
+	int mechbayItem; // Used for selling mechs.
+	ShopMenu base;
 	bool dragging;
-	vector2 dragPos;
+	vector2 posOffs;
+	int count;
+	bool infinite;
+	bool inCart;
 	
 	override void Init()
 	{
 		size = (256,128);
-		dragPos = pos;
-		container = ShopItemsContainer(parentElement);
+		base = ShopMenu(parentMenu);
 	}
 	
 	override void Draw(double dT)
 	{
-		MWDrawer.SetClipRect(container.pos.x, container.pos.y, container.size.x, container.size.y);
-		if(objItem) MechItemSlot.DrawMechItem(objItem, pos, 1.0, 0.5, size, 34, disabled);  
-		MWDrawer.ClearClipRect();
-		
-		if(objItem && dragging) MechItemSlot.DrawMechItem(objItem, dragPos, 0.65, 0.5, size, 34, disabled);
+		DrawAt(pos, parentElement);
+	}
+	
+	virtual void DrawAt(vector2 drawPos, MenuElement inContainer)
+	{
+		if(objItem)
+		{	
+			if(inContainer) MWDrawer.SetClipRect(inContainer.pos.x, inContainer.pos.y, inContainer.size.x, inContainer.size.y);
+			if(!dragging)
+			{
+				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? 0.65 : 1.0, 0.5, size, 34, disabled);  
+				DrawCount(drawPos);
+				MWDrawer.ClearClipRect();
+			}
+			else
+			{
+				MechItemSlot.DrawMechItem(objItem, initPos + posOffs, 1.0, 0.5, size, 34, disabled);
+				DrawCount(initPos + posOffs);
+				MWDrawer.ClearClipRect();
+				
+				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? 0.65 : 1.0, 0.5, size, 34, disabled);  
+			}
+		}
+	}
+	
+	virtual void DrawCount(vector2 drawPos)
+	{
+		vector2 countStringPos = drawPos + (size.x + 10, size.y * 0.8);
+		MWDrawer.DrawString("SmallFont", String.Format("\c[Gray] x %d", count), countStringPos);
 	}
 	
 	override bool CheckDraggable()
 	{
 		// Items not visible on the list shouldn't be able to be dragged.
-		return dragging || CheckCollision(parentElement, false);
+		return !disabled && (dragging || CheckCollision(parentElement, false));
 	}
 	
 	override void UpdateDragPos(MenuCursor cursor)
@@ -165,7 +363,7 @@ class ShopItem : MenuElement
 			( (size.y * 0.5) + (cursor.size.y * 0.5) )
 		);
 	
-		dragPos = cursor.pos - centerPos;
+		pos = cursor.pos - centerPos;
 	}
 	
 	override void OnDrag(MenuCursor cursor)
@@ -174,17 +372,29 @@ class ShopItem : MenuElement
 	}
 	
 	override void OnDrop(MenuCursor cursor)
-	{
-		dragPos = pos;
+	{		
+		// Finish dragging 
 		dragging = false;
+	
+		if(inCart && !CheckCollision(base.shoppingCartContainer, true))
+		{
+			base.shoppingCartContainer.RemoveFromCart(self);
+			return;
+		}
+	
+		if(CheckCollision(base.shoppingCartContainer, true))
+		{
+			base.shoppingCartContainer.AddToCart(self);
+		}
 	}
 	
 	override void Update(double dT)
 	{
 		// Update size to item slot size.
 		if(objItem) size.y = 34 * max(1,objItem.size) * 0.5;
-		disabled = container.disabled;
-		pos.y = initPos.y + container.scroll;
+
+		if(!dragging) pos = initPos + posOffs;
+		disabled = parentElement.disabled || (!infinite && count <= 0);
 	}
 }
 
@@ -202,9 +412,10 @@ class ShopScrollBar : MenuElement
 
 	override void Draw(double dT)
 	{
-		MWDrawer.Fill(0x7F7F7F, pos.x, pos.y, size.x, size.y);
+		MWDrawer.Fill(0x7F7F7F, pos.x, pos.y, size.x, size.y);		
 		
-		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight)) * size.y, 16, size.y - 8);
+		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight + size.y)) * size.y, 16, size.y - 8);
+		
 		double scrollContainerHeight = size.y - scrollBarHeight - 8;
 		MWDrawer.Fill(0xFFFFFF, pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4, size.x * 0.8, scrollBarHeight); 
 	}
@@ -248,20 +459,29 @@ class ShopBackground : MenuElement
 // Shop Menu
 class ShopMenu : MechMenu 
 {
+	enum ShoppingMode
+	{
+		SHOP_NEUTRAL = 0,
+		SHOP_BUYING = 1,
+		SHOP_SELLING = 2
+	};
+
 	PlayerPawn shopPlayer;
-	bool buying; // True if buying, false if selling, only matters if shopCart contains more than 0 items.
+	int shopMode; // enum field for ShoppingMode.
 	Array<ShopItem> shopCart;
 	
 	I_MechItemStorage playerItems;
 	
 	ShopItemsContainer playerItemContainer;
 	ShopItemsContainer shopItemContainer;
+	CartContainer shoppingCartContainer;
 
 	MenuCursor cursor;
 	
 	override void InitElements() 
 	{
 		elements.Clear(); // Repopulate elements
+		shopMode = SHOP_NEUTRAL;
 		
 		shopPlayer = players[consoleplayer].mo;
 		// Get pointer to player items.
@@ -270,11 +490,13 @@ class ShopMenu : MechMenu
 		AddElement("ShopBackground", "ShopField", (160,90), (1600,900));
 		
 		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "PlayerItems", (160,280), (520,700)));
-		playerItemContainer.Setup(playerItems.items, NULL);
+		playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
 		
 		shopItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "ShopItems", (1240,280), (520,700)));
-		shopItemContainer.Setup(playerItems.shopItems, NULL);
-		shopItemContainer.ChangeListing(ShopItemsContainer.LIST_ENGINES);
+		shopItemContainer.Setup(playerItems.shopItems, NULL, SHOP_BUYING);
+		shopItemContainer.ChangeListing(ShopItemsContainer.LIST_ENGINES); 
+		
+		shoppingCartContainer = CartContainer(AddElement("CartContainer", "ShoppingCart", (770,280), (400,500)));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 

@@ -36,6 +36,18 @@ class MenuElement : Object abstract ui
 		return child;
 	}
 	
+	virtual void RemoveChild(MenuElement child)
+	{
+		int childIndex = children.Find(child);
+		if(childIndex == children.Size()) return;
+		children.Delete(childIndex);
+				
+		int childElementID = child.parentMenu.elements.Find(child);
+		child.parentMenu.elements.Delete(childElementID);
+		
+		child.Destroy();
+	}
+	
 	virtual MenuElement getChildByTag(string tag)
 	{
 		foreach(child : children)
