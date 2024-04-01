@@ -51,6 +51,23 @@ class MenuElement : Object abstract ui
 				foundElements.Push(child);
 	}
 	
+	virtual void ClearChildren(MechMenu baseMenu, class<MenuElement> type)
+	{
+		foreach(child : children)
+		{
+			if( !(child is type) ) continue;
+	
+			let childID = baseMenu.elements.Find(child);
+			if(childID != baseMenu.elements.Size()) 
+				baseMenu.elements.Delete(childID);
+			child.Destroy();
+		}
+		
+		// Filter "dead" children.
+		for(int i = children.Size()-1; i >= 0; i--)
+			if(!children[i]) children.Delete(i);
+	}
+	
 	virtual void Init() {}
 	virtual void Draw(double dT) {}
 	virtual void Update(double dT) {}
@@ -367,7 +384,7 @@ class MechMenu : GenericMenu
 	{
 		// Update Elements	
 		foreach(element : elements)
-			element.Update(deltaTime);
+			if(element) element.Update(deltaTime);
 			
 		// Calculate element collisions (This is REALLY slow, sadly. However the result is pretty robust and clean code-wise collision logic)
 		for(int i = elements.Size()-1; i >= 0; i--)

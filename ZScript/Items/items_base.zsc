@@ -1507,6 +1507,7 @@ class MechWeaponGroup : Object
 class I_MechItemStorage : Inventory
 {
 	Array<MechItem> items;
+	Array<MechItem> shopItems;
 	string dropshipNextMap; // Map to return to after dropship.
 	
 	Default
@@ -1617,6 +1618,8 @@ class I_MechItemStorage : Inventory
 						itm.AddItem(itemInstance);	
 				}
 			}
+			
+			itm.shopItems.Push(MechItem.Init("MechEngine_XL280"));
 		}
 		
 		return itm;
