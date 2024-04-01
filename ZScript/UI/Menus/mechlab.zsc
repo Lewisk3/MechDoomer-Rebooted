@@ -325,17 +325,19 @@ class MechItemSlot : MenuElement
 		return itemFontColor, Color(slotColor);
 	}
 	
-	override void Draw(double dT)
+	ui static void DrawMechItem(MechItem item, vector2 pos, double alpha, double itemScale, vector2 containerSize, double slotHeight, bool greyed = false)
 	{
+		if(!item) return;
+	
 		Font itemFont = "SmallFont"; 
-		bool destroyed = slotItem.checkDestroyed();
+		bool destroyed = item.checkDestroyed();
 		
 		Color slotColor = 0;
 		uint itemFontColor = Font.CR_WHITE;
-		double wScale = size.x / 256;
+		double wScale = containerSize.x / 256;
 		
-		[itemFontColor, slotColor] = GetItemColors(slotItem);
-		if(disabled)
+		[itemFontColor, slotColor] = GetItemColors(item);
+		if(greyed)
 		{
 			slotColor = 0xFF000000;
 			itemFontColor = Font.CR_White;
@@ -347,41 +349,46 @@ class MechItemSlot : MenuElement
 			itemFontColor = Font.CR_Black; 
 		}
 		
-		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, texoffs:(0,0));
+		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, texoffs:(0,0));
 		
-		if(slotItem)
+		if(item)
 		{
-			int itemSize = max(1,slotItem.size);
-			double scaledSlotHeight = slotHeight * scale;
+			int itemSize = max(1,item.size);
+			double scaledSlotHeight = slotHeight * itemScale;
 			for(int i = 0; i < itemSize-1; i++)
 			{
 				MWDrawer.DrawImage(
 					"Graphics/Mechlab/itemBottom.png", 
 					pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
-					alpha:alpha, scale:(scale*wScale,scale), tint:slotColor, 
+					alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, 
 					texoffs:(0,0)
 				);
 			}
 			
 			// Draw item data
-			double fontScale = scale * 1.75;
+			double fontScale = itemScale * 1.75;
 			vector2 centerPos = pos + (
-				(size.x / 2.0),
-				(size.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
+				(containerSize.x / 2.0),
+				(containerSize.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
 			);
 						
 			// Autofit 
-			double fitX = size.x - 16;
-			double itemNameWidth = itemFont.StringWidth(slotItem.displayName) * fontScale * 2.0;
+			double fitX = containerSize.x - 16;
+			double itemNameWidth = itemFont.StringWidth(item.displayName) * fontScale * 2.0;
 			double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
 			
 			MWDrawer.DrawString(
-				itemFont, slotItem.displayName, 
+				itemFont, item.displayName, 
 				centerPos, MWDrawer.SS_TEXT_CENTER, itemFontColor,
 				alpha, scale:(fontScale * fitScale, fontScale)
 			);
 		}
-				
+	}
+	
+	override void Draw(double dT)
+	{
+		DrawMechItem(slotItem, pos, alpha, scale, size, slotHeight, disabled);
+	
 		// drawCollider();
 	}
 	

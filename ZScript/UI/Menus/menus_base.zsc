@@ -130,6 +130,7 @@ class MenuElement : Object abstract ui
 	}
 	virtual bool CheckCollision(MenuElement other, bool callOnCollide = true) 
 	{
+		if(!other) return false;
 		bool collides = AABBCollision(pos, size, other.pos, other.size); 
 		if(collides && callOnCollide) OnCollision(other);
 		

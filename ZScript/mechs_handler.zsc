@@ -39,6 +39,14 @@ class MechInteraction_Handler : EventHandler
 		}
 	}
 	
+	play void OpenShop(int PID)
+	{
+		if(PID != consoleplayer) return;
+		
+		Menu.SetMenu("ShopMenu");
+		SendInterfaceEvent(PID, "shop.update");
+	}
+	
 	override void WorldUnloaded(WorldEvent e)
 	{
 		// Call vehicle travelling virtuals
@@ -54,6 +62,8 @@ class MechInteraction_Handler : EventHandler
 		let plr = players[consoleplayer].mo;
 		
 		let mechlab = MechMenu_Mechlab(Menu.getCurrentMenu());
+		let shop = ShopMenu(Menu.getCurrentMenu());
+		
 		if(mechlab) 
 		{
 			mechlab.processPlayEvent(consoleplayer, e.Name);
@@ -152,6 +162,9 @@ class MechInteraction_Handler : EventHandler
 			if(cmd ~== "mw_openmechlab")
 				OpenMechlab(e.Player, DrivableMech(drvObj.source));
 		}
+		
+		if(cmd ~== "mw_openshopmenu")
+			OpenShop(e.Player);
 		
 		/*
 		if(cmd ~== "+mw_opendronemenu")

@@ -19,6 +19,7 @@ version "4.10.0"
 
 #include "ZScript/UI/Menus/menus_base.zsc"
 #include "ZScript/UI/Menus/mechlab.zsc"
+#include "ZScript/UI/Menus/shop_menu.zsc"
 
 // Vehicle System
 #include "ZScript/drivables/drivables_math.zsc"

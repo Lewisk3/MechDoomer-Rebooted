@@ -1,0 +1,213 @@
+
+class ShopItemsContainer : MenuElement
+{
+	enum ListingModes
+	{
+		LIST_WEAPONS = 0,
+		LIST_MECHS 	 = 1,
+		LIST_UTILITIES = 2
+	};
+	
+	int listingMode;
+
+	ShopMenu base;
+	double alpha;
+	
+	double scroll, scrollVel;
+	double listHeight; // Maximum height of items stored in list.
+	Array<MechItem> items;
+	Array<class<DrivableMech> > mechs;
+	ShopScrollBar scrollBar;
+	
+	override void Init()
+	{	
+		super.Init();
+		
+		alpha = 1.0;
+		base = ShopMenu(parentMenu);
+		listingMode = LIST_WEAPONS;
+		
+		vector2 scrollBarPos = pos + (size.x - 40, 0);
+		scrollBar = ShopScrollBar(AddChild(base, "ShopScrollBar","ScrollBar", scrollBarPos));
+		scrollBar.size.x = 40;
+	}
+	
+	virtual void Setup(out Array<MechItem> items, out Array<class<DrivableMech> > mechs)
+	{
+		if(items) self.items.Copy(items);
+		if(mechs) self.mechs.Copy(mechs);
+		populateChildren();
+	}
+	
+	void populateChildren()
+	{
+		children.Clear();
+		int itemY = 0;
+		int itemIndex = 0;
+		
+		// Populate based on items list.		
+		int limit = 1000;
+		if(items.Size() > 0)
+		{
+			foreach(item : items)
+			{
+				if(item.size > 0)
+				{
+					let cItem = ShopItem(AddChild(base, "ShopItem", "ItemTest", pos + (60,20 + itemY)));
+					cItem.objItem = item;
+					cItem.Update(0);
+					
+					itemY += cItem.size.y + 30;
+					itemIndex++;
+				}
+				if(itemIndex > limit) break;
+			}
+			listHeight = -(itemY - size.y);
+			if(listHeight > 0) listHeight = 0;
+		}
+	}
+
+	override void Draw(double dt)
+	{
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+
+		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, size.x, size.y, alpha, drawFlags);
+		
+		// Debug
+		drawCollider();
+	}
+	
+	override void Update(double dT)
+	{
+		scroll = -scrollBar.curScroll;
+		scrollBar.itemListHeight = abs(listHeight);
+		
+		if(CheckCollision(base.cursor, false) && base.cursor.scrollDir != 0)
+				scrollVel += (1 * base.cursor.scrollDir * dT);
+				
+		scrollVel *= 0.96;
+		scrollBar.curScroll += scrollVel;
+	}
+}
+
+class ShopItem : MenuElement
+{
+	// These should be treated as a union, items can either be MechItems, or a mech class.
+	MechItem objItem;
+	class<DrivableMech> clsMech;
+	vector2 posOffs;
+	ShopItemsContainer container;
+	
+	override void Init()
+	{
+		size = (256,128);
+		container = ShopItemsContainer(parentElement);
+	}
+	
+	override void Draw(double dT)
+	{
+		MWDrawer.SetClipRect(container.pos.x, container.pos.y, container.size.x, container.size.y);
+		if(objItem) MechItemSlot.DrawMechItem(objItem, pos + posOffs, 1.0, 0.5, size, 34, disabled);  
+		MWDrawer.ClearClipRect();
+	}
+	
+	override void Update(double dT)
+	{
+		// Update size to item slot size.
+		if(objItem) size.y = 34 * max(1,objItem.size) * 0.5;
+		disabled = container.disabled;
+		posOffs.y = container.scroll;
+	}
+}
+
+class ShopScrollBar : MenuElement
+{
+	double curScroll;
+	double itemListHeight;
+	double scrollPerc;
+	
+	override void Init()
+	{
+		size.y = parentElement.size.y;
+	}
+
+	override void Draw(double dT)
+	{
+		MWDrawer.Fill(0x7F7F7F, pos.x, pos.y, size.x, size.y);
+		
+		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight)) * size.y, 16, size.y - 8);
+		double scrollContainerHeight = size.y - scrollBarHeight - 8;
+		MWDrawer.Fill(0xFFFFFF, pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4, size.x * 0.8, scrollBarHeight); 
+	}
+	
+	override bool CheckDraggable()
+	{
+		return itemListHeight > 0;
+	}
+	
+	override void UpdateDragPos(MenuCursor cursor)
+	{
+		double deltaY = cursor.pos.y - pos.y;
+		double perc = clamp(deltaY / size.y, 0, 1.);
+		
+		curScroll = perc * itemListHeight;
+	}
+	
+	override void Update(double dT)
+	{
+		curScroll = clamp(curScroll, 0, itemListHeight);		
+		scrollPerc = curScroll / max(1,itemListHeight);
+	}
+}
+
+// Shop Menu
+class ShopMenu : MechMenu 
+{
+	PlayerPawn shopPlayer;
+	bool buying; // True if buying, false if selling, only matters if shopCart contains more than 0 items.
+	Array<ShopItem> shopCart;
+	
+	I_MechItemStorage playerItems;
+	
+	ShopItemsContainer playerItemContainer;
+	ShopItemsContainer shopItemContainer;
+
+	MenuCursor cursor;
+	
+	override void InitElements() 
+	{
+		elements.Clear(); // Repopulate elements
+		
+		shopPlayer = players[consoleplayer].mo;
+		// Get pointer to player items.
+		playerItems = I_MechItemStorage(shopPlayer.FindInventory("I_MechItemStorage"));
+		
+		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "PlayerItems", (50,200), (520,700)));
+		playerItemContainer.Setup(playerItems.items, NULL);
+		
+		
+		// Cursor is added last, to keep always on-top.
+		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+		
+	play static void processShopMenuEvents(ConsoleEvent e)
+	{
+		// Menu events
+		let plr = players[e.Player].mo;
+		
+		string menuCmd = e.Name;
+		Array<String> menuArgs;
+		menuCmd.Split(menuArgs, ".");
+	}
+	
+	override void processPlayEvent(int playerNumber, string event) 
+	{
+		Array<String> cmds;
+		event.Split(cmds, ".");
+	}
+	
+	override void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)
+	{
+		// MenuElements can call this function if they wish to relay behavior to their parent menu.
+	}
+}
