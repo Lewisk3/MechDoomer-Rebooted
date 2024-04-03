@@ -4,9 +4,9 @@ class ShopItemsContainer : MenuElement
 	enum ListingModes
 	{
 		LIST_WEAPONS = 0,
-		LIST_MECHS 	 = 1,
-		LIST_UTILITIES = 2,
-		LIST_ENGINES = 3
+		LIST_UTILITIES = 1,
+		LIST_ENGINES = 2,
+		LIST_MECHS 	 = 3
 	};
 		
 	int listingMode;
@@ -71,12 +71,13 @@ class ShopItemsContainer : MenuElement
 					break;
 				}
 				
-				// Check if item source is in the cart, if so, skip it.
+				// Find item if in cart.
+				ShopItem inCartItem;
 				foreach(cartItem : base.shopCart)
 				{	
 					if(cartItem.objItem == item)
 					{
-						skipItem = true;
+						inCartItem = cartItem;
 						break;
 					}
 				}
@@ -88,6 +89,7 @@ class ShopItemsContainer : MenuElement
 					let cItem = ShopItem(AddChild(base, "ShopItem", "ShopContainerItem", pos + (30,20 + itemY)));
 					cItem.objItem = item;
 					cItem.count = item.amount;
+					if(inCartItem) cItem.count -= inCartItem.count;
 					cItem.Update(0);
 					if(containerType == ShopMenu.SHOP_BUYING)
 						cItem.infinite = true;
@@ -116,23 +118,53 @@ class ShopItemsContainer : MenuElement
 		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, size.x, size.y, alpha, drawFlags);
 	
 		vector2 tabPos = pos + (0,-170);
+		double tabWidth = (size.x*0.9) / 4.0;
+		
 		MWDrawer.Fill(0x7F7F7F, tabPos.x-4, tabPos.y, size.x + 8, 170);
 		MWDrawer.Fill(0x3F3F3F, tabPos.x-4, tabPos.y, size.x + 8, 64);
-	
-		double tabWidth = (size.x*0.9) / 4.0;
-		DrawTab("\c[White]Weapons", tabPos, (tabWidth,64), listingMode == LIST_WEAPONS);
+						
+		// Simple and quick way of making these tabs functional.
+		int tabHovered = -1;
+		for(int i = 0; i < 4; i++)
+		{
+			vector2 checkPos = tabPos + ((tabWidth + 16) * i, 0);
+			bool mouseCollision = AABBCollision(base.cursor.pos, base.cursor.size, checkPos, (tabWidth,64));
+			if(mouseCollision)
+			{
+				tabHovered = i;
+				if(base.cursor.leftPressed) ChangeListing(i);
+			}
+		}
+			
+		DrawTab("\c[White]Weapons", tabPos, tabHovered == 0, (tabWidth,64), listingMode == LIST_WEAPONS);
 		tabPos.x += tabWidth + 16;
-		DrawTab("\c[White]Utilities", tabPos, (tabWidth,64), listingMode == LIST_UTILITIES);
+		DrawTab("\c[White]Utilities", tabPos, tabHovered == 1, (tabWidth,64), listingMode == LIST_UTILITIES);
 		tabPos.x += tabWidth + 16;
-		DrawTab("\c[White]Engines", tabPos, (tabWidth,64), listingMode == LIST_ENGINES);
+		DrawTab("\c[White]Engines", tabPos, tabHovered == 2, (tabWidth,64), listingMode == LIST_ENGINES);
 		tabPos.x += tabWidth + 16;
-		DrawTab("\c[White]Mechs", tabPos, (tabWidth,64), listingMode == LIST_MECHS);
+		DrawTab("\c[White]Mechs", tabPos, tabHovered == 3, (tabWidth,64), listingMode == LIST_MECHS);
+		
+		// Container banner
+		vector2 bannerPos = pos + (0,-275);
+		vector2 bannerSize = (size.x, 90);
+		MWDrawer.Fill(0x4A4A4A, bannerPos.x, bannerPos.y, bannerSize.x + 8, bannerSize.y + 8);
+		MWDrawer.Fill(0x1A1A1A, bannerPos.x, bannerPos.y, bannerSize.x, bannerSize.y);
+		
+		vector2 bannerTxtPos = bannerPos + (bannerSize.x * 0.5, (bannerSize.y * 0.5) - 10);
+		MWDrawer.DrawString("SmallFont", "\c[Black]"..tag, bannerTxtPos + (4,4), MWDrawer.SS_TEXT_CENTER, scale:(1.5,1.5));
+		MWDrawer.DrawString("SmallFont", "\c[White]"..tag, bannerTxtPos, MWDrawer.SS_TEXT_CENTER, scale:(1.5,1.5));
+		
 	}
 	
-	void DrawTab(String txt, vector2 tabPos, vector2 tabSize, bool active = false)
+	void DrawTab(String txt, vector2 tabPos, bool hovered, vector2 tabSize, bool active = false)
 	{
 		Color outlineColor = 0x3F3F3F;
 		Color bgColor = 0x5F5F5F;
+		if(hovered)
+		{
+			outlineColor = 0x7F7F7F;
+			bgColor = 0xAFAFAF;
+		}
 		if(active) outlineColor = bgColor = 0x7F7F7F;
 		
 		MWDrawer.Fill(outlineColor, tabPos.x - 4, tabPos.y - 4, tabSize.x + 8, tabSize.y + 8);
@@ -194,6 +226,9 @@ class CartContainer : MenuElement
 		vector2 scrollBarPos = pos + (size.x - 40, 0);
 		scrollBar = ShopScrollBar(AddChild(base, "ShopScrollBar","ScrollBar", scrollBarPos));
 		scrollBar.size.x = 40;
+		
+		AddChild(base, "ShopBuySellButton", "Buy/Sell Button", pos + (0,640), (205,48));
+		AddChild(base, "ShopClearCartButton", "Clear Cart Button", pos + (225,640), (205,48));
 	}
 	
 	override void Draw(double dT)
@@ -238,7 +273,7 @@ class CartContainer : MenuElement
 		
 		double balance = base.PlayerItems.cbills + cost;
 		string balString = String.Format("\c[Gray]%s\c[White]", MWDrawer.FormatNumber(balance));
-		if(balance < 0) balString = String.Format("\c[Red]%d\c[White]", balance);
+		if(balance < 0) balString = String.Format("\c[Red]%s\c[White]", MWDrawer.FormatNumber(balance));
 		MWDrawer.DrawString("SmallFont", "\c[White]= " .. balString, trBoxPos + (size.x * 0.5,65), MWDrawer.SS_TEXT_CENTER);
 		
 		// CBill Icons
@@ -267,13 +302,19 @@ class CartContainer : MenuElement
 		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", acBoxPos + ( 12 + (size.x * 0.5) + (balanceWidth * 0.5), 6 + 50), scale:(0.8,0.8));
 	}
 	
+	bool checkValidTransaction()
+	{
+		double cost = getTransactionCBills();
+		return (base.playerItems.cbills + cost) >= 0;
+	}
+	
 	double getTransactionCBills()
 	{
 		double cost = 0;
 		foreach(item : base.shopCart)
 		{
 			if(item.objItem) 
-				cost += item.objItem.value * item.count;
+				cost += item.objItem.GetValue() * item.count;
 		}
 		
 		switch (base.shopMode)
@@ -291,8 +332,11 @@ class CartContainer : MenuElement
 	
 	virtual void ClearCart()
 	{
-		foreach(item : base.shopCart)
-			RemoveFromCart(item, item.count);
+		for(int i = base.shopCart.Size()-1; i >= 0; i--)
+		{
+			let item = base.shopCart[i];
+			if(item) RemoveFromCart(item, item.count);
+		}
 	}
 	
 	virtual void RemoveFromCart(ShopItem shopItm, double amt = 1)
@@ -309,13 +353,17 @@ class CartContainer : MenuElement
 			}
 		}
 		if(!cartItem) return;
-		
+
 		if(shopItm.objItem)
 		{
 			cartItem.count-=amt;
+
 			// Restore count to old item
 			foreach(menuItem : base.elements)
-			{
+			{		
+				// Skip the cart item element.
+				if(menuItem == shopItm) continue;
+				
 				let sItem = ShopItem(menuItem);
 				if(sItem && sItem.objItem == shopItm.objItem)
 				{
@@ -409,6 +457,89 @@ class CartContainer : MenuElement
 	}
 }
 
+class ShopBuySellButton : MenuButton
+{
+	string btnText;
+	ShopMenu base;
+	CartContainer shoppingCart;
+	
+	override void Init()
+	{
+		base = ShopMenu(parentMenu);
+		shoppingCart = CartContainer(parentElement);
+	}
+
+	override void Draw(double dT)
+	{
+		Color bgColor = 0x7F7F7F;
+		Color fgColor = 0x9F9F9F;
+		int txtColor = Font.CR_GRAY;
+		
+		if(disabled)
+		{
+			bgColor = 0x2F2F2F;
+			fgColor = 0x7F7F7F;
+			txtColor = Font.CR_BLACK;
+		}
+		else if(hovered)
+		{
+			bgColor = 0xAFAFAF;
+			fgColor = 0xCFCFCF;
+			txtColor = Font.CR_WHITE;
+		}
+	
+		// Draw button background
+		MWDrawer.Fill(bgColor, pos.x - 4, pos.y - 4, size.x + 8, size.y + 8);
+		MWDrawer.Fill(fgColor, pos.x, pos.y, size.x, size.y);
+		
+		vector2 btnTextPos = pos + (size.x * 0.5, (size.y * 0.5) - (MWDrawer.GetTextHeight("SmallFont", tag) * 0.5));
+		MWDrawer.DrawString("SmallFont", btnText, btnTextPos, MWDrawer.SS_TEXT_CENTER, translation:txtColor);
+	}
+	
+	override void Update(double dT)
+	{
+		super.Update(dT);
+		btnText = "???";
+		switch(base.shopMode)
+		{
+			case base.SHOP_BUYING:
+				btnText = "Buy Items";
+			break;
+			case base.SHOP_SELLING:
+				btnText = "Sell Items";
+			break;
+			default:
+				btnText = "Buy/Sell Items";
+			break;
+		}
+		
+		disabled = (!shoppingCart || !shoppingCart.checkValidTransaction()) || base.shopMode == base.SHOP_NEUTRAL;
+	}
+	
+	override void OnPressed()
+	{
+		base.completeTransaction();
+		pressed = false;
+	}
+}
+
+class ShopClearCartButton : ShopBuySellButton
+{
+	override void Update(double dT)
+	{
+		super.Update(dT);
+		
+		btnText = "Clear Cart";		
+		disabled = (!shoppingCart || base.shopCart.Size() <= 0) || base.shopMode == base.SHOP_NEUTRAL;
+	}
+	
+	override void OnPressed()
+	{
+		shoppingCart.ClearCart();
+		pressed = false;
+	}
+}
+
 class ShopItem : MenuElement
 {
 	// These should be treated as a union, items can either be MechItems, or a mech class.
@@ -477,7 +608,7 @@ class ShopItem : MenuElement
 		// Draw Price
 		Color priceTagColor = 0xFF127012;
 		vector2 priceStringPos = (drawPos.x + size.x + 12, drawPos.y + size.y - 8);
-		string value = MWDrawer.FormatNumber(isPlayerItem ? objItem.value * 0.5 : objItem.value);
+		string value = MWDrawer.FormatNumber(isPlayerItem ? objItem.GetValue() * 0.5 : objItem.GetValue());
 		double valLength = MWDrawer.GetTextWidth("SmallFont", value, (0.8,0.8));
 		vector2 cbillIconPos = priceStringPos + (7 + valLength, 5);
 		
@@ -641,12 +772,12 @@ class ShopMenu : MechMenu
 		// Get pointer to player items.
 		playerItems = I_MechItemStorage(shopPlayer.FindInventory("I_MechItemStorage"));
 		
-		AddElement("ShopBackground", "ShopField", (150,20), (1620,900));
+		AddElement("ShopBackground", "ShopField", (150,20), (1620,950));
 		
-		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Current Inventory", (160,250), (520,650)));
+		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Current Inventory", (160,300), (520,650)));
 		playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
 		
-		shopItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Market Items", (1240,250), (520,650)));
+		shopItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Market Items", (1240,300), (520,650)));
 		shopItemContainer.Setup(playerItems.shopItems, NULL, SHOP_BUYING);
 		shopItemContainer.ChangeListing(ShopItemsContainer.LIST_ENGINES); 
 		
@@ -655,7 +786,58 @@ class ShopMenu : MechMenu
 		// Cursor is added last, to keep always on-top.
 		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
 	}
+	
+	void completeTransaction()
+	{
+		string type = "???";
+		double cost = shoppingCartContainer.getTransactionCBills();
+		// Format of event - buysell:cost[id:amt,id:amt...]
+		if(shopMode == SHOP_NEUTRAL) return; 
 		
+		 // Freeze menu until transaction is completed in play-scope.
+		pauseUpdates = true;
+		
+		Array<MechItem> itemBox;
+		Array<Int> ids;
+		Array<Int> amts;
+		
+		switch(shopMode)
+		{
+			case SHOP_BUYING:
+				type = "buy";
+				itemBox.Copy(playerItems.shopItems);
+			break;
+			case SHOP_SELLING:
+				type = "sell";
+				itemBox.Copy(playerItems.items);
+			break;
+		}
+		
+		// Gather IDs and amounts
+		string itemStr = "";
+		for(int i = 0; i < shopCart.Size(); i++)
+		{
+			let item = shopCart[i];
+			if(item.objItem)
+			{
+				int itemID = itemBox.Find(item.objItem);
+				itemStr.AppendFormat("%d:", itemID);
+			}
+			else if(item.clsMech)
+			{
+				// TODO: Mech transactions
+			}
+			itemStr.AppendFormat("%d", item.count);
+			if(i < shopCart.Size()-1) itemStr.AppendFormat(",");
+		}
+		
+		// Build transaction string
+		string shopStr = String.Format("shop:%s:%d:[%s]", type, cost, itemStr);
+		
+		// Send transaction request
+		EventHandler.SendNetworkEvent(shopStr);
+	}
+	
 	play static void processShopMenuEvents(ConsoleEvent e)
 	{
 		// Menu events
@@ -663,13 +845,60 @@ class ShopMenu : MechMenu
 		
 		string menuCmd = e.Name;
 		Array<String> menuArgs;
-		menuCmd.Split(menuArgs, ".");
+		menuCmd.Split(menuArgs, ":");
+		
+		if(menuArgs[0] == "shop")
+		{
+			string mode = menuArgs[1];
+			double cost = menuArgs[2].ToDouble();
+			let playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
+						
+			// Handle cbills
+			playerItems.cbills += cost;
+			
+			// Unpack items
+			int listStart = menuCmd.IndexOf("[");
+			int listEnd = menuCmd.IndexOf("]") - listStart;
+			string shopItems = menuCmd.Mid(listStart + 1, listEnd - 1); 
+			
+			Array<string> itemsData;
+			shopItems.Split(itemsData, ",");
+			
+			Array<int> itemIDs;
+			Array<int> itemCounts;
+			
+			// Handle items
+			foreach(itemStr : itemsData)
+			{
+				int delim = itemStr.IndexOf(":");
+				int itemID = itemStr.Mid(0,delim).ToInt();
+				int itemCount = itemStr.Mid(delim+1).ToInt();
+				
+				if(mode == "buy")
+					playerItems.AddItem(playerItems.shopItems[itemID], itemCount);
+					
+				if(mode == "sell")
+					playerItems.depleteItem(playerItems.items[itemID], itemCount);
+			}
+			
+			// Finally, complete transaction
+			EventHandler.SendInterfaceEvent(e.Player, "transaction.completed");
+		}
 	}
 	
 	override void processPlayEvent(int playerNumber, string event) 
 	{
 		Array<String> cmds;
 		event.Split(cmds, ".");
+		
+		if(event == "transaction.completed")
+		{
+			shoppingCartContainer.ClearCart();
+			playerItemContainer.populateChildren();
+			shopItemContainer.populateChildren();
+			shopMode = SHOP_NEUTRAL;
+			pauseUpdates = false;
+		}
 	}
 	
 	override void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)

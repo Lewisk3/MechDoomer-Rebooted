@@ -64,6 +64,11 @@ class MechInteraction_Handler : EventHandler
 		let mechlab = MechMenu_Mechlab(Menu.getCurrentMenu());
 		let shop = ShopMenu(Menu.getCurrentMenu());
 		
+		if(shop)
+		{
+			shop.processPlayEvent(consoleplayer, e.Name);
+		}
+		
 		if(mechlab) 
 		{
 			mechlab.processPlayEvent(consoleplayer, e.Name);
@@ -174,6 +179,7 @@ class MechInteraction_Handler : EventHandler
 		*/
 		
 		MechMenu_Mechlab.processMechlabEvents(e, mechlab_curmech[e.Player]);
+		ShopMenu.processShopMenuEvents(e);
 
 		// Cheats and Debug
 		Array<string> args;

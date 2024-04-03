@@ -26,7 +26,7 @@ class MenuElement : Object abstract ui
 		return element;
 	}
 	
-	virtual MenuElement AddChild(MechMenu baseMenu, class<MenuElement> type, string tag, vector2 pos)
+	virtual MenuElement AddChild(MechMenu baseMenu, class<MenuElement> type, string tag, vector2 pos, vector2 size = (0,0))
 	{
 		let child = MenuElement.Create(type, tag, baseMenu, pos, size, self, skipInit:true);
 		children.Push(child);
@@ -333,6 +333,7 @@ class MechMenu : GenericMenu
 	double prevMS;
 	double deltaTime;
 	Array<MenuElement> elements;
+	bool pauseUpdates;
 
 	override void Init(Menu parent)
 	{
@@ -389,7 +390,7 @@ class MechMenu : GenericMenu
 		for(int i = 0; i < elements.Size(); i++)
 			elements[i].Draw(deltaTime);
 			
-		UpdateElements(deltaTime, elements);
+		if(!pauseUpdates) UpdateElements(deltaTime, elements);
 	}	
 	
 	ui static void UpdateElements(double deltaTime, out Array<MenuElement> elements)

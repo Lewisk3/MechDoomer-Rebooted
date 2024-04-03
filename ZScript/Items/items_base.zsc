@@ -51,6 +51,12 @@ class MechItem : Object
 		return (item && item.template) ? NULL : item;
 	}
 	
+	// Returns cbill value of item
+	clearscope virtual double GetValue()
+	{
+		return value;
+	}
+	
 	play virtual void ToggleState()
 	{
 		// Called with toggle weapon state button is pressed.
@@ -289,6 +295,11 @@ class MechAmmo : MechItem
 		damagable = true;
 		explosionDamage = 1;
 		baseAmmoClass = "";
+	}
+	
+	override double getValue()
+	{
+		return max(value * 0.1, value * ((curAmmo*0.8)/maxAmmo));
 	}
 	
 	override bool isTypeOf(class<MechItem> item, bool subclass)
@@ -809,8 +820,8 @@ class MechEngine : MechItem
 		double typeMod[] = {
 			1.0,
 			1.5,
-			2.65,
-			3.5
+			2.7,
+			4.0
 		};
 	
 		return baseValue * rating * typeMod[type];
@@ -1012,7 +1023,7 @@ class MechEngine : MechItem
 		{
 			rating = 100;
 			type = Type_STD;
-			baseValue = 1133.3325;
+			baseValue = 3065.67;
 			AutoDetectEngine();
 			SetupEngine();
 			value = GetPrice();
@@ -1563,35 +1574,44 @@ class I_MechItemStorage : Inventory
 		return output;
 	}	
 	
-	void depleteItem(MechItem item)
+	void depleteItem(MechItem item, int amt = 1)
 	{	
 		if(item.infinite) return;
-		if(item.amount > 1)
-			item.amount--;
-		else
+		if(item.amount > 1) 
+			item.amount-=amt;
+		
+		if(item.amount <= 0)
 		{
 			int index = items.Find(item);
 			if(index != items.Size()) items.Delete(index);
 		}
 	}
 	
-	void AddItem(MechItem item)
+	void AddItem(MechItem item, double amt = 1)
 	{
 		Array<MechItem> validItems;
 		FindItems(item.getClass(), validItems);
+		
+		if(!validItems.Size())
+		{
+			item.OnInventoryAdd(self);
+			items.Push(item);
+			if(amt > 1) 
+			{
+				FindItems(item.getClass(), validItems);
+				amt--;
+			}
+		}
 		
 		for(int i = 0; i < validItems.Size(); i++)
 		{
 			let stackItem = validItems[i];
 			if(stackItem && stackItem.CanStack(item))
 			{
-				if(!item.infinite) stackItem.amount++;
+				if(!item.infinite) stackItem.amount+=amt;
 				return; // Successfully stacked item.
 			}
 		}
-		
-		item.OnInventoryAdd(self);
-		items.Push(item);
 	}
 	
 	static I_MechItemStorage Get(Actor from, bool give = true)
@@ -1629,11 +1649,7 @@ class I_MechItemStorage : Inventory
 				}
 								
 				// Give 25 of each item.
-				for(int i = 0; i < 25; i++)
-				{
-					if(itemInstance)
-						itm.AddItem(itemInstance);	
-				}
+				if(itemInstance) itm.AddItem(itemInstance, 25);	
 			}
 			
 			itm.shopItems.Push(MechItem.Init("MechEngine_XL280"));
