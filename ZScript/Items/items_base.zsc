@@ -7,7 +7,7 @@ class MechItem : Object
 	int size;
 	bool movable, damagable, disabled, nosave; // No Save means this item is not saved into mech data.
 	string displayName;
-	uint amount;
+	int amount;
 	double weight;
 	double value; // CBill value
 	Sound sndItemName;
@@ -1274,6 +1274,7 @@ class MechWeapon : MechItem
 	
 	clearscope virtual int checkAmmo()
 	{
+		if(loadedAmmo && !loadedAmmo.parent) loadedAmmo = NULL;
 		return !loadedAmmo ? 0 : loadedAmmo.curAmmo;
 	}
 	
@@ -1577,41 +1578,37 @@ class I_MechItemStorage : Inventory
 	void depleteItem(MechItem item, int amt = 1)
 	{	
 		if(item.infinite) return;
-		if(item.amount > 1) 
-			item.amount-=amt;
-		
-		if(item.amount <= 0)
+		if(item.amount > amt) 
+			item.amount -= amt;
+		else
 		{
 			int index = items.Find(item);
 			if(index != items.Size()) items.Delete(index);
 		}
 	}
 	
-	void AddItem(MechItem item, double amt = 1)
+	void AddItem(MechItem item, int amt = 1)
+	{
+		for(int i = 0; i < amt; i++) AddNewItem(item);
+	}
+	
+	void AddNewItem(MechItem item)
 	{
 		Array<MechItem> validItems;
 		FindItems(item.getClass(), validItems);
-		
-		if(!validItems.Size())
-		{
-			item.OnInventoryAdd(self);
-			items.Push(item);
-			if(amt > 1) 
-			{
-				FindItems(item.getClass(), validItems);
-				amt--;
-			}
-		}
 		
 		for(int i = 0; i < validItems.Size(); i++)
 		{
 			let stackItem = validItems[i];
 			if(stackItem && stackItem.CanStack(item))
 			{
-				if(!item.infinite) stackItem.amount+=amt;
+				if(!item.infinite) stackItem.amount++;
 				return; // Successfully stacked item.
 			}
 		}
+		
+		item.OnInventoryAdd(self);
+		items.Push(item);
 	}
 	
 	static I_MechItemStorage Get(Actor from, bool give = true)
