@@ -58,6 +58,37 @@ class MWDrawer Abstract ui
 		return statscr_base_width;
 	}
 	
+	static double GetTextWidth(Font fnt, string text, vector2 scale = (1,1))
+	{	
+		if(!fnt) return 0;
+		return fnt.StringWidth(text) * (scale.x * 2.0);
+	}
+	static double GetTextHeight(Font fnt, string text, int flags = 0, vector2 scale = (1,1))
+	{		
+		if(!fnt) return 0;
+		return fnt.getHeight() * (scale.y * 2.0);
+	}
+	
+	static string InsertCharAt(string str, int pos, string ch)
+	{
+		return String.Format("%s%s%s", str.Mid(0, pos), ch, str.Mid(pos));
+	}
+	
+	static string FormatNumber(double num)
+	{
+		string numStr = String.Format("%d", num);
+
+		int numStrLen = numStr.Length();
+		if(numStrLen <= 3) return numStr; 
+			
+		for(int i = 1; i < ceil(numStrLen / 3.0); i++)
+		{
+			numStr = InsertCharAt(numStr, numStrLen - (i * 3), ",");
+		}
+			
+		return numStr;
+	}
+	
 	// Determines the true bottom of viewspace, 
 	// gets its ratio to the desired resolution.
 	static double GetStatusBarHeightRatio()

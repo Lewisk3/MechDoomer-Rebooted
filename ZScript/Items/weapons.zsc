@@ -23,6 +23,8 @@ class SmallLaser : MechLaserWeapon
 		sndItemName = "Betty/Item/Laser";
 		mountDeco = "LaserMountDeco";
 		
+		value = 10000;
+		
 		damagable = true;
 	}
 	
@@ -43,6 +45,8 @@ class ERSmallLaser : SmallLaser
 		laserColor = "Yellow";
 		sndItemName = "Betty/Item/ERLaser";
 		mountDeco = "LaserMountDeco";
+		
+		value = 15000;
 	}
 }
 class SmallPulseLaser : SmallLaser
@@ -73,6 +77,8 @@ class SmallPulseLaser : SmallLaser
 		
 		damagable = true;
 		continuous = true; 
+		
+		value = 30000;
 	}
 }
 
@@ -100,6 +106,8 @@ class MediumLaser : MechLaserWeapon
 		mountDeco = "LaserMountDeco";
 		
 		damagable = true;
+		
+		value = 30000;
 	}
 }
 class ERMediumLaser : MediumLaser
@@ -118,6 +126,8 @@ class ERMediumLaser : MediumLaser
 		laserColor = "Cyan";
 		sndItemName = "Betty/Item/ERLaser";
 		mountDeco = "LaserMountDeco";
+		
+		value = 35000;
 	}
 }
 class MediumPulseLaser : MediumLaser
@@ -148,6 +158,8 @@ class MediumPulseLaser : MediumLaser
 		
 		damagable = true;
 		continuous = true; 
+		
+		value = 70000;
 	}
 }
 
@@ -176,6 +188,8 @@ class LargeLaser : MechLaserWeapon
 		mountDeco = "LaserMountDeco";
 		
 		damagable = true;
+		
+		value = 70000;
 	}
 }
 class ERLargeLaser : LargeLaser
@@ -193,6 +207,8 @@ class ERLargeLaser : LargeLaser
 		laserColor = "Purple";
 		sndItemName = "Betty/Item/ERLaser";
 		mountDeco = "LaserMountDeco";
+		
+		value = 85000;
 	}
 }
 class LargePulseLaser : LargeLaser
@@ -224,6 +240,8 @@ class LargePulseLaser : LargeLaser
 		
 		damagable = true;
 		continuous = true; 
+		
+		value = 140000;
 	}
 }
 
@@ -252,6 +270,8 @@ class SRM2 : MechMissileWeapon
 		mountDeco = "MissileMountDeco";
 		
 		damagable = true;
+		
+		value = 10000;
 	}
 }
 
@@ -280,6 +300,8 @@ class SRM4 : MechMissileWeapon
 		mountDeco = "MissileMountDeco";
 		
 		damagable = true;
+		
+		value = 30000;
 	}
 }
 class SRM6 : MechMissileWeapon
@@ -308,6 +330,8 @@ class SRM6 : MechMissileWeapon
 		mountDeco = "MissileMountDeco";
 		
 		damagable = true;
+		
+		value = 45000;
 	}
 }
 
@@ -350,6 +374,8 @@ class ATM3 : MechMissileWeapon
 		ammoTypes.Push("HEATMAmmo");
 		
 		damagable = true;
+		
+		value = 20000;
 	}
 	
 	play virtual void LoadNextAmmo()
@@ -400,6 +426,8 @@ class ATM6 : ATM3
 		refireCount = 6;
 		size = 3;
 		cooldownTime = 4.0 * TICRATE;
+		
+		value = 60000;
 	}
 }
 class ATM9 : ATM3
@@ -415,6 +443,8 @@ class ATM9 : ATM3
 		refireCount = 9;
 		size = 4;
 		cooldownTime = 5.0 * TICRATE;
+		
+		value = 90000;
 	}
 }
 class ATM12 : ATM3
@@ -430,6 +460,8 @@ class ATM12 : ATM3
 		refireCount = 12;
 		size = 5;
 		cooldownTime = 5.0 * TICRATE;
+		
+		value = 120000;
 	}
 }
 
@@ -444,6 +476,8 @@ class SSRM2 : SRM2
 		cooldownTime += TICRATE;
 		weight = 1.0;
 		requiresTarget = true;
+		
+		value = 15000;
 	}
 }
 class SSRM4 : SRM4
@@ -457,6 +491,8 @@ class SSRM4 : SRM4
 		cooldownTime += TICRATE;
 		weight = 2.0;
 		requiresTarget = true;
+		
+		value = 40000;
 	}
 }
 class SSRM6 : SRM6
@@ -471,6 +507,8 @@ class SSRM6 : SRM6
 		weight = 3.0;
 		size = 2.0;
 		requiresTarget = true;
+		
+		value = 60000;
 	}
 }
 
@@ -502,6 +540,8 @@ class LRM5 : MechMissileWeapon
 		
 		damagable = true;
 		requiresTarget = true;
+		
+		value = 40000;
 	}
 }
 class LRM10 : MechMissileWeapon
@@ -531,6 +571,8 @@ class LRM10 : MechMissileWeapon
 		
 		damagable = true;
 		requiresTarget = true;
+		
+		value = 75000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -565,6 +607,8 @@ class LRM15 : MechMissileWeapon
 		
 		damagable = true;
 		requiresTarget = true;
+		
+		value = 110000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -599,6 +643,8 @@ class LRM20 : MechMissileWeapon
 		
 		damagable = true;
 		requiresTarget = true;
+		
+		value = 150000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -634,6 +680,8 @@ class MRM10 : MechMissileWeapon
 		mountDeco = "MissileMountDeco";
 		
 		damagable = true;
+		
+		value = 90000;
 	}
 }
 class MRM20 : MRM10
@@ -650,6 +698,8 @@ class MRM20 : MRM10
 		cooldownTime = ceil(3.8 * TICRATE);
 		
 		fireSound = "Missile/LRM20";
+		
+		value = 130000;
 	}
 }
 class MRM30 : MRM10
@@ -666,6 +716,8 @@ class MRM30 : MRM10
 		cooldownTime = ceil(4.2 * TICRATE);
 		
 		fireSound = "Missile/LRM20";
+		
+		value = 210000;
 	}
 }
 class MRM40 : MRM10
@@ -682,6 +734,8 @@ class MRM40 : MRM10
 		cooldownTime = ceil(4.6 * TICRATE);
 		
 		fireSound = "Missile/LRM20";
+		
+		value = 300000;
 	}
 }
 
@@ -712,6 +766,8 @@ class AC2 : MechBallisticWeapon
 		
 		spread = 0;
 		damagable = true;
+		
+		value = 25000;
 	}
 }
 class UltraAC2 : UltraAC
@@ -745,6 +801,8 @@ class UltraAC2 : UltraAC
 		damagable = true;
 		
 		SetupUAC();
+		
+		value = 50000;
 	}
 }
 class LBXAC2 : AC2
@@ -769,6 +827,8 @@ class LBXAC2 : AC2
 		mountDecoScale = 0.75;
 		
 		spread = 4.0;
+		
+		value = 30000;
 	}
 }
 
@@ -797,6 +857,8 @@ class AC5 : MechBallisticWeapon
 		mountDeco = "ACMountDeco";
 		
 		damagable = true;
+		
+		value = 50000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -832,6 +894,8 @@ class UltraAC5 : UltraAC
 		damagable = true;
 		
 		SetupUAC(20); // UAC known to be more jam-prone.
+		
+		value = 100000;
 	}	
 	override bool Fire(vector3 firePos)
 	{
@@ -861,6 +925,8 @@ class LBXAC5 : AC5
 		mountDecoScale = 1.1;
 		
 		spread = 4.0;
+		
+		value = 60000;
 	}
 }
 
@@ -889,6 +955,8 @@ class AC10 : MechBallisticWeapon
 		mountDeco = "ACMountDeco";
 		
 		damagable = true;
+		
+		value = 80000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -924,6 +992,8 @@ class UltraAC10 : UltraAC
 		damagable = true;
 		
 		SetupUAC();		
+		
+		value = 160000;
 	}	
 	override bool Fire(vector3 firePos)
 	{
@@ -953,6 +1023,8 @@ class LBXAC10 : AC10
 		mountDecoScale = 1.4;
 		
 		spread = 4.0;
+		
+		value = 100000;
 	}
 }
 
@@ -981,6 +1053,8 @@ class AC20 : MechBallisticWeapon
 		mountDeco = "ACMountDeco";
 		
 		damagable = true;
+		
+		value = 120000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -1016,6 +1090,8 @@ class UltraAC20 : UltraAC
 		damagable = true;
 		
 		SetupUAC(20); // This needs to jam more often for balance, because holy shit are UAC20s scary.	
+		
+		value = 240000;
 	}	
 	override bool Fire(vector3 firePos)
 	{
@@ -1045,6 +1121,8 @@ class LBXAC20 : AC20
 		mountDecoScale = 1.6;
 		
 		spread = 4.0;
+		
+		value = 150000;
 	}
 }
 
@@ -1075,6 +1153,8 @@ class MachineGun : MechBallisticWeapon
 		
 		spread = 1.2;
 		damagable = true;
+		
+		value = 5000;
 	}
 	
 	override bool Fire(vector3 firePos)
@@ -1112,6 +1192,8 @@ class GaussRifle : MechBallisticWeapon
 		mountDeco = "GaussMountDeco";
 		
 		damagable = true;
+		
+		value = 130000;
 	}
 	
 	override bool Fire(vector3 firePos)
@@ -1162,6 +1244,8 @@ class PPC : MechBallisticWeapon
 		);
 		
 		damagable = true;
+		
+		value = 60000;
 	}
 	
 	
@@ -1214,6 +1298,8 @@ class ERPPC : PPC
 		itemDescription = "\c[Orange]Unlike the regular PPC, this has no minimum range and is completely safe to fire at close ranges.";
 		
 		damagable = true;
+		
+		value = 120000;
 	}
 	
 	// ER-PPCs don't need this behavior
@@ -1247,6 +1333,8 @@ class Flamer : MechWeapon
 		mountDecoScale = 0.5;
 		
 		damagable = true;
+		
+		value = 10000;
 	}
 		
 	override bool Fire(vector3 firePos)
@@ -1307,6 +1395,8 @@ class AMS : MechWeapon
 		itemDescription = "\c[Orange]Destroys missiles before they hit you.";
 		
 		damagable = true;
+		
+		value = 12500;
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)

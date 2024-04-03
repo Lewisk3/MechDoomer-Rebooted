@@ -11,6 +11,8 @@ class MechHeatsink : MechUtility
 		buffer = 2.6;
 		displayName = "Heatsink";
 		sndItemName = "Betty/Item/Heatsink";
+		
+		value = 4000;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -62,6 +64,8 @@ class MechDoubleHeatsink : MechHeatsink
 		heatEff = 0.40 / TICRATE;
 		buffer = 4;
 		displayName = "Double Heatsink";
+		
+		value = 12000;
 	}
 }
 
@@ -120,6 +124,10 @@ class MechArmor_Ferro : MechArmor
 		damageMod = 1.0;
 		displayName = "Ferro-fibrous";
 		armorTier = 1; // Advanced armor tier
+		
+		// Wasn't able to find a source for this price, so I have to make it the fuck up.
+		// Maybe one day search engines will work properly again, but that isn't today.
+		value = 350000; 
 	}
 }
 
@@ -131,6 +139,8 @@ class MechArmor_ClanFerro : MechArmor_Ferro
 		displayName = "Clan-Ferro-fibrous";
 		structureSlots = 7;
 		armorTier = 3;
+		
+		value = 700000;
 	}
 }
 
@@ -156,6 +166,8 @@ class MechChassis_EndoSteel : MechChassisStructure
 		displayName = "Endosteel";
 		chassisWeightPercent = 0.5;
 		structureTier = 1; // Advanced structure tier
+		
+		value = 150000;
 	}
 }
 
@@ -167,6 +179,8 @@ class MechChassis_ClanEndoSteel : MechChassis_EndoSteel
 		structureSlots = 7;
 		displayName = "Clan-Endosteel";
 		structureTier = 3;
+		
+		value = 300000;
 	}
 }
 

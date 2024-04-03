@@ -9,6 +9,7 @@ class MechItem : Object
 	string displayName;
 	uint amount;
 	double weight;
+	double value; // CBill value
 	Sound sndItemName;
 	bool template; // If true, this item is not returned on Init. 
 	bool essential; // If true, item is added to the inventory by default.
@@ -788,6 +789,7 @@ class MechEngineBlock : MechItem
 class MechEngine : MechItem
 {
 	double baseHeatEff;
+	double baseValue;
 	int rating, type;
 	uint blocks, blockSize; // How many engine blocks to add to both side torsos.
 	Array<MechItem> engineBlocks;
@@ -800,6 +802,18 @@ class MechEngine : MechItem
 		Type_Light,
 		Type_XL,
 		Type_XXL
+	}
+	
+	virtual double GetPrice()
+	{
+		double typeMod[] = {
+			1.0,
+			1.5,
+			2.65,
+			3.5
+		};
+	
+		return baseValue * rating * typeMod[type];
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
@@ -998,8 +1012,10 @@ class MechEngine : MechItem
 		{
 			rating = 100;
 			type = Type_STD;
+			baseValue = 1133.3325;
 			AutoDetectEngine();
 			SetupEngine();
+			value = GetPrice();
 		}
 	}
 	
@@ -1506,6 +1522,7 @@ class MechWeaponGroup : Object
 // Inventory item for storing mechitems
 class I_MechItemStorage : Inventory
 {
+	double cbills; // Player's money
 	Array<MechItem> items;
 	Array<MechItem> shopItems;
 	string dropshipNextMap; // Map to return to after dropship.
@@ -1620,6 +1637,7 @@ class I_MechItemStorage : Inventory
 			}
 			
 			itm.shopItems.Push(MechItem.Init("MechEngine_XL280"));
+			itm.cbills = 12345660;
 		}
 		
 		return itm;

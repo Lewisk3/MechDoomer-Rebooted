@@ -73,7 +73,7 @@ class ShopItemsContainer : MenuElement
 				
 				// Check if item source is in the cart, if so, skip it.
 				foreach(cartItem : base.shopCart)
-				{
+				{	
 					if(cartItem.objItem == item)
 					{
 						skipItem = true;
@@ -85,10 +85,12 @@ class ShopItemsContainer : MenuElement
 				
 				if(item.size > 0)
 				{
-					let cItem = ShopItem(AddChild(base, "ShopItem", "ShopContainerItem", pos + (60,20 + itemY)));
+					let cItem = ShopItem(AddChild(base, "ShopItem", "ShopContainerItem", pos + (30,20 + itemY)));
 					cItem.objItem = item;
 					cItem.count = item.amount;
 					cItem.Update(0);
+					if(containerType == ShopMenu.SHOP_BUYING)
+						cItem.infinite = true;
 					
 					itemY += cItem.size.y + 30;
 					itemIndex++;
@@ -109,18 +111,42 @@ class ShopItemsContainer : MenuElement
 	override void Draw(double dt)
 	{
 		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
-
-		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, size.x, size.y, alpha, drawFlags);
 		
-		// Debug
-		drawCollider();
+		MWDrawer.Fill(0x7F7F7F, pos.x - 4, pos.y - 4, size.x + 8, size.y + 8, alpha, drawFlags);
+		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, size.x, size.y, alpha, drawFlags);
+	
+		vector2 tabPos = pos + (0,-170);
+		MWDrawer.Fill(0x7F7F7F, tabPos.x-4, tabPos.y, size.x + 8, 170);
+		MWDrawer.Fill(0x3F3F3F, tabPos.x-4, tabPos.y, size.x + 8, 64);
+	
+		double tabWidth = (size.x*0.9) / 4.0;
+		DrawTab("\c[White]Weapons", tabPos, (tabWidth,64), listingMode == LIST_WEAPONS);
+		tabPos.x += tabWidth + 16;
+		DrawTab("\c[White]Utilities", tabPos, (tabWidth,64), listingMode == LIST_UTILITIES);
+		tabPos.x += tabWidth + 16;
+		DrawTab("\c[White]Engines", tabPos, (tabWidth,64), listingMode == LIST_ENGINES);
+		tabPos.x += tabWidth + 16;
+		DrawTab("\c[White]Mechs", tabPos, (tabWidth,64), listingMode == LIST_MECHS);
+	}
+	
+	void DrawTab(String txt, vector2 tabPos, vector2 tabSize, bool active = false)
+	{
+		Color outlineColor = 0x3F3F3F;
+		Color bgColor = 0x5F5F5F;
+		if(active) outlineColor = bgColor = 0x7F7F7F;
+		
+		MWDrawer.Fill(outlineColor, tabPos.x - 4, tabPos.y - 4, tabSize.x + 8, tabSize.y + 8);
+		MWDrawer.Fill(bgColor, tabPos.x, tabPos.y, tabSize.x, tabSize.y);
+	
+		vector2 txtPos = tabPos + (tabSize.x * 0.5,tabSize.y * 0.5);
+		txtPos.y -= MWDrawer.GetTextHeight("SmallFont", txt) * 0.5;
+		MWDrawer.DrawString("SmallFont", txt, txtPos, MWDrawer.SS_TEXT_CENTER);
 	}
 	
 	override void Update(double dT)
 	{
 		disabled = !(base.shopMode == ShopMenu.SHOP_NEUTRAL || base.shopMode == containerType);
-		if(disabled) console.printf("Disabling container %d", containerType);
-	
+		
 		// Update Item scroll position.
 		foreach(child : children)
 		{
@@ -174,21 +200,109 @@ class CartContainer : MenuElement
 	{
 		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
 
+		MWDrawer.Fill(0x7F7F7F, pos.x - 4, pos.y - 4, size.x + 8, size.y + 8, alpha, drawFlags);
 		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, size.x, size.y, alpha, drawFlags);
 		
-		// Debug
-		drawCollider();
+		// Draw transaction box
+		vector2 trBoxPos = (pos.x, pos.y + size.y + 20);
+		
+		MWDrawer.Fill(0x7F7F7F, pos.x - 4, (pos.y - 4) + size.y + 4, size.x + 8, 124);
+		MWDrawer.Fill(0x101010, trBoxPos.x, trBoxPos.y, size.x, 100);
+		
+		MWDrawer.DrawString("SmallFont", "\c[Gray]Transaction Cost", trBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
+		
+		string sellingColor = "\c[Green] +";
+		string buyingColor = "\c[Red] -";
+		string colStr;
+		
+		Color leftColor = 0xFF000000;
+		Color rightColor = 0xFF000000;
+		
+		switch (base.shopMode)
+		{
+			case ShopMenu.SHOP_BUYING:
+				colStr = buyingColor;
+				leftColor = 0;
+				rightColor = 0xFF000000;
+			break;
+			case ShopMenu.SHOP_SELLING:
+				colStr = sellingColor;
+				rightColor = 0;
+				leftColor = 0xFF000000;
+			break;
+		}
+		
+		double cost = getTransactionCBills();
+		string price = String.Format("%s%s", colStr, MWDrawer.FormatNumber(abs(cost)));
+		MWDrawer.DrawString("SmallFont", price, trBoxPos + (size.x * 0.5,45), MWDrawer.SS_TEXT_CENTER);
+		
+		double balance = base.PlayerItems.cbills + cost;
+		string balString = String.Format("\c[Gray]%s\c[White]", MWDrawer.FormatNumber(balance));
+		if(balance < 0) balString = String.Format("\c[Red]%d\c[White]", balance);
+		MWDrawer.DrawString("SmallFont", "\c[White]= " .. balString, trBoxPos + (size.x * 0.5,65), MWDrawer.SS_TEXT_CENTER);
+		
+		// CBill Icons
+		double priceWidth = MWDrawer.GetTextWidth("SmallFont", price);
+		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", trBoxPos + ( 12 + (size.x * 0.5) + (priceWidth * 0.5), 6 + 45), scale:(0.8,0.8));
+		
+		// Direction arrow
+		vector2 arrowPos = pos + (-50,size.y * 0.5);
+
+		// Left
+		MWDrawer.DrawImage("Graphics/Shop/ShopDirection.png", arrowPos, scale:(0.3,0.3), tint:leftColor);
+		
+		// Right
+		MWDrawer.DrawImage("Graphics/Shop/ShopDirection.png", arrowPos + (0,30), scale:(-0.3,0.3), tint:rightColor);
+		
+		// Account box
+		vector2 acBoxPos = (pos.x, pos.y - 120);
+		
+		MWDrawer.Fill(0x7F7F7F, acBoxPos.x - 4, acBoxPos.y - 4, size.x + 8, 120);
+		MWDrawer.Fill(0x101010, acBoxPos.x, acBoxPos.y, size.x, 100);
+		
+		MWDrawer.DrawString("SmallFont", "\c[Gray]Account Balance", acBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
+		String accBalanceStr = String.Format("\c[White]%s", MWDrawer.FormatNumber(base.PlayerItems.cbills)); 
+		MWDrawer.DrawString("SmallFont", accBalanceStr, acBoxPos + (size.x * 0.5,50), MWDrawer.SS_TEXT_CENTER);
+		double balanceWidth = MWDrawer.GetTextWidth("SmallFont", accBalanceStr);
+		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", acBoxPos + ( 12 + (size.x * 0.5) + (balanceWidth * 0.5), 6 + 50), scale:(0.8,0.8));
 	}
 	
-	virtual void RemoveFromCart(ShopItem shopItm)
+	double getTransactionCBills()
+	{
+		double cost = 0;
+		foreach(item : base.shopCart)
+		{
+			if(item.objItem) 
+				cost += item.objItem.value * item.count;
+		}
+		
+		switch (base.shopMode)
+		{
+			case ShopMenu.SHOP_BUYING:
+				cost = -cost;
+			break;
+			case ShopMenu.SHOP_SELLING:
+				cost *= 0.5;
+			break;
+		}
+		
+		return cost;
+	}
+	
+	virtual void ClearCart()
+	{
+		foreach(item : base.shopCart)
+			RemoveFromCart(item, item.count);
+	}
+	
+	virtual void RemoveFromCart(ShopItem shopItm, double amt = 1)
 	{		
 		int cartItemIndex;
 		ShopItem cartItem = NULL;
 		foreach(item : base.shopCart)
 		{
 			cartItemIndex++;
-			bool mechInCart = shopItm.clsMech && (item.clsMech == shopItm.clsMech && item.mechbayItem == shopItm.mechbayItem);
-			if( item.objItem == shopItm.objItem || mechInCart )
+			if(item.IsSameitem(shopItm))
 			{
 				cartItem = item;
 				break;
@@ -198,14 +312,14 @@ class CartContainer : MenuElement
 		
 		if(shopItm.objItem)
 		{
-			cartItem.count--;
+			cartItem.count-=amt;
 			// Restore count to old item
 			foreach(menuItem : base.elements)
 			{
 				let sItem = ShopItem(menuItem);
 				if(sItem && sItem.objItem == shopItm.objItem)
 				{
-					sItem.count++;
+					sItem.count+=amt;
 					break;
 				}
 			}
@@ -237,13 +351,10 @@ class CartContainer : MenuElement
 		// Update shop mode to container type.
 		base.shopMode = itemContainer.containerType;
 		
-			
-	
 		ShopItem cartItem = NULL;
 		foreach(item : base.shopCart)
 		{
-			bool mechInCart = shopItm.clsMech && (item.clsMech == shopItm.clsMech && item.mechbayItem == shopItm.mechbayItem);
-			if( item.objItem == shopItm.objItem || mechInCart )
+			if(item.IsSameItem(shopItm))
 			{
 				cartItem = item;
 				break;
@@ -311,6 +422,12 @@ class ShopItem : MenuElement
 	bool infinite;
 	bool inCart;
 	
+	virtual bool IsSameItem(ShopItem other)
+	{
+		bool sameMech = clsMech && (clsMech == other.clsMech && mechbayItem == other.mechbayItem);
+		return objItem == other.objItem || sameMech;
+	}
+	
 	override void Init()
 	{
 		size = (256,128);
@@ -319,6 +436,15 @@ class ShopItem : MenuElement
 	
 	override void Draw(double dT)
 	{
+		if(!objItem) return;
+		if(!disabled && !dragging && checkDraggable() && CheckCollision(base.cursor, false))
+		{
+			// On hover
+			MWDrawer.SetClipRect(parentElement.pos.x, parentElement.pos.y, parentElement.size.x, parentElement.size.y);
+			MWDrawer.Fill(0x184073, parentElement.pos.x, pos.y - 7, parentElement.size.x - 40, size.y + 15, 0.33);
+			MWDrawer.ClearClipRect();
+		}
+		
 		DrawAt(pos, parentElement);
 	}
 	
@@ -346,8 +472,25 @@ class ShopItem : MenuElement
 	
 	virtual void DrawCount(vector2 drawPos)
 	{
-		vector2 countStringPos = drawPos + (size.x + 10, size.y * 0.8);
-		MWDrawer.DrawString("SmallFont", String.Format("\c[Gray] x %d", count), countStringPos);
+		bool isPlayerItem = base.PlayerItems.items.Find(objItem) != base.PlayerItems.items.Size();
+	
+		// Draw Price
+		Color priceTagColor = 0xFF127012;
+		vector2 priceStringPos = (drawPos.x + size.x + 12, drawPos.y + size.y - 8);
+		string value = MWDrawer.FormatNumber(isPlayerItem ? objItem.value * 0.5 : objItem.value);
+		double valLength = MWDrawer.GetTextWidth("SmallFont", value, (0.8,0.8));
+		vector2 cbillIconPos = priceStringPos + (7 + valLength, 5);
+		
+		MWDrawer.Fill(priceTagColor, priceStringPos.x - 5, priceStringPos.y - 5, valLength + 20, 20);
+		
+		MWDrawer.DrawString("SmallFont", "\c[White]"..value, priceStringPos, scale:(0.8,0.8));
+		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", cbillIconPos, scale:(0.5,0.5));
+		
+		MWDrawer.DrawImage("Graphics/Shop/priceTag.png", priceStringPos + (-14,5), scale:(0.3,0.3), tint:priceTagColor);
+	
+		if(infinite) return; // Do not draw quantity for infinite items.
+		vector2 countStringPos = (parentElement.pos.x + (parentElement.size.x - 60), drawPos.y);
+		MWDrawer.DrawString("SmallFont", String.Format("\c[Gray] %d", count), countStringPos, flags:MWDrawer.SS_TEXT_RIGHT);
 	}
 	
 	override bool CheckDraggable()
@@ -395,6 +538,7 @@ class ShopItem : MenuElement
 
 		if(!dragging) pos = initPos + posOffs;
 		disabled = parentElement.disabled || (!infinite && count <= 0);
+		if(infinite) count = 1;
 	}
 }
 
@@ -412,12 +556,19 @@ class ShopScrollBar : MenuElement
 
 	override void Draw(double dT)
 	{
-		MWDrawer.Fill(0x7F7F7F, pos.x, pos.y, size.x, size.y);		
-		
 		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight + size.y)) * size.y, 16, size.y - 8);
-		
 		double scrollContainerHeight = size.y - scrollBarHeight - 8;
-		MWDrawer.Fill(0xFFFFFF, pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4, size.x * 0.8, scrollBarHeight); 
+		vector2 scrollBarPos = (pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4);
+		vector2 scrollBarSize = (size.x * 0.8, scrollBarHeight);
+		vector2 shadowPos = (2,2);
+	
+		// Background
+		MWDrawer.Fill(0x7F7F7F, pos.x - shadowPos.x, pos.y - shadowPos.y, size.x + (shadowPos.x*2), size.y + (shadowPos.y*2));	
+		MWDrawer.Fill(0x0F0F0F, pos.x, pos.y, size.x, size.y);	
+		
+		// Foreground
+		MWDrawer.Fill(0xAFAFAF, scrollBarPos.x, scrollBarPos.y, scrollBarSize.x, scrollBarSize.y); 
+		MWDrawer.Fill(0xFFFFFF, scrollBarPos.x + shadowPos.x, scrollBarPos.y + shadowPos.y, scrollBarSize.x - (shadowPos.x*2), scrollBarSize.y - (shadowPos.y*2)); 
 	}
 	
 	override bool CheckDraggable()
@@ -451,7 +602,10 @@ class ShopBackground : MenuElement
 {
 	override void Draw(double dT)
 	{
-		MWDrawer.Fill(0x000000, pos.x, pos.y, size.x, size.y, 0.8);
+		MWDrawer.Fill(0x3F3F3F, pos.x, pos.y, size.x, size.y, 1.0);
+		
+		// Background
+		//MWDrawer.Fill(0x3F3F3F, pos.x, 230, size.x, size.y - 115);
 	}
 }
 
@@ -487,16 +641,16 @@ class ShopMenu : MechMenu
 		// Get pointer to player items.
 		playerItems = I_MechItemStorage(shopPlayer.FindInventory("I_MechItemStorage"));
 		
-		AddElement("ShopBackground", "ShopField", (160,90), (1600,900));
+		AddElement("ShopBackground", "ShopField", (150,20), (1620,900));
 		
-		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "PlayerItems", (160,280), (520,700)));
+		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Current Inventory", (160,250), (520,650)));
 		playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
 		
-		shopItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "ShopItems", (1240,280), (520,700)));
+		shopItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Market Items", (1240,250), (520,650)));
 		shopItemContainer.Setup(playerItems.shopItems, NULL, SHOP_BUYING);
 		shopItemContainer.ChangeListing(ShopItemsContainer.LIST_ENGINES); 
 		
-		shoppingCartContainer = CartContainer(AddElement("CartContainer", "ShoppingCart", (770,280), (400,500)));
+		shoppingCartContainer = CartContainer(AddElement("CartContainer", "ShoppingCart", (770,250), (430,500)));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
