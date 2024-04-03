@@ -1586,7 +1586,7 @@ class I_MechItemStorage : Inventory
 			if(index != items.Size()) items.Delete(index);
 		}
 	}
-	
+		
 	void AddItem(MechItem item, int amt = 1)
 	{
 		for(int i = 0; i < amt; i++) AddNewItem(item);
@@ -1646,10 +1646,17 @@ class I_MechItemStorage : Inventory
 				}
 								
 				// Give 25 of each item.
-				if(itemInstance) itm.AddItem(itemInstance, 25);	
+				if(itemInstance) 
+				{
+					let shopInstance = itemInstance.MakeCopy();
+					itm.shopItems.Push(shopInstance);
+					
+					// Randomly add items for the player
+					if(random[startItemsRNG](0,100) >= 75)
+						itm.AddItem(itemInstance, random[startItemsRNG](1,20));	
+				}
 			}
 			
-			itm.shopItems.Push(MechItem.Init("MechEngine_XL280"));
 			itm.cbills = 12345660;
 		}
 		

@@ -748,6 +748,8 @@ class ShopItem : MenuElement
 	
 		// Draw Price
 		Color priceTagColor = 0xFF127012;
+		if(isPlayerItem) priceTagColor = 0xFFA7060A;
+		
 		vector2 priceStringPos = (drawPos.x + size.x + 12, drawPos.y + size.y - 8);
 		string value = MWDrawer.FormatNumber(isPlayerItem ? objItem.GetValue() * 0.5 : objItem.GetValue());
 		double valLength = MWDrawer.GetTextWidth("SmallFont", value, (0.8,0.8));
@@ -1042,6 +1044,11 @@ class ShopMenu : MechMenu
 			playerItemContainer.populateChildren();
 			shopItemContainer.populateChildren();
 			shopMode = SHOP_NEUTRAL;
+			
+			// Reset item lists
+			playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
+			shopItemContainer.Setup(playerItems.shopItems, NULL, SHOP_BUYING);
+			
 			pauseUpdates = false;
 		}
 	}
