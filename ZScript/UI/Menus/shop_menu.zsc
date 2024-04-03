@@ -14,6 +14,7 @@ class ShopItemsContainer : MenuElement
 
 	ShopMenu base;
 	double alpha;
+	string itemSearch;
 	
 	double scroll, scrollVel;
 	double listHeight; // Maximum height of items stored in list.
@@ -32,6 +33,8 @@ class ShopItemsContainer : MenuElement
 		vector2 scrollBarPos = pos + (size.x - 40, 0);
 		scrollBar = ShopScrollBar(AddChild(base, "ShopScrollBar","ScrollBar", scrollBarPos));
 		scrollBar.size.x = 40;
+		
+		AddChild(base, "ShopSearchBar", "SearchBar", pos + (10,-65), (450,32));
 	}
 	
 	virtual void Setup(out Array<MechItem> items, out Array<class<DrivableMech> > mechs, int containerType)
@@ -49,11 +52,53 @@ class ShopItemsContainer : MenuElement
 		int itemIndex = 0;
 		listHeight = 0;	
 		
+		Array<MechItem> sortedItems;
+		Array<string> searchKeywords;
+		string normalizedSearch = itemSearch.MakeLower();
+		normalizedSearch.Split(searchKeywords, " ");
+		
+		// Sort items based on search relevancy
+		if(searchKeywords.Size() > 0)
+		{
+			// Grade items
+			Array<int> relevancy;
+			relevancy.Resize(items.Size());
+			
+			for(int i = 0; i < items.Size(); i++)
+			{
+				let item = items[i];
+				
+				int matches = 0;
+				foreach(keyword : searchKeywords)
+				{
+					string itemName = item.displayName.MakeLower();
+					if(itemName.IndexOf(keyword) != -1) matches++;
+				}
+				relevancy[i] = matches >= searchKeywords.Size();
+			}
+	
+			// Sort based on grade
+			Array<MechItem> toSort;
+			toSort.Copy(items);
+			
+			int curScore = searchKeywords.Size();
+			while(curScore > 0)
+			{
+				for(int i = toSort.Size()-1; i >= 0; i--)
+				{
+					if(relevancy[i] == curScore)
+						sortedItems.Push(toSort[i]);
+				}
+				curScore--;
+			}
+		}
+		else sortedItems.Copy(items);
+		
 		// Populate based on items list.		
 		int limit = 1000;
 		if(items.Size() > 0 && listingMode != LIST_MECHS)
 		{
-			foreach(item : items)
+			foreach(item : sortedItems)
 			{
 				bool skipItem = false;
 				switch(listingMode)
@@ -81,7 +126,7 @@ class ShopItemsContainer : MenuElement
 						break;
 					}
 				}
-				
+								
 				if(skipItem) continue;
 				
 				if(item.size > 0)
@@ -102,6 +147,12 @@ class ShopItemsContainer : MenuElement
 			listHeight = -(itemY - size.y);
 			if(listHeight > 0) listHeight = 0;
 		}
+	}
+	
+	void DoSearchFilter(string search)
+	{
+		itemSearch = search;
+		populateChildren();
 	}
 	
 	void ChangeListing(int mode)
@@ -206,6 +257,96 @@ class ShopItemsContainer : MenuElement
 			console.printf("Listing mode %d", listingMode);
 		}
 		*/
+	}
+}
+
+class ShopSearchBar : MenuElement
+{	
+	ShopMenu base;
+	double alpha;
+	bool active;
+	double cursorAlphaTimer;
+	string buffer;
+	string defaultBuffer;
+	MDRTextInput searchInput;
+	ShopItemsContainer parentContainer;
+	
+	override void Init()
+	{
+		base = ShopMenu(parentMenu);
+		parentContainer = ShopItemsContainer(parentElement);
+		active = false;
+		
+		buffer = defaultBuffer;
+		alpha = 1.0;
+	}
+	
+	override void Draw(double dT)
+	{
+		string text = searchInput ? searchInput.getText() : buffer;
+		if(!searchInput && buffer == "")
+			text = "Search Here";
+		
+		double valueWidth  = MWDrawer.GetTextWidth("SmallFont", text);
+		double valueHeight = MWDrawer.GetTextHeight("SmallFont", text);
+
+		MWDrawer.Fill(0x1A1A1A, pos.x, pos.y, size.x, size.y);		
+		
+		if(!searchInput && buffer == "")
+		{
+			cursorAlphaTimer += dT;
+			double textAlpha = 0.5 + (cos(cursorAlphaTimer * 2)*0.5);
+			MWDrawer.DrawString("SmallFont", text, pos + (5, valueHeight * 0.5), translation:Font.CR_Gray, textAlpha, (1.0,1.0));
+		}
+		else
+			MWDrawer.DrawString("SmallFont", text, pos + (5, valueHeight * 0.5), translation:Font.CR_White, alpha, (1.0,1.0));
+		
+		// Cursor
+		if(searchInput)
+		{
+			Font fnt = "SmallFont";
+			cursorAlphaTimer += dT;
+			double cursorAlpha = (cos(cursorAlphaTimer * 10)*0.5);
+		
+			double CursorX = searchInput.getCursorPos("SmallFont");// - (fnt.StringWidth(text) * 2.0);
+			MWDrawer.DrawString("SmallFont", "|", pos + (cursorX + 2, valueHeight * 0.5), translation:Font.CR_GRAY, min(alpha, cursorAlpha + 0.5), (1.0,1.0));
+		}
+	}
+	
+	void OpenTextInput()
+	{
+		searchInput = MDRTextInput.Open(base, "", 50, false, buffer);
+		searchInput.ActivateMenu();
+		active = true;
+	}
+	
+	void CloseTextInput()
+	{	
+		if(!searchInput) return;
+		searchInput.Close();
+		active = false;
+	}
+	
+	override void Update(double dT)
+	{
+		if(!active && CheckCollision(base.cursor, false) && base.cursor.leftPressed)
+			OpenTextInput();
+	}
+	
+	override void processMenuEvent(int mkey, bool fromcontroller)
+	{
+		switch(mkey)
+		{
+			case Menu.MKEY_Abort:
+				CloseTextInput();
+			break;
+			
+			case Menu.MKEY_Input:
+				if(searchInput) buffer = searchInput.GetText();
+				if(parentContainer) parentContainer.DoSearchFilter(buffer);
+				CloseTextInput();
+			break;
+		}
 	}
 }
 
@@ -627,7 +768,11 @@ class ShopItem : MenuElement
 	override bool CheckDraggable()
 	{
 		// Items not visible on the list shouldn't be able to be dragged.
-		return !disabled && (dragging || CheckCollision(parentElement, false));
+		vector2 posCheck = pos + (0, (size.y * 0.5) - 10);
+		vector2 sizeCheck = (size.x, 10);
+		bool validPos = AABBCollision(parentElement.pos, parentElement.size, posCheck, sizeCheck);
+		
+		return !disabled && (dragging || validPos);
 	}
 	
 	override void UpdateDragPos(MenuCursor cursor)

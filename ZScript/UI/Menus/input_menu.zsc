@@ -1,0 +1,154 @@
+class MDRTextInput : Menu
+{
+	Menu parent;
+	String inputSound;
+	String mEnterString;
+	int maxlen;
+	int seekpos; // Input position
+	bool numbersOnly;
+	string numberList;
+	
+	override void Drawer()
+	{
+		parent.Drawer();
+	}
+	
+	void Init(Menu parent, String InputSound, int maxlen, String textbuffer = "", bool numberInput = false)
+	{
+		Super.init(parent);
+		
+		mEnterString = textbuffer;
+		self.maxlen = maxlen;
+		self.parent = parent;
+		self.inputSound = inputSound;
+		numbersOnly = numberInput;
+		numberList = " 0123456789.";
+		seekpos = textbuffer.Length();
+		DontDim = true;
+	}
+
+	static MDRTextInput Open(Menu parent, String InputSound, int maxlen, bool numberInput = false, String textbuffer = "")
+	{
+		let textInput = new("MDRTextInput");
+		textInput.Init(parent, InputSound, maxlen, textbuffer, numberInput);
+		return textInput;
+	}
+		
+	void SetText(string value)
+	{
+		mEnterString = value;
+		seekpos = value.Length();
+	}
+	
+	String GetText()
+	{
+		return mEnterString;
+	}
+	
+	override bool TranslateKeyboardEvents()
+	{
+		// Obscure shit that blocks backspace from being picked up by UIEvent, wtf.
+		return false;
+	}
+	
+	virtual void PlayInputSound()
+	{
+		MenuSound(InputSound);
+	}
+	
+	void MoveSeekPos(int amt, bool add = true)
+	{
+		int desiredSeek = amt;
+		if(seekpos) desiredSeek += seekpos;
+		desiredSeek = clamp(desiredSeek, 0, mEnterString.Length());
+		seekpos = desiredSeek;
+	}
+	
+	virtual double getCursorPos(Font fnt)
+	{
+		string frontText = mEnterString.Left(seekpos);
+		return MWDrawer.GetTextWidth(fnt, frontText);
+	}
+	
+	void SubmitText()
+	{
+		parent.MenuEvent(MKEY_Input, false);
+		Close();
+	}
+	
+	void InputChar(int ch)
+	{
+		if(int(mEnterString.Length()) >= maxlen) return;
+		string front = mEnterString.Mid(0, seekpos);
+		string back  = mEnterString.Mid(seekpos);
+		mEnterString = String.Format("%s%c%s", front, ch, back);
+	}
+	
+	void DeleteChar(int pos)
+	{
+		pos = clamp(pos, 0, mEnterString.Length());
+		mEnterString.Remove(pos, 1);
+	}
+	
+	override bool OnUIEvent(UIEvent ev)
+	{
+		// Save game and player name string input
+		int ch = ev.KeyChar;
+		if (ev.Type == UIEvent.Type_Char)
+		{
+			String inputStr = String.Format("%c", ch);
+			if(!numbersOnly || numberList.IndexOf(inputStr) != -1) InputChar(ch);
+			MoveSeekPos(1);
+			PlayInputSound();
+		}
+		
+		if(ev.Type == UIEvent.Type_KeyDown || ev.Type == UIEvent.Type_KeyRepeat)
+		{
+			// Backspace
+			switch (ch)
+			{
+				case UIEvent.Key_Return:
+					SubmitText();
+				break;
+			
+				case UIEvent.Key_Left: 
+					MoveSeekPos(-1);
+					PlayInputSound();
+				break;
+				
+				case UIEvent.Key_Right:
+					MoveSeekPos(1);
+					PlayInputSound();
+				break;
+				
+				case UIEvent.Key_Escape:
+					parent.MenuEvent(MKEY_Abort, false);
+					Close();
+				break;
+			
+				case UIEvent.Key_Del:
+					DeleteChar(seekpos);
+					PlayInputSound();
+				break;
+				
+				case UIEvent.Key_Home: 
+					seekpos = 0;
+					PlayInputSound();
+				break;
+				
+				case UIEvent.Key_End:
+					seekpos = mEnterString.Length();
+					PlayInputSound();
+				break;
+				
+				case UIEvent.Key_Backspace:
+					DeleteChar(seekpos-1);
+					MoveSeekPos(-1);
+					PlayInputSound();
+				break;
+			}
+		}
+		
+		return false;
+	}
+}
