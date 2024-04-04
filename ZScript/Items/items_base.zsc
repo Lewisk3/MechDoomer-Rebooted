@@ -144,6 +144,17 @@ class MechItem : Object
 		}
 	}
 	
+	clearscope virtual string GetShopDescription()
+	{
+		return "Item has no description.";
+	}
+	
+	clearscope virtual void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		stats.Push("Placeholder");
+		values.Push("True");
+	}
+	
 	virtual MechItem MakeCopy()
 	{
 		let item = MechItem.Init(getClass());

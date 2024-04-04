@@ -389,8 +389,8 @@ class MechMenu : GenericMenu
 
 		// Draw Elements	
 		for(int i = 0; i < elements.Size(); i++)
-			elements[i].Draw(deltaTime);
-			
+			elements[i].Draw(deltaTime);	
+		
 		if(!pauseUpdates) UpdateElements(deltaTime, elements);
 	}	
 	

@@ -661,6 +661,8 @@ class ShopBuySellButton : MenuButton
 	{
 		base.completeTransaction();
 		pressed = false;
+		
+		GFXMenuItem.AddEffect(base.GFX, "GFX_CBills", base.cursor.pos, 25);
 	}
 }
 
@@ -693,6 +695,9 @@ class ShopItem : MenuElement
 	int count;
 	bool infinite;
 	bool inCart;
+	bool selected;
+	double dragAlpha;
+	double dragTics;
 	
 	virtual bool IsSameItem(ShopItem other)
 	{
@@ -708,13 +713,27 @@ class ShopItem : MenuElement
 	
 	override void Draw(double dT)
 	{
+		if(CheckCollision(base.cursor, false) && objItem)
+			base.ShopBG.DrawItemDescription(objItem);
+	
 		if(!objItem) return;
 		if(!disabled && !dragging && checkDraggable() && CheckCollision(base.cursor, false))
 		{
 			// On hover
 			MWDrawer.SetClipRect(parentElement.pos.x, parentElement.pos.y, parentElement.size.x, parentElement.size.y);
-			MWDrawer.Fill(0x184073, parentElement.pos.x, pos.y - 7, parentElement.size.x - 40, size.y + 15, 0.33);
+			MWDrawer.Fill(0x184073, parentElement.pos.x, pos.y - 7, parentElement.size.x - 40, size.y + 15, selected ? 0.75 : 0.33);
 			MWDrawer.ClearClipRect();
+		}
+		
+		if(dragging)
+		{
+			dragTics += dT;
+			if(dragTics >= 20) dragAlpha = DrivablesMath.Lerp(dragAlpha, 0.65, 0.1 * dT);
+		}
+		else
+		{
+			dragAlpha = 0;
+			dragTics = 0;
 		}
 		
 		DrawAt(pos, parentElement);
@@ -725,20 +744,15 @@ class ShopItem : MenuElement
 		if(objItem)
 		{	
 			if(inContainer) MWDrawer.SetClipRect(inContainer.pos.x, inContainer.pos.y, inContainer.size.x, inContainer.size.y);
-			if(!dragging)
-			{
-				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? 0.65 : 1.0, 0.5, size, 34, disabled);  
-				DrawCount(drawPos);
-				MWDrawer.ClearClipRect();
-			}
-			else
-			{
-				MechItemSlot.DrawMechItem(objItem, initPos + posOffs, 1.0, 0.5, size, 34, disabled);
-				DrawCount(initPos + posOffs);
-				MWDrawer.ClearClipRect();
-				
-				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? 0.65 : 1.0, 0.5, size, 34, disabled);  
-			}
+			double itemAlpha = dragging ? max(0.37, 1.0 - dragAlpha) : 1.0;
+			
+			MechItemSlot.DrawMechItem(objItem, initPos + posOffs, itemAlpha, 0.5, size, 34, disabled);  
+			DrawCount(initPos + posOffs);
+			MWDrawer.ClearClipRect();
+			
+			// Draw under cursor if being dragged.
+			if(dragging) 
+				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? dragAlpha : 1.0, 0.5, size, 34, disabled);  
 		}
 	}
 	
@@ -774,7 +788,7 @@ class ShopItem : MenuElement
 		vector2 sizeCheck = (size.x, 10);
 		bool validPos = AABBCollision(parentElement.pos, parentElement.size, posCheck, sizeCheck);
 		
-		return !disabled && (dragging || validPos);
+		return (!disabled && (dragging || validPos));
 	}
 	
 	override void UpdateDragPos(MenuCursor cursor)
@@ -809,6 +823,8 @@ class ShopItem : MenuElement
 		}
 	}
 	
+	bool unfuckLeftBtn;
+
 	override void Update(double dT)
 	{
 		// Update size to item slot size.
@@ -817,6 +833,40 @@ class ShopItem : MenuElement
 		if(!dragging) pos = initPos + posOffs;
 		disabled = parentElement.disabled || (!infinite && count <= 0);
 		if(infinite) count = 1;
+		
+		if(!base.cursor) return;
+		
+		// Double click to add/remove from cart.
+		bool hovered = CheckCollision(base.cursor, false);
+		if(!hovered || count <= 0) selected = false;
+		
+		// Wish I could just use the leftPressed field, but for some GZDoom reason
+		// it doesn't work only for shop container items, what. the. fuck.?
+		bool clicked = false;
+		if(base.cursor.leftDown && hovered)
+		{
+			unfuckLeftBtn = true;
+			clicked = false;
+		}
+		else if(unfuckLeftBtn)
+		{
+			if(dragAlpha <= 0) clicked = true;
+			unfuckLeftBtn = false;
+		}
+	
+		if(hovered && clicked)
+		{
+			clicked = false;
+			if(selected)
+			{
+				if(inCart) 
+					base.shoppingCartContainer.RemoveFromCart(self);
+				else
+					base.shoppingCartContainer.AddToCart(self);
+					
+				selected = false;		
+			} else selected = true;
+		}
 	}
 }
 
@@ -878,12 +928,60 @@ class ShopScrollBar : MenuElement
 
 class ShopBackground : MenuElement
 {
+	vector2 descPos;
+	
+	override void Init()
+	{
+		descPos = (957, 1014);
+	}
+
 	override void Draw(double dT)
 	{
-		MWDrawer.Fill(0x3F3F3F, pos.x, pos.y, size.x, size.y, 1.0);
+		// MWDrawer.Fill(0x3F3F3F, pos.x, pos.y, size.x, size.y, 1.0);
+		MWDrawer.DrawImage("Graphics/Shop/ShopBackground.png", pos + (size.x * 0.5, size.y * 0.5), scale:(1.03,1.02), texoffs:(1,1));
 		
 		// Background
 		//MWDrawer.Fill(0x3F3F3F, pos.x, 230, size.x, size.y - 115);
+		
+		MWDrawer.DrawImage("Graphics/Shop/ShopDesc.png", descPos, scale:(3.97,3.90));
+	}
+	
+	void DrawItemDescription(MechItem item)
+	{
+		Font descFont = "SmallFont";
+		vector2 statsPos = pos + (20, 970);
+		double valueOffs = 373;
+		vector2 itemDescPos = pos + (valueOffs + 100, statsPos.y - 18);
+		double statLineHeight = 20;
+		double lineHeight = descFont.getHeight() + 7;
+	
+		// Draw stats
+		Array<string> stats;
+		Array<string> values;
+		string itemDesc = item.getShopDescription();
+		BrokenLines descLines = descFont.BreakLines(itemDesc, descFont.StringWidth("A") * 70);
+		
+		int strY = 0;
+		for(int i = 0; i < descLines.Count(); i++)
+		{
+			let str = descLines.StringAt(i);
+			
+			// Font shadow
+			MWDrawer.DrawString(descFont, str, itemDescPos + (2, stry + 2), scale:(1.0,1.0), tint:0xFF000000); 
+			
+			// Font foreground
+			MWDrawer.DrawString(descFont, "\c[Green]"..str, itemDescPos + (0, stry), scale:(1.0,1.0));
+			strY += lineHeight;
+		}	
+	
+		strY = 0;
+		item.GetShopProperties(stats, values);
+		for(int i = 0; i < stats.Size(); i++)
+		{
+			MWDrawer.DrawString(descFont, "\c[Green]"..stats[i], statsPos + (0, strY), scale:(1.0,1.0));
+			MWDrawer.DrawString(descFont, "\c[Green]"..values[i], statsPos + (valueOffs, strY), flags:MWDrawer.SS_TEXT_RIGHT, scale:(1.0,1.0));
+			strY += statLineHeight;
+		}
 	}
 }
 
@@ -898,6 +996,8 @@ class ShopMenu : MechMenu
 		SHOP_SELLING = 2
 	};
 
+	Array<GFXMenuItem> GFX;
+
 	PlayerPawn shopPlayer;
 	int shopMode; // enum field for ShoppingMode.
 	Array<ShopItem> shopCart;
@@ -907,6 +1007,7 @@ class ShopMenu : MechMenu
 	ShopItemsContainer playerItemContainer;
 	ShopItemsContainer shopItemContainer;
 	CartContainer shoppingCartContainer;
+	ShopBackground ShopBG;
 
 	MenuCursor cursor;
 	
@@ -919,7 +1020,7 @@ class ShopMenu : MechMenu
 		// Get pointer to player items.
 		playerItems = I_MechItemStorage(shopPlayer.FindInventory("I_MechItemStorage"));
 		
-		AddElement("ShopBackground", "ShopField", (150,20), (1620,950));
+		ShopBG = ShopBackground(AddElement("ShopBackground", "ShopField", (155,10), (1620,1055)));
 		
 		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Current Inventory", (160,300), (520,650)));
 		playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
@@ -932,6 +1033,13 @@ class ShopMenu : MechMenu
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+	
+	override void Drawer()
+	{
+		super.Drawer();
+		GFXMenuItem.DrawItems(GFX, deltaTime);
+		GFXMenuItem.UpdateItems(GFX, deltaTime);
 	}
 	
 	void completeTransaction()
@@ -1022,7 +1130,7 @@ class ShopMenu : MechMenu
 				int itemCount = itemStr.Mid(delim+1).ToInt();
 				
 				if(mode == "buy")
-					playerItems.AddItem(playerItems.shopItems[itemID], itemCount);
+					playerItems.AddItem(playerItems.shopItems[itemID].MakeCopy(), itemCount);
 					
 				if(mode == "sell")
 					playerItems.depleteItem(playerItems.items[itemID], itemCount);
@@ -1058,3 +1166,99 @@ class ShopMenu : MechMenu
 		// MenuElements can call this function if they wish to relay behavior to their parent menu.
 	}
 }
+
+// Some GFX
+class GFXMenuItem : Object ui
+{
+	vector2 pos;
+	double scale;
+	double alpha;
+
+	virtual void Init(vector2 pos)
+	{
+		self.pos = pos;
+		alpha = 1.0;
+		scale = 1.0;
+	}
+	
+	virtual void Draw(double dT) {}
+	virtual void Update(double dT) {}
+	
+	static void AddEffect(out Array<GFXMenuItem> list, class<GFXMenuItem> type, vector2 pos, double amt)
+	{
+		for(int i = 0; i < amt; i++)
+		{
+			let gfx = GFXMenuItem(new(type));
+			gfx.Init(pos);
+			list.Push(gfx);
+		}
+	}
+	
+	static void UpdateItems(out Array<GFXMenuItem> list, double dT)
+	{
+		if(!list.Size()) return;
+		
+		for(int i = list.Size()-1; i >= 0; i--)
+		{	
+			let gfxItem = list[i];
+			if(gfxItem.alpha <= 0)
+			{
+				list.Delete(i);
+				continue;
+			}
+			gfxItem.Update(dT);
+		}
+	}
+	static void DrawItems(out Array<GFXMenuItem> list, double dT)
+	{
+		foreach(gfxItem : list) gfxItem.Draw(dT);
+	}
+}
+
+class GFX_CBills : GFXMenuItem
+{
+	double physTimer;
+	double maxScale;
+	double rotation;
+	double rotVel;
+	vector2 vel;
+
+	override void Init(vector2 pos)
+	{
+		self.pos = pos;
+		alpha = 1.0;
+		scale = 0.1;
+		maxScale = frandom[MenuGFX](0.33, 1.0);
+		
+		vel = (
+			 frandom[MenuGFX](-1.0,1.0),
+			-frandom[MenuGFX](1.0,3.0)
+		) * frandom[MenuGFX](0.1,6.0);
+		rotation = frandom[MenuGFX](0,360);
+		rotVel = frandom[MenuGFX](-6,6);
+		
+		self.pos += (vel.x * 10.0, vel.y);
+	}
+	
+	override void Draw(double dT)
+	{
+		physTimer += dT;
+	
+		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", pos, alpha:self.alpha, scale:(scale,scale), rotation:rotation);
+	
+		if(physTimer >= 1.0)
+		{
+			vel.y += 0.3; // gravity
+			pos += vel;
+			rotation += rotVel;
+			vel *= 0.96; // friction
+			rotVel *= 0.99;
+			physTimer = 0;
+		}
+		scale = DrivablesMath.Lerp(scale, maxScale, 0.1 * dT);
+		alpha = DrivablesMath.Lerp(alpha, 0, 0.02 * dT);
+		
+		if(alpha <= 0.05) alpha = 0;
+	}
+}
+

@@ -47,6 +47,24 @@ class MechLaserWeapon : MechWeapon
 		statValue.Push(String.Format("%d", damage / laserHeat));
 	}
 	
+	override string GetShopDescription()
+	{
+		return "Generic Laser";
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		stats.Push("Range");
+		values.Push(String.Format("%dm", laserRange));
+		stats.Push("Raw Damage");
+		double dmgPerSec = damage * (TICRATE / fireTime);
+		values.Push(String.Format("%.2f/s", dmgPerSec));
+		stats.Push("Heat");
+		values.Push(String.Format("%.2f H/s", (laserHeat/6.5) * fireTime) );
+		stats.Push("Cooldown");
+		values.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+	}
+	
 	override double getCooldownTime()
 	{
 		return continuous ? fireTime : super.getCooldownTime();
@@ -199,6 +217,51 @@ class MechMissileWeapon : MechWeapon
 		}
 	}
 	
+	override string GetShopDescription()
+	{
+		return "Generic Missile Weapon";
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{				
+		readonly<MechProjectile> projDefs = NULL;
+		if(projType) projDefs = GetDefaultByType(projType);
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		
+		double minRange = -1;
+		double maxRange = -1;
+		double dmg = -1;
+
+		if(projDefs)
+		{
+			minRange = projDefs.minRange;
+			maxRange = projDefs.maxRange;
+			dmg = (projDefs.trueDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE)) );
+		}
+		
+		stats.Push("Range");
+		if(minRange >= 0 && maxRange >= 0)
+		{
+			string rangeStr = String.Format("%dm", maxRange);
+			if(minRange > 0) rangeStr = String.Format("%dm to %s", minRange, rangeStr);
+			
+			values.Push(rangeStr);
+		}
+		else
+			values.Push("From Ammo");
+		
+		stats.Push("Raw Damage");
+		if(dmg >= 0)
+			values.Push(String.Format("%d", dmg));
+		else
+			values.Push("From Ammo");
+	
+		stats.Push("Heat");
+		values.Push(String.Format("%.2f H/s", (heat*refireCount) / cooldownSeconds) );
+		stats.Push("Cooldown");
+		values.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+	}
+	
 	override vector3 getFirePos()
 	{
 		int missileSlot = !refire ? 0 : (refireCount - refire);
@@ -318,6 +381,33 @@ class MechBallisticWeapon : MechWeapon
 			statName.Push("DPH");
 			statValue.Push(String.Format("%d", projDefs.trueDamage / heat));
 		}
+	}
+	
+	override string GetShopDescription()
+	{
+		return "Generic Ballistic Weapon";
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		let projDefs = GetDefaultByType(projType);
+		
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		double minRange = projDefs.minRange;
+		double maxRange = projDefs.maxRange;
+
+		stats.Push("Range");
+		string rangeStr = String.Format("%dm", maxRange);
+		if(minRange > 0) rangeStr = String.Format("%dm to %s", minRange, rangeStr);
+		
+		values.Push(rangeStr);
+		
+		stats.Push("Raw Damage");
+		values.Push(String.Format("%.2f", projDefs.trueDamage));
+		stats.Push("Heat");
+		values.Push(String.Format("%.2f Heat/Shot", heat));
+		stats.Push("Cooldown");
+		values.Push(String.Format("%.2fs", cooldownSeconds));
 	}
 	
 	override void DoEffect()

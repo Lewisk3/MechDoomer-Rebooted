@@ -28,6 +28,17 @@ class SmallLaser : MechLaserWeapon
 		damagable = true;
 	}
 	
+	override string getShopDescription()
+	{
+		return (
+			"\c[Gray]The Small Laser is a free-electron laser which focuses a beam"
+			" of light on targets to cause damage. The compact size of the "
+			"Small Laser allows it to be equipped and used efficiently on practically"
+			" anything; however the reduced firepower means that Small Lasers are "
+			"not usually used on heavier combat devices such as 'Mechs or tanks."
+			"\n(Source: https://www.sarna.net/wiki/Small_Laser)"
+		);
+	}
 }
 class ERSmallLaser : SmallLaser
 {
@@ -47,6 +58,17 @@ class ERSmallLaser : SmallLaser
 		mountDeco = "LaserMountDeco";
 		
 		value = 15000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Extended-Range Small Laser (ER Small Laser) focuses a powerful beam of light on targets."
+			" As the name suggests, the ER variant of the Small Laser increases the power of the beam to project it "
+			"to much farther ranges. The power necessary to facilitate the production of such generates an increased "
+			"quantity of waste heat."
+			"\n(Source: https://www.sarna.net/wiki/Extended-Range_Small_Laser)"
+		);
 	}
 }
 class SmallPulseLaser : SmallLaser
@@ -80,6 +102,16 @@ class SmallPulseLaser : SmallLaser
 		
 		value = 30000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Small Pulse Lasers, being the smallest pulse laser variant, have a very limited range. "
+			"However, inside that range they are a lethal weapon, having a much smaller heat buildup compared "
+			"to other pulse lasers, making them an excellent short-range support weapon."
+			"\n(Source: https://www.sarna.net/wiki/Small_Pulse_Laser)"
+		);
+	}
 }
 
 class MediumLaser : MechLaserWeapon
@@ -109,6 +141,16 @@ class MediumLaser : MechLaserWeapon
 		
 		value = 30000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Medium Laser is a midrange weapon of the standard type from the laser class of weaponry. "
+			"The medium laser uses an intensified beam of light to damage targets by heating them to melting temperatures."
+			" The relatively compact size and effectiveness of the Medium Laser attributes its widespread use over many types of combat units."
+			" (Source: https://www.sarna.net/wiki/Medium_laser)"
+		);
+	}
 }
 class ERMediumLaser : MediumLaser
 {
@@ -128,6 +170,17 @@ class ERMediumLaser : MediumLaser
 		mountDeco = "LaserMountDeco";
 		
 		value = 35000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Extended-Range variant of the medium laser improves the focusing "
+			"system of the laser to project it to much farther ranges. The optics are less "
+			"efficient, though, necessitating more input power for the same armor ablation "
+			"and thus more waste heat in the weapon."
+			"\n(Source: https://www.sarna.net/wiki/Extended-Range_Medium_Laser)"
+		);
 	}
 }
 class MediumPulseLaser : MediumLaser
@@ -161,6 +214,17 @@ class MediumPulseLaser : MediumLaser
 		
 		value = 70000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Medium Pulse Lasers are a mix of range and damage, making them "
+			"useful in most situations. The heat buildup is moderate and the weapon "
+			"causes good damage, although the Medium Pulse Laser still cannot be constantly "
+			"discharged for extended periods of time."
+			"\n(Source: https://www.sarna.net/wiki/Medium_Pulse_Laser)"
+		);
+	}
 }
 
 class LargeLaser : MechLaserWeapon
@@ -191,6 +255,17 @@ class LargeLaser : MechLaserWeapon
 		
 		value = 70000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Large Laser differs from its smaller cousins by being a gamma-ray "
+			"laser firing a much more powerful beam, allowing it to reach to further "
+			"ranges and cause more damage. However, the increased bulk and heat "
+			"generation limits the weapon to ground vehicles, aircraft, and BattleMechs. "
+			"\n(Source: https://www.sarna.net/wiki/Large_Laser)"
+		);
+	}
 }
 class ERLargeLaser : LargeLaser
 {
@@ -209,6 +284,17 @@ class ERLargeLaser : LargeLaser
 		mountDeco = "LaserMountDeco";
 		
 		value = 85000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Extended-Range variant of the Large Laser increases the power "
+			"of the beam to project it to much farther ranges. The power necessary to "
+			"facilitate the production of such generates a greatly increased quantity "
+			"of waste heat."
+			"\n(Source: https://www.sarna.net/wiki/Extended-Range_Large_Laser)"
+		);
 	}
 }
 class LargePulseLaser : LargeLaser
@@ -243,6 +329,18 @@ class LargePulseLaser : LargeLaser
 		
 		value = 140000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Large Pulse Lasers are the largest pulse lasers, with a "
+			"both destructive and far-reaching pulse beam. While even assault "
+			"'Mechs can be devastated by a short barrage of Large Pulse Laser fire, "
+			"the heat buildup is tremendous and will quickly overheat 'Mechs if "
+			"used for prolonged periods."
+			"\n(Source: https://www.sarna.net/wiki/Large_Pulse_Laser)"
+		);
+	}
 }
 
 // Missiles
@@ -272,6 +370,17 @@ class SRM2 : MechMissileWeapon
 		damagable = true;
 		
 		value = 10000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Short-Range Missiles (SRM) pack more power into the missile "
+			"than almost any other kind. They lack sophisticated guidance systems, "
+			"so they must deliver their punch at short range. The SRM-2-launcher "
+			"fires two such missiles at a time."
+			"\n(Source: https://www.sarna.net/wiki/SRM-2)"
+		);
 	}
 }
 
@@ -303,6 +412,17 @@ class SRM4 : MechMissileWeapon
 		
 		value = 30000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Short-Range Missiles (SRM) pack more power into the missile "
+			"than almost any other kind. They lack sophisticated guidance systems, "
+			"so they must deliver their punch at short range. The SRM-4-launcher "
+			"fires four such missiles at a time."
+			"\n(Source: https://www.sarna.net/wiki/SRM-4)"
+		);
+	}
 }
 class SRM6 : MechMissileWeapon
 {
@@ -332,6 +452,17 @@ class SRM6 : MechMissileWeapon
 		damagable = true;
 		
 		value = 45000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Short-Range Missiles (SRM) pack more power into the missile "
+			"than almost any other kind. They lack sophisticated guidance systems, "
+			"so they must deliver their punch at short range. The SRM-6-launcher "
+			"fires six such missiles at a time."
+			"\n(Source: https://www.sarna.net/wiki/SRM-6)"
+		);
 	}
 }
 
@@ -412,6 +543,22 @@ class ATM3 : MechMissileWeapon
 			}
 		}
 	}
+	
+	/*
+		Standard ammo deals the same damage as a short-range missile, but has a longer range, albeit with a minimum due to the multistage nature of the missiles.
+		Extended Range ammo has a longer range, with the same multistage-missile minimum range, it deals the same damage as a long-range missile.
+		High Explosive ammo has a much shorter range since it trades the booster for increased power. This removes the minimum range and allows the missile to deal three points of damage.
+	*/
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Advanced Tactical Missile system (ATM) allows its users to "
+			"choose between three different types of ammunition. ATMs also include "
+			"an integral Artemis IV Fire Control System."
+			"\n(Source: https://www.sarna.net/wiki/ATM_3)"
+		);
+	}
 }
 class ATM6 : ATM3
 {
@@ -428,6 +575,17 @@ class ATM6 : ATM3
 		cooldownTime = 4.0 * TICRATE;
 		
 		value = 60000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Advanced Tactical Missile system (ATM) allows its users to "
+			"choose between three different types of ammunition. ATMs also include "
+			"an integral Artemis IV Fire Control System."
+			"The ATM 6 is the second smallest and second lightest of the ATMs."
+			"\n(Source: https://www.sarna.net/wiki/ATM_6)"
+		);
 	}
 }
 class ATM9 : ATM3
@@ -446,6 +604,17 @@ class ATM9 : ATM3
 		
 		value = 90000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Advanced Tactical Missile system (ATM) allows its users to "
+			"choose between three different types of ammunition. ATMs also include "
+			"an integral Artemis IV Fire Control System."
+			"The ATM 9 is the second heaviest and bulkiest of the ATMs"
+			"\n(Source: https://www.sarna.net/wiki/ATM_9)"
+		);
+	}
 }
 class ATM12 : ATM3
 {
@@ -463,6 +632,17 @@ class ATM12 : ATM3
 		
 		value = 120000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Advanced Tactical Missile system (ATM) allows its users to "
+			"choose between three different types of ammunition. ATMs also include "
+			"an integral Artemis IV Fire Control System."
+			"The ATM 12 is the largest and bulkiest of the ATMs, capable of firing twelve missiles."
+			"\n(Source: https://www.sarna.net/wiki/ATM_12)"
+		);
+	}
 }
 
 class SSRM2 : SRM2
@@ -479,6 +659,18 @@ class SSRM2 : SRM2
 		
 		value = 15000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Streak SRM-2 is the lightest and smallest of the Streak missile launchers."
+			" Streak Missile Launcher technology ensures that all missile "
+			"tubes acquire a target lock before its missiles fire. This improvement "
+			"upon standard Short-Range Missiles conserves ammunition and eliminates "
+			"unnecessary heat buildup. "
+			"\n(Source: https://www.sarna.net/wiki/Streak_SRM-2)"
+		);
+	}
 }
 class SSRM4 : SRM4
 {
@@ -493,6 +685,18 @@ class SSRM4 : SRM4
 		requiresTarget = true;
 		
 		value = 40000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Streak SRM-4 is the middle-weight launcher."
+			" Streak Missile Launcher technology ensures that all missile "
+			"tubes acquire a target lock before its missiles fire. This improvement "
+			"upon standard Short-Range Missiles conserves ammunition and eliminates "
+			"unnecessary heat buildup. "
+			"\n(Source: https://www.sarna.net/wiki/Streak_SRM-4)"
+		);
 	}
 }
 class SSRM6 : SRM6
@@ -509,6 +713,18 @@ class SSRM6 : SRM6
 		requiresTarget = true;
 		
 		value = 60000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Streak SRM-6 is the largest and heaviest of the Streak launchers."
+			" Streak Missile Launcher technology ensures that all missile "
+			"tubes acquire a target lock before its missiles fire. This improvement "
+			"upon standard Short-Range Missiles conserves ammunition and eliminates "
+			"unnecessary heat buildup. "
+			"\n(Source: https://www.sarna.net/wiki/Streak_SRM-6)"
+		);
 	}
 }
 
@@ -542,6 +758,15 @@ class LRM5 : MechMissileWeapon
 		requiresTarget = true;
 		
 		value = 40000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] Long Range Missiles have provided military units with a decent "
+			"far-reaching punch for centuries. The LRM-5 fires five such missiles."
+			"\n(Source: https://www.sarna.net/wiki/LRM-5)"
+		);
 	}
 }
 class LRM10 : MechMissileWeapon
@@ -579,6 +804,15 @@ class LRM10 : MechMissileWeapon
 		A_Recoil(-0.1, 0);
 		return super.Fire(firePos);
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] Long Range Missiles have provided military units with a decent "
+			"far-reaching punch for centuries. The LRM-10 fires ten such missiles."
+			"\n(Source: https://www.sarna.net/wiki/LRM-10)"
+		);
+	}
 }
 class LRM15 : MechMissileWeapon
 {
@@ -614,6 +848,15 @@ class LRM15 : MechMissileWeapon
 	{
 		A_Recoil(-0.15, 0);
 		return super.Fire(firePos);
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] Long Range Missiles have provided military units with a decent "
+			"far-reaching punch for centuries. The LRM-15 fires fifteen such missiles."
+			"\n(Source: https://www.sarna.net/wiki/LRM-15)"
+		);
 	}
 }
 class LRM20 : MechMissileWeapon
@@ -651,6 +894,15 @@ class LRM20 : MechMissileWeapon
 		A_Recoil(-0.25, 0);
 		return super.Fire(firePos);
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] Long Range Missiles have provided military units with a decent "
+			"far-reaching punch for centuries. The LRM-20 fires twenty such missiles."
+			"\n(Source: https://www.sarna.net/wiki/LRM-20)"
+		);
+	}
 }
 
 // MRM 10,20,30,40
@@ -683,6 +935,17 @@ class MRM10 : MechMissileWeapon
 		
 		value = 90000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]MRMs are dead-fire missiles that are fired more like lasers than missiles. "
+			"In order to pack as many missiles as possible into one salvo, scientists "
+			"removed guidance systems and made the whole package smaller."
+			"The MRM-10 is the lightest and smallest MRM launcher. It was designed to easily be swapped in for an SRM-6."
+			"\n(Source: https://www.sarna.net/wiki/MRM-10)"
+		);
+	}
 }
 class MRM20 : MRM10
 {
@@ -700,6 +963,17 @@ class MRM20 : MRM10
 		fireSound = "Missile/LRM20";
 		
 		value = 130000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]MRMs are dead-fire missiles that are fired more like lasers than missiles. "
+			"In order to pack as many missiles as possible into one salvo, scientists "
+			"removed guidance systems and made the whole package smaller."
+			"The MRM-20 was designed to be easily swapped in for an LRM-15."
+			"\n(Source: https://www.sarna.net/wiki/MRM-20)"
+		);
 	}
 }
 class MRM30 : MRM10
@@ -719,6 +993,17 @@ class MRM30 : MRM10
 		
 		value = 210000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]MRMs are dead-fire missiles that are fired more like lasers than missiles. "
+			"In order to pack as many missiles as possible into one salvo, scientists "
+			"removed guidance systems and made the whole package smaller."
+			"The MRM-30 was designed to be easily swapped in for an LRM-20."
+			"\n(Source: https://www.sarna.net/wiki/MRM-30)"
+		);
+	}
 }
 class MRM40 : MRM10
 {
@@ -736,6 +1021,17 @@ class MRM40 : MRM10
 		fireSound = "Missile/LRM20";
 		
 		value = 300000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]MRMs are dead-fire missiles that are fired more like lasers than missiles. "
+			"In order to pack as many missiles as possible into one salvo, scientists "
+			"removed guidance systems and made the whole package smaller."
+			"The MRM-40 is the largest and bulkiest of the MRMs."
+			"\n(Source: https://www.sarna.net/wiki/MRM-40)"
+		);
 	}
 }
 
@@ -768,6 +1064,18 @@ class AC2 : MechBallisticWeapon
 		damagable = true;
 		
 		value = 25000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The autocannon/2 is a direct-fire ballistic weapon, "
+			"firing HEAP (High-Explosive Armor-Piercing) rounds at targets "
+			"either singly or in bursts."
+			"While the autocannon/2s has an extremely long range, it comes at "
+			"the cost of a very small damage output."
+			"\n(Source: https://www.sarna.net/wiki/Autocannon/2)"
+		);
 	}
 }
 class UltraAC2 : UltraAC
@@ -804,6 +1112,18 @@ class UltraAC2 : UltraAC
 		
 		value = 50000;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Ultra AC2 is the smallest bore autocannon of the Ultra series. "
+			"Ultra autocannons are capable of firing two projectiles back-to-back, "
+			"doubling heat and-potentially-damage, however this also makes them prone to jamming"
+			"The Ultra AC2 also had the longest range and most ammo per ton of any Ultra autocannon;" 
+			"however, it also deals the least amount of damage."
+			"\n(Source: https://www.sarna.net/wiki/Ultra_AC/2)"
+		);
+	}
 }
 class LBXAC2 : AC2
 {
@@ -829,6 +1149,19 @@ class LBXAC2 : AC2
 		spread = 4.0;
 		
 		value = 30000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The LB 2-X AC brings technology from "
+			"the LB 10-X AC to the lightest class of autocannon. "
+			"The LB 2-X fires in cluster rounds; a shotgun-like "
+			"ammunition that more effectively damages weakened points in an enemy's armor."
+			"The LB 2-X AC has the distinction of being the longest-range weapon on the ground, though its limited "
+			"damage means that it is often outclassed by higher-tier LBX Autocannons."
+			"(Inspired by: https://www.sarna.net/wiki/LB_2-X_AC)"
+		);
 	}
 }
 
@@ -864,6 +1197,17 @@ class AC5 : MechBallisticWeapon
 	{
 		A_Recoil(-0.4, 0);
 		return super.Fire(firePos);
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The autocannon/2 is a direct-fire ballistic weapon, "
+			"firing HEAP (High-Explosive Armor-Piercing) rounds at targets "
+			"either singly or in bursts."
+			"The Autocannon/5 can be fired from long ranges with a small to moderate damage level."
+			"\n(Source: https://www.sarna.net/wiki/Autocannon/5)"
+		);
 	}
 }
 class UltraAC5 : UltraAC
@@ -902,6 +1246,18 @@ class UltraAC5 : UltraAC
 		A_Recoil(-0.25, 0);
 		return super.Fire(firePos);
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] the Ultra AC/5 is an upgraded version of the standard autocannon/5. "
+			"Utilizing a different loading mechanism, Ultra autocannons are capable of firing two"
+			"projectiles back-to-back, at the cost of higher heat and the risk of jamming."
+			"Being of a lower caliber, the Ultra autocannon/5 has an increased "
+			"range, at the cost of reduced damage over higher-caliber versions."
+			"\n(Source: https://www.sarna.net/wiki/Ultra_AC/5)"
+		);
+	}
 }
 class LBXAC5 : AC5
 {
@@ -927,6 +1283,16 @@ class LBXAC5 : AC5
 		spread = 4.0;
 		
 		value = 60000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The LB 5-X fires in cluster rounds; a shotgun-like "
+			"ammunition that more effectively damages weakened points in an enemy's armor."
+			"This effect creates flak that is useful against VTOLs."
+			"\n(Source: https://www.sarna.net/wiki/LB_5-X_AC)"
+		);
 	}
 }
 
@@ -962,6 +1328,20 @@ class AC10 : MechBallisticWeapon
 	{
 		A_Recoil(-0.8, 0.8);
 		return super.Fire(firePos);
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The autocannon/10 is a direct-fire ballistic weapon, "
+			"firing HEAP (High-Explosive Armor-Piercing) rounds at targets either "
+			"singly or in bursts. "
+			"Can be extremely dangerous to face against if a MechWarrior"
+			" is well-versed with the its optimal ranges; "
+			"the AC/10 is capable of stripping all the armor off the head of a 'Mech in a "
+			"single shot, and inflict internal damage in the same shot."
+			" (Source: https://www.sarna.net/wiki/Autocannon/10)"
+		);
 	}
 }
 class UltraAC10 : UltraAC
@@ -1000,6 +1380,16 @@ class UltraAC10 : UltraAC
 		A_Recoil(-0.6, 0.6);
 		return super.Fire(firePos);
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Ultra AC/10 is the second largest of the Ultra autocannons."
+			" Capable of firing two shots per turn, like all Ultra autocannons, resulting in doubled heat "
+			"and-potentially-damage."
+			"\n(Source: https://www.sarna.net/wiki/Ultra_AC/10)"
+		);
+	}
 }
 class LBXAC10 : AC10
 {
@@ -1025,6 +1415,17 @@ class LBXAC10 : AC10
 		spread = 4.0;
 		
 		value = 100000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The LB 10-X AC is essentially a 'Mech-mounted shotgun, capable"
+			" of firing special \"cluster rounds\" that fragment after being fired, "
+			"allowing the weapon to either spread damage out or focus damage on "
+			"a small area, depending on the range."
+			"\n(Source: https://www.sarna.net/wiki/LB_10-X_AC)"
+		);
 	}
 }
 
@@ -1060,6 +1461,17 @@ class AC20 : MechBallisticWeapon
 	{
 		A_Recoil(-2, 4);
 		return super.Fire(firePos);
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] This autocannon class can decapitate any 'Mech with one good hit to the head,"
+			" regardless of the weight class, as that location can only mount around half a ton's worth of standard armor."
+			" The AC/20 is capable of ripping nearly a ton and a quarter of armor off a 'Mech in a single shot. "
+			"This is enough damage to take down even the heaviest of 'Mechs, if aimed well."
+			"\n(Source: https://www.sarna.net/wiki/Autocannon/20)"
+		);
 	}
 }
 class UltraAC20 : UltraAC
@@ -1098,6 +1510,17 @@ class UltraAC20 : UltraAC
 		A_Recoil(-2, 4);
 		return super.Fire(firePos);
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White] The Ultra AC/20 is the largest bore Ultra autocannon."
+			"Like all Ultra autocannons, it is capable of twice the rate of fire of a standard autocannon, "
+			"doubling its heat output and-potentially-its damage. "
+			"Only the Clan HAG 40 can match the sheer damage output of the Ultra AC/20. "
+			"\n(Source: https://www.sarna.net/wiki/Ultra_AC/20)"
+		);
+	}
 }
 class LBXAC20 : AC20
 {
@@ -1123,6 +1546,18 @@ class LBXAC20 : AC20
 		spread = 4.0;
 		
 		value = 150000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The LB 20-X AC is the autocannon with the largest bore "
+			"capable of firing LB-X cluster rounds. Its shotgun-like cluster munitions "
+			"delivers 20 different projectiles to the target, an effect that is "
+			"described as similar to a sandblasting. "
+			"Can deal devastating amounts of damage in the right hands."
+			"\n(Source: https://www.sarna.net/wiki/LB_20-X_AC)"
+		);
 	}
 }
 
@@ -1167,6 +1602,16 @@ class MachineGun : MechBallisticWeapon
 		
 		return super.Fire(firePos);
 	} 
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Machine Gun is the quintessential anti-infantry weapon, "
+			"issuing a stream of bullets at a high rate of fire to cut down opposing "
+			"soldiers, while still being effective at damaging BattleMechs."
+			"\n(Source: https://www.sarna.net/wiki/Machine_Gun)"
+		);
+	}
 }
 
 class GaussRifle : MechBallisticWeapon
@@ -1210,6 +1655,19 @@ class GaussRifle : MechBallisticWeapon
 		// Yeah, pretty bad idea to get one of these guys crit...
 		// Massive capacitor banks plus a hole, turns out, don't mix too well.
 		parent.DoExplosionDamage(20.0);
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]the Gauss rifle utilizes a series of electromagnets to propel "
+			"slugs of nickel-iron at very high velocities, making "
+			"it a devastating and lethal long-range weapon."
+			"One hit from a Gauss rifle is capable of killing nearly any Light 'Mech. "
+			"However, due to it's \"railgun\"-like propellant solution, the Gauss rifle "
+			"also has fairly heavy power requirements."
+			"\n(Source: https://www.sarna.net/wiki/Gauss_rifle)"
+		);
 	}
 }
 
@@ -1278,6 +1736,18 @@ class PPC : MechBallisticWeapon
 		A_Recoil(-3);
 		return ret;
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Particle Projector Cannon is an energy weapon, firing "
+			"a concentrated stream of protons at a target dealing both "
+			"thermal and kinetic damage. Despite being an energy weapon, it does "
+			"produce recoil. The lethality of the weapon rivals that of higher-caliber autocannons; "
+			"just three shots from a PPC will vaporize nearly two tons of standard armor."
+			"\n(Source: https://www.sarna.net/wiki/Particle_Projector_Cannon)"
+		);
+	}
 }
 class ERPPC : PPC
 {	
@@ -1304,6 +1774,19 @@ class ERPPC : PPC
 	
 	// ER-PPCs don't need this behavior
 	override void ToggleState() {}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Extended-Range Particle Projector Cannon, "
+			"or ER PPC for short, has a greatly increased range compared to "
+			"a standard PPC. Capable of extreme damage at long range, "
+			"unfortunately generates a tremendous amount of heat, and thus can "
+			"be difficult to use effectively. The ER PPC is also noteworthy "
+			"for having no minimal range."
+			"\n(Source: www.sarna.net/wiki/Extended-Range_Particle_Projector_Cannon)"
+		);
+	}
 }
 
 class Flamer : MechWeapon
@@ -1365,6 +1848,33 @@ class Flamer : MechWeapon
 			parent.A_StartSound(fireSound, CHAN_FLMR, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
 		else
 			parent.A_StopSound(CHAN_FLMR);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		let projDefs = GetDefaultByType(projType);
+	
+		stats.Push("Range");
+		values.Push(String.Format("%dm", projDefs.maxRange));
+		
+		stats.Push("Raw Damage");
+		values.Push(String.Format("%.2f", projDefs.trueDamage));
+		stats.Push("Heat");
+		values.Push(String.Format("%.2f H/s", heat));
+		stats.Push("Cooldown");
+		values.Push("N/A");
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The standard Flamer taps into a BattleMech's reactor to produce "
+			"heat in the form of a plasma release. An extremely short-ranged weapon, the "
+			"flamer is devastating against infantry, however damage done against other 'Mechs "
+			"and vehicles is negligible, though it can raise the enemy unit's heat levels "
+			"and potentially cause the target mech to shutdown from overheating."
+			"\n(Source: https://www.sarna.net/wiki/Flamer)"
+		);
 	}
 }
 
@@ -1475,5 +1985,34 @@ class AMS : MechWeapon
 			curTarget = act;
 			if(!cooldown) Fire(localFirePos);
 		}
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		let projAAM = (class<MechAAM> )(projType);
+		let projDefs = GetDefaultByType(projAAM);
+		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+	
+		stats.Push("Range");
+		values.Push(String.Format("%dm", range));
+		
+		stats.Push("Accuracy");
+		values.Push(String.Format("%d\%%", projDefs.toHit));
+		stats.Push("Heat");
+		values.Push(String.Format("%.2f H/s", heat));
+		
+		stats.Push("Cooldown");
+		values.Push(String.Format("%0.2f s", cooldownSeconds));
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The anti-missile system is used to destroy missiles before they struck their target. "
+			"This is accomplished by using a short-ranged rapid firing weapon which shoots at the missiles. "
+			"Because missiles are fired in salvos of up to forty at a time, anti-missile systems are rarely capable of "
+			"destroying all incoming missiles."
+			"\n(Source: https://www.sarna.net/wiki/Anti-missile_system)"
+		);
 	}
 }
