@@ -52,6 +52,24 @@ class MechHeatsink : MechUtility
 	
 		// console.printf("Removing heat -%f  [%d]", heatEff, level.mapTime);
 	}
+	
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]Heat sinks operate by collecting heat with coolant distributed to "
+			"heat sources and delivering that to a radiator."
+			"These traditional heat sinks, or \"single strength heat sinks\", utilize "
+			"radiators made of very thermally conductive oriented graphite which provides up to five times the "
+			"thermal conductivity compared to copper"
+			"(Source: https://www.sarna.net/wiki/Heat_Sink)"
+		);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{	
+		stats.Push("Heat Gen");
+		values.Push(String.Format("-%.2f BHU/s", heatEff*double(TICRATE)));
+	}
 }
 
 class MechDoubleHeatsink : MechHeatsink
@@ -67,6 +85,18 @@ class MechDoubleHeatsink : MechHeatsink
 		
 		value = 12000;
 	}
+
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]Double heat sinks dissipate twice as much heat for the same tonnage, "
+			"but take up more space to operate effectively because of their use of a "
+			"crystalline polymer. This polymer, similar to the engine shielding of XL fusion engines, "
+			"is not as thermally conductive as graphite but significantly lighter and more durable, "
+			"allowing it to be formed into a larger radiator for the same mass. "
+			"(Source: https://www.sarna.net/wiki/Heat_Sink)"
+		);
+	}
 }
 
 class MechCASE : MechUtility
@@ -78,12 +108,29 @@ class MechCASE : MechUtility
 		size = 1.0;
 		weight = 0;
 		itemDescription = "If an ammo explosion occurs, C.A.S.E prevents the damage from spreading to adjacent hardpoints.";
+		
+		value = 15000;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		flavorText = itemDescription;
 	}
+	
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]Short for Cellular Ammunition Storage Equipment is used "
+			"in order to prevent the complete destruction of a unit in the event of "
+			"an internal explosion."
+			" When CASE is installed in a unit, the location with CASE combines "
+			"two safeguards against internal explosions, these work together to "
+			"effectively redirect the resulting blast of the explosion out of the unit."
+			"\n (Source: https://www.sarna.net/wiki/Cellular_Ammunition_Storage_Equipment)"
+		);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values) {}	
 }
 
 // Armor types

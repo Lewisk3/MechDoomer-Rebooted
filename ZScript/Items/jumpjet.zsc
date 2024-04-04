@@ -21,6 +21,8 @@ class MechJumpJet : MechUtility
 		rechargeRate = 10.0; // 10 seconds to recharge
 		shakeIntensity = 3;
 		itemDescription = "When equipped, provides upwards thrust so-long as the jump key is held down and fuel is available.";
+		
+		value = 12500;
 	}
 	
 	static double, bool getRemainingFuel(DrivableMech mech)
@@ -136,6 +138,28 @@ class MechJumpJet : MechUtility
 		statValue.Push(String.Format("%.1f s", rechargeRate));	
 		
 		statValue[1] = String.Format("%.2f", weight);
+	}
+	
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]By harnessing the power of a 'Mech's fusion engine to superheat "
+			"air or another suitable fluid, Jump Jets allow a BattleMech to briefly "
+			"overcome gravity and rocket short distances over the battlefield."
+			"\n (Source: https://www.sarna.net/wiki/Jump_Jet)"
+		);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{	
+		double thrust = ((5 * TICRATE) * UTOCM) / 100.;
+
+		stats.Push("THRUST");
+		values.Push(String.Format("%.2f M/s (per Ton)", thrust));	
+		stats.Push("AIR TIME");
+		values.Push(String.Format("%.1f s", fuelTime));	
+		stats.Push("RECHARGE");
+		values.Push(String.Format("%.1f s", rechargeRate));	
 	}
 	
 	override void OnDetach()

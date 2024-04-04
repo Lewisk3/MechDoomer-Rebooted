@@ -151,8 +151,7 @@ class MechItem : Object
 	
 	clearscope virtual void GetShopProperties(out Array<String> stats, out Array<string> values)
 	{
-		stats.Push("Placeholder");
-		values.Push("True");
+		// Properties added here
 	}
 	
 	virtual MechItem MakeCopy()
@@ -310,7 +309,7 @@ class MechAmmo : MechItem
 	
 	override double getValue()
 	{
-		return max(value * 0.1, value * ((curAmmo*0.8)/maxAmmo));
+		return max(value * 0.1, value * (curAmmo/double(maxAmmo)));
 	}
 	
 	override bool isTypeOf(class<MechItem> item, bool subclass)
@@ -361,6 +360,30 @@ class MechAmmo : MechItem
 		statName.Push("AMMO");
 		statValue.Push(String.Format("%d / %d", curAmmo, maxAmmo));
 	}
+	
+	override string getShopDescription()
+	{
+		int typeIndex = displayName.IndexOf("Ammo");
+		if(typeIndex == -1) return "Ammunition";
+		
+		return String.Format("Ammo for %s'", displayName.Mid(0, typeIndex-1));
+	}
+	
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		stats.Push("Capacity");
+		values.Push(String.Format("%d", maxAmmo));
+		
+		if(curAmmo < maxAmmo)
+		{
+			stats.Push("Available Ammunition");
+			values.Push(String.Format("%d", curAmmo));
+		}
+		
+		stats.Push("Price-Per-Round");
+		values.Push(String.Format("%d", (value * 0.9) / maxAmmo));
+	}	
 	
 	override MechItem MakeCopy()
 	{
@@ -832,7 +855,7 @@ class MechEngine : MechItem
 			1.0,
 			1.5,
 			2.7,
-			4.0
+			8.0
 		};
 	
 		return baseValue * rating * typeMod[type];
@@ -873,6 +896,60 @@ class MechEngine : MechItem
 			statName.Push("JUMP RANGE");
 			statValue.Push(String.Format("%d m", walkMP));
 		}
+	}
+	
+	override string GetShopDescription()
+	{
+		switch(type)
+		{
+			case Type_STD: return (
+				"\c[White] The fusion engine is capable of powering 'Mechs, Aerospace Fighters, "
+				"and other vehicles. Fusion engines function by harnessing the power of a fusion "
+				"reaction, as occurs in the core of the Sun. A BattleMech's fusion engine can usually "
+				"last for decades on a few kilograms of hydrogen. "
+				"\n(Source: https://www.sarna.net/wiki/Fusion_engine)"
+			);
+			case Type_Light: return (
+				"\c[White]The light fusion engine weighs only 75% of a standard "
+				"fusion engine. While not as dramatic as the 50% weight saving "
+				"of an XL Engine, the real benefit of the light fusion engine is that "
+				"while it intrudes into the side torsos of a BattleMech, it takes up the "
+				"same amount of space as a Clan extra-light engine, allowing a light fusion "
+				"engine-equipped 'Mech to survive the destruction of a side torso."
+				"\n(Source: https://www.sarna.net/wiki/Light_fusion_engine)"
+			);
+			case Type_XL: return (
+				"\c[White]The Extralight fusion engine (often shortened to XL engine) is mechanically similar to a "
+				"fusion engine but uses much lighter radiation shielding. Replacing the dense tungsten carbide "
+				"of standard fusion engines with a crystalline polymer similar to that of double heat sinks, "
+				"the XL fusion engine is half the mass for the same performance."
+				"\n(Source: https://www.sarna.net/wiki/Extralight_fusion_engine)"
+			);
+			case Type_XXL: return (
+				"\c[White]The XXL engine weighs one-third as much as a standard fusion engine, "
+				"but with some significant drawbacks in its present form. The XXL's light but bulky "
+				"shielding technology takes up twice the space in side torso sections as an Inner Sphere "
+				"or Clan XL engine of similar output, is three times as expensive as a comparable XL engine, "
+				"and—most crippling—produces greatly increased heat. "
+				"\n(Source: https://www.sarna.net/wiki/Extralight_fusion_engine)"
+			);
+		}
+		return "";
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{	
+		double MaxRating = 0.21;
+		double speedRating = (187.5 / rating);
+		
+		stats.Push("EFFICIENCY");
+		values.Push(String.Format("%.2f\%%", (maxRating / speedRating) * 100.0));	
+	
+		stats.Push("SIDE SLOTS");
+		values.Push(String.Format("%d",blocks*blockSize));
+		
+		stats.Push("HEATSINKS");
+		values.Push(String.Format("%d",floor(rating*0.04)));
 	}
 	
 	double GetTonnage()

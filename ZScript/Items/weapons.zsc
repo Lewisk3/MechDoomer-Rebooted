@@ -543,13 +543,7 @@ class ATM3 : MechMissileWeapon
 			}
 		}
 	}
-	
-	/*
-		Standard ammo deals the same damage as a short-range missile, but has a longer range, albeit with a minimum due to the multistage nature of the missiles.
-		Extended Range ammo has a longer range, with the same multistage-missile minimum range, it deals the same damage as a long-range missile.
-		High Explosive ammo has a much shorter range since it trades the booster for increased power. This removes the minimum range and allows the missile to deal three points of damage.
-	*/
-	
+
 	override string getShopDescription()
 	{
 		return (

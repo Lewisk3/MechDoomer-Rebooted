@@ -1121,19 +1121,33 @@ class ShopMenu : MechMenu
 			
 			Array<int> itemIDs;
 			Array<int> itemCounts;
-			
-			// Handle items
 			foreach(itemStr : itemsData)
 			{
 				int delim = itemStr.IndexOf(":");
-				int itemID = itemStr.Mid(0,delim).ToInt();
-				int itemCount = itemStr.Mid(delim+1).ToInt();
-				
-				if(mode == "buy")
+				itemIDs.Push(itemStr.Mid(0,delim).ToInt());
+				itemCounts.Push(itemStr.Mid(delim+1).ToInt());
+			}
+			
+			// Handle items
+			if(mode == "sell")
+			{
+				// Sold items list needs to be made first, because items
+				// can be removed via depletion, offseting the indexes incorrectly.
+				Array<MechItem> soldItems;
+				foreach(itemID : itemIDs)
+					soldItems.Push(playerItems.items[itemID]);
+	
+				for(int i = soldItems.Size()-1; i >= 0; i--)
+					playerItems.depleteItem(soldItems[i], itemCounts[i]);
+			}
+			else if (mode == "buy")
+			{
+				for(int i = 0; i < itemIDs.Size(); i++)
+				{
+					int itemID = itemIDs[i];
+					int itemCount = itemCounts[i];
 					playerItems.AddItem(playerItems.shopItems[itemID].MakeCopy(), itemCount);
-					
-				if(mode == "sell")
-					playerItems.depleteItem(playerItems.items[itemID], itemCount);
+				}
 			}
 			
 			// Finally, complete transaction

@@ -31,6 +31,21 @@ class MechSwitchableAmmo : MechAmmo
 		statName.Push("OPTIMAL RANGE");
 		statValue.Push(String.Format("%d", projDefs.maxRange * 0.5));
 	}
+	
+	override void getShopProperties(out Array<string> stats, out Array<string> values)
+	{
+		let projDefs = GetDefaultByType(ammoProj);
+				
+		stats.Push("Raw Damage");
+		values.Push(String.Format("%.2f", projDefs.trueDamage));
+		
+		stats.Push("Range");
+		string rangeStr = String.Format("%dm", projDefs.maxRange);
+		if(projDefs.minRange > 0) rangeStr = String.Format("%dm to %s", projDefs.minRange, rangeStr);
+		values.Push(rangeStr);
+		
+		super.getShopProperties(stats, values);
+	}
 }
 
 class SRMAmmo : MechAmmo
@@ -259,7 +274,7 @@ class AMSAmmo : MechAmmo
 	override void Defaults()
 	{
 		damagable = true;
-		displayName = "AMS AMMO";
+		displayName = "AMS Ammo";
 		maxAmmo = 1000;
 		weight = 1.0;
 		size = 1.0;
@@ -274,7 +289,7 @@ class AMSAmmoHalf : AMSAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		displayName = "AMS AMMO 1/2";
+		displayName = "AMS Ammo 1/2";
 		maxAmmo *= 0.5;
 		weight = 0.5;
 		baseAmmoClass = "AMSAmmo";
@@ -300,6 +315,16 @@ class STDATMAmmo : MechSwitchableAmmo
 		
 		SetupAmmo();
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Standard ATM ammo deals the same damage as a short-range missile, "
+			"but has a longer range, albeit with a minimum due to the multistage "
+			"nature of the missiles. "
+			"\n(Source: https://www.sarna.net/wiki/ATM_3)"
+		);
+	}
 }
 class ERATMAmmo : MechSwitchableAmmo
 {
@@ -317,6 +342,15 @@ class ERATMAmmo : MechSwitchableAmmo
 		
 		SetupAmmo();
 	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Extended Range ATM ammo has a longer range, with the same "
+			"multistage-missile minimum range, it deals the same damage as a long-range missile. "
+			"\n(Source: https://www.sarna.net/wiki/ATM_3)"
+		);
+	}
 }
 class HEATMAmmo : MechSwitchableAmmo
 {
@@ -333,5 +367,15 @@ class HEATMAmmo : MechSwitchableAmmo
 		value = 20000;
 		
 		SetupAmmo();
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]High Explosive ATM ammo has a much shorter range since it "
+			"trades the booster for increased power. This removes the minimum range "
+			"and allows the missile to deal sixty points of damage. "
+			"\n(Source: https://www.sarna.net/wiki/ATM_3)"
+		);
 	}
 }
