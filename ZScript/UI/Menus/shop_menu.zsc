@@ -202,8 +202,8 @@ class ShopItemsContainer : MenuElement
 		MWDrawer.Fill(0x1A1A1A, bannerPos.x, bannerPos.y, bannerSize.x, bannerSize.y);
 		
 		vector2 bannerTxtPos = bannerPos + (bannerSize.x * 0.5, (bannerSize.y * 0.5) - 10);
-		MWDrawer.DrawString("SmallFont", "\c[Black]"..tag, bannerTxtPos + (4,4), MWDrawer.SS_TEXT_CENTER, scale:(1.5,1.5));
-		MWDrawer.DrawString("SmallFont", "\c[White]"..tag, bannerTxtPos, MWDrawer.SS_TEXT_CENTER, scale:(1.5,1.5));
+		MWDrawer.DrawString("bt_classic", "\c[Black]"..tag, bannerTxtPos + (4,4), MWDrawer.SS_TEXT_CENTER, scale:(1.5,1.5));
+		MWDrawer.DrawString("bt_classic", "\c[White]"..tag, bannerTxtPos, MWDrawer.SS_TEXT_CENTER, scale:(1.5,1.5));
 		
 	}
 	
@@ -222,8 +222,8 @@ class ShopItemsContainer : MenuElement
 		MWDrawer.Fill(bgColor, tabPos.x, tabPos.y, tabSize.x, tabSize.y);
 	
 		vector2 txtPos = tabPos + (tabSize.x * 0.5,tabSize.y * 0.5);
-		txtPos.y -= MWDrawer.GetTextHeight("SmallFont", txt) * 0.5;
-		MWDrawer.DrawString("SmallFont", txt, txtPos, MWDrawer.SS_TEXT_CENTER);
+		txtPos.y -= MWDrawer.GetTextHeight("bt_classic", txt) * 0.5;
+		MWDrawer.DrawString("bt_classic", txt, txtPos, MWDrawer.SS_TEXT_CENTER);
 	}
 	
 	override void Update(double dT)
@@ -286,9 +286,11 @@ class ShopSearchBar : MenuElement
 		string text = searchInput ? searchInput.getText() : buffer;
 		if(!searchInput && buffer == "")
 			text = "Search Here";
+			
+		Font searchFont = "hm_type";
 		
-		double valueWidth  = MWDrawer.GetTextWidth("SmallFont", text);
-		double valueHeight = MWDrawer.GetTextHeight("SmallFont", text);
+		double valueWidth  = MWDrawer.GetTextWidth(searchFont, text);
+		double valueHeight = MWDrawer.GetTextHeight(searchFont, text, scale:(0.15,0.15));
 
 		MWDrawer.Fill(0x1A1A1A, pos.x, pos.y, size.x, size.y);		
 		
@@ -296,20 +298,20 @@ class ShopSearchBar : MenuElement
 		{
 			cursorAlphaTimer += dT;
 			double textAlpha = 0.5 + (cos(cursorAlphaTimer * 2)*0.5);
-			MWDrawer.DrawString("SmallFont", text, pos + (5, valueHeight * 0.5), translation:Font.CR_Gray, textAlpha, (1.0,1.0));
+			valueHeight = MWDrawer.GetTextHeight("bt_classic", text);
+			MWDrawer.DrawString("bt_classic", text, pos + (5, valueHeight * 0.5), translation:Font.CR_Gray, textAlpha, (1.0,1.0));
 		}
 		else
-			MWDrawer.DrawString("SmallFont", text, pos + (5, valueHeight * 0.5), translation:Font.CR_White, alpha, (1.0,1.0));
+			MWDrawer.DrawString(searchFont, text, pos + (5, valueHeight * 0.5), translation:Font.CR_White, alpha, (1.0,1.0));
 		
 		// Cursor
 		if(searchInput)
 		{
-			Font fnt = "SmallFont";
 			cursorAlphaTimer += dT;
 			double cursorAlpha = (cos(cursorAlphaTimer * 10)*0.5);
 		
-			double CursorX = searchInput.getCursorPos("SmallFont");// - (fnt.StringWidth(text) * 2.0);
-			MWDrawer.DrawString("SmallFont", "|", pos + (cursorX + 2, valueHeight * 0.5), translation:Font.CR_GRAY, min(alpha, cursorAlpha + 0.5), (1.0,1.0));
+			double CursorX = searchInput.getCursorPos(searchFont);// - (fnt.StringWidth(text) * 2.0);
+			MWDrawer.DrawString(searchFont, "|", pos + (cursorX + 2, valueHeight * 0.5), translation:Font.CR_GRAY, min(alpha, cursorAlpha + 0.5), (1.0,1.0));
 		}
 	}
 	
@@ -385,7 +387,7 @@ class CartContainer : MenuElement
 		MWDrawer.Fill(0x7F7F7F, pos.x - 4, (pos.y - 4) + size.y + 4, size.x + 8, 124);
 		MWDrawer.Fill(0x101010, trBoxPos.x, trBoxPos.y, size.x, 100);
 		
-		MWDrawer.DrawString("SmallFont", "\c[Gray]Transaction Cost", trBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
+		MWDrawer.DrawString("bt_classic", "\c[Gray]Transaction Cost", trBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
 		
 		string sellingColor = "\c[Green] +";
 		string buyingColor = "\c[Red] -";
@@ -410,16 +412,16 @@ class CartContainer : MenuElement
 		
 		double cost = getTransactionCBills();
 		string price = String.Format("%s%s", colStr, MWDrawer.FormatNumber(abs(cost)));
-		MWDrawer.DrawString("SmallFont", price, trBoxPos + (size.x * 0.5,45), MWDrawer.SS_TEXT_CENTER);
+		MWDrawer.DrawString("hm_thin", price, trBoxPos + (size.x * 0.5,35), MWDrawer.SS_TEXT_CENTER);
 		
 		double balance = base.PlayerItems.cbills + cost;
 		string balString = String.Format("\c[Gray]%s\c[White]", MWDrawer.FormatNumber(balance));
 		if(balance < 0) balString = String.Format("\c[Red]%s\c[White]", MWDrawer.FormatNumber(balance));
-		MWDrawer.DrawString("SmallFont", "\c[White]= " .. balString, trBoxPos + (size.x * 0.5,65), MWDrawer.SS_TEXT_CENTER);
+		MWDrawer.DrawString("hm_thin", "\c[White]= " .. balString, trBoxPos + (size.x * 0.5,65), MWDrawer.SS_TEXT_CENTER);
 		
 		// CBill Icons
-		double priceWidth = MWDrawer.GetTextWidth("SmallFont", price);
-		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", trBoxPos + ( 12 + (size.x * 0.5) + (priceWidth * 0.5), 6 + 45), scale:(0.8,0.8));
+		double priceWidth = MWDrawer.GetTextWidth("hm_thin", price);
+		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", trBoxPos + ( 12 + (size.x * 0.5) + (priceWidth * 0.5), 45), scale:(0.8,0.8));
 		
 		// Direction arrow
 		vector2 arrowPos = pos + (-50,size.y * 0.5);
@@ -436,11 +438,11 @@ class CartContainer : MenuElement
 		MWDrawer.Fill(0x7F7F7F, acBoxPos.x - 4, acBoxPos.y - 4, size.x + 8, 120);
 		MWDrawer.Fill(0x101010, acBoxPos.x, acBoxPos.y, size.x, 100);
 		
-		MWDrawer.DrawString("SmallFont", "\c[Gray]Account Balance", acBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
+		MWDrawer.DrawString("bt_classic", "\c[Gray]Account Balance", acBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
 		String accBalanceStr = String.Format("\c[White]%s", MWDrawer.FormatNumber(base.PlayerItems.cbills)); 
-		MWDrawer.DrawString("SmallFont", accBalanceStr, acBoxPos + (size.x * 0.5,50), MWDrawer.SS_TEXT_CENTER);
-		double balanceWidth = MWDrawer.GetTextWidth("SmallFont", accBalanceStr);
-		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", acBoxPos + ( 12 + (size.x * 0.5) + (balanceWidth * 0.5), 6 + 50), scale:(0.8,0.8));
+		MWDrawer.DrawString("hm_thin", accBalanceStr, acBoxPos + (size.x * 0.5,50), MWDrawer.SS_TEXT_CENTER);
+		double balanceWidth = MWDrawer.GetTextWidth("hm_thin", accBalanceStr);
+		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", acBoxPos + ( 12 + (size.x * 0.5) + (balanceWidth * 0.5), 60), scale:(0.8,0.8));
 	}
 	
 	bool checkValidTransaction()
@@ -633,8 +635,8 @@ class ShopBuySellButton : MenuButton
 		MWDrawer.Fill(bgColor, pos.x - 4, pos.y - 4, size.x + 8, size.y + 8);
 		MWDrawer.Fill(fgColor, pos.x, pos.y, size.x, size.y);
 		
-		vector2 btnTextPos = pos + (size.x * 0.5, (size.y * 0.5) - (MWDrawer.GetTextHeight("SmallFont", tag) * 0.5));
-		MWDrawer.DrawString("SmallFont", btnText, btnTextPos, MWDrawer.SS_TEXT_CENTER, translation:txtColor);
+		vector2 btnTextPos = pos + (size.x * 0.5, (size.y * 0.5) - (MWDrawer.GetTextHeight("bt_classic", tag) * 0.5));
+		MWDrawer.DrawString("bt_classic", btnText, btnTextPos, MWDrawer.SS_TEXT_CENTER, translation:txtColor);
 	}
 	
 	override void Update(double dT)
@@ -763,22 +765,24 @@ class ShopItem : MenuElement
 		// Draw Price
 		Color priceTagColor = 0xFF127012;
 		if(isPlayerItem) priceTagColor = 0xFFA7060A;
+		double txtScale = 0.7;
 		
 		vector2 priceStringPos = (drawPos.x + size.x + 12, drawPos.y + size.y - 8);
 		string value = MWDrawer.FormatNumber(isPlayerItem ? objItem.GetValue() * 0.5 : objItem.GetValue());
-		double valLength = MWDrawer.GetTextWidth("SmallFont", value, (0.8,0.8));
+		double valLength = MWDrawer.GetTextWidth("hm_type", value, (txtScale,txtScale));
+		double valHeight = MWDrawer.GetTextHeight("hm_type", value, scale:(txtScale,txtScale));
 		vector2 cbillIconPos = priceStringPos + (7 + valLength, 5);
 		
 		MWDrawer.Fill(priceTagColor, priceStringPos.x - 5, priceStringPos.y - 5, valLength + 20, 20);
 		
-		MWDrawer.DrawString("SmallFont", "\c[White]"..value, priceStringPos, scale:(0.8,0.8));
+		MWDrawer.DrawString("hm_type", "\c[White]"..value, priceStringPos - (0,valHeight * 0.25), scale:(txtScale,txtScale));
 		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", cbillIconPos, scale:(0.5,0.5));
 		
 		MWDrawer.DrawImage("Graphics/Shop/priceTag.png", priceStringPos + (-14,5), scale:(0.3,0.3), tint:priceTagColor);
 	
 		if(infinite) return; // Do not draw quantity for infinite items.
 		vector2 countStringPos = (parentElement.pos.x + (parentElement.size.x - 60), drawPos.y);
-		MWDrawer.DrawString("SmallFont", String.Format("\c[Gray] %d", count), countStringPos, flags:MWDrawer.SS_TEXT_RIGHT);
+		MWDrawer.DrawString("hm_type", String.Format("\c[Gray] %d", count), countStringPos, flags:MWDrawer.SS_TEXT_RIGHT, scale:(0.8,0.8));
 	}
 	
 	override bool CheckDraggable()
@@ -948,10 +952,10 @@ class ShopBackground : MenuElement
 	
 	void DrawItemDescription(MechItem item)
 	{
-		Font descFont = "SmallFont";
-		vector2 statsPos = pos + (20, 970);
+		Font descFont = "hm_thin";
+		vector2 statsPos = pos + (20, 960);
 		double valueOffs = 373;
-		vector2 itemDescPos = pos + (valueOffs + 100, statsPos.y - 18);
+		vector2 itemDescPos = pos + (valueOffs + 100, statsPos.y - 10);
 		double statLineHeight = 20;
 		double lineHeight = descFont.getHeight() + 7;
 	
@@ -959,7 +963,7 @@ class ShopBackground : MenuElement
 		Array<string> stats;
 		Array<string> values;
 		string itemDesc = item.getShopDescription();
-		BrokenLines descLines = descFont.BreakLines(itemDesc, descFont.StringWidth("A") * 70);
+		BrokenLines descLines = descFont.BreakLines(itemDesc, descFont.StringWidth("A") * 80);
 		
 		int strY = 0;
 		for(int i = 0; i < descLines.Count(); i++)

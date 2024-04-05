@@ -323,7 +323,7 @@ class MechAmmo : MechItem
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
-		bgColor = curAmmo <= 0 ? 0xA0000000 : 0xA0FF00FF;
+		bgColor = curAmmo <= 0 ? 0xA0000000 : 0xA0C700C7;
 	}
 	
 	virtual void SetupAmmo()
@@ -821,7 +821,7 @@ class MechEngineBlock : MechItem
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
 		fontColor = Font.CR_WHITE;
-		bgColor = 0xA07F0000;
+		bgColor = 0xFF670000;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -863,7 +863,7 @@ class MechEngine : MechItem
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
-		bgColor = 0xA0FF0000;
+		bgColor = 0xFF870202;
 	}
 	
 	double roundTons(double value)
@@ -1282,9 +1282,9 @@ class MechWeapon : MechItem
 		let weap = MechWeapon(self);
 		if(weap)
 		{
-			if(weap.mountType ~== "energy"   ) bgColor = 0xA0FFFF00;
-			if(weap.mountType ~== "ballistic") bgColor = 0xA00000FF;
-			if(weap.mountType ~== "missile"  ) bgColor = 0xA000FF00;
+			if(weap.mountType ~== "energy"   ) bgColor = 0xFFb0b009;
+			if(weap.mountType ~== "ballistic") bgColor = 0xFF132891;
+			if(weap.mountType ~== "missile"  ) bgColor = 0xFF186b13;
 		}
 	}
 	

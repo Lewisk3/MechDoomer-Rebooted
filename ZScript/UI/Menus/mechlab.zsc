@@ -154,10 +154,11 @@ class MechHardpointContainer : MenuElement
 		MWDrawer.DrawImage(
 			"Graphics/Mechlab/itemTop.png", 
 			topBarPos - (0,3), scale:(-wScale*0.45, 0.6), 
-			tint:0, texoffs:(2,1)
+			tint:0xFF1A1A1A, texoffs:(2,1)
 		);
 		
-		MWDrawer.DrawString("SmallFont", containerName, topBarPos + (5,-10), translation:Font.CR_BLACK, scale:(0.8,1.0)); 
+		MWDrawer.DrawString("bt_classic", containerName, topBarPos + (8,-12), translation:Font.CR_BLACK, scale:(0.9,1.0)); 
+		MWDrawer.DrawString("bt_classic", containerName, topBarPos + (8,-12), translation:Font.CR_WHITE, alpha:0.27, scale:(0.9,1.0)); 
 		
 		Array<HardpointMount> energyPoints, ballisticPoints, missilePoints, podPoints;
 		hardpoint.getMountPoints(energyPoints, "Energy");
@@ -176,23 +177,23 @@ class MechHardpointContainer : MenuElement
 		MWDrawer.DrawRect(topBarPos + (0,8), (size.x,topBarHeight), "Gray");
 		
 		MWDrawer.Fill("DarkGray", topBarPos.x,topBarPos.y + 9, size.x, 20);
-		MWDrawer.DrawString("ConsoleFont", "ARMOR", topBarPos + (5,9), translation:Font.CR_GRAY); 
+		MWDrawer.DrawString("bt_classic", "ARMOR", topBarPos + (5,9), translation:Font.CR_GRAY); 
 		
 		// Armor Points
 		double reserveArmorPoints = hardpoint.getReserveArmorPoints(); //ceil(hardpoint.maxArmor - (max(0,frontArmor) + max(0, rearArmor)));
-		MWDrawer.DrawString("ConsoleFont", ""..int(reserveArmorPoints), topBarPos + (160,9), translation:Font.CR_BLUE); 
+		MWDrawer.DrawString("hm_type", ""..int(reserveArmorPoints), topBarPos + (190,6), MWDrawer.SS_TEXT_RIGHT, translation:Font.CR_Sapphire, scale:(0.8,0.8)); 
 		
 		// Damage
-		MWDrawer.DrawString("ConsoleFont", String.Format("-%.2f", hardpoint.armorDamage), topBarPos + (95,9), translation:Font.CR_RED, scale:(0.75,0.75)); 
+		MWDrawer.DrawString("hm_type", String.Format("-%.2f", hardpoint.armorDamage), topBarPos + (92,7), translation:Font.CR_Brick, scale:(0.65,0.65)); 
 		
-		MWDrawer.DrawString("ConsoleFont", ""..int(frontArmor), topBarPos + (rearArmor >= 0 ? size.x*0.25 : size.x*0.4,45));
+		MWDrawer.DrawString("hm_type", ""..int(frontArmor), topBarPos + (rearArmor >= 0 ? size.x*0.25 : size.x*0.4,45));
 		if(rearArmor >= 0)
-			MWDrawer.DrawString("ConsoleFont", ""..int(rearArmor), topBarPos + (size.x*0.6,45));
+			MWDrawer.DrawString("hm_type", ""..int(rearArmor), topBarPos + (size.x*0.6,45));
 		
 		// Weapon types
 		MWDrawer.Fill("DarkGray", topBarPos.x,topBarPos.y + 80, size.x, 20);
-		MWDrawer.DrawString("ConsoleFont", "STRUCTURE", topBarPos + (5,80), translation:Font.CR_GRAY); 
-		MWDrawer.DrawString("ConsoleFont", ""..max(0,int(ceil(hardpoint.healthPoints))), topBarPos + (160,80), translation:Font.CR_RED); 
+		MWDrawer.DrawString("bt_classic", "STRUCTURE", topBarPos + (5,80), translation:Font.CR_GRAY); 
+		MWDrawer.DrawString("hm_type", ""..max(0,int(ceil(hardpoint.healthPoints))), topBarPos + (160,77), translation:Font.CR_RED, scale:(0.8,0.8)); 
 		
 		double iconScale = 0.5;
 		vector2 mountOffs = (10,113);
@@ -215,7 +216,7 @@ class MechHardpointContainer : MenuElement
 		double slotSpacing = (slotsHeight*slots[0].scale) + itemSpacing;
 		for(uint i = 0; i < hardpoint.maxslots; i++)
 		{
-			MWDrawer.DrawString("ConsoleFont", "-", (pos.x + 8, pos.y + drawY));
+			MWDrawer.DrawString("hm_type", "-", (pos.x + 8, pos.y + drawY - 5));
 			MWDrawer.DrawThickLine(pos.x, pos.y + drawY + slotSpacing, pos.x + size.x, pos.y + drawY + slotSpacing, 2, "Gray"); 
 			drawY += slotSpacing;
 		}
@@ -329,7 +330,7 @@ class MechItemSlot : MenuElement
 	{
 		if(!item) return;
 	
-		Font itemFont = "SmallFont"; 
+		Font itemFont = "hm_type"; 
 		bool destroyed = item.checkDestroyed();
 		
 		Color slotColor = 0;
@@ -366,10 +367,10 @@ class MechItemSlot : MenuElement
 			}
 			
 			// Draw item data
-			double fontScale = itemScale * 1.75;
+			double fontScale = itemScale * 1.5;
 			vector2 centerPos = pos + (
 				(containerSize.x / 2.0),
-				(containerSize.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 )
+				(containerSize.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 ) - 1
 			);
 						
 			// Autofit 
@@ -470,7 +471,7 @@ class MenuItemsInvContainer : MenuElement
 		vector2 tabOffs = (0, 0);
 		double tabSpacing = size.x * 0.3;
 		vector2 tabSize = (size.x/4.,42);
-		double tabTextScale = 0.70 * (size.x/480.);
+		double tabTextScale = 0.82 * (size.x/480.);
 		
 		let energyTab = MechWeaponSortTab(
 			MenuElement.Create("MechWeaponSortTab", "tabEnergy", parentMenu, pos+tabPos+tabOffs, tabSize)
@@ -577,15 +578,16 @@ class MenuItemsInvContainer : MenuElement
 		if(itemStatValue.Size() < itemStatName.Size()) 
 			itemStatValue.Resize(itemStatName.Size() - itemStatValue.Size());
 		
-		Font descFont = "ConsoleFont";
+		Font descFont = "hm_thin";
+		Font flavorFont = "hm_type";
 		double descFontScale = 0.9;
 		double descSpacing = 10;
-		double boxHeight = 60. + (itemStatName.Size() * ((descFont.getHeight()*2.0*descFontScale) + (descSpacing*1.2)));
+		double boxHeight = 60. + (itemStatName.Size() * ((descFont.getHeight()*1.5*descFontScale) + (descSpacing*1.2)));
 		double boxWidth = width + 10;
 				
-		BrokenLines flavorTextLines = descFont.BreakLines(itemFlavorText, (boxWidth * 0.58) / descFontScale);
+		BrokenLines flavorTextLines = flavorFont.BreakLines(itemFlavorText, (boxWidth * 0.58) / descFontScale);
 		
-		double flavorTextLn = 10 + (2*descFontScale);
+		double flavorTextLn = 14 + (2*descFontScale);
 		double flavorTextHeight = flavorTextLines.Count() * (descFont.getHeight()+flavorTextLn);
 		boxHeight += flavorTextLn * flavorTextLines.Count();
 		
@@ -605,18 +607,19 @@ class MenuItemsInvContainer : MenuElement
 		MWDrawer.Fill(itemColor, descPos.x + ((boxWidth - itemNameSize) * 0.5), descPos.y + 20., itemNameSize, 20);
 		
 		// Autofit display name
+		Font itemNameFont = "hm_type";
 		double itemNameScale = 1.0;
 		double fitX = itemNameSize - 16;
-		double itemNameWidth = descFont.StringWidth(invItem.displayName) * itemNameScale * 2.0;
+		double itemNameWidth = itemNameFont.StringWidth(invItem.displayName) * itemNameScale * 2.0;
 		double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
 		
 		// Text Shadow
-		MWDrawer.DrawString(descFont, invItem.displayName,
-			(descPos.x+(boxWidth*0.5) + 2, descPos.y + (descFont.getHeight()*2.0) + 7), 
+		/*MWDrawer.DrawString("hm_type", invItem.displayName,
+			(descPos.x+(boxWidth*0.5) + 2, descPos.y + descFont.getHeight() + 5), 
 			MWDrawer.SS_TEXT_CENTER, Font.CR_BLACK, scale:(itemNameScale*fitScale, itemNameScale)
-		);
-		MWDrawer.DrawString(descFont, invItem.displayName,
-			(descPos.x+(boxWidth*0.5), descPos.y + (descFont.getHeight()*2.0) + 5), 
+		);*/
+		MWDrawer.DrawString(itemNameFont, invItem.displayName,
+			(descPos.x+(boxWidth*0.5), descPos.y + descFont.getHeight() + 3), 
 			MWDrawer.SS_TEXT_CENTER, Font.CR_WHITE, scale:(itemNameScale*fitScale, itemNameScale)
 		);
 		
@@ -647,7 +650,7 @@ class MenuItemsInvContainer : MenuElement
 		{
 			string descLine = flavorTextLines.StringAt(i);
 			MWDrawer.DrawString(
-				descFont, descLine, 
+				flavorFont, descLine, 
 				flavorTextPos,
 				translation:Font.CR_GRAY, 1.0,
 				scale:(descFontScale,descFontScale)*0.8
@@ -670,7 +673,7 @@ class MenuItemsInvContainer : MenuElement
 				translation:Font.CR_WHITE,
 				scale:(descFontScale,descFontScale)
 			);
-			lnPos.y += (descFont.getHeight()*2.0*descFontScale) + descSpacing;
+			lnPos.y += (descFont.getHeight()*1.5*descFontScale) + descSpacing;
 		}
 	}
 	
@@ -966,7 +969,7 @@ class MechContainerTab : MenuButton
 			pos.y + (size.y / 2.)
 		);
 		
-		Font textFont = "ConsoleFont";
+		Font textFont = "bt_classic";
 		double textHeight = textFont.getHeight() * (1.75*textScale.y);
 		MWDrawer.DrawString(
 			textFont, tabText, center - (0, textHeight*0.5), MWDrawer.SS_TEXT_CENTER,
@@ -1102,7 +1105,7 @@ class MechInvItem : MenuElement
 	
 	override void Draw(double dT)
 	{
-		Font itemFont = "SmallFont"; 
+		Font itemFont = "hm_type"; 
 		bool destroyed = item.checkDestroyed();
 		
 		Color slotColor = 0;
@@ -1218,7 +1221,7 @@ class MechInfoContainer : MenuElement
 		
 		double textSize = 1.00;
 		vector2 textPos = pos + (10,10);
-		Font textFont = "ConsoleFont";
+		Font textFont = "bt_classic";
 		
 		MWDrawer.DrawString(textFont, mechName, pos + (size.x*0.5, 10), flags:MWDrawer.SS_TEXT_CENTER, scale:(textSize, textSize)*1.15);
 		MWDrawer.DrawString(textFont, mechVariant, textPos + (1, 35), translation:Font.CR_BLACK, scale:(textSize, textSize));
@@ -1237,16 +1240,26 @@ class MechInfoContainer : MenuElement
 		
 		double engineSpeed = mech.engine ? mech.engine.getKPH(mech) : 0;
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]SPEED    \c[White] %.1f / %.1f", engineSpeed, engineSpeed*0.5), 
+			String.Format("\c[Teal]SPEED"), 
 			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White] %.1f / %.1f", engineSpeed, engineSpeed*0.5), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);
 		
 		textPos.y += 30;
 		string engineType = mech.engine ? String.Format("\c[DarkGray]%s \c[White]%d", mech.engine.getTypeStr(), mech.engine.rating) : "NONE";
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]ENGINE    \c[White]" .. engineType, mech.moveSpeedKPH, mech.moveSpeedKPH*0.5), 
+			String.Format("\c[Teal]ENGINE"), 
 			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]" .. engineType), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);
 		
@@ -1264,8 +1277,13 @@ class MechInfoContainer : MenuElement
 		}
 		
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]ARMOR     " .. armorRating, mech.moveSpeedKPH, mech.moveSpeedKPH*0.5), 
+			String.Format("\c[Teal]ARMOR"), 
 			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%s", armorRating), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);
 		
@@ -1294,20 +1312,37 @@ class MechInfoContainer : MenuElement
 		}
 			
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]HEATSINKS \c[White]%d", heatsinkCount), 
+			String.Format("\c[Teal]HEATSINKS"), 
 			textPos + (0,15), 
 			scale:(textSize, textSize)
 		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%d", heatsinkCount), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
+			scale:(textSize, textSize)
+		);
+		
 		textPos.y += 30;
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]HEATDISP  \c[White]%.2f K/s", mech.BHUtoKelvin(heatDissipation)), 
+			String.Format("\c[Teal]HEATDISP"), 
 			textPos + (0,15), 
 			scale:(textSize, textSize)
 		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%.2f K/s", mech.BHUtoKelvin(heatDissipation)), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
+			scale:(textSize, textSize)
+		);
+		
 		textPos.y += 30;
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]HEATMAX   \c[White]%.2f K", mech.maxKelvin), 
+			String.Format("\c[Teal]HEATMAX"), 
 			textPos + (0,15), 
+			scale:(textSize, textSize)
+		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%.2f K", mech.maxKelvin), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);
 		
@@ -1334,19 +1369,31 @@ class MechInfoContainer : MenuElement
 		
 		textPos.y += 50;
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]HEATGEN   \c[White]%.2f K/s", mech.BHUtoKelvin(heatGen) / TICRATE), 
+			String.Format("\c[Teal]HEATGEN"), 
 			textPos + (0,15), 
 			scale:(textSize, textSize)
 		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%.2f K/s", mech.BHUtoKelvin(heatGen) / TICRATE), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
+			scale:(textSize, textSize)
+		);
+		
 		textPos.y += 30;
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[Teal]FIREPOWER \c[White]%.2f", damageOut * MechHardpoint.DMGSCALE), 
+			String.Format("\c[Teal]FIREPOWER"), 
 			textPos + (0,15), 
 			scale:(textSize, textSize)
 		);
 		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%.2f", damageOut * MechHardpoint.DMGSCALE), 
+			textPos + (size.x - 90, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
+			scale:(textSize, textSize)
+		);
+		
+		MWDrawer.DrawString(textFont, 
 			String.Format("\c[DARKGRAY](%.2f)", damageOut), 
-			textPos + (270,15), 
+			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT,
 			scale:(textSize, textSize)*0.7
 		);
 	}
@@ -1364,18 +1411,20 @@ class MechlabSquareButton : MenuButton
 
 	override void Draw(double dT)
 	{
-		double txtScale = size.x / 16.;
+		double txtScale = size.x / 10.;
+		vector2 charPos = pos + (0.5,-0.5);
+	
 		if(!btnDown && !disabled)
 		{
 			MWDrawer.DrawRect(pos, size + (2,2), "DarkGray");
 			MWDrawer.Fill("White", pos.x,pos.y, size.x,size.y);
-			MWDrawer.DrawString("ConsoleFont", btnChar, pos - (0.5,2), translation:Font.CR_GRAY, scale:(txtScale,txtScale));
+			MWDrawer.DrawString("bt_classic", btnChar, charPos - (0.5,2), translation:Font.CR_GRAY, scale:(txtScale,txtScale));
 		}
 		else
 		{
 			MWDrawer.DrawRect(pos, size + (2,2), "DarkGray");
 			MWDrawer.Fill("White", pos.x,pos.y, size.x + 2,size.y + 2);
-			MWDrawer.DrawString("ConsoleFont", btnChar, pos - (0,0), translation:Font.CR_BLACK, scale:(txtScale,txtScale));
+			MWDrawer.DrawString("bt_classic", btnChar, charPos - (1,1), translation:Font.CR_BLACK, scale:(txtScale,txtScale));
 		}
 	}
 	
@@ -1413,7 +1462,7 @@ class MechlabUtilityButton : MenuButton
 		Color bgColor = "Black";
 		uint fontColor = Font.CR_White;
 		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION | MWDrawer.SS_TEXT_CENTER;
-		Font fnt = "ConsoleFont";
+		Font fnt = "bt_classic";
 		
 		if(hovered)
 		{
