@@ -588,7 +588,7 @@ Model DropshipSkyCage
 	Skin 0 "vfx/mountBody.png"
 	DONTCULLBACKFACES
 	CORRECTPIXELSTRETCH
-	Scale 0.35 0.35 0.35
+	Scale 0.37 0.37 0.37
 	
 	FrameIndex MODL A 0 0
 }

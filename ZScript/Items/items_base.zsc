@@ -283,13 +283,13 @@ class MechItem : Object
 	
 	play virtual void DoEffect()
 	{
+		// Process destruction.
+		if(!parent) return;
+	
 		// Under normal circumstances, if our hardpoint was destroyed, we took a lot of damage too.
 		if(parent.healthPoints <= 0) hp = 0;
 	
 		if(!mech) mech = parent.getMech();
-		
-		// Process destruction.
-		if(!parent) return;
 	}
 }
 
@@ -627,6 +627,8 @@ class MechArmor : MechUtility
 	
 	override void DoEffect()
 	{
+		if(!mech) return;
+		
 		// Keep armor weight stable.
 		double fullArmorPts = getArmorPoints(mech);
 		if(armorAmount != fullArmorPts) 
@@ -642,9 +644,9 @@ class MechArmor : MechUtility
 		let mech = part.mech;
 		if( !mech || (mech.armorType && mech.armorType.getClass() == getClass()) ) return IAE_FAIL;
 		if(mech.noItemSlots) return IAE_NOSLOTS;
-		self.mech = part.mech;
 		
 		let prevArmor = mech.armorType;		
+		
 		if(prevArmor && (prevArmor.armorTier-1) > armorTier)
 			return IAE_TOOCOMPLEX;
 		
@@ -653,16 +655,22 @@ class MechArmor : MechUtility
 		
 		int fail = IAE_SUCCESS;
 		double weight = armorWeight*getArmorPoints(mech);
+		
 		if( (mech.weight + weight) > mech.maxWeight ) fail = IAE_OVERWEIGHT; 
 		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
 			fail = IAE_NOSLOTS;
 			
 		if(fail != IAE_SUCCESS)
 		{
-			prevArmor.TryAttach(part);
+			if(prevArmor) 
+				prevArmor.TryAttach(part);
+			else
+				console.printf("Error: Failed to re-attach armor");
 		}
 		else
 		{
+			self.mech = mech;
+			self.armorAmount = 0;
 			mech.armorType = self;
 			OnAttach();
 		}
@@ -691,15 +699,17 @@ class MechArmor : MechUtility
 	override void OnDetach()
 	{
 		// Remove armor weight from mech.
-		mech.weight -= (armorAmount * armorWeight);
+		mech.weight -= (getArmorPoints(mech) * armorWeight);
 		armorAmount = 0;
-
+		
 		if(structureSlots > 0)
 		{
 			MechItem structSlot;
 			while(structSlot = mech.findItem(structType))
 				structSlot.TryDetach(forced:true);
 		}
+		
+		mech = NULL;
 	}
 }
 

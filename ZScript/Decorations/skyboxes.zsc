@@ -18,6 +18,11 @@ class DropshipSkyCage : EffectsActor
 	Default
 	{
 		Scale 1.0;
+		Radius 400;
+		Height 100;
+		+NOINTERACTION;
+		+NOBLOCKMAP;
+		-SOLID;
 	}
 
 	States
