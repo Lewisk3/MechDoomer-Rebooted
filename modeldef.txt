@@ -581,4 +581,16 @@ Model DropshipSpace
 	FrameIndex MODL A 0 0
 }
 
+Model DropshipSkyCage
+{
+	Path "models/"	
+	Model 0 "vfx/sky_cage.obj"
+	Skin 0 "vfx/mountBody.png"
+	DONTCULLBACKFACES
+	CORRECTPIXELSTRETCH
+	Scale 0.35 0.35 0.35
+	
+	FrameIndex MODL A 0 0
+}
+
 #include "mechs_modeldef.txt"

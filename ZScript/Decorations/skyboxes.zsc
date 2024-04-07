@@ -12,3 +12,18 @@ class DropshipSpace : EffectsActor
 		stop;
 	}
 }
+
+class DropshipSkyCage : EffectsActor
+{
+	Default
+	{
+		Scale 1.0;
+	}
+
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}

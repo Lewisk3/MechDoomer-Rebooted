@@ -12,6 +12,7 @@ DoomEdNums
 	15423 = "LargeTree"
 	15469 = "DropshipSpace"
 	15470 = "MechBay"
+	15500 = "DropshipSkyCage"
 }
 
 // Prevent cluster text from appearing when the dropship map is loaded.

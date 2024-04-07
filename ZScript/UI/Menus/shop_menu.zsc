@@ -652,7 +652,7 @@ class ShopBuySellButton : MenuButton
 				btnText = "Sell Items";
 			break;
 			default:
-				btnText = "Buy/Sell Items";
+				btnText = "Buy/Sell";
 			break;
 		}
 		
@@ -957,6 +957,7 @@ class ShopBackground : MenuElement
 		double valueOffs = 373;
 		vector2 itemDescPos = pos + (valueOffs + 100, statsPos.y - 10);
 		double statLineHeight = 20;
+		double descScale = 1.0;
 		double lineHeight = descFont.getHeight() + 7;
 	
 		// Draw stats
@@ -971,10 +972,10 @@ class ShopBackground : MenuElement
 			let str = descLines.StringAt(i);
 			
 			// Font shadow
-			MWDrawer.DrawString(descFont, str, itemDescPos + (2, stry + 2), scale:(1.0,1.0), tint:0xFF000000); 
+			MWDrawer.DrawString(descFont, str, itemDescPos + (2, stry + 2), scale:(descScale,descScale), tint:0xFF000000); 
 			
 			// Font foreground
-			MWDrawer.DrawString(descFont, "\c[Green]"..str, itemDescPos + (0, stry), scale:(1.0,1.0));
+			MWDrawer.DrawString(descFont, "\c[Green]"..str, itemDescPos + (0, stry), scale:(descScale,descScale));
 			strY += lineHeight;
 		}	
 	
