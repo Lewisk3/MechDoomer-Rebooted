@@ -1,9 +1,9 @@
-server float sv_mdr_mechscale = 1.0;
+server float sv_mdr_mechscale = 0.8;
 server float sv_mdr_mechspeedscale = 1.0;
 server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;
 server bool sv_mdr_exitanytime = false;
-server bool sv_mdr_simplemechmovement = false;
+server bool sv_mdr_simplemechmovement = true;
 server bool sv_mdr_startondropship = true;
 server bool sv_mdr_skipmaploading = false;
 server bool sv_mdr_disabledropship = false;
