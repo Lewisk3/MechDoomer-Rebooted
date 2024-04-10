@@ -19,7 +19,7 @@ class ShopItemsContainer : MenuElement
 	double scroll, scrollVel;
 	double listHeight; // Maximum height of items stored in list.
 	Array<MechItem> items;
-	Array<class<DrivableMech> > mechs;
+	Array<MechSaveData> mechs;
 	ShopScrollBar scrollBar;
 	
 	override void Init()
@@ -37,7 +37,7 @@ class ShopItemsContainer : MenuElement
 		AddChild(base, "ShopSearchBar", "SearchBar", pos + (10,-65), (450,32));
 	}
 	
-	virtual void Setup(out Array<MechItem> items, out Array<class<DrivableMech> > mechs, int containerType)
+	virtual void Setup(out Array<MechItem> items, out Array<MechSaveData> mechs, int containerType)
 	{
 		if(items) self.items.Copy(items);
 		if(mechs) self.mechs.Copy(mechs);
@@ -48,9 +48,104 @@ class ShopItemsContainer : MenuElement
 	void populateChildren()
 	{
 		ClearChildren(base, "ShopItem");
+		listHeight = 0;	
+
+		if(listingMode != LIST_MECHS)
+			populateItems();
+		else
+			populateMechs();
+	}
+	
+	void populateMechs()
+	{
 		int itemY = 0;
 		int itemIndex = 0;
-		listHeight = 0;	
+	
+		Array<MechSaveData> sortedMechs;
+		Array<string> searchKeywords;
+		string normalizedSearch = itemSearch.MakeLower();
+		normalizedSearch.Split(searchKeywords, " ");
+		
+		// Sort items based on search relevancy
+		if(searchKeywords.Size() > 0)
+		{
+			// Grade items
+			Array<int> relevancy;
+			relevancy.Resize(mechs.Size());
+			
+			for(int i = 0; i < mechs.Size(); i++)
+			{
+				let mech = mechs[i];
+				let mechdefs = GetDefaultByType(mech.mechType);
+				
+				int matches = 0;
+				foreach(keyword : searchKeywords)
+				{
+					string mechVariant = mechdefs.mechVariantName;
+				
+					string mechName = mechdefs.mechChassisName .. mechVariant;
+					mechName = mechName.MakeLower();
+					
+					if(mechName.IndexOf(keyword) != -1) matches++;
+				}
+				relevancy[i] = matches >= searchKeywords.Size();
+			}
+	
+			// Sort based on grade
+			Array<MechSaveData> toSort;
+			toSort.Copy(mechs);
+			
+			int curScore = searchKeywords.Size();
+			while(curScore > 0)
+			{
+				for(int i = toSort.Size()-1; i >= 0; i--)
+				{
+					if(relevancy[i] == curScore)
+						sortedMechs.Push(toSort[i]);
+				}
+				curScore--;
+			}
+		}
+		else sortedMechs.Copy(mechs);
+		
+		// Populate based on mechs list.		
+		int limit = 1000;
+		foreach(mech : sortedMechs)
+		{
+			// Find item if in cart.
+			ShopItem inCartItem;
+			foreach(cartItem : base.shopCart)
+			{	
+				if(cartItem.mechData == mech)
+				{
+					inCartItem = cartItem;
+					break;
+				}
+			}
+			
+			let cItem = ShopItem(AddChild(base, "ShopItem", "ShopContainerItem", pos + (30,20 + itemY)));
+			cItem.mechData = mech;
+			cItem.count = 1;
+			
+			if(inCartItem) cItem.count -= inCartItem.count;
+			cItem.Update(0);
+			
+			if(containerType == ShopMenu.SHOP_BUYING)
+				cItem.infinite = true;
+			
+			itemY += cItem.size.y + 30;
+			itemIndex++;
+
+			if(itemIndex > limit) break;
+			listHeight = -(itemY - size.y);
+			if(listHeight > 0) listHeight = 0;
+		}
+	}
+	
+	void populateItems()
+	{
+		int itemY = 0;
+		int itemIndex = 0;
 		
 		Array<MechItem> sortedItems;
 		Array<string> searchKeywords;
@@ -96,7 +191,7 @@ class ShopItemsContainer : MenuElement
 		
 		// Populate based on items list.		
 		int limit = 1000;
-		if(items.Size() > 0 && listingMode != LIST_MECHS)
+		if(items.Size() > 0)
 		{
 			foreach(item : sortedItems)
 			{
@@ -497,35 +592,28 @@ class CartContainer : MenuElement
 		}
 		if(!cartItem) return;
 
-		if(shopItm.objItem)
-		{
-			cartItem.count-=amt;
+		cartItem.count-=amt;
 
-			// Restore count to old item
-			foreach(menuItem : base.elements)
-			{		
-				// Skip the cart item element.
-				if(menuItem == shopItm) continue;
-				
-				let sItem = ShopItem(menuItem);
-				if(sItem && sItem.objItem == shopItm.objItem)
-				{
-					sItem.count+=amt;
-					break;
-				}
-			}
+		// Restore count to old item
+		foreach(menuItem : base.elements)
+		{		
+			// Skip the cart item element.
+			if(menuItem == shopItm) continue;
 			
-			if(cartItem.count <= 0)
+			let sItem = ShopItem(menuItem);
+			if(sItem && sItem.IsSameItem(shopItm))
 			{
-				base.shopCart.Delete(cartItemIndex-1);
-				RemoveChild(shopItm);
+				sItem.count+=amt;
+				break;
 			}
-		}
-		else if(shopItm.clsMech)
-		{
-			// Add mech to cart.
 		}
 		
+		if(cartItem.count <= 0)
+		{
+			base.shopCart.Delete(cartItemIndex-1);
+			RemoveChild(shopItm);
+		}
+
 		if(base.shopCart.Size() <= 0)
 			base.shopMode = ShopMenu.SHOP_NEUTRAL;
 	}
@@ -552,26 +640,19 @@ class CartContainer : MenuElement
 			}
 		}
 		
-		if(shopItm.objItem)
+		if(!cartItem) 
 		{
-			// Add child shopItem to container if not already present in the shopping cart.
-			if(!cartItem)
-			{
-				let cartMenuItem = ShopItem(AddChild(base, "ShopItem", "CartItem", pos));
-				cartMenuItem.objItem = shopItm.objItem;
-				cartMenuItem.count = 1;
-				cartMenuItem.Update(0);
-				cartMenuItem.inCart = true;
+			let cartMenuItem = ShopItem(AddChild(base, "ShopItem", "CartItem", pos));
+			if(shopItm.objItem) cartMenuItem.objItem = shopItm.objItem;
+			if(shopItm.mechData) cartMenuItem.mechData = shopItm.mechData;
+			cartMenuItem.count = 1;
+			cartMenuItem.Update(0);
+			cartMenuItem.inCart = true;
 								
-				base.shopCart.push(cartMenuItem);
-			}
-			else cartItem.count++;
-			shopItm.count--;
+			base.shopCart.push(cartMenuItem);
 		}
-		else if(shopItm.clsMech)
-		{
-			// Add mech to cart.
-		}
+		else cartItem.count++;
+		shopItm.count--;
 	}
 	
 	override void Update(double dT)
@@ -689,8 +770,8 @@ class ShopItem : MenuElement
 {
 	// These should be treated as a union, items can either be MechItems, or a mech class.
 	MechItem objItem;
-	class<DrivableMech> clsMech;
-	int mechbayItem; // Used for selling mechs.
+	MechSaveData mechData;
+	int mechSaveID; // Used for selling mechs.
 	ShopMenu base;
 	bool dragging;
 	vector2 posOffs;
@@ -703,8 +784,9 @@ class ShopItem : MenuElement
 	
 	virtual bool IsSameItem(ShopItem other)
 	{
-		bool sameMech = clsMech && (clsMech == other.clsMech && mechbayItem == other.mechbayItem);
-		return objItem == other.objItem || sameMech;
+		bool sameMech = mechData && (mechData == other.mechData);
+		bool sameItem = objItem && (objItem == other.objItem);
+		return sameItem || sameMech;
 	}
 	
 	override void Init()
@@ -715,10 +797,15 @@ class ShopItem : MenuElement
 	
 	override void Draw(double dT)
 	{
-		if(CheckCollision(base.cursor, false) && objItem)
-			base.ShopBG.DrawItemDescription(objItem);
+		if(CheckCollision(base.cursor, false))
+		{
+			if(objItem)
+				base.ShopBG.DrawItemDescription(objItem);
+				
+			if(mechData)
+				base.ShopBG.DrawMechDescription(mechData);
+		}
 	
-		if(!objItem) return;
 		if(!disabled && !dragging && checkDraggable() && CheckCollision(base.cursor, false))
 		{
 			// On hover
@@ -743,11 +830,11 @@ class ShopItem : MenuElement
 	
 	virtual void DrawAt(vector2 drawPos, MenuElement inContainer)
 	{
+		if(inContainer) MWDrawer.SetClipRect(inContainer.pos.x, inContainer.pos.y, inContainer.size.x, inContainer.size.y);
+		double itemAlpha = dragging ? max(0.37, 1.0 - dragAlpha) : 1.0;
+		
 		if(objItem)
 		{	
-			if(inContainer) MWDrawer.SetClipRect(inContainer.pos.x, inContainer.pos.y, inContainer.size.x, inContainer.size.y);
-			double itemAlpha = dragging ? max(0.37, 1.0 - dragAlpha) : 1.0;
-			
 			MechItemSlot.DrawMechItem(objItem, initPos + posOffs, itemAlpha, 0.5, size, 34, disabled);  
 			DrawCount(initPos + posOffs);
 			MWDrawer.ClearClipRect();
@@ -756,6 +843,129 @@ class ShopItem : MenuElement
 			if(dragging) 
 				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? dragAlpha : 1.0, 0.5, size, 34, disabled);  
 		}
+		else if(mechData)
+		{
+			vector2 listPos = initPos + posOffs;
+			DrawItemizedMech(mechData, initPos + posOffs, itemAlpha, 0.5, size, 34, disabled);  
+			DrawMechValue(initPos + posOffs, itemAlpha);
+			MWDrawer.ClearClipRect();
+			
+			// Draw under cursor if being dragged.
+			if(dragging) 
+			{
+				DrawItemizedMech(mechData, drawPos, dragging ? dragAlpha : 1.0, 0.5, size, 34, disabled);  
+				DrawMechValue(drawPos, dragging ? dragAlpha : 1.0);
+			}
+		}
+	}
+	
+	static void DrawItemizedMech(MechSaveData mech, vector2 pos, double alpha, double itemScale, vector2 containerSize, double slotHeight, bool greyed = false)
+	{
+		if(!mech) return;
+	
+		Font itemFont = "hm_type"; 		
+		Color slotColor = 0xFF994511;
+		uint itemFontColor = Font.CR_WHITE;		
+		double wScale = containerSize.x / 256;
+
+		if(greyed)
+		{
+			slotColor = 0xFF000000;
+			itemFontColor = Font.CR_White;
+		}
+		
+		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, texoffs:(0,0));
+
+		int itemSize = 8;
+		double scaledSlotHeight = slotHeight * itemScale;
+		for(int i = 0; i < itemSize-1; i++)
+		{
+			MWDrawer.DrawImage(
+				"Graphics/Mechlab/itemBottom.png", 
+				pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
+				alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, 
+				texoffs:(0,0)
+			);
+		}
+		
+		// Draw mech box
+		let mechdefs = GetDefaultByType(mech.mechType);
+		vector2 mechBoxPos = (10,12);
+		MWDrawer.Fill(0xFF7F7F7F, pos.x + mechBoxPos.x, pos.y + mechBoxPos.y, 100, containerSize.y - 20, alpha:alpha); 
+		MWDrawer.Fill(0xFF000000, pos.x + (mechBoxPos.x + 2), pos.y + (mechBoxPos.y + 2), 96, containerSize.y - 24, alpha:alpha);
+		
+		// Automagically scale image to size of button
+		string mechicon = mechdefs.MechItemGraphic;
+		vector2 frameSize = (84, containerSize.y - 30); 
+		vector2 mechIconPos = pos + mechBoxPos + (8,6);
+		
+		if(mechicon)
+		{
+			let imgSize = MWDrawer.GetImageSize(mechicon);
+			vector2 iconScale = (
+				(frameSize.x * 0.8) / imgSize.x,
+				(frameSize.y * 0.8) / imgSize.y
+			);	
+			
+			double aspectdef = imgSize.x / imgSize.y;
+			double aspectmod = (frameSize.x / frameSize.y) / aspectdef;
+			iconScale.x /= aspectmod;
+			
+			MWDrawer.DrawImage(
+				mechicon, 
+				mechIconPos + (frameSize.x * 0.5, frameSize.y * 0.5), 
+				alpha:alpha, scale:iconScale, 
+				texoffs:(1.0,1.0)
+			); 
+		}
+		
+		// Draw mech graphic
+		double fontScale = itemScale * 1.5;
+		vector2 namePos = pos + (containerSize.x - 20,10);
+				
+		string mechVariant = mechdefs.mechVariantName;
+		string mechName = String.Format("%s - %s", mechdefs.mechChassisName, mechVariant);
+		
+		// Autofit 
+		double fitX = containerSize.x - 148;
+		double itemNameWidth = itemFont.StringWidth(mechName) * fontScale * 2.0;
+		double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
+		
+		MWDrawer.DrawString(
+			itemFont, mechName, 
+			namePos, MWDrawer.SS_TEXT_RIGHT, translation:itemFontColor,
+			alpha, scale:(fontScale * fitScale, fontScale)
+		);
+	}
+	
+	virtual void DrawMechValue(vector2 drawPos, double alpha)
+	{
+		if(!mechData) return;
+		drawPos += (size.x - 40, 55);
+		
+		bool isPlayerMech = base.playerMechs.mechsData.Find(mechData) != base.playerMechs.mechsData.Size();
+		let mechdefs = getDefaultByType(mechData.mechType);
+	
+		double txtScale = 0.85;
+		string value = MWDrawer.FormatNumber(isPlayerMech ? mechdefs.mechvalue * 0.5 : mechdefs.mechvalue);
+		double valLength = MWDrawer.GetTextWidth("hm_type", value, (txtScale,txtScale));
+		double valHeight = MWDrawer.GetTextHeight("hm_type", value, scale:(txtScale,txtScale));
+		vector2 cbillIconPos = drawPos + (7, 5);
+		
+		MWDrawer.DrawString(
+			"hm_type", 
+			"\c[White]"..value, 
+			drawPos - (0,valHeight * 0.25), 
+			flags:MWDrawer.SS_TEXT_RIGHT, 
+			alpha:alpha, 
+			scale:(txtScale,txtScale)
+		);
+		MWDrawer.DrawImage(
+			"Graphics/Shop/CBill_Icon.png", 
+			cbillIconPos, 
+			alpha:alpha, 
+			scale:(0.75,0.75)
+		);
 	}
 	
 	virtual void DrawCount(vector2 drawPos)
@@ -831,6 +1041,9 @@ class ShopItem : MenuElement
 
 	override void Update(double dT)
 	{
+		// Mechs have a fixed size.
+		if(mechData) size = (365, 140);
+	
 		// Update size to item slot size.
 		if(objItem) size.y = 34 * max(1,objItem.size) * 0.5;
 
@@ -842,7 +1055,7 @@ class ShopItem : MenuElement
 		
 		// Double click to add/remove from cart.
 		bool hovered = CheckCollision(base.cursor, false);
-		if(!hovered || count <= 0) selected = false;
+		if(!hovered || count <= 0 || !CheckDraggable()) selected = false;
 		
 		// Wish I could just use the leftPressed field, but for some GZDoom reason
 		// it doesn't work only for shop container items, what. the. fuck.?
@@ -988,6 +1201,11 @@ class ShopBackground : MenuElement
 			strY += statLineHeight;
 		}
 	}
+	
+	void DrawMechDescription(MechSaveData mech)
+	{
+		// TODO: Mech description
+	}
 }
 
 
@@ -1008,6 +1226,7 @@ class ShopMenu : MechMenu
 	Array<ShopItem> shopCart;
 	
 	I_MechItemStorage playerItems;
+	I_SaveMechData playerMechs;
 	
 	ShopItemsContainer playerItemContainer;
 	ShopItemsContainer shopItemContainer;
@@ -1024,14 +1243,15 @@ class ShopMenu : MechMenu
 		shopPlayer = players[consoleplayer].mo;
 		// Get pointer to player items.
 		playerItems = I_MechItemStorage(shopPlayer.FindInventory("I_MechItemStorage"));
+		playerMechs = I_SaveMechData(shopPlayer.FindInventory("I_SaveMechData"));
 		
 		ShopBG = ShopBackground(AddElement("ShopBackground", "ShopField", (155,10), (1620,1055)));
 		
 		playerItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Current Inventory", (160,300), (520,650)));
-		playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
+		playerItemContainer.Setup(playerItems.items, playerMechs.mechsData, SHOP_SELLING);
 		
 		shopItemContainer = ShopItemsContainer(AddElement("ShopItemsContainer", "Market Items", (1240,300), (520,650)));
-		shopItemContainer.Setup(playerItems.shopItems, NULL, SHOP_BUYING);
+		shopItemContainer.Setup(playerItems.shopItems, playerMechs.defaultMechs, SHOP_BUYING);
 		shopItemContainer.ChangeListing(ShopItemsContainer.LIST_ENGINES); 
 		
 		shoppingCartContainer = CartContainer(AddElement("CartContainer", "ShoppingCart", (770,250), (430,500)));
@@ -1083,7 +1303,7 @@ class ShopMenu : MechMenu
 				int itemID = itemBox.Find(item.objItem);
 				itemStr.AppendFormat("%d:", itemID);
 			}
-			else if(item.clsMech)
+			else if(item.mechData)
 			{
 				// TODO: Mech transactions
 			}

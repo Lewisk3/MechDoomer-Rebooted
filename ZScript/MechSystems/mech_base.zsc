@@ -16,6 +16,7 @@
 const UTOCM_Scaled = ((12.9 / 92.0) * 100.0);
 const UTOCM_Real = UTOCM_Scaled / 5.54;
 const UTOCM = UTOCM_Scaled;
+const MECHPRICESCALAR = 0.4;
 
 class DrivableMech : DrivableObject
 {
@@ -28,11 +29,13 @@ class DrivableMech : DrivableObject
 	int powerupCycleTics; // Tics to full powerup.
 	double selectedWeapon, selectedGroup; // For UI stuff.
 	double healthPerc; // Health percent taking into account all hardpoints.
-	int mechbayID; // Used for saving mechs to mechbays.
+	int saveID; // Used for saving mechs to the correct location.
 	bool noItemSlots; // If true, prevents any items from being equipped.
 	bool inCombatZoom; // If true, combat zoom is active.
 	double combatZoomScale; // Multiplied by desiredFOV.
 	MechChassisStructure chassisStructure;
+	string MechItemGraphic; // UI Graphic for mech.
+	double mechvalue; // Mech cbill value;
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -95,6 +98,8 @@ class DrivableMech : DrivableObject
 	Property VariantName : mechVariantName;
 	Property HUD_Class : HUDType;	
 	Property CombatZoom : combatZoomScale;
+	Property ItemGraphic : MechItemGraphic;
+	Property CBillValue : mechvalue;
 	
 	enum MechBtns
 	{
@@ -1284,7 +1289,25 @@ class DrivableMech : DrivableObject
 class HardpointSaveData : Object
 {
 	Array<MechItem> items;
-	double armorPoints, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, armorDamage;
+	double armorPoints, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, armorDamage, rearArmorDamage;
+	
+	virtual HardpointSaveData MakeCopy()
+	{
+		let hpData = new("HardpointSaveData");
+		hpData.armorPoints = armorPoints;
+		hpData.healthPoints = healthPoints;
+		hpData.rearArmor = rearArmor;
+		hpData.maxRearArmor = maxRearArmor;
+		hpData.maxArmor = maxArmor;
+		hpData.maxHP = maxHP;
+		hpData.armorDamage = armorDamage;
+		hpData.rearArmorDamage = rearArmorDamage;
+		
+		foreach(itm : items)
+			hpData.items.Push(itm.MakeCopy());
+		
+		return hpData;
+	}
 	
 	virtual void Save(MechHardpoint src, bool saveItems = true)
 	{
@@ -1296,6 +1319,7 @@ class HardpointSaveData : Object
 		maxArmor = src.maxArmor;
 		maxHP = src.maxHP;
 		armorDamage = src.armorDamage;
+		rearArmorDamage = src.rearArmorDamage;
 	}
 	
 	play virtual void Load(MechHardpoint dest)
@@ -1307,6 +1331,7 @@ class HardpointSaveData : Object
 		dest.maxRearArmor = maxRearArmor;
 		dest.maxHP = maxHP;
 		dest.armorDamage = armorDamage;
+		dest.rearArmorDamage = rearArmorDamage; 
 		
 		// Item loading is done after this, as it needs to be done
 		// in a specific order.
@@ -1320,6 +1345,25 @@ class MechSaveData : Object
 	class<DrivableMech> mechType;
 	Array<HardpointSaveData> hardpointData;
 	Array<MechWeaponGroup> weaponGroups;
+	DrivableMech mechobj; // This mech's active Map Object.
+	int mechbayID;
+	
+	virtual MechSaveData MakeCopy()
+	{
+		let saveData = MechSaveData(new(getClass()));
+		saveData.engineType = engineType;
+		saveData.armorType = armorType;
+		saveData.chassisStructure = chassisStructure;
+		saveData.mechType = mechType;
+		
+		foreach(hp : hardpointData)
+			saveData.hardpointData.Push(hp.MakeCopy());
+		
+		foreach(grp : weaponGroups)
+			saveData.weaponGroups.Push(grp.MakeCopy());
+			
+		return saveData;
+	}
 	
 	virtual void Cache(DrivableMech src)
 	{
@@ -1410,10 +1454,11 @@ class MechLoader : Actor
 
 class I_SaveMechData : Inventory
 {
-	int activeMechID; // Currently active mech by MechbayID.a
+	int activeMechID; // Currently active mech by MechbayID.
 	DrivableMech lastPilotedMech;
 	
 	Array<MechSaveData> mechsData;
+	Array<MechSaveData> defaultMechs; // Used in shop
 	
 	Default
 	{
@@ -1424,14 +1469,9 @@ class I_SaveMechData : Inventory
 	
 	virtual void GiveMech(class<DrivableMech> mechClass)
 	{
-		let mech = DrivableMech(Spawn(mechClass));
+		let mech = CreateMech(mechClass);
 		if(mech)
-		{
-			// Make sure mech is setup properly.
-			mech.BeginPlay();
-			mech.PostBeginPlay();
-			mech.Tick();
-			
+		{	
 			// Save the mech.
 			saveMechData(mech);
 			
@@ -1440,8 +1480,86 @@ class I_SaveMechData : Inventory
 		}
 	}
 	
-	virtual void saveMechData(DrivableMech mech)
-	{	
+	play DrivableMech CreateMech(class<DrivableMech> mechClass)
+	{
+		let mech = DrivableMech(Spawn(mechClass));
+		if(mech)
+		{
+			// Make sure mech is setup properly.
+			mech.BeginPlay();
+			mech.PostBeginPlay();
+			mech.Tick();
+		}
+		return mech;
+	}
+	
+	play MechSaveData CopyMechData(MechSaveData data)
+	{
+		return data.MakeCopy();
+	}
+	
+	virtual void ReloadMechbays()
+	{
+		// Save and destroy all active mechs
+		foreach(mechData : mechsData)
+		{
+			let mechobj = mechData.mechobj;
+			if(!mechobj) continue;
+			
+			saveMechData(mechobj);
+			mechobj.Destroy();
+		}
+	
+		// Re-activate each bay.
+		let bayIt = ThinkerIterator.Create("MechBay");
+		Mechbay bay;
+		while(bay = MechBay(bayIt.Next()))
+			bay.Activate(Owner);
+	}
+	
+	virtual void RemoveMech(int mechbayID)
+	{
+		// Get mech saveID
+		for(int i = 0; i < mechsData.Size(); i++)
+		{
+			let curMechData = mechsData[i];
+			if(curMechData.mechbayID == mechbayID)
+			{
+				// Destroy active mech actor
+				if(curMechData.mechobj) 
+					curMechData.mechobj.Destroy();
+				
+				// Remove mech
+				mechsData.Delete(i);
+				break;
+			}
+		}
+		
+		// Update existing mech's save IDs
+		for(int i = 0; i < mechsData.Size(); i++)
+		{
+			let curMechData = mechsData[i];
+			let mechobj = curMechData.mechobj;
+			if(!mechobj) continue;
+			
+			mechobj.saveID = i+1;
+		}
+		
+		// Reload mechbays
+		ReloadMechbays();
+	}
+	
+	virtual void SwapMechbays(int bayOne, int bayTwo)
+	{
+		let mechOne = mechsData[bayOne-1];
+		let mechTwo = mechsData[bayTwo-1];
+		
+		mechOne.mechbayID = bayTwo;
+		mechTwo.mechbayID = bayOne;
+	}
+	
+	virtual MechSaveData getSerializedMechData(DrivableMech mech)
+	{
 		// Save basic mech data.
 		let data = MechSaveData(new(mech.saveDataType));	
 		data.mechType = mech.getClass();
@@ -1465,58 +1583,85 @@ class I_SaveMechData : Inventory
 			data.hardpointData.push(hardpointData);
 		}
 		
+		return data;
+	}
+	
+	virtual void saveMechData(DrivableMech mech)
+	{	
+		let data = getSerializedMechData(mech);
+		
 		// Add mech save data to mechbays
-		if(!mech.mechbayID)
+		if(!mech.saveID)
 		{
 			mechsData.push(data);
-			mech.mechbayID = mechsData.Size();
+			data.mechbayID = mechsData.Size();
+			mech.saveID = mechsData.Size();
 		}	
 		else
 		{
 			// If this mech has existing mechbay data, reload it.
-			if(mech.mechbayID <= mechsData.Size())
+			if(mech.saveID <= mechsData.Size())
 			{
-				mechsData.Delete(mech.mechbayID-1);
-				mechsData.Insert(mech.mechbayID-1, data);
+				// Rewrite mechbay ID.
+				int mechbayID = mechsData[mech.saveID-1].mechbayID;
+				data.mechbayID = mechbayID;
+				
+				mechsData.Delete(mech.saveID-1);
+				mechsData.Insert(mech.saveID-1, data);
 			}
 		}	
 		// console.printf("Saved to mechbay: %d", mech.mechbayID);
 	}
 	
-	clearscope static DrivableMech getMechbayMech(int mechbayID)
+	clearscope DrivableMech getMechbayMech(int mechbayID)
 	{
-		DrivableMech curMech;
-		let it = ThinkerIterator.Create("DrivableMech");
-		while(curMech = DrivableMech(it.Next()))
+		MechSaveData mechData;
+		foreach(mech : mechsData)
 		{
-			if(curMech.mechbayID-1 == mechbayID)
-				return curMech;
+			if(mech.mechbayID == mechbayID)
+				mechData = mech;
+		}
+		if(!mechData) return NULL;
+
+		return mechData.mechobj;
+	}
+	
+	clearscope MechSaveData getSavedMech(int mechbayID)
+	{
+		MechSaveData mechData;
+		foreach(mech : mechsData)
+		{
+			if(mech.mechbayID == mechbayID)
+				return mech;
 		}
 		return NULL;
 	}
 	
-	virtual DrivableMech loadMechData(int index, vector3 atPos)
+	virtual DrivableMech loadMechData(int mechbayID, vector3 atPos)
 	{
-		// Don't attempt to load an empty mechbay.
-		if(index >= mechsData.Size()) return NULL;
-		
-		let mechData = mechsData[index];
-		
-		// Destroy old mechs of this same type.
-		let it = ThinkerIterator.Create(mechData.mechType);
-		DrivableMech curMech;
-		while(curMech = DrivableMech(it.Next()))
+		int mechSaveID = -1;
+		MechSaveData mechData;
+		for(int i = 0; i < mechsData.Size(); i++)
 		{
-			if(curMech.mechbayID-1 == index)
-				curMech.Destroy();
-		}
+			let curMechData = mechsData[i];
+			if(curMechData.mechbayID == mechbayID)
+			{
+				mechData = curMechData;
+				mechSaveID = i;
+			}
+		}	
+		if(!mechData) return NULL;
+
+		// Destroy old mechs of this same type.
+		if(mechData.mechobj)
+			mechData.mechobj.Destroy();
 		
 		// Respawn mech.
 		let mech = DrivableMech(Spawn(mechData.mechType, atPos));
 		if(mech) 
 		{
+			mech.saveID = mechSaveID+1;
 			mech.noItemSlots = true;
-			mech.mechbayID = index+1;
 			mech.MechSerializer = self; // Restore mech save data serializer.
 			
 			// Mech loader needs to be spawned to ensure that mech is 
@@ -1525,6 +1670,7 @@ class I_SaveMechData : Inventory
 			let loader = MechLoader(Spawn("MechLoader", atPos));
 			loader.mech = mech;
 			loader.data = mechData;
+			mechData.mechobj = mech;
 		}
 		return mech;
 	}
@@ -1533,6 +1679,18 @@ class I_SaveMechData : Inventory
 	{
 		// Give mechs
 		super.AttachToOwner(other);
+		
+		// Setup shop mechs
+		foreach(cls : AllActorClasses)
+		{
+			let mechcls = (class<DrivableMech> )(cls);
+			if(!mechcls || mechcls == "DrivableMech") continue;
+			
+			let mechObj = CreateMech(mechcls);
+			let shopMech = getSerializedMechData(mechObj);
+			defaultMechs.Push(shopMech);
+			mechObj.Destroy();
+		}		
 		
 		// DEBUG
 		GiveMech("MechJenner");

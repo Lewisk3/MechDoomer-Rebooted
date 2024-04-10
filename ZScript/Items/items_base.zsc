@@ -1623,6 +1623,15 @@ class MechWeaponGroup : Object
 	uint weapCycle; // Timer for weapon cycling.
 	bool chainfire;
 	
+	virtual MechWeaponGroup MakeCopy()
+	{
+		let grp = new("MechWeaponGroup");
+		grp.prevWeapFired = prevWeapFired;
+		grp.weapCycle = weapCycle;
+		grp.chainfire = chainfire;
+		return grp;		
+	}
+	
 	virtual void DoEffect()
 	{
 		if(weapCycle) weapCycle--;

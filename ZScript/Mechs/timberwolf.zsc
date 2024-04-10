@@ -7,6 +7,8 @@ class MechTimberwolf : DrivableMech
 		DrivableMech.MaxWeight 75; // In Tons.
 		DrivableMech.ChassisName "Timberwolf";
 		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/timberwolf_icon.png";
+		DrivableMech.CBillValue (24233124 * MECHPRICESCALAR);
 	}
 	
 	override void SetupParts()

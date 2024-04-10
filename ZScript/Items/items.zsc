@@ -165,7 +165,7 @@ class MechArmor_Ferro : MechArmor
 		super.Defaults();
 		structType = "MechFerroStructure";
 		structureSlots = 14;
-		efficiency = 0.12; // 12% more effective than Standard Armor.
+		efficiency = 0.20; // 20% more effective than Standard Armor.
 		
 		armorWeight = 0.05 * (1.0 - efficiency);
 		damageMod = 1.0;

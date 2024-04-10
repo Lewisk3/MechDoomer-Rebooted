@@ -300,6 +300,13 @@ class MechHardpoint : MechPart
 		}
 	}
 	
+	virtual void TallyArmorDamage(double frontDamage, double rearDamage)
+	{
+		double totalArmorDamage = frontDamage + rearDamage;
+		if( (armorPoints+rearArmor) > 0 ) armorDamage = min(maxArmor, armorDamage + totalArmorDamage);
+		if(hasRearArmor && rearArmor > 0) rearArmorDamage = min(armorDamage, rearArmorDamage + rearDamage);
+	}
+	
 	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
 	{
 		double hpDmg = damage;
@@ -307,7 +314,12 @@ class MechHardpoint : MechPart
 		{			
 			// Radiate local heat to armor
 			double radiateDmg = hpDmg * (localHeat / (mech.maxHeat / 4.0));
-			if(armorPoints > 0) armorPoints = max(0, armorPoints - radiateDmg); 
+		
+			if(armorPoints > 0)
+				armorPoints = max(0, armorPoints - (radiateDmg * 0.75)); 
+				
+			if(rearArmor > 0)
+				rearArmor = max(0, rearArmor - (radiateDmg * 0.25)); 
 		}
 		
 		if(!skipArmor)
@@ -324,6 +336,7 @@ class MechHardpoint : MechPart
 				{
 					hpDmg = max(0, hpDmg - rearArmor);
 					rearArmor = max(0, rearArmor-damage);
+					TallyArmorDamage(0, damage);
 				}
 				rearHit = true;
 			}
@@ -336,11 +349,10 @@ class MechHardpoint : MechPart
 				{
 					hpDmg = max(0, hpDmg - armorPoints);
 					armorPoints = max(0, armorPoints-damage);	
+					TallyArmorDamage(damage, 0);
 				}
 			}
 			
-			armorDamage = min(maxArmor, armorDamage + damage);
-			if(rearHit) rearArmorDamage = min(armorDamage, rearArmorDamage + damage);
 		}
 		
 		// Item damage; only occurs if armor is gone on hardpoint.

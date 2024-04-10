@@ -7,6 +7,8 @@ class MechMarauderIIC : DrivableMech
 		DrivableMech.MaxWeight 85; // In Tons.
 		DrivableMech.ChassisName "Marauder";
 		DrivableMech.VariantName "IIC";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/marauder_icon.png";
+		DrivableMech.CBillValue (9913533  * MECHPRICESCALAR);
 	}
 	
 	override void SetupParts()

@@ -17,7 +17,7 @@ class MechDropship_Handler : StaticEventHandler
 			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 			if(mechData && mechData.activeMechID > 0)
 			{
-				let mech = mechData.loadMechData(mechData.activeMechID-1, plr.pos);
+				let mech = mechData.loadMechData(mechData.activeMechID, plr.pos);
 				if(mech) 
 				{
 					mech.angle = plr.angle;
@@ -111,11 +111,16 @@ class MechDropship_Handler : StaticEventHandler
 		// Draw mechbay info
 		Canvas cv = TexMan.GetCanvas("MechbayInfoCanvas");
 		cv.ClearScreen();
+		
+		let plr = players[consoleplayer].mo;
+		let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+		if(!mechData) return;
 			
 		for(int i = 0; i < 8; i++)
 		{
 			// Find mech associated with this mechbay.
-			let mech = I_SaveMechData.getMechbayMech(i);
+			let mech = mechData.getMechbayMech(i+1);
+			if(!mech) continue;
 		
 			double w = 320;
 			double h = 200;
@@ -176,6 +181,13 @@ class MechDropship_Handler : StaticEventHandler
 		if(cmd ~== "mw_status_closedmechlab")
 			usingMechlab = false;
 			
+		if(cmd ~== "mw_debugsellmech")
+		{
+			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+			if(!mechData) return;
+			mechData.RemoveMech(2);
+		}
+		
 		if(args.Size() > 1)
 		{
 			if(args[0] ~== "loadmech")
@@ -199,7 +211,9 @@ class MechbayScripts abstract play
 	{
 		let plr = PlayerPawn(activator);
 		let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
-		DrivableMech mech = I_SaveMechData.getMechbayMech(mechbayID-1);
+		
+		let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+		DrivableMech mech = mechData.getMechbayMech(mechbayID);
 		if(!mech || !plr) return 0;
 		
 		evh.OpenMechlab(plr.PlayerNumber(), mech);
@@ -256,7 +270,7 @@ class MechBay : EffectsActor
 		if(!mechData) return;
 		
 		// Load mech
-		mech = mechData.LoadMechData(mechbayID-1, pos);
+		mech = mechData.LoadMechData(mechbayID, pos);
 	}
 
 	States

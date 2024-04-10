@@ -7,6 +7,8 @@ class MechJenner : DrivableMech
 		DrivableMech.MaxWeight 35; // In Tons.
 		DrivableMech.ChassisName "Jenner";
 		DrivableMech.VariantName "JR7D";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/jenner_icon.png";
+		DrivableMech.CBillValue (3198375  * MECHPRICESCALAR);
 	}
 	
 	override void SetupParts()
