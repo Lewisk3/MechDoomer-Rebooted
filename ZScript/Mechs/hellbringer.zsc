@@ -9,6 +9,20 @@ class MechHellbringer : DrivableMech
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/hellbringer_icon.png";
 		DrivableMech.CBillValue (19074687  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Clan Hell's Horses";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]In the aftermath of the Battle of Tokasha, the Hell's "
+			"Horses began developing several OmniMechs. "
+			"Only the Hellbringer met with success. Development time for the Hellbringer "
+			"was reduced through the use of molds used in the Summoner. Despite the poor armor, " 
+			"the Hellbringer devotes almost 43% of its mass to pods, allowing for great offensive potential."
+			" (Source: https://www.sarna.net/wiki/Hellbringer_(Loki))"
+		);
 	}
 	
 	override void SetupParts()

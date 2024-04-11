@@ -9,6 +9,20 @@ class MechJenner : DrivableMech
 		DrivableMech.VariantName "JR7D";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/jenner_icon.png";
 		DrivableMech.CBillValue (3198375  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Draconis Combine";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]"
+			"The Jenner is designed to be a fast guerrilla fighter, one that would go on to form the foundation for "
+			"highly mobile lances. Five Smithson Lifter jump jets, two in each side torso and one in the center torso "
+			"gives it a jumping distance of 150 meters. A favorite tactic of Jenner lances was to gang up on larger 'Mechs and "
+			"unleash a devastating alpha strike. "
+			"(Source: https://www.sarna.net/wiki/Jenner)"
+		);
 	}
 	
 	override void SetupParts()

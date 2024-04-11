@@ -9,6 +9,22 @@ class MechMarauderIIC : DrivableMech
 		DrivableMech.VariantName "IIC";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/marauder_icon.png";
 		DrivableMech.CBillValue (9913533  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Various;Clans";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]Touted as one of the most effective 'Mechs of all time, "
+			"the Marauder saw wide usage during the Star League era by all the "
+			"Great Houses. The design was also much favored by both the Star League "
+			"Defense Force's Regular and Royal units as well as its famed Gunslingers. "
+			"Developed by the Clans as a followup to the venerable design, "
+			"later dubbed the Marauder IIC, represents the pinnacle of Clan weapons "
+			"technology prior to the advent of the OmniMech."
+			" (Source: https://www.sarna.net/wiki/Marauder_IIC)" 
+		);
 	}
 	
 	override void SetupParts()

@@ -9,6 +9,20 @@ class MechCenturion : DrivableMech
 		DrivableMech.VariantName "A";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/centurion_icon.png";
 		DrivableMech.CBillValue (3491500  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Corean Enterprises";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]Born on the battlefields of the First Succession War, the Centurion "
+			"performed admirably and it quickly became associated with the Armed Forces "
+			"of the Federated Suns as its unofficial 'Mech. Best known for making slow, "
+			"steady advances, the Centurion is also a capable raider and the formidable "
+			"appearance of the Luxor autocannon gave its pilot a psychological boost."
+			"(Source: https://www.sarna.net/wiki/Centurion_(BattleMech))"
+		);
 	}
 	
 	override void SetupParts()

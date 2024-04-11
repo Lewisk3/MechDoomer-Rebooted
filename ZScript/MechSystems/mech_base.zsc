@@ -36,6 +36,7 @@ class DrivableMech : DrivableObject
 	MechChassisStructure chassisStructure;
 	string MechItemGraphic; // UI Graphic for mech.
 	double mechvalue; // Mech cbill value;
+	string manufacturer; // Used for UI properties.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -100,6 +101,7 @@ class DrivableMech : DrivableObject
 	Property CombatZoom : combatZoomScale;
 	Property ItemGraphic : MechItemGraphic;
 	Property CBillValue : mechvalue;
+	Property Manufacturer : manufacturer;
 	
 	enum MechBtns
 	{
@@ -154,6 +156,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.SaveDataFormat "MechSaveData";
 		DrivableMech.HUD_Class "MechHUD";
 		DrivableMech.CombatZoom 0.1;
+		DrivableMech.Manufacturer "Unknown";
 	}
 	
 	override void PreTravelled()
@@ -162,6 +165,36 @@ class DrivableMech : DrivableObject
 		
 		// Save mech to serializer
 		if(MechSerializer) MechSerializer.SaveMechData(self);
+	}
+	
+	clearscope virtual string GetWeightClass()
+	{
+		if(maxWeight > 100) return "Super-Heavy";
+		if(maxWeight >= 80) return "Assault";
+		if(maxWeight >= 60) return "Heavy";
+		if(maxWeight >= 40) return "Medium";
+		if(maxWeight >= 20) return "Light";
+		return "Super-Light";
+	}
+	
+	clearscope virtual string GetShopDescription()
+	{
+		return "Mech has no description.";
+	}
+	
+	clearscope virtual void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		stats.Push("Class");
+		values.Push(GetWeightClass());
+		
+		stats.Push("Tonnage");
+		values.Push(String.Format("%d", maxWeight));
+		
+		stats.Push("Top Speed");
+		values.Push(String.Format("%.2f", engine.getKPH(self)));
+		
+		stats.Push("Manufacturer");
+		values.Push(manufacturer);
 	}
 
 	override void PostBeginPlay()
@@ -1348,6 +1381,11 @@ class MechSaveData : Object
 	DrivableMech mechobj; // This mech's active Map Object.
 	int mechbayID;
 	
+	// Shop information
+	Array<String> ShopStats;
+	Array<String> ShopValues;
+	string shopDescription;
+	
 	virtual MechSaveData MakeCopy()
 	{
 		let saveData = MechSaveData(new(getClass()));
@@ -1355,6 +1393,9 @@ class MechSaveData : Object
 		saveData.armorType = armorType;
 		saveData.chassisStructure = chassisStructure;
 		saveData.mechType = mechType;
+		saveData.ShopStats.Copy(ShopStats);
+		saveData.ShopValues.Copy(ShopValues);
+		saveData.shopDescription = shopDescription;
 		
 		foreach(hp : hardpointData)
 			saveData.hardpointData.Push(hp.MakeCopy());
@@ -1588,6 +1629,10 @@ class I_SaveMechData : Inventory
 		data.armorType = mech.armorType ? mech.armorType.getClass() : NULL;
 		data.chassisStructure = mech.chassisStructure ? mech.chassisStructure.getClass() : NULL;
 		data.Cache(mech);
+		
+		// Populate shop information
+		mech.GetShopProperties(data.ShopStats, data.ShopValues);
+		data.shopDescription = mech.getShopDescription();
 		
 		Array<MechHardpoint> hardpoints;
 		mech.getHardpoints(hardpoints, skipDestroyed:false);

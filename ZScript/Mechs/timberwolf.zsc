@@ -9,6 +9,21 @@ class MechTimberwolf : DrivableMech
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/timberwolf_icon.png";
 		DrivableMech.CBillValue (24233124 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Various;Clans";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]Vaguely resembling a cross between the MAD (Marauder) and CAT (Catapult) "
+			"series, the Timber Wolf was tagged with the Inner Sphere reporting name Mad Cat on "
+			"first contact (The targeting computer on Phelan Kell's Wolfhound switched between "
+			"MAD and CAT when trying to identify it). "
+			"The Timber Wolf is vastly more powerful than either the 3025-era Marauder or Catapult, "
+			"and features approximately as much firepower as both of those mechs combined. "
+			"(Source: https://www.sarna.net/wiki/Timber_Wolf_(Mad_Cat))"
+		);
 	}
 	
 	override void SetupParts()

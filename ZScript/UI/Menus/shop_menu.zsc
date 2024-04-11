@@ -804,13 +804,7 @@ class ShopItem : MenuElement
 	override void Draw(double dT)
 	{
 		if(CheckCollision(base.cursor, false))
-		{
-			if(objItem)
-				base.ShopBG.DrawItemDescription(objItem);
-				
-			if(mechData)
-				base.ShopBG.DrawMechDescription(mechData);
-		}
+			base.ShopBG.DrawItemDescription(self);
 	
 		if(!disabled && !dragging && checkDraggable() && CheckCollision(base.cursor, false))
 		{
@@ -1175,7 +1169,7 @@ class ShopBackground : MenuElement
 		MWDrawer.DrawImage("Graphics/Shop/ShopDesc.png", descPos, scale:(3.97,3.90));
 	}
 	
-	void DrawItemDescription(MechItem item)
+	void DrawItemDescription(ShopItem item)
 	{
 		Font descFont = "hm_thin";
 		vector2 statsPos = pos + (20, 960);
@@ -1188,7 +1182,20 @@ class ShopBackground : MenuElement
 		// Draw stats
 		Array<string> stats;
 		Array<string> values;
-		string itemDesc = item.getShopDescription();
+		string itemDesc;
+		
+		if(item.objItem)
+		{
+			itemDesc = item.objItem.getShopDescription();
+			item.objItem.GetShopProperties(stats, values);
+		}
+		else if(item.mechData)
+		{
+			itemDesc = item.mechData.shopDescription;
+			stats.Copy(item.mechData.ShopStats);
+			values.Copy(item.mechData.ShopValues);
+		}
+		
 		BrokenLines descLines = descFont.BreakLines(itemDesc, descFont.StringWidth("A") * 80);
 		
 		int strY = 0;
@@ -1205,18 +1212,12 @@ class ShopBackground : MenuElement
 		}	
 	
 		strY = 0;
-		item.GetShopProperties(stats, values);
 		for(int i = 0; i < stats.Size(); i++)
 		{
 			MWDrawer.DrawString(descFont, "\c[Green]"..stats[i], statsPos + (0, strY), scale:(1.0,1.0));
 			MWDrawer.DrawString(descFont, "\c[Green]"..values[i], statsPos + (valueOffs, strY), flags:MWDrawer.SS_TEXT_RIGHT, scale:(1.0,1.0));
 			strY += statLineHeight;
 		}
-	}
-	
-	void DrawMechDescription(MechSaveData mech)
-	{
-		// TODO: Mech description
 	}
 }
 
