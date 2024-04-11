@@ -16,7 +16,7 @@
 const UTOCM_Scaled = ((12.9 / 92.0) * 100.0);
 const UTOCM_Real = UTOCM_Scaled / 5.54;
 const UTOCM = UTOCM_Scaled;
-const MECHPRICESCALAR = 0.4;
+const MECHPRICESCALAR = 0.5;
 
 class DrivableMech : DrivableObject
 {
@@ -1480,6 +1480,26 @@ class I_SaveMechData : Inventory
 		}
 	}
 	
+	virtual int getAvailableMechbay()
+	{
+		if(!mechsData.Size()) return 1;
+
+		int curMechbay = 1;
+		foreach(mechData : mechsData)
+		{
+			if(mechData.mechbayID == curMechbay)
+				curMechbay++;
+		}
+		
+		return curMechbay;
+	}
+	
+	virtual void AddSavedMech(MechSaveData mechData)
+	{
+		mechsData.Push(mechData);
+		mechData.mechbayID = getAvailableMechbay();
+	}
+	
 	play DrivableMech CreateMech(class<DrivableMech> mechClass)
 	{
 		let mech = DrivableMech(Spawn(mechClass));
@@ -1517,7 +1537,7 @@ class I_SaveMechData : Inventory
 			bay.Activate(Owner);
 	}
 	
-	virtual void RemoveMech(int mechbayID)
+	virtual void RemoveMech(int mechbayID, bool reloadMechbays = true)
 	{
 		// Get mech saveID
 		for(int i = 0; i < mechsData.Size(); i++)
@@ -1546,7 +1566,7 @@ class I_SaveMechData : Inventory
 		}
 		
 		// Reload mechbays
-		ReloadMechbays();
+		if(reloadMechbays) ReloadMechbays();
 	}
 	
 	virtual void SwapMechbays(int bayOne, int bayTwo)
@@ -1593,8 +1613,7 @@ class I_SaveMechData : Inventory
 		// Add mech save data to mechbays
 		if(!mech.saveID)
 		{
-			mechsData.push(data);
-			data.mechbayID = mechsData.Size();
+			AddSavedMech(data);
 			mech.saveID = mechsData.Size();
 		}	
 		else
@@ -1693,11 +1712,12 @@ class I_SaveMechData : Inventory
 		}		
 		
 		// DEBUG
-		GiveMech("MechJenner");
 		GiveMech("MechCenturion");
-		GiveMech("MechHellbringer");
-		GiveMech("MechMarauderIIC");
-		GiveMech("MechTimberwolf");
+		
+		// GiveMech("MechJenner");
+		// GiveMech("MechHellbringer");
+		// GiveMech("MechMarauderIIC");
+		// GiveMech("MechTimberwolf");
 	}
 
 	override void DoEffect()

@@ -553,6 +553,12 @@ class CartContainer : MenuElement
 		{
 			if(item.objItem) 
 				cost += item.objItem.GetValue() * item.count;
+				
+			if(item.mechData)
+			{
+				let mechdefs = getDefaultByType(item.mechData.mechType);
+				cost += mechdefs.mechvalue * item.count;
+			}
 		}
 		
 		switch (base.shopMode)
@@ -846,8 +852,14 @@ class ShopItem : MenuElement
 		else if(mechData)
 		{
 			vector2 listPos = initPos + posOffs;
-			DrawItemizedMech(mechData, initPos + posOffs, itemAlpha, 0.5, size, 34, disabled);  
-			DrawMechValue(initPos + posOffs, itemAlpha);
+			DrawItemizedMech(mechData, listPos, itemAlpha, 0.5, size, 34, disabled);  
+			DrawMechValue(listPos, itemAlpha);
+			if(inCart)
+			{
+				vector2 countStringPos = (parentElement.pos.x + (parentElement.size.x - 60), listPos.y);
+				MWDrawer.DrawString("hm_type", String.Format("\c[Gray] %d", count), countStringPos, flags:MWDrawer.SS_TEXT_RIGHT, scale:(0.8,0.8));
+			}
+			
 			MWDrawer.ClearClipRect();
 			
 			// Draw under cursor if being dragged.
@@ -1272,12 +1284,15 @@ class ShopMenu : MechMenu
 		string type = "???";
 		double cost = shoppingCartContainer.getTransactionCBills();
 		// Format of event - buysell:cost[id:amt,id:amt...]
+		// Format of mech item buysell:cost[#id:amt], prefixed by #
+		
 		if(shopMode == SHOP_NEUTRAL) return; 
 		
 		 // Freeze menu until transaction is completed in play-scope.
 		pauseUpdates = true;
 		
 		Array<MechItem> itemBox;
+		Array<MechSaveData> mechBox;
 		Array<Int> ids;
 		Array<Int> amts;
 		
@@ -1286,10 +1301,12 @@ class ShopMenu : MechMenu
 			case SHOP_BUYING:
 				type = "buy";
 				itemBox.Copy(playerItems.shopItems);
+				mechBox.Copy(playerMechs.defaultMechs);
 			break;
 			case SHOP_SELLING:
 				type = "sell";
 				itemBox.Copy(playerItems.items);
+				mechBox.Copy(playerMechs.mechsData);
 			break;
 		}
 		
@@ -1306,6 +1323,8 @@ class ShopMenu : MechMenu
 			else if(item.mechData)
 			{
 				// TODO: Mech transactions
+				int mechID = mechBox.Find(item.mechData);
+				itemStr.AppendFormat("#%d:", mechID);
 			}
 			itemStr.AppendFormat("%d", item.count);
 			if(i < shopCart.Size()-1) itemStr.AppendFormat(",");
@@ -1332,6 +1351,7 @@ class ShopMenu : MechMenu
 			string mode = menuArgs[1];
 			double cost = menuArgs[2].ToDouble();
 			let playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
+			let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 						
 			// Handle cbills
 			playerItems.cbills += cost;
@@ -1344,13 +1364,24 @@ class ShopMenu : MechMenu
 			Array<string> itemsData;
 			shopItems.Split(itemsData, ",");
 			
+			Array<int> mechIDs;
+			Array<int> mechCounts;
 			Array<int> itemIDs;
 			Array<int> itemCounts;
 			foreach(itemStr : itemsData)
 			{
 				int delim = itemStr.IndexOf(":");
-				itemIDs.Push(itemStr.Mid(0,delim).ToInt());
-				itemCounts.Push(itemStr.Mid(delim+1).ToInt());
+				string idstr = itemStr.Mid(0,delim);
+				int itemCount = itemStr.Mid(delim+1).ToInt();
+				if(idstr.IndexOf("#") != -1)
+				{
+					mechIDs.Push(idstr.Mid(1).ToInt());
+					mechCounts.Push(itemCount);
+					continue;
+				}
+				
+				itemIDs.Push(idstr.ToInt());
+				itemCounts.Push(itemCount);
 			}
 			
 			// Handle items
@@ -1359,20 +1390,48 @@ class ShopMenu : MechMenu
 				// Sold items list needs to be made first, because items
 				// can be removed via depletion, offseting the indexes incorrectly.
 				Array<MechItem> soldItems;
+				Array<MechSaveData> soldMechs;
+				bool sellingMechs = soldMechs.Size() > 0;
 				foreach(itemID : itemIDs)
 					soldItems.Push(playerItems.items[itemID]);
-	
+					
+				foreach(mechID : mechIDs)
+					soldMechs.Push(playerMechs.mechsData[mechID]);
+						
 				for(int i = soldItems.Size()-1; i >= 0; i--)
 					playerItems.depleteItem(soldItems[i], itemCounts[i]);
+					
+				for(int i = soldMechs.Size()-1; i >= 0; i--)
+					playerMechs.RemoveMech(soldMechs[i].mechbayID, reloadMechbays:false);
+					
+				if(sellingMechs)
+					playerMechs.ReloadMechbays();
+				
 			}
 			else if (mode == "buy")
 			{
+				bool buyingMechs = mechIDs.Size();
+			
 				for(int i = 0; i < itemIDs.Size(); i++)
 				{
 					int itemID = itemIDs[i];
 					int itemCount = itemCounts[i];
 					playerItems.AddItem(playerItems.shopItems[itemID].MakeCopy(), itemCount);
 				}
+				
+				for(int i = 0; i < mechIDs.Size(); i++)
+				{
+					for(int x = 0; x < mechCounts[i]; x++)
+					{
+						let shopMech = playerMechs.defaultMechs[mechIDs[i]].MakeCopy();
+					
+						// Add shop mech to player's mechs
+						playerMechs.AddSavedMech(shopMech);
+					}
+				}
+				
+				if(buyingMechs)
+					playerMechs.ReloadMechbays();
 			}
 			
 			// Finally, complete transaction
@@ -1388,13 +1447,14 @@ class ShopMenu : MechMenu
 		if(event == "transaction.completed")
 		{
 			shoppingCartContainer.ClearCart();
+		
+			// Reset item lists
+			playerItemContainer.Setup(playerItems.items, playerMechs.mechsData, SHOP_SELLING);
+			shopItemContainer.Setup(playerItems.shopItems, playerMechs.defaultMechs, SHOP_BUYING);
+			
 			playerItemContainer.populateChildren();
 			shopItemContainer.populateChildren();
 			shopMode = SHOP_NEUTRAL;
-			
-			// Reset item lists
-			playerItemContainer.Setup(playerItems.items, NULL, SHOP_SELLING);
-			shopItemContainer.Setup(playerItems.shopItems, NULL, SHOP_BUYING);
 			
 			pauseUpdates = false;
 		}
