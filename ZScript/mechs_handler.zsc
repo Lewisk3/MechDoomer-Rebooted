@@ -170,7 +170,7 @@ class MechInteraction_Handler : EventHandler
 		
 		if(cmd ~== "mw_openshopmenu")
 			OpenShop(e.Player);
-		
+					
 		/*
 		if(cmd ~== "+mw_opendronemenu")
 			Menu.SetMenu("DroneMenu", e.Player);
@@ -189,13 +189,20 @@ class MechInteraction_Handler : EventHandler
 		if(cmd ~== "inv")
 		{
 			let inv = I_MechItemStorage.Get(plr.mo, give:false);
-			let item = (class<MechItem>)(args[2]);
-			if(!inv || !item) return;
 			
 			if(args[1] == "give")
 			{
+				let item = (class<MechItem>)(args[2]);
+				if(!inv || !item) return;
+			
 				inv.AddItem(MechItem.Init(item));
 				console.printf("Received: %s.", item.getClassName());
+			}
+			
+			if(args[1] == "printmoney")
+			{
+				inv.cbills += args[2].ToInt();
+				console.printf("Printed %s more cbills. (You should run for presidency next!)", args[2]);
 			}
 		}
 	}

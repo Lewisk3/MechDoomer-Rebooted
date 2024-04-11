@@ -49,9 +49,10 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void WorldLoaded(WorldEvent e)
 	{
-		let inv = I_MechItemStorage.Get(players[consoleplayer].mo);
+		let plr = players[consoleplayer].mo;
+		let inv = I_MechItemStorage.Get(plr);
 		if(!inv) return;
-		
+				
 		Name curMap = level.mapname;
 		
 		scrfade = 2.0;
@@ -70,6 +71,13 @@ class MechDropship_Handler : StaticEventHandler
 			if(onFirstMap) inv.dropshipNextMap = curMap;
 			
 			level.NextMap = "DROPSHIP";		
+			
+			// If there are active mechs, destroy them.
+			// This needs to be done because, if loaded from a save there will exist
+			// a kind of mech-voodoo situation.
+			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+			if(mechData) mechData.RecycleActiveMechs();
+			
 			RestoreActiveMechs();
 		}
 		else
@@ -116,14 +124,11 @@ class MechDropship_Handler : StaticEventHandler
 		let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 		if(!mechData) return;
 			
-		for(int i = 0; i < 8; i++)
+		for(int i = 0; i < 10; i++)
 		{
 			// Find mech associated with this mechbay.
 			let mech = mechData.getMechbayMech(i+1);
-			if(!mech) continue;
-		
-			double w = 320;
-			double h = 200;
+			
 			double x = 240 * i;
 			
 			if(!mech)
@@ -270,7 +275,7 @@ class MechBay : EffectsActor
 		if(!mechData) return;
 		
 		// Load mech
-		mech = mechData.LoadMechData(mechbayID, pos);
+		mech = mechData.LoadMechData(mechbayID, pos, angle);
 	}
 
 	States
