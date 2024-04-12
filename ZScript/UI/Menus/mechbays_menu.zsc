@@ -2,18 +2,12 @@
 class MechbayBackground : MenuElement
 {
 	double alpha;
-	MechbayMenu base;
-	Array<MechSaveData> mechs;
-	
 	override void Init()
 	{
 		super.Init();
-		
-		base = MechBayMenu(parentMenu);
-		mechs.Copy(base.playerMechs.mechsData);
 		alpha = 1.0;
 	}
-	
+		
 	override void Draw(double dT)
 	{
 		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
@@ -21,9 +15,355 @@ class MechbayBackground : MenuElement
 		vector2 bgScale = ScaleGraphicToCollider(bgGraphic);
 		
 		MWDrawer.DrawImage(bgGraphic, pos, drawFlags, alpha, bgScale, texoffs:(0,0));
+	}
+}
+
+class MechbayInventory : MenuElement
+{
+	MechBayMenu base;
+	Array<MechSaveData> mechs;
+	MechbayScrollbar scrollBar;
+	
+	override void Init()
+	{
+		super.Init();
+		base = MechBayMenu(parentMenu);
 		
+		scrollBar = MechbayScrollbar(AddChild(base, 
+			"MechbayScrollbar", 
+			"InvScroll", 
+			(pos.x + size.x + 9, pos.y + 10),
+			(30,0) )
+		);
+		scrollBar.heightAdjust = 20;
+		updateMechs();
+	}
+	
+	void updateMechs()
+	{
+		mechs.Clear();
+		mechs.Copy(base.playerMechs.mechsData);
+		ClearChildren(base, "MechCard");
+		
+		// Repopulate children
+		vector2 cardsPos = pos + (94,10);
+		vector2 cardsSize = (196,270);
+		double ySpacing = 30;
+		foreach(mech : mechs)
+		{
+			// Do not grab mechs with active mechbayIDs. 
+			if(mech.mechbayID > 0 && mech.mechbayID <= 10) continue;
+			
+			let card = MechCard(AddChild(base, "MechCard", "InvMechCard", cardsPos, cardsSize));
+			card.mechData = mech;
+			
+			cardsPos.y += cardsSize.y + ySpacing;
+		}
+	}
+		
+	override void Update(double dT)
+	{
+		// Update Item scroll position.
+		double listHeight = 0;
+		int itemY = 0;
+		int index = 0;
+		foreach(child : children)
+		{
+			let card = MechCard(child);
+			if(!card) continue;
+			
+			// Update scroll
+			card.posOffs.y = -scrollBar.curScroll;
+			itemY += card.size.y + 30;
+		}
+		listHeight = -(itemY - size.y);
+		if(listHeight > 0) listHeight = 0;
+		
+		scrollBar.UpdateListHeight(abs(listHeight));
+	}
+}
+
+class MechbayScrollbar : MenuScrollBar
+{
+	override void DrawScrollbar(vector2 barPos, vector2 barSize, double barHeight, double containerHeight)
+	{
+		vector2 shadowPos = (2,2);
+	
+		// Foreground
+		MWDrawer.Fill(0xAFAFAF, barPos.x, barPos.y, barSize.x, barSize.y); 
+		MWDrawer.Fill(0xFFFFFF, barPos.x + shadowPos.x, barPos.y + shadowPos.y, barSize.x - (shadowPos.x*2), barSize.y - (shadowPos.y*2)); 
+	}
+}
+
+class MechbaysContainer : MenuElement
+{
+	MechbayMenu base;
+	Array<MechCard> mechbayCards;
+	
+	override void Init()
+	{
+		super.Init();
+		
+		base = MechBayMenu(parentMenu);
+		populateMechbayCards();
+	}
+	
+	void populateMechbayCards()
+	{
+		// Mechbay Cards
+		vector2 cardOffs = (0,0);
+		for(int i = 0; i < 10; i++)
+		{
+			let card = MechCard(AddChild(base, "MechCard", "MechCardBox", pos + cardOffs, (196,270)));
+			card.bayCard = true;
+			card.bayCardID = i+1;
+			mechbayCards.Push(card);
+			
+			cardOffs.x += 196 + 30;
+			if(i == 4)
+			{
+				cardOffs.x = 0;
+				cardOffs.y += 270 + 30;
+			}
+		}
+	}
+	
+	override void Draw(double dT)
+	{
 		// Debug
 		DrawCollider();
+	}
+	
+	override void Update(double dT)
+	{	
+		for(int i = 0; i < 10; i++)
+		{
+			let bayMech = base.playerMechs.getSavedMech(i+1);
+			mechbayCards[i].mechData = bayMech;
+		}
+	}
+}
+
+class MechCard : MenuElement
+{
+	bool bayCard; // If true, this behaves as a mechbay instead of an inventory mech.
+	int bayCardID;
+	
+	MechbayMenu base;
+	MechSaveData mechData;
+	Mechbay bay;
+	double alpha;
+	bool dragging;
+	vector2 posOffs;
+	
+	override void Init()
+	{
+		alpha = 1.0;
+		base = MechbayMenu(parentMenu);
+	}
+	
+	override void Update(double dT)
+	{
+		bay = NULL;
+		int desiredBay = bayCardID;
+		if(mechData && !bayCard) desiredBay = mechData.mechbayID;
+		
+		let bayIt = ThinkerIterator.Create("MechBay");
+		MechBay curBay;
+		while(curBay = MechBay(bayIt.Next()))
+		{
+			if(curBay.mechbayID == desiredBay)
+			{
+				bay = curBay;
+				break;
+			}
+		}
+		
+		// Update position
+		if(!dragging) pos = initPos + posOffs;
+	}
+	
+	override bool CheckDraggable()
+	{
+		if(bayCard && !mechData) return false;
+	
+		vector2 posCheck = pos + (0, (size.y * 0.5) - 10);
+		vector2 sizeCheck = (size.x, 10);
+		bool validPos = AABBCollision(parentElement.pos, parentElement.size, posCheck, sizeCheck);
+		
+		return validPos || bayCard;
+	}
+	
+	override void UpdateDragPos(MenuCursor cursor)
+	{
+		vector2 centerPos = (
+			( (size.x * 0.5) - (cursor.size.x * 0.5) ),
+			( (size.y * 0.5) + (cursor.size.y * 0.5) )
+		);
+	
+		pos = cursor.pos - centerPos;
+	}
+	
+	override void OnDrag(MenuCursor cursor)
+	{
+		dragging = true;
+	}
+	
+	void ExecuteEvent(string cmd, bool waitAfter = true)
+	{
+		EventHandler.SendNetworkEvent(cmd);
+		
+		ClearCard();
+		if(waitAfter)
+		{
+			// Wait a little before doing anything.
+			base.waitTimer = 20; 
+		}
+	}
+	
+	void ClearCard()
+	{
+		mechData = NULL;
+		bay = NULL;
+	}
+	
+	override void OnDrop(MenuCursor cursor)
+	{
+		let CardCollision = MechCard(GetCollidingWithType("MechCard", skipElement:self));
+		let InventoryCollision = GetCollidingWithType("MechbayInventory");
+		
+		// If card was dropped onto inventory space
+		if(InventoryCollision && bayCard)
+		{
+			// Mech should be moved from active mechbays to inactive.
+			string cmd = String.Format("mechbays:clearbay:%d", bayCardID);
+			ExecuteEvent(cmd, waitAfter:false);
+		}
+		// If card was dropped onto a mechbay
+		else if(mechData && CardCollision && CardCollision.bayCard)
+		{
+			string cmd;
+			if(bayCard)
+			{
+				// Move mech into desired mechbay, swap if needed.
+				cmd = String.Format("mechbays:swap:%d:%d", bayCardID, CardCollision.bayCardID);
+				ExecuteEvent(cmd);
+			}
+			else
+			{
+				// Mechs with no bay sometimes have a mechbayID of 0, this means
+				// they need to be transferred via index instead, as multiple mechs
+				// may have the same mechbayID, indices are ALWAYS unique.
+				int saveID = base.playerMechs.getSavedMechIndex(mechData);
+				cmd = String.Format("mechbays:equipbay:%d:%d", CardCollision.bayCardID, saveID);
+				ExecuteEvent(cmd, waitAfter: false);
+			}
+			
+			CardCollision.ClearCard();
+		} 
+		
+		dragging = false;
+		pos = initPos;
+	}
+	
+	override void Draw(double dT)
+	{
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+		string bgGraphic = "Graphics/Mechbays/MechBox.png";
+		vector2 bgScale = ScaleGraphicToCollider(bgGraphic);
+		MWDrawer.SetClipRect(parentElement.pos.x, parentElement.pos.y, parentElement.size.x, parentElement.size.y);
+		
+		// Shadow background
+		MWDrawer.DrawImage(
+			bgGraphic, 
+			initPos + posOffs, 
+			drawFlags, 
+			1.0, 
+			bgScale, 
+			tint:0xE6000000,
+			texoffs:(0,0)
+		);
+		
+		if(dragging) MWDrawer.ClearClipRect();
+		MWDrawer.DrawImage(bgGraphic, pos, drawFlags, alpha, bgScale, texoffs:(0,0));
+		
+		double fontScale = 0.7;
+		Font mechInfoFont = "hm_type";
+		int mechInfoColor = Font.CR_Gold;
+		vector2 frameSize = (163,175) * 1.1; 
+		vector2 mechIconPos = pos + (8,70);
+		vector2 namePos = pos + (size.x * 0.5,10);
+		
+		// Draw mechbay as empty if no mech is present.
+		if(!mechData && bayCard)
+		{
+			string bayString = "Empty Mechbay";
+			if(!bay) bayString = "Processing...";
+		
+			MWDrawer.DrawString(
+				mechInfoFont, bayString, 
+				namePos, MWDrawer.SS_TEXT_CENTER, translation:Font.CR_GRAY,
+				alpha, scale:(fontScale, fontScale)
+			);
+		}
+					
+		// Draw mech icon
+		if(mechData)
+		{
+			let mechdefs = GetDefaultByType(mechData.mechType);
+			string mechicon = mechdefs.MechItemGraphic;
+			if(mechicon)
+			{
+				let imgSize = MWDrawer.GetImageSize(mechicon);
+				vector2 iconScale = (
+					(frameSize.x * 0.8) / imgSize.x,
+					(frameSize.y * 0.8) / imgSize.y
+				);	
+				
+				double aspectdef = imgSize.x / imgSize.y;
+				double aspectmod = (frameSize.x / frameSize.y) / aspectdef;
+				iconScale.x /= aspectmod;
+				
+				MWDrawer.DrawImage(
+					mechicon, 
+					mechIconPos + (frameSize.x * 0.5, frameSize.y * 0.5), 
+					alpha:alpha, scale:iconScale, 
+					texoffs:(1.0,1.0)
+				); 
+			}
+			
+			// Draw mech graphic				
+			string mechVariant = mechdefs.mechVariantName;
+			string mechName = String.Format("%s - %s", mechdefs.mechChassisName, mechVariant);
+			
+			// Autofit 
+			double fitX = size.x - 32;
+			double itemNameWidth = mechInfoFont.StringWidth(mechName) * fontScale * 2.0;
+			double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
+			
+			MWDrawer.DrawString(
+				mechInfoFont, mechName, 
+				namePos, MWDrawer.SS_TEXT_CENTER, translation:mechInfoColor,
+				alpha, scale:(fontScale * fitScale, fontScale)
+			);
+		}
+		
+		// Draw mechbay camera
+		if(bay && bay.camera)
+		{
+			vector2 camPos = mechIconPos + (frameSize.x * 0.5, frameSize.y * 0.5);
+			camPos += (0, -5);
+			
+			string camTex = String.Format("MechbayCameraWindow%d",bay.mechbayID-1);
+			TexMan.SetCameraToTexture(bay.camera, camTex, 90);
+			MWDrawer.DrawImage(
+				camTex, camPos, 
+				alpha:alpha, scale:(1.0,1.0), 
+				texoffs:(1.0,1.0)
+			); 
+		}
+		
+		MWDrawer.ClearClipRect();
 	}
 }
 
@@ -34,7 +374,9 @@ class MechbayMenu : MechMenu
 	I_SaveMechData playerMechs;
 
 	MechbayBackground MechbayBG;
+	MechbayInventory MechsInv;
 	MenuCursor cursor;
+	double waitTimer; // Pauses menu for specified seconds duration.
 	
 	override void InitElements() 
 	{
@@ -53,6 +395,11 @@ class MechbayMenu : MechMenu
 		vector2 bgSize = (1600,900) * 1.1;
 		MechbayBG = MechbayBackground(AddElement("MechbayBackground", "Background", centerPos - (bgSize * 0.5), bgSize));
 		
+		// Mechbay Cards
+		AddElement("MechbaysContainer", "MechbayCards", (143,204), (1100,570));
+		
+		MechsInv = MechbayInventory(AddElement("MechbayInventory", "MechsInventory", (bgSize.x - 395, 217), (400,787)));
+		
 		// Cursor is added last, to keep always on-top.
 		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
 	}
@@ -60,22 +407,76 @@ class MechbayMenu : MechMenu
 	override void Drawer()
 	{
 		super.Drawer();
+		
+		if(waitTimer > 0) waitTimer -= deltaTime;
+		pauseUpdates = waitTimer > 0;
 	}
 	
 	play static void processMechbayMenuEvents(ConsoleEvent e)
 	{
 		// Menu events
 		let plr = players[e.Player].mo;
+		let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+		if(!playerMechs) return;
 		
 		string menuCmd = e.Name;
 		Array<String> menuArgs;
 		menuCmd.Split(menuArgs, ":");
+		
+		if(menuArgs[0] ~== "mechbays")
+		{
+			if(menuArgs[1] ~== "swap")
+			{
+				// Swap mechbays
+				int src = menuArgs[2].ToInt();
+				int dest = menuArgs[3].ToInt();
+				
+				playerMechs.SwapMechbays(src, dest);
+				playerMechs.ReloadMechbay(src);
+				playerMechs.ReloadMechbay(dest);
+			}
+			
+			if(menuArgs[1] ~== "clearbay")
+			{
+				int src = menuArgs[2].ToInt();
+				let mechData = playerMechs.getSavedMech(src);
+				if(mechData) 
+				{
+					mechData.mechbayID = 0;
+					playerMechs.ReloadMechbay(src);
+				}
+			}
+			
+			if(menuArgs[1] ~== "equipbay")
+			{
+				int bay = menuArgs[2].ToInt();
+				int savedMechID = menuArgs[3].ToInt();
+				
+				let bayedMech = playerMechs.getSavedMech(bay);
+				let savedMech = playerMechs.mechsData[savedMechID];
+				
+				if(savedMech) 
+				{
+					if(bayedMech) bayedMech.mechbayID = 0;
+					savedMech.mechbayID = bay;
+					playerMechs.ReloadMechbay(bay);
+				}
+			}
+			
+			EventHandler.SendInterfaceEvent(e.Player, "mechbays.updateinv");
+		}
 	}
 	
 	override void processPlayEvent(int playerNumber, string event) 
 	{
 		Array<String> cmds;
 		event.Split(cmds, ".");
+		
+		if(cmds[0] ~== "mechbays")
+		{
+			if(cmds[1] == "updateinv")
+				MechsInv.updateMechs();
+		}
 	}
 	
 	override void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)

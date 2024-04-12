@@ -166,7 +166,7 @@ class MenuElement : Object abstract ui
 		return collides;
 	}
 	
-	virtual MenuElement getCollidingWithType(class<MenuElement> type, MechMenu fromMenu = NULL)
+	virtual MenuElement getCollidingWithType(class<MenuElement> type, MechMenu fromMenu = NULL, MenuElement skipElement = NULL)
 	{
 		if(!fromMenu) fromMenu = parentMenu;
 		if(!fromMenu) return NULL;
@@ -174,6 +174,7 @@ class MenuElement : Object abstract ui
 		for(int i = 0; i < fromMenu.elements.Size(); i++)
 		{
 			let element = fromMenu.elements[i];
+			if(element == skipElement) continue;
 			if( !(element is type) ) continue;
 			
 			if(CheckCollision(element, false))
@@ -430,6 +431,8 @@ class MenuScrollBar : MenuElement
 	// Usually written to.
 	double itemListHeight;
 	double scrollTo;
+	double scrollVel;
+	double heightAdjust;
 
 	// Usually read from.
 	double curScroll;
@@ -446,8 +449,9 @@ class MenuScrollBar : MenuElement
 
 	override void Draw(double dT)
 	{
-		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight + size.y)) * size.y, 16, size.y - 8);
-		double scrollContainerHeight = size.y - scrollBarHeight - 8;
+		double heightOffs = (8 + heightAdjust);
+		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight + size.y)) * size.y, 16, size.y - heightOffs);
+		double scrollContainerHeight = size.y - scrollBarHeight - heightOffs;
 		scrollBarPos = (pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4);
 		scrollBarSize = (size.x * 0.8, scrollBarHeight);
 		
@@ -504,6 +508,16 @@ class MenuScrollBar : MenuElement
 		
 		if(abs(curScroll - scrollTo) > 1)
 			curScroll = DrivablesMath.lerp(curScroll, scrollTo, 0.5 * dT);
+		
+		// Process mouse scroll-wheel.
+		let cursor = MenuCursor(GetCollidingWithType("MenuCursor"));
+		if(!cursor) cursor = MenuCursor(parentElement.GetCollidingWithType("MenuCursor"));
+		
+		if(cursor && cursor.scrollDir != 0)
+			scrollVel += (cursor.scrollDir * dT);
+							
+		scrollVel *= 0.96;
+		scrollTo += scrollVel;
 	}
 }
 

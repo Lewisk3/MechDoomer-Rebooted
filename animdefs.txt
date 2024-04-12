@@ -6,3 +6,15 @@ cameratexture MechbayRightWindow 1920 1080 fit 162 96
 
 canvastexture MechbayInfoCanvas 2500 200 fit 2500 64 
 // canvastexture AmmoStationCanvas 160	80
+
+// Why GZDoom, why must camera textures work in this way?
+cameratexture MechbayCameraWindow0 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow1 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow2 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow3 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow4 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow5 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow6 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow7 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow8 1920 1080 fit 184 196 
+cameratexture MechbayCameraWindow9 1920 1080 fit 184 196 

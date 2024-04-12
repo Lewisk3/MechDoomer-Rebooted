@@ -16,7 +16,6 @@ class ShopItemsContainer : MenuElement
 	double alpha;
 	string itemSearch;
 	
-	double scroll, scrollVel;
 	double listHeight; // Maximum height of items stored in list.
 	Array<MechItem> items;
 	Array<MechSaveData> mechs;
@@ -334,16 +333,9 @@ class ShopItemsContainer : MenuElement
 			// Update scroll
 			shopItm.posOffs.y = -scrollBar.curScroll;
 		}
-	
-		scroll = -scrollBar.curScroll;
+		
 		scrollBar.UpdateListHeight(abs(listHeight));
-		
-		if(CheckCollision(base.cursor, false) && base.cursor.scrollDir != 0)
-				scrollVel += (1 * base.cursor.scrollDir * dT);
 				
-		scrollVel *= 0.96;
-		scrollBar.scrollTo += scrollVel;
-		
 		/* Debug
 		if(base.cursor.rightPressed && CheckCollision(base.cursor, false)) 
 		{
@@ -380,8 +372,7 @@ class CartContainer : MenuElement
 	ShopMenu base;
 	double alpha;
 	ShopScrollBar scrollBar;
-	double scrollVel;
-
+	
 	override void Init()
 	{	
 		super.Init();
@@ -603,12 +594,6 @@ class CartContainer : MenuElement
 		listHeight = -(itemY - size.y);
 		if(listHeight > 0) listHeight = 0;
 		scrollBar.UpdateListHeight(abs(listHeight));
-		
-		if(CheckCollision(base.cursor, false) && base.cursor.scrollDir != 0)
-			scrollVel += (1 * base.cursor.scrollDir * dT);
-				
-		scrollVel *= 0.96;
-		scrollBar.scrollTo += scrollVel;
 		
 		if(base.shopCart.Size() <= 0)
 			base.shopMode = ShopMenu.SHOP_NEUTRAL;
@@ -1294,7 +1279,7 @@ class ShopMenu : MechMenu
 					playerMechs.RemoveMech(soldMechs[i].mechbayID, reloadMechbays:false);
 					
 				if(sellingMechs)
-					playerMechs.ReloadMechbays();
+					playerMechs.ReloadAllMechbays();
 				
 			}
 			else if (mode == "buy")
@@ -1320,7 +1305,7 @@ class ShopMenu : MechMenu
 				}
 				
 				if(buyingMechs)
-					playerMechs.ReloadMechbays();
+					playerMechs.ReloadAllMechbays();
 			}
 			
 			// Finally, complete transaction

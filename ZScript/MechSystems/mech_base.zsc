@@ -1578,7 +1578,7 @@ class I_SaveMechData : Inventory
 		}
 	}
 	
-	virtual void ReloadMechbays()
+	void ReloadAllMechbays()
 	{
 		// Save and destroy all active mechs
 		RecycleActiveMechs();
@@ -1588,6 +1588,26 @@ class I_SaveMechData : Inventory
 		Mechbay bay;
 		while(bay = MechBay(bayIt.Next()))
 			bay.Activate(Owner);
+	}
+	
+	void ReloadMechbay(int mechbayID)
+	{	
+		// Re-activate each bay.
+		let bayIt = ThinkerIterator.Create("MechBay");
+		Mechbay bay;
+		while(bay = MechBay(bayIt.Next()))
+		{
+			if(bay.mechbayID == mechbayID)
+			{
+				if(bay.mech)
+				{
+					saveMechData(bay.mech);
+					bay.mech.Destroy();
+				}
+				bay.Activate(Owner);
+				break;
+			}
+		}
 	}
 	
 	void RemoveMech(int mechbayID, bool reloadMechbays = true)
@@ -1619,16 +1639,26 @@ class I_SaveMechData : Inventory
 		}
 		
 		// Reload mechbays
-		if(reloadMechbays) ReloadMechbays();
+		if(reloadMechbays) ReloadAllMechbays();
 	}
 	
 	void SwapMechbays(int bayOne, int bayTwo)
 	{
-		let mechOne = mechsData[bayOne-1];
-		let mechTwo = mechsData[bayTwo-1];
+		let mechOne = getSavedMech(bayOne);
+		let mechTwo = getSavedMech(bayTwo);
 		
-		mechOne.mechbayID = bayTwo;
-		mechTwo.mechbayID = bayOne;
+		// Nothing to swap, or malformed arguments.
+		if(!mechOne) return;
+		
+		if(mechOne && mechTwo)
+		{
+			mechOne.mechbayID = bayTwo;
+			mechTwo.mechbayID = bayOne;
+		}
+		else if(mechOne)
+		{
+			mechOne.mechbayID = bayTwo;
+		}
 	}
 	
 	virtual MechSaveData getSerializedMechData(DrivableMech mech)
@@ -1713,6 +1743,11 @@ class I_SaveMechData : Inventory
 		return NULL;
 	}
 	
+	clearscope int getSavedMechIndex(MechSaveData mechData)
+	{
+		return mechsData.Find(mechData);
+	}
+	
 	DrivableMech loadMechData(int mechbayID, vector3 atPos, double atAngle = 0)
 	{
 		int mechSaveID = -1;
@@ -1772,13 +1807,17 @@ class I_SaveMechData : Inventory
 		// DEBUG
 		GiveMech("MechCenturion");
 		
-		/*
-			GiveMech("MechJenner");
-			GiveMech("MechHellbringer");
-			GiveMech("MechMarauderIIC");
-			GiveMech("MechTimberwolf");
-			GiveMech("MechCenturion");
-		*/
+		
+		GiveMech("MechJenner");
+		GiveMech("MechHellbringer");
+		GiveMech("MechMarauderIIC");
+		GiveMech("MechTimberwolf");
+		GiveMech("MechCenturion");
+		GiveMech("MechJenner");
+		GiveMech("MechHellbringer");
+		GiveMech("MechMarauderIIC");
+		GiveMech("MechTimberwolf");
+		GiveMech("MechCenturion");
 	}
 
 	override void DoEffect()
