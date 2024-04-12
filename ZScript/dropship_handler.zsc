@@ -262,9 +262,13 @@ class MechbayScripts abstract play
 // Mechbay actors
 class MechBay : EffectsActor
 {
+	//Arg0 "Mechbay"
+	//Arg1 "Camera"
+	
 	int mechbayID;
 	I_SaveMechData mechData;
 	DrivableMech mech;
+	Actor camera;
 
 	override void Activate(Actor activator)
 	{
@@ -272,6 +276,19 @@ class MechBay : EffectsActor
 		
 		mechbayID = args[0];
 		mechData = I_SaveMechData(activator.FindInventory("I_SaveMechData"));
+		
+		// Find Camera
+		let camIt = ThinkerIterator.Create();
+		Actor cam;
+		while(cam = Actor(camIt.Next()))
+		{
+			if(cam.TID == args[1])
+			{
+				camera = cam;
+				break;
+			}
+		}
+
 		if(!mechData) return;
 		
 		// Load mech

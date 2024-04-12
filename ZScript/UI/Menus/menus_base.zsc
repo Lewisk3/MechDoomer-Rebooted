@@ -329,13 +329,191 @@ class MenuButton : MenuElement
 	virtual void OnPressed() {}
 }
 
+class MenuSearchBar : MenuElement
+{	
+	double alpha;
+	bool active;
+	double cursorAlphaTimer;
+	string buffer;
+	MDRTextInput searchInput;
+	string defaultText;
+	Font searchFont;
+	Font bufferFont;
+	
+	override void Init()
+	{
+		defaultText = "Search Here";
+		searchFont = "hm_type";
+		bufferFont = "bt_classic";
+		
+		active = false;
+		alpha = 1.0;
+	}
+	
+	override void Draw(double dT)
+	{
+		string text = searchInput ? searchInput.getText() : buffer;
+		if(!searchInput && buffer == "")
+			text = defaultText;
+			
+		double valueWidth  = MWDrawer.GetTextWidth(searchFont, text);
+		double valueHeight = MWDrawer.GetTextHeight(searchFont, text, scale:(0.15,0.15));
+
+		MWDrawer.Fill(0x1A1A1A, pos.x, pos.y, size.x, size.y);		
+		
+		if(!searchInput && buffer == "")
+		{
+			cursorAlphaTimer += dT;
+			double textAlpha = 0.5 + (cos(cursorAlphaTimer * 2)*0.5);
+			valueHeight = MWDrawer.GetTextHeight(bufferFont, text);
+			MWDrawer.DrawString(bufferFont, text, pos + (5, valueHeight * 0.5), translation:Font.CR_Gray, textAlpha, (1.0,1.0));
+		}
+		else
+			MWDrawer.DrawString(searchFont, text, pos + (5, valueHeight * 0.5), translation:Font.CR_White, alpha, (1.0,1.0));
+		
+		// Cursor
+		if(searchInput)
+		{
+			cursorAlphaTimer += dT;
+			double cursorAlpha = (cos(cursorAlphaTimer * 10)*0.5);
+		
+			double CursorX = searchInput.getCursorPos(searchFont);// - (fnt.StringWidth(text) * 2.0);
+			MWDrawer.DrawString(searchFont, "|", pos + (cursorX + 2, valueHeight * 0.5), translation:Font.CR_GRAY, min(alpha, cursorAlpha + 0.5), (1.0,1.0));
+		}
+	}
+	
+	void OpenTextInput()
+	{
+		searchInput = MDRTextInput.Open(parentMenu, "", 50, false, buffer);
+		searchInput.ActivateMenu();
+		active = true;
+	}
+	
+	void CloseTextInput()
+	{	
+		if(!searchInput) return;
+		searchInput.Close();
+		active = false;
+	}
+	
+	override void Update(double dT)
+	{
+		let cursor = MenuCursor(getCollidingWithType("MenuCursor"));
+		if(cursor && !active && cursor.leftPressed)
+			OpenTextInput();
+	}
+	
+	virtual void OnSubmit()
+	{
+		// What happens when the input text is submitted.
+	}
+	
+	override void processMenuEvent(int mkey, bool fromcontroller)
+	{
+		switch(mkey)
+		{
+			case Menu.MKEY_Abort:
+				CloseTextInput();
+			break;
+			
+			case Menu.MKEY_Input:
+				if(searchInput) buffer = searchInput.GetText();
+				OnSubmit();
+				CloseTextInput();
+			break;
+		}
+	}
+}
+
+class MenuScrollBar : MenuElement
+{
+	// Usually written to.
+	double itemListHeight;
+	double scrollTo;
+
+	// Usually read from.
+	double curScroll;
+	double scrollPerc;
+	
+	vector2 scrollBarPos;
+	vector2 scrollBarSize;
+	double mouseDragDelta;
+	
+	override void Init()
+	{
+		size.y = parentElement.size.y;
+	}
+
+	override void Draw(double dT)
+	{
+		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight + size.y)) * size.y, 16, size.y - 8);
+		double scrollContainerHeight = size.y - scrollBarHeight - 8;
+		scrollBarPos = (pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4);
+		scrollBarSize = (size.x * 0.8, scrollBarHeight);
+		
+		DrawScrollbar(scrollBarPos, scrollBarSize, scrollBarHeight, scrollContainerHeight);
+	}
+	
+	virtual void DrawScrollbar(vector2 barPos, vector2 barSize, double barHeight, double containerHeight)
+	{
+		// Scroll bar visuals are drawn here
+	}
+	
+	override bool CheckDraggable()
+	{
+		return itemListHeight > 0;
+	}
+	
+	override void UpdateDragPos(MenuCursor cursor)
+	{
+		if( cursor.pos.y < pos.y || cursor.pos.y > (pos.y + size.y) )
+			return;
+		
+		bool draggingBar = AABBCollision(cursor.pos, cursor.size, scrollBarPos, scrollBarSize);
+		
+		if(draggingBar || abs(mouseDragDelta) > 0)
+		{
+			double scalar = itemListHeight / (size.y - scrollBarSize.y);
+			double diff = mouseDragDelta ? cursor.pos.y - mouseDragDelta : 0;
+			mouseDragDelta = cursor.pos.y;
+			scrollTo += diff * scalar;
+		}
+		else
+		{	
+			double deltaY = cursor.pos.y - pos.y;
+			double perc = clamp(deltaY / size.y, 0, 1.);
+			scrollTo = perc * itemListHeight;
+		}
+	}
+	
+	override void OnDrop(MenuCursor cursor)
+	{
+		mouseDragDelta = 0;
+	}
+	
+	virtual void UpdateListHeight(double listHeight)
+	{
+		itemListHeight = listHeight;
+	}
+	
+	override void Update(double dT)
+	{
+		curScroll = clamp(curScroll, 0, itemListHeight);		
+		scrollTo = clamp(scrollTo, 0, itemListHeight);		
+		scrollPerc = curScroll / max(1,itemListHeight);
+		
+		if(abs(curScroll - scrollTo) > 1)
+			curScroll = DrivablesMath.lerp(curScroll, scrollTo, 0.5 * dT);
+	}
+}
+
 class MechMenu : GenericMenu 
 {
 	double prevMS;
 	double deltaTime;
 	Array<MenuElement> elements;
 	bool pauseUpdates;
-
+	
 	override void Init(Menu parent)
 	{
 		Super.Init(parent);

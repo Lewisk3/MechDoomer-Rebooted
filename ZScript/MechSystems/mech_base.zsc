@@ -1559,7 +1559,7 @@ class I_SaveMechData : Inventory
 		return data.MakeCopy();
 	}
 	
-	virtual void RecycleActiveMechs()
+	void RecycleActiveMechs()
 	{
 		let drvObj = I_DrivingObject.Get(Owner);
 		if(drvObj && drvObj.source is "DrivableMech") 
@@ -1590,7 +1590,7 @@ class I_SaveMechData : Inventory
 			bay.Activate(Owner);
 	}
 	
-	virtual void RemoveMech(int mechbayID, bool reloadMechbays = true)
+	void RemoveMech(int mechbayID, bool reloadMechbays = true)
 	{
 		// Get mech saveID
 		for(int i = 0; i < mechsData.Size(); i++)
@@ -1622,7 +1622,7 @@ class I_SaveMechData : Inventory
 		if(reloadMechbays) ReloadMechbays();
 	}
 	
-	virtual void SwapMechbays(int bayOne, int bayTwo)
+	void SwapMechbays(int bayOne, int bayTwo)
 	{
 		let mechOne = mechsData[bayOne-1];
 		let mechTwo = mechsData[bayTwo-1];
@@ -1713,7 +1713,7 @@ class I_SaveMechData : Inventory
 		return NULL;
 	}
 	
-	virtual DrivableMech loadMechData(int mechbayID, vector3 atPos, double atAngle = 0)
+	DrivableMech loadMechData(int mechbayID, vector3 atPos, double atAngle = 0)
 	{
 		int mechSaveID = -1;
 		MechSaveData mechData;

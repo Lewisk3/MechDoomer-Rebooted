@@ -336,7 +336,7 @@ class ShopItemsContainer : MenuElement
 		}
 	
 		scroll = -scrollBar.curScroll;
-		scrollBar.itemListHeight = abs(listHeight);
+		scrollBar.UpdateListHeight(abs(listHeight));
 		
 		if(CheckCollision(base.cursor, false) && base.cursor.scrollDir != 0)
 				scrollVel += (1 * base.cursor.scrollDir * dT);
@@ -355,95 +355,23 @@ class ShopItemsContainer : MenuElement
 	}
 }
 
-class ShopSearchBar : MenuElement
+class ShopSearchBar : MenuSearchBar
 {	
 	ShopMenu base;
-	double alpha;
-	bool active;
-	double cursorAlphaTimer;
-	string buffer;
-	string defaultBuffer;
-	MDRTextInput searchInput;
 	ShopItemsContainer parentContainer;
 	
 	override void Init()
 	{
+		super.Init();
+		
 		base = ShopMenu(parentMenu);
 		parentContainer = ShopItemsContainer(parentElement);
-		active = false;
-		
-		buffer = defaultBuffer;
-		alpha = 1.0;
 	}
 	
-	override void Draw(double dT)
+	override void OnSubmit()
 	{
-		string text = searchInput ? searchInput.getText() : buffer;
-		if(!searchInput && buffer == "")
-			text = "Search Here";
-			
-		Font searchFont = "hm_type";
-		
-		double valueWidth  = MWDrawer.GetTextWidth(searchFont, text);
-		double valueHeight = MWDrawer.GetTextHeight(searchFont, text, scale:(0.15,0.15));
-
-		MWDrawer.Fill(0x1A1A1A, pos.x, pos.y, size.x, size.y);		
-		
-		if(!searchInput && buffer == "")
-		{
-			cursorAlphaTimer += dT;
-			double textAlpha = 0.5 + (cos(cursorAlphaTimer * 2)*0.5);
-			valueHeight = MWDrawer.GetTextHeight("bt_classic", text);
-			MWDrawer.DrawString("bt_classic", text, pos + (5, valueHeight * 0.5), translation:Font.CR_Gray, textAlpha, (1.0,1.0));
-		}
-		else
-			MWDrawer.DrawString(searchFont, text, pos + (5, valueHeight * 0.5), translation:Font.CR_White, alpha, (1.0,1.0));
-		
-		// Cursor
-		if(searchInput)
-		{
-			cursorAlphaTimer += dT;
-			double cursorAlpha = (cos(cursorAlphaTimer * 10)*0.5);
-		
-			double CursorX = searchInput.getCursorPos(searchFont);// - (fnt.StringWidth(text) * 2.0);
-			MWDrawer.DrawString(searchFont, "|", pos + (cursorX + 2, valueHeight * 0.5), translation:Font.CR_GRAY, min(alpha, cursorAlpha + 0.5), (1.0,1.0));
-		}
-	}
-	
-	void OpenTextInput()
-	{
-		searchInput = MDRTextInput.Open(base, "", 50, false, buffer);
-		searchInput.ActivateMenu();
-		active = true;
-	}
-	
-	void CloseTextInput()
-	{	
-		if(!searchInput) return;
-		searchInput.Close();
-		active = false;
-	}
-	
-	override void Update(double dT)
-	{
-		if(!active && CheckCollision(base.cursor, false) && base.cursor.leftPressed)
-			OpenTextInput();
-	}
-	
-	override void processMenuEvent(int mkey, bool fromcontroller)
-	{
-		switch(mkey)
-		{
-			case Menu.MKEY_Abort:
-				CloseTextInput();
-			break;
-			
-			case Menu.MKEY_Input:
-				if(searchInput) buffer = searchInput.GetText();
-				if(parentContainer) parentContainer.DoSearchFilter(buffer);
-				CloseTextInput();
-			break;
-		}
+		if(parentContainer) 
+			parentContainer.DoSearchFilter(buffer);
 	}
 }
 
@@ -674,7 +602,7 @@ class CartContainer : MenuElement
 		}
 		listHeight = -(itemY - size.y);
 		if(listHeight > 0) listHeight = 0;
-		scrollBar.itemListHeight = abs(listHeight);
+		scrollBar.UpdateListHeight(abs(listHeight));
 		
 		if(CheckCollision(base.cursor, false) && base.cursor.scrollDir != 0)
 			scrollVel += (1 * base.cursor.scrollDir * dT);
@@ -1093,24 +1021,10 @@ class ShopItem : MenuElement
 	}
 }
 
-class ShopScrollBar : MenuElement
+class ShopScrollBar : MenuScrollBar
 {
-	double curScroll;
-	double itemListHeight;
-	double scrollPerc;
-	double scrollTo;
-	
-	override void Init()
+	override void DrawScrollbar(vector2 barPos, vector2 barSize, double barHeight, double containerHeight)
 	{
-		size.y = parentElement.size.y;
-	}
-
-	override void Draw(double dT)
-	{
-		double scrollBarHeight = clamp( (size.y / max(1,itemListHeight + size.y)) * size.y, 16, size.y - 8);
-		double scrollContainerHeight = size.y - scrollBarHeight - 8;
-		vector2 scrollBarPos = (pos.x + 4, pos.y + (scrollContainerHeight * scrollPerc) + 4);
-		vector2 scrollBarSize = (size.x * 0.8, scrollBarHeight);
 		vector2 shadowPos = (2,2);
 	
 		// Background
@@ -1118,34 +1032,8 @@ class ShopScrollBar : MenuElement
 		MWDrawer.Fill(0x0F0F0F, pos.x, pos.y, size.x, size.y);	
 		
 		// Foreground
-		MWDrawer.Fill(0xAFAFAF, scrollBarPos.x, scrollBarPos.y, scrollBarSize.x, scrollBarSize.y); 
-		MWDrawer.Fill(0xFFFFFF, scrollBarPos.x + shadowPos.x, scrollBarPos.y + shadowPos.y, scrollBarSize.x - (shadowPos.x*2), scrollBarSize.y - (shadowPos.y*2)); 
-	}
-	
-	override bool CheckDraggable()
-	{
-		return itemListHeight > 0;
-	}
-	
-	override void UpdateDragPos(MenuCursor cursor)
-	{
-		if( cursor.pos.y < pos.y || cursor.pos.y > (pos.y + size.y) )
-			return;
-	
-		double deltaY = cursor.pos.y - pos.y;
-		double perc = clamp(deltaY / size.y, 0, 1.);
-		
-		scrollTo = perc * itemListHeight;
-	}
-	
-	override void Update(double dT)
-	{
-		curScroll = clamp(curScroll, 0, itemListHeight);		
-		scrollTo = clamp(scrollTo, 0, itemListHeight);		
-		scrollPerc = curScroll / max(1,itemListHeight);
-		
-		if(abs(curScroll - scrollTo) > 1)
-			curScroll = DrivablesMath.lerp(curScroll, scrollTo, 0.5 * dT);
+		MWDrawer.Fill(0xAFAFAF, barPos.x, barPos.y, barSize.x, barSize.y); 
+		MWDrawer.Fill(0xFFFFFF, barPos.x + shadowPos.x, barPos.y + shadowPos.y, barSize.x - (shadowPos.x*2), barSize.y - (shadowPos.y*2)); 
 	}
 }
 

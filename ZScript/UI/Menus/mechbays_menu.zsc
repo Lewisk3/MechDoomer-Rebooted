@@ -1,0 +1,85 @@
+
+class MechbayBackground : MenuElement
+{
+	double alpha;
+	MechbayMenu base;
+	Array<MechSaveData> mechs;
+	
+	override void Init()
+	{
+		super.Init();
+		
+		base = MechBayMenu(parentMenu);
+		mechs.Copy(base.playerMechs.mechsData);
+		alpha = 1.0;
+	}
+	
+	override void Draw(double dT)
+	{
+		int drawFlags = MWDrawer.SS_NOASPECTCORRECTION;
+		string bgGraphic = "Graphics/Mechbays/MechbayMenu_Blank.png";
+		vector2 bgScale = ScaleGraphicToCollider(bgGraphic);
+		
+		MWDrawer.DrawImage(bgGraphic, pos, drawFlags, alpha, bgScale, texoffs:(0,0));
+		
+		// Debug
+		DrawCollider();
+	}
+}
+
+// Mechbay Menu
+class MechbayMenu : MechMenu 
+{
+	PlayerPawn mbPlayer;
+	I_SaveMechData playerMechs;
+
+	MechbayBackground MechbayBG;
+	MenuCursor cursor;
+	
+	override void InitElements() 
+	{
+		elements.Clear(); // Repopulate elements
+		
+		mbPlayer = players[consoleplayer].mo;
+		vector2 centerPos = (
+			MWDrawer.getBaseWidth(),
+			MWDrawer.getBaseHeight()
+		) * 0.5;
+		
+		// Get pointer to player mechs.
+		playerMechs = I_SaveMechData(mbPlayer.FindInventory("I_SaveMechData"));
+		
+		// Background
+		vector2 bgSize = (1600,900) * 1.1;
+		MechbayBG = MechbayBackground(AddElement("MechbayBackground", "Background", centerPos - (bgSize * 0.5), bgSize));
+		
+		// Cursor is added last, to keep always on-top.
+		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+	
+	override void Drawer()
+	{
+		super.Drawer();
+	}
+	
+	play static void processMechbayMenuEvents(ConsoleEvent e)
+	{
+		// Menu events
+		let plr = players[e.Player].mo;
+		
+		string menuCmd = e.Name;
+		Array<String> menuArgs;
+		menuCmd.Split(menuArgs, ":");
+	}
+	
+	override void processPlayEvent(int playerNumber, string event) 
+	{
+		Array<String> cmds;
+		event.Split(cmds, ".");
+	}
+	
+	override void OnElementEvent(MenuElement source, string eventType, int intArg, double doubleArg, Object objArg)
+	{
+		// MenuElements can call this function if they wish to relay behavior to their parent menu.
+	}
+}

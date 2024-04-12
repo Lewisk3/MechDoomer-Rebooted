@@ -1,5 +1,8 @@
 cameratexture HideHUD 4096 2160
 cameratexture DROPSHIPWINDOW 1920 1080 fit 256 256 
 cameratexture ZOOMWINDOW 1920 1080 fit 320 200
+cameratexture MechbayLeftWindow 1920 1080 fit 162 96 
+cameratexture MechbayRightWindow 1920 1080 fit 162 96 
+
 canvastexture MechbayInfoCanvas 2500 200 fit 2500 64 
 // canvastexture AmmoStationCanvas 160	80
