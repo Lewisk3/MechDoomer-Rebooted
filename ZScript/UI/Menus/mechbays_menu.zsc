@@ -23,6 +23,18 @@ class MechbayInventory : MenuElement
 	MechBayMenu base;
 	Array<MechSaveData> mechs;
 	MechbayScrollbar scrollBar;
+	DropDownMenu dropDownList;
+	string mechSearch;
+	int listMode;
+	
+	enum ListModes
+	{
+		LM_ALL = 0,
+		LM_LIGHT,
+		LM_MEDIUM,
+		LM_HEAVY,
+		LM_ASSAULT
+	};
 	
 	override void Init()
 	{
@@ -36,6 +48,10 @@ class MechbayInventory : MenuElement
 			(30,0) )
 		);
 		scrollBar.heightAdjust = 20;
+		
+		listMode = LM_ALL;
+		
+		AddChild(base, "MechInvSearchBar", "InvSearch", pos + (20, - 120), (size.x - 20, 40));
 		updateMechs();
 	}
 	
@@ -44,6 +60,10 @@ class MechbayInventory : MenuElement
 		mechs.Clear();
 		mechs.Copy(base.playerMechs.mechsData);
 		ClearChildren(base, "MechCard");
+		
+		Array<String> searchTerms;
+		mechSearch = mechSearch.MakeLower();
+		mechSearch.Split(searchTerms, " ");
 		
 		// Repopulate children
 		vector2 cardsPos = pos + (94,10);
@@ -54,11 +74,88 @@ class MechbayInventory : MenuElement
 			// Do not grab mechs with active mechbayIDs. 
 			if(mech.mechbayID > 0 && mech.mechbayID <= 10) continue;
 			
+			let mechdefs = getDefaultByType(mech.mechType);
+			
+			if(listMode != LM_ALL)
+			{
+				bool doFilter = true;
+				Name weightClass = DrivableMech.GetMechWeightClass(mechdefs.maxWeight);
+				switch(weightClass)
+				{
+					case 'Super-Light':	
+					case 'Light':
+						if(listMode == LM_LIGHT) 
+							doFilter = false;
+					break;
+					
+					case 'Medium':
+						if(listMode == LM_MEDIUM) 
+							doFilter = false;
+					break;
+					
+					case 'Heavy':
+						if(listMode == LM_HEAVY) 
+							doFilter = false;
+					break;
+					
+					case 'Assault':
+					case 'Super-Heavy':
+						if(listMode == LM_ASSAULT) 
+							doFilter = false;
+					break;
+				}
+				if(doFilter) continue;
+			}
+			
+			if(searchTerms.Size())
+			{
+				Name engineType; int engineRating;
+				string mechEngineName = "";
+				
+				if(mech.engineType)
+				{
+					[engineType, engineRating] = MechEngine.GetEngineName(mech.engineType);
+					mechEngineName = String.Format("%s %d", engineType, engineRating);
+				}
+				
+				string mechName = String.Format("%s %s %s", mechdefs.mechChassisName, mechdefs.mechVariantName, mechEngineName);
+				mechName = mechName.MakeLower();
+
+				bool doFilter = true;
+				foreach(term : searchTerms)
+				{
+					if(mechName.IndexOf(term) != -1)
+						doFilter = false;
+				}
+				if(doFilter) continue;
+			}
+			
 			let card = MechCard(AddChild(base, "MechCard", "InvMechCard", cardsPos, cardsSize));
 			card.mechData = mech;
 			
 			cardsPos.y += cardsSize.y + ySpacing;
 		}
+		
+		// We have to re-introduce the dropdown menu, otherwise 
+		// drawing order isn't sorted properly, what a pain.
+		ClearChildren(base, "DropDownMenu");
+
+		dropDownList = DropDownMenu(AddChild(base, "MechInvDropDown", "DropDownFilters", pos + (20, - 60), (size.x - 20, 40)));
+		Array<string> listItems;
+		listItems.Push("All Mechs");
+		listItems.Push("Light Mechs");
+		listItems.Push("Medium Mechs");
+		listItems.Push("Heavy Mechs");
+		listItems.Push("Assault Mechs");
+		
+		dropDownList.Setup("hm_type", listItems, 150, "MechbayScrollbar");
+		dropDownList.SetSelection(listMode);
+	}
+	
+	void DoSearchFilter(string buffer)
+	{
+		mechSearch = buffer;
+		updateMechs();
 	}
 		
 	override void Update(double dT)
@@ -79,7 +176,45 @@ class MechbayInventory : MenuElement
 		listHeight = -(itemY - size.y);
 		if(listHeight > 0) listHeight = 0;
 		
+		scrollBar.freezeScroll = (dropDownList && dropDownList.active);
 		scrollBar.UpdateListHeight(abs(listHeight));
+	}
+}
+
+class MechInvDropDown : DropDownMenu
+{
+	MechbayInventory inv;
+	
+	override void Init()
+	{
+		super.Init();
+		inv = MechbayInventory(parentElement);
+	}
+	
+	override void OnSelection()
+	{
+		inv.listMode = curSelection;
+		inv.updateMechs();
+	}
+}
+
+class MechInvSearchBar : MenuSearchBar
+{	
+	MechbayMenu base;
+	MechbayInventory parentContainer;
+	
+	override void Init()
+	{
+		super.Init();
+		
+		base = MechbayMenu(parentMenu);
+		parentContainer = MechbayInventory(parentElement);
+	}
+	
+	override void OnSubmit()
+	{
+		if(parentContainer) 
+			parentContainer.DoSearchFilter(buffer);
 	}
 }
 
@@ -126,12 +261,6 @@ class MechbaysContainer : MenuElement
 				cardOffs.y += 270 + 30;
 			}
 		}
-	}
-	
-	override void Draw(double dT)
-	{
-		// Debug
-		DrawCollider();
 	}
 	
 	override void Update(double dT)
@@ -185,11 +314,21 @@ class MechCard : MenuElement
 	
 	override bool CheckDraggable()
 	{
+		// Skip if dropdown is active.
+		let invParent = MechbayInventory(parentElement);
+		if(invParent && invParent.dropDownList.active)
+			return false;
+	
 		if(bayCard && !mechData) return false;
 	
-		vector2 posCheck = pos + (0, (size.y * 0.5) - 10);
+		vector2 posCheckTop = pos + (0, 20);
+		vector2 posCheckBottom = pos + (0, size.y * 0.5);
 		vector2 sizeCheck = (size.x, 10);
-		bool validPos = AABBCollision(parentElement.pos, parentElement.size, posCheck, sizeCheck);
+		bool validPos = 
+		(
+			AABBCollision(parentElement.pos, parentElement.size, posCheckTop, sizeCheck) && 
+			AABBCollision(parentElement.pos, parentElement.size, posCheckBottom, sizeCheck)
+		);
 		
 		return validPos || bayCard;
 	}
@@ -312,18 +451,10 @@ class MechCard : MenuElement
 		{
 			let mechdefs = GetDefaultByType(mechData.mechType);
 			string mechicon = mechdefs.MechItemGraphic;
+			
 			if(mechicon)
 			{
-				let imgSize = MWDrawer.GetImageSize(mechicon);
-				vector2 iconScale = (
-					(frameSize.x * 0.8) / imgSize.x,
-					(frameSize.y * 0.8) / imgSize.y
-				);	
-				
-				double aspectdef = imgSize.x / imgSize.y;
-				double aspectmod = (frameSize.x / frameSize.y) / aspectdef;
-				iconScale.x /= aspectmod;
-				
+				vector2 iconScale = MWDrawer.ScaleImageToFrame(mechicon, frameSize.x * 0.8, frameSize.y * 0.8);
 				MWDrawer.DrawImage(
 					mechicon, 
 					mechIconPos + (frameSize.x * 0.5, frameSize.y * 0.5), 
@@ -345,6 +476,22 @@ class MechCard : MenuElement
 				mechInfoFont, mechName, 
 				namePos, MWDrawer.SS_TEXT_CENTER, translation:mechInfoColor,
 				alpha, scale:(fontScale * fitScale, fontScale)
+			);
+			
+			// Draw equipped engine type
+			Name engineType; int engineRating;
+			string mechEngineName = "No Engine";
+			
+			if(mechData.engineType)
+			{
+				[engineType, engineRating] = MechEngine.GetEngineName(mechData.engineType);
+				mechEngineName = String.Format("%s %d", engineType, engineRating);
+			}
+			
+			MWDrawer.DrawString(
+				mechInfoFont, mechEngineName, 
+				namePos + (0,21), MWDrawer.SS_TEXT_CENTER, translation:Font.CR_Brick,
+				alpha, scale:(fontScale, fontScale)
 			);
 		}
 		

@@ -167,13 +167,13 @@ class DrivableMech : DrivableObject
 		if(MechSerializer) MechSerializer.SaveMechData(self);
 	}
 	
-	clearscope virtual string GetWeightClass()
+	clearscope static string GetMechWeightClass(double tonnage)
 	{
-		if(maxWeight > 100) return "Super-Heavy";
-		if(maxWeight >= 80) return "Assault";
-		if(maxWeight >= 60) return "Heavy";
-		if(maxWeight >= 40) return "Medium";
-		if(maxWeight >= 20) return "Light";
+		if(tonnage > 100) return "Super-Heavy";
+		if(tonnage >= 80) return "Assault";
+		if(tonnage >= 60) return "Heavy";
+		if(tonnage >= 40) return "Medium";
+		if(tonnage >= 20) return "Light";
 		return "Super-Light";
 	}
 	
@@ -185,13 +185,16 @@ class DrivableMech : DrivableObject
 	clearscope virtual void GetShopProperties(out Array<String> stats, out Array<string> values)
 	{
 		stats.Push("Class");
-		values.Push(GetWeightClass());
+		values.Push(GetMechWeightClass(maxWeight));
 		
 		stats.Push("Tonnage");
 		values.Push(String.Format("%d", maxWeight));
 		
 		stats.Push("Top Speed");
-		values.Push(String.Format("%.2f", engine.getKPH(self)));
+		if(engine)
+			values.Push(String.Format("%.2f", engine.getKPH(self)));
+		else
+			values.Push("N/A");
 		
 		stats.Push("Manufacturer");
 		values.Push(manufacturer);

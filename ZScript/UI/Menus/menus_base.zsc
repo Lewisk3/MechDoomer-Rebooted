@@ -3,6 +3,7 @@ class MenuElement : Object abstract ui
 {
 	string Tag; // Unique Element Tag
 	bool disabled;
+	bool hidden; // If true, element doesn't call "Draw"
 	MechMenu parentMenu;
 	MenuElement parentElement;
 	Array<MenuElement> children;
@@ -68,7 +69,10 @@ class MenuElement : Object abstract ui
 		foreach(child : children)
 		{
 			if( !(child is type) ) continue;
-	
+			
+			// Clear child's children
+			child.ClearChildren(baseMenu, "MenuElement");
+			
 			let childID = baseMenu.elements.Find(child);
 			if(childID != baseMenu.elements.Size()) 
 				baseMenu.elements.Delete(childID);
@@ -287,10 +291,18 @@ class MenuCursor : MenuElement
 		pos = (mouseCoords.x / xRel, mouseCoords.y / yRel);
 		
 		// Update temp-state buttons
-		tmpBtnTimer    += dT;
+		if(leftPressed || rightPressed) tmpBtnTimer += dT;
 		tmpScrollTimer += dT;
-		if(tmpBtnTimer    >  5) leftPressed = rightPressed = false;
-		if(tmpScrollTimer > 10) scrollDir = 0;
+		if(tmpBtnTimer    >  5) 
+		{
+			leftPressed = rightPressed = false;
+			tmpBtnTimer = 0;
+		}
+		if(tmpScrollTimer > 10) 
+		{
+			scrollDir = 0;
+			tmpScrollTimer = 0;
+		}
 	}
 }
 
@@ -426,6 +438,186 @@ class MenuSearchBar : MenuElement
 	}
 }
 
+class DropDownMenu : MenuElement
+{
+	Font itemFont;
+	double dropDownHeight;
+	
+	vector2 initSize;
+	Array<String> items;
+	int curSelection;
+	bool active; // If true, drop-down menu is active.
+	MenuCursor selectionCursor;
+	
+	MenuScrollBar scrollBar;
+	
+	override void Init()
+	{
+		initSize = size;
+	}
+	
+	virtual void Setup(Font itemFont, out Array<String> items, double dropDownHeight, class<MenuScrollbar> scrollBarClass)
+	{
+		self.itemFont = itemFont;
+		self.dropDownHeight = dropDownHeight;
+		self.items.Copy(items);
+		scrollBar = MenuScrollbar(
+			self.AddChild(
+				parentMenu, 
+				scrollBarClass, 
+				"DropMenuScrollbar",
+				pos + (size.x - 20, size.y),
+				size:(20,0)
+			)
+		);
+	}
+	
+	vector2 getItemPos(int itemIndex)
+	{
+		double textHeight = MWDrawer.GetTextHeight(itemFont, "A");
+		vector2 itemPos = pos + (10, 3 + initSize.y);
+		itemPos.y += (textHeight + 22) * itemIndex;
+		itemPos.y -= scrollBar.curScroll;
+		
+		return itemPos;
+	}
+	vector2 getItemSize()
+	{
+		double textHeight = MWDrawer.GetTextHeight(itemFont, "A");
+		return (size.x - 32, textHeight + 20);
+	}
+	double getItemsHeight()
+	{
+		int itemsLength = items.Size();
+		vector2 finalItemPos = getItemPos(itemsLength);
+		
+		finalItemPos.y -= (pos.y + initSize.y);
+		finalItemPos.y += scrollbar.curScroll;
+		return finalItemPos.y;
+	}
+	
+	override void Draw(double dT)
+	{
+		string text = items[curSelection];
+			
+		double valueWidth  = MWDrawer.GetTextWidth(itemFont, text);
+		double valueHeight = MWDrawer.GetTextHeight(itemFont, text);
+
+		MWDrawer.Fill(0x1F1F1F, pos.x, pos.y, initSize.x, size.y);		
+		MWDrawer.DrawString(itemFont, text, pos + (5, valueHeight * 0.25), translation:Font.CR_White, 1.0, (1.0,1.0));
+		
+		// Draw dropdown box
+		if(active)
+		{
+			MWDrawer.Fill(0x0A0A0A, pos.x, pos.y + initSize.y, size.x, dropDownHeight);	
+			MWDrawer.SetClipRect(pos.x, pos.y + initSize.y, size.x, dropDownHeight);
+			
+			let cursor = MenuCursor(GetCollidingWithType("MenuCursor"));
+			
+			// Draw items
+			double fitX = size.x - 32;
+			int itemIndex = 0;
+			foreach(text : items)
+			{
+				vector2 itemDrawPos = getItemPos(itemIndex);
+				vector2 itemSize = getItemSize();
+				
+				// Check if hovering over item, or item is selected.
+				bool hovering = cursor && AABBCollision(cursor.pos, cursor.size, itemDrawPos, itemSize);
+				bool selected = curSelection == itemIndex;
+				Color selectColor = selected ? 0xC70d8f0f : 0xC71320d1;
+				
+				if(hovering || selected)
+					MWDrawer.Fill(selectColor, itemDrawPos.x, itemDrawPos.y, itemSize.x, itemSize.y, 0.37);
+				
+				double textWidth = itemFont.StringWidth(text) * 2.0;
+				double fitScale = textWidth > fitX ? fitX / textWidth : 1.0;
+				MWDrawer.DrawString(itemFont, text, itemDrawPos + (0, 10), translation:Font.CR_White, 1.0, (fitScale,1.0));
+				
+				itemIndex++;
+			}
+			double listHeight = -(getItemsHeight() - dropDownHeight);
+			if(listHeight > 0) listHeight = 0;
+			
+			scrollBar.updateListHeight(abs(listHeight));
+			MWDrawer.ClearClipRect();
+		}
+		
+		// Dropdown arrow
+		double height = initSize.y;
+		string ddarrow = "Graphics/DropDownArrow.png";
+		vector2 arrowScale = MWDrawer.ScaleImageToFrame(ddarrow, height * 0.6, height * 0.6);
+		if(active) arrowScale.y *= -1;
+		
+		vector2 arrowPos = pos + (size.x - (height * 0.5), height * 0.5);
+
+		MWDrawer.DrawImage(ddarrow, arrowPos + (2,2), scale:arrowScale * 1.1, tint:0xFF000000);		
+		MWDrawer.DrawImage(ddarrow, arrowPos, scale:arrowScale, tint:0x1CFFFFFF);
+	}
+	
+	override void Update(double dT)
+	{
+		// Hide scrollbar if drop-down is inactive.
+		scrollBar.hidden = !active;
+		
+		if(active)
+			size.y = initSize.y + dropDownHeight;
+		else
+			size.y = initSize.y;
+		
+		scrollBar.size.y = dropDownHeight;
+		
+		// Close menu if user is clicking else-where.
+		if(selectionCursor && selectionCursor.leftPressed && !selectionCursor.CheckCollision(self, false))
+		{
+			active = false;
+			selectionCursor = NULL;
+		}
+		
+		// Check for item collisions
+		let cursor = MenuCursor(GetCollidingWithType("MenuCursor"));
+		if(!active || !cursor) return;
+		
+		for(int i = 0; i < items.Size(); i++)
+		{
+			vector2 itemPos = getItemPos(i);
+			vector2 itemSize = getItemSize();
+			
+			if(AABBCollision(cursor.pos, cursor.size, itemPos, itemSize) && cursor.leftPressed)
+			{
+				SetSelection(i);
+				OnSelection();
+				active = false;
+				return;
+			}
+		}
+	}
+
+	override void OnCollision(MenuElement other)
+	{
+		let cursor = MenuCursor(other);
+		if(!cursor) return;
+		
+		bool toggleCollision = AABBCollision(other.pos, other.size, pos, initSize);
+		if(toggleCollision && cursor.leftPressed) 
+		{
+			selectionCursor = cursor;
+			active = !active;
+			cursor.leftPressed = false;
+		}
+	}
+	
+	void SetSelection(int selection)
+	{
+		curSelection = selection;
+	}
+	
+	virtual void OnSelection()
+	{
+		// What to do when an option was selected.
+	}
+}
+
 class MenuScrollBar : MenuElement
 {
 	// Usually written to.
@@ -433,6 +625,7 @@ class MenuScrollBar : MenuElement
 	double scrollTo;
 	double scrollVel;
 	double heightAdjust;
+	bool freezeScroll;
 
 	// Usually read from.
 	double curScroll;
@@ -470,6 +663,7 @@ class MenuScrollBar : MenuElement
 	
 	override void UpdateDragPos(MenuCursor cursor)
 	{
+		if(freezeScroll) return;
 		if( cursor.pos.y < pos.y || cursor.pos.y > (pos.y + size.y) )
 			return;
 		
@@ -505,6 +699,7 @@ class MenuScrollBar : MenuElement
 		curScroll = clamp(curScroll, 0, itemListHeight);		
 		scrollTo = clamp(scrollTo, 0, itemListHeight);		
 		scrollPerc = curScroll / max(1,itemListHeight);
+		if(freezeScroll) return;
 		
 		if(abs(curScroll - scrollTo) > 1)
 			curScroll = DrivablesMath.lerp(curScroll, scrollTo, 0.5 * dT);
@@ -551,7 +746,7 @@ class MechMenu : GenericMenu
 	{
 		for(int i = 0; i < elements.Size(); i++)
 		{
-			if(elements[i].tag == tag)
+			if(elements[i].tag ~== tag)
 				return elements[i];
 		}
 		return NULL;
@@ -581,7 +776,11 @@ class MechMenu : GenericMenu
 
 		// Draw Elements	
 		for(int i = 0; i < elements.Size(); i++)
+		{
+			let element = elements[i];
+			if(element.hidden) continue;
 			elements[i].Draw(deltaTime);	
+		}
 		
 		if(!pauseUpdates) UpdateElements(deltaTime, elements);
 	}	
@@ -618,7 +817,7 @@ class MechMenu : GenericMenu
 	}
 	
 	override bool OnUIEvent(UIEvent ev)
-	{	
+	{		
 		for(int i = 0; i < elements.Size(); i++)
 			elements[i].processUIEvent(ev, null);
 			
@@ -633,9 +832,25 @@ class MechMenu : GenericMenu
 		return false;
 	}
 	
+	virtual void OnMenuClose()
+	{
+		// Do stuff right before the menu is closed.
+	}
+	
 	override bool MenuEvent(int mkey, bool fromcontroller)
 	{
-		super.MenuEvent(mkey, fromcontroller);
+		switch (mkey)
+		{
+			case MKEY_Back:
+			{
+				OnMenuClose();
+				Close();
+				let m = GetCurrentMenu();
+				MenuSound(m != null ? "menu/backup" : "menu/clear");
+				if (!m) menuDelegate.MenuDismissed();
+				return true;
+			}
+		}
 	
 		for(int i = 0; i < elements.Size(); i++)
 			elements[i].processMenuEvent(mkey, fromcontroller);

@@ -1078,8 +1078,28 @@ class MechEngine : MechItem
 	{
 		// Find rating and type based on classname.
 		// Naming convention -> MechEngine_ -> STD###, XL###, XXL###, LIGHT###
+		Name engineType; int engineRating;
+		[engineType, engineRating] = GetEngineName(getClassName());
+		if(engineType == 'UNKNOWN ENGINE') 
+		{
+			console.printf("\c[Red]MechEngine Error: failed to autodetect engine parameters for %s.\c[White]", getClassName());
+			return; // Unrecognized naming convention.
+		}
+		// console.printf("Rating for %s: [%d] %d :> Type is %s", clsName, ratingIndex, engineRating, engineType); 
 		
-		string clsName = getClassName();
+		switch(engineType)
+		{
+			case   'STD': type = Type_STD;   break;
+			case    'XL': type = Type_XL;    break;
+			case   'XXL': type = Type_XXL;   break;
+			case 'LIGHT': type = Type_Light; break;
+		}
+		rating = clamp(engineRating, 100, 500);
+	}
+	
+	clearscope static string, int GetEngineName(class<MechEngine> engineClass)
+	{
+		string clsName = engineClass.getClassName();
 		int engineToken = clsName.IndexOf("_");
 		
 		string nums = "0123456789";
@@ -1094,25 +1114,11 @@ class MechEngine : MechItem
 			}
 		}
 		
+		// Unrecognized naming convention.
 		if(engineToken == -1 || ratingIndex == -1) 
-		{
-			console.printf("\c[Red]MechEngine Error: failed to autodetect engine parameters for %s.\c[White]", clsName);
-			return; // Unrecognized naming convention.
-		}
+			return "UNKNOWN ENGINE", 0; 
 				
-		int engineRating = clsName.Mid(ratingIndex).ToInt(); 
-		Name engineType = clsName.Mid(engineToken+1, ratingIndex-engineToken-1);
-		
-		// console.printf("Rating for %s: [%d] %d :> Type is %s", clsName, ratingIndex, engineRating, engineType); 
-		
-		switch(engineType)
-		{
-			case   'STD': type = Type_STD;   break;
-			case    'XL': type = Type_XL;    break;
-			case   'XXL': type = Type_XXL;   break;
-			case 'LIGHT': type = Type_Light; break;
-		}
-		rating = clamp(engineRating, 100, 500);
+		return clsName.Mid(engineToken+1, ratingIndex-engineToken-1), clsName.Mid(ratingIndex).ToInt();
 	}
 	
 	override void Defaults()

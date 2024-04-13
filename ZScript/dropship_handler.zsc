@@ -31,6 +31,8 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void WorldTick()
 	{
+		if(gamestate == GS_TITLELEVEL) return;
+		
 		Name curMap = level.mapname;
 		if(level.maptime >= 2 && forceDropshipMap && !sv_mdr_disabledropship)
 		{
@@ -49,10 +51,12 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void WorldLoaded(WorldEvent e)
 	{
+		if(gamestate == GS_TITLELEVEL) return;
+				
 		let plr = players[consoleplayer].mo;
 		let inv = I_MechItemStorage.Get(plr);
 		if(!inv) return;
-				
+		
 		Name curMap = level.mapname;
 		
 		scrfade = 2.0;
@@ -103,7 +107,8 @@ class MechDropship_Handler : StaticEventHandler
 	override void UITick()
 	{	
 		if(gamestate != GS_LEVEL) return;
-	
+		if(gamestate == GS_TITLELEVEL) return;
+			
 		let activeMenu = Menu.getCurrentMenu();
 		let mechlabMenu = MechMenu_Mechlab(activeMenu);
 		
@@ -223,6 +228,14 @@ class MechbayScripts abstract play
 		
 		evh.OpenMechlab(plr.PlayerNumber(), mech);
 		return 1;
+	}
+	
+	static void OpenMechbayConfig(Actor activator)
+	{
+		let plr = PlayerPawn(activator);
+		let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+		
+		evh.OpenMechbayMenu(plr.PlayerNumber());	
 	}
 	
 	static void OpenMarketplace(Actor activator)

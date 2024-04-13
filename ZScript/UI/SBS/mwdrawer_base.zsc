@@ -418,6 +418,24 @@ class MWDrawer Abstract ui
 		);
 	}
 	
+	static vector2 ScaleImageToFrame(string graphic, double frameWidth, double frameHeight, bool keepAspect = true)
+	{
+		let imgSize = MWDrawer.GetImageSize(graphic);
+		vector2 imgScale = (
+			frameWidth / imgSize.x,
+			frameHeight / imgSize.y
+		);	
+		
+		if(keepAspect)
+		{
+			double aspectdef = imgSize.x / imgSize.y;
+			double aspectmod = (frameWidth / frameHeight) / aspectdef;
+			imgScale.x /= aspectmod;
+		}
+		
+		return imgScale;
+	}
+	
 	static clearscope Shape2D MakeSquare()
 	{
 		// the shape that will be drawn

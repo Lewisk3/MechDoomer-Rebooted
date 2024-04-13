@@ -808,7 +808,7 @@ class MechLeg : MechHardpoint
 		super.Tick();
 		
 		let torso = MechTorso(mech.torso);
-		if(torso.healthPoints <= 0 && healthPoints > 0) DestroyHardpoint();
+		if(!torso || torso.healthPoints <= 0 && healthPoints > 0) DestroyHardpoint();
 	}
 	
 	override void OnAttach()

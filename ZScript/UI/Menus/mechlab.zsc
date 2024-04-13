@@ -1574,6 +1574,15 @@ class MechMenu_Mechlab : MechMenu
 		
 	}
 	
+	override void OnMenuClose()
+	{
+		// Save mech on exit.
+		if(!mech) return;
+		
+		string cmd = String.Format("mechlab.savemech.%d", mech.saveID-1);
+		EventHandler.SendNetworkEvent(cmd);
+	}
+	
 	play static void SendItemErrorMessage(int playerNumber, MechItem item, int ERR)
 	{
 		String errorMessage = item.GetItemErrorMessage(ERR);
@@ -1585,6 +1594,7 @@ class MechMenu_Mechlab : MechMenu
 		// Menu events
 		let plr = players[e.Player].mo;
 		let inv = I_MechItemStorage.Get(plr);
+		let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 	
 		if(!mech) return;
 		
@@ -1595,8 +1605,20 @@ class MechMenu_Mechlab : MechMenu
 		uint argc = menuArgs.Size();
 		if(!argc) return;
 		
-		if(menuArgs[0] ~== "mechlab" && argc >= 4)
+		if(menuArgs[0] ~== "mechlab")
 		{
+			if(menuArgs[1] ~== "savemech" && playerMechs)
+			{
+				int mechIndex = menuArgs[2].ToInt();
+				console.printf("Saving mech: %d", mechIndex);
+				let mechlabMech = playerMechs.mechsData[mechIndex];
+				if(mechlabMech && mechlabMech.mechobj)
+				{
+					playerMechs.SaveMechData(mechlabMech.mechobj);
+					playerMechs.ReloadMechbay(mechlabMech.mechbayID);
+				}
+			}
+		
 			if(menuArgs[1] ~== "armor")
 			{
 				let srcHardpoint = MechHardpoint(mech.parts[menuArgs[4].ToInt()]);
