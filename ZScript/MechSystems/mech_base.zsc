@@ -1810,7 +1810,7 @@ class I_SaveMechData : Inventory
 		// DEBUG
 		GiveMech("MechCenturion");
 		
-		
+		/*
 		GiveMech("MechJenner");
 		GiveMech("MechHellbringer");
 		GiveMech("MechMarauderIIC");
@@ -1821,6 +1821,7 @@ class I_SaveMechData : Inventory
 		GiveMech("MechMarauderIIC");
 		GiveMech("MechTimberwolf");
 		GiveMech("MechCenturion");
+		*/
 	}
 
 	override void DoEffect()

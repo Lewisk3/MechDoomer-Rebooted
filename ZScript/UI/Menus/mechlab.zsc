@@ -1581,6 +1581,7 @@ class MechMenu_Mechlab : MechMenu
 		
 		string cmd = String.Format("mechlab.savemech.%d", mech.saveID-1);
 		EventHandler.SendNetworkEvent(cmd);
+		EventHandler.SendNetworkEvent("mw_status_closedmechlab");
 	}
 	
 	play static void SendItemErrorMessage(int playerNumber, MechItem item, int ERR)
@@ -1731,7 +1732,8 @@ class MechMenu_Mechlab : MechMenu
 			{
 				if(cmds[1] == "error")
 				{
-					console.printf("ERROR: %s", cmds[2]);
+					MDRDialogMenu.Open(self, "ItemError", String.Format("\c[Brick]Failed to Equip Item\n\c[Gray]Reason: %s", cmds[2]), "Continue");
+					// console.printf("ERROR: %s", cmds[2]);
 				}
 			}
 		}

@@ -857,7 +857,12 @@ class MechLegs : MechPart
 		{
 			A_StartSound("Legs/Footstep", CHAN_BODY, CHANF_OVERLAP, pitch:frandom[FootstepPitch](0.8, 1.2));
 			if(mech.driver) mech.driver.A_AlertMonsters(512,0);
-			if(mech.head) mech.head.animOffsets.z -= 3;
+			if(mech.head && mech.torso) 
+			{
+				mech.head.animOffsets.z -= 5;
+				MechTorso(mech.torso).pitchBobVel += 0.2;
+				// mech.vel *= 0.96;
+			}
 		}
 		else if(mech.head)
 			mech.head.animOffsets.z *= 0.8;
@@ -1006,14 +1011,14 @@ class MechTorso : MechHardpoint
 		
 		// Roll distortion
 		A_SetRoll(rolldistort + rollBob, SPF_INTERPOLATE);
-		A_SetPitch(pitch + ((rolldistort * -turnDir) * 0.05), SPF_INTERPOLATE);
+		if(!mech.armLock) A_SetPitch(pitch + ((rolldistort * -turnDir) * 0.05), SPF_INTERPOLATE);
 	}
 	
 	override void DriverUpdate(Actor driver)
 	{				
 		// Bobbing
 		if(!mech) return;
-				
+		
 		if(mech.getSpd() >= 0.1 && mech.onground)
 		{
 			double str = 0.12; // 0.07
@@ -1080,6 +1085,7 @@ class MechSideTorso : MechHardpoint
 	{
 		super.UpdateAngles();
 		
+		oldAngleOffs = mech.torso.oldAngleOffs;
 		lookingPos = mech.head.lookingPos;
 	}
 }
@@ -1102,6 +1108,10 @@ class MechRightTorso : MechSideTorso
 class MechCockpit : MechHardpoint
 {
 	double defz;
+	double bobRollOffs;
+	double bobHeightOffs;
+	double TiltOsc, StepOsc;
+	
 	Default
 	{
 		Radius 1;
@@ -1129,6 +1139,7 @@ class MechCockpit : MechHardpoint
 	override void UpdateAngles()
 	{	
 		if(!mech) return;
+		DoCockpitBob();
 		
 		let torso = MechTorso(mech.torso);
 		lookingPos = DrivablesMath.getActorAim(self, true, torso.angle, torso.pitch);
@@ -1141,7 +1152,44 @@ class MechCockpit : MechHardpoint
 		
 		A_SetAngle(torso.angle, SPF_INTERPOLATE);
 		A_SetPitch(torso.pitch + (torso.pitchBob * 5.0), SPF_INTERPOLATE);
-		A_SetRoll(torso.roll + (torso.rollBob * 5.0), SPF_INTERPOLATE);
+		A_SetRoll(torso.roll + (torso.rollBob * 5.0) + bobRollOffs, SPF_INTERPOLATE);
+	}
+	
+	void DoCockpitBob()
+	{
+		double curSpeed = mech.vel.Length();
+		double tiltosc_amp =  10 + (curSpeed * 0.25);
+		double steposc_amp =  5 + (curSpeed * 0.5);
+		tiltosc_amp = clamp(tiltosc_amp,0,18);
+		steposc_amp = clamp(steposc_amp,0,24);
+		TiltOsc += tiltosc_amp;
+		StepOsc += steposc_amp;
+		
+		if (TiltOsc >= 360.0 || TiltOsc < 0.0)    {
+			TiltOsc = 0.0;
+		}
+		if (StepOsc >= 360.0 || StepOsc < 0.0)    {
+			StepOsc = 0.0;
+		}
+
+		double TiltOffset = 0;
+		double StepOffset = 0;
+		if(curSpeed != 0)
+		{
+			double TiltOffset = sin(TiltOsc);
+			TiltOffset *= clamp((curSpeed*0.5) - (mech.LegVel*0.8), 0.05, 5.0);
+			TiltOffset *= 0.5;
+			// if(defaultmovement) TiltOffset *= 0.6;
+		
+			StepOffset  = sin(StepOsc);
+			StepOffset *= (curSpeed*0.5) + (mech.LegVel*2);
+			StepOffset *= (1.78 + ((mech.maxWeight)/100));
+			StepOffset *= 0.54; // 0.54
+			// if(defaultmovement) StepOffset *= 0.7;
+		}
+		
+		bobRollOffs = -TiltOffset;
+		bobHeightOffs = StepOffset;
 	}
 }
 
@@ -1153,6 +1201,7 @@ class MechArm : MechHardpoint
 	double pitchOffs;
 	Property ActuationRange : aimMax;
 	property PitchRange : pitchMin, pitchMax;
+	vector2 convergeAngles;
 	
 	// If true, ignores the maximum actuation range, and will always fire towards the center of the driver's aim.
 	Property UnlimitedActuation : unlimitedActuation; 
@@ -1206,6 +1255,9 @@ class MechArm : MechHardpoint
 		if(mech.torsoLock) aimAngles = (torso.angle, torso.pitch);
 		vector3 sphere = level.SphericalCoords(shootPos, aimingPos, (angle, pitch));
 	
+		vector3 convergeSphere = level.SphericalCoords(pos, aimingPos, (angle, pitch));
+		convergeAngles = convergeSphere.xy;
+	
 		aimAngles -= sphere.xy;
 		if(!unlimitedActuation) ClampAngles(aimAngles.x, aimAngles.y);
 		
@@ -1220,13 +1272,16 @@ class MechArm : MechHardpoint
 		if(!mech.torsoLock)
 		{
 			DrivablesMath.AngleSlerp(angle, driver.angle, aimMax);
-			DrivablesMath.AngleSlerp(pitch, driver.pitch + pitchOffs, 0.5 * (abs(pitchMin)+abs(pitchMax)) );
+			DrivablesMath.AngleSlerp(pitch, (driver.pitch + pitchOffs), 0.5 * (abs(pitchMin)+abs(pitchMax)) );
 		}
 		else
 		{
 			A_SetAngle(torso.angle, SPF_INTERPOLATE);
 			A_SetPitch(torso.pitch + pitchOffs, SPF_INTERPOLATE);
 		}
+		
+		A_SetAngle(angle - (convergeAngles.x * 0.75), SPF_INTERPOLATE);	
+		A_SetPitch(pitch - (convergeAngles.y * 0.75), SPF_INTERPOLATE);
 				
 		// Angle ranges
 		ClampAngles(angle, pitch);
@@ -1266,7 +1321,9 @@ class CockpitCamera : MechPart
 
 		lookingPos = DrivablesMath.getActorAim(self);
 		double pitchBob = MechTorso(mech.torso).pitchBob;
-		parentOffset.z = defz - (pitchBob*0.5);
+		double heightBob = clamp(MechCockpit(mech.head).bobHeightOffs * 0.1, -5,5);
+		// double rollBob = MechCockpit(mech.head).bobRollOffs * 2.0;
+		parentOffset.z = (defz - (pitchBob*0.5)) + heightBob;
 				
 		A_SetAngle(mech.driver.angle, SPF_INTERPOLATE);
 		A_SetPitch(mech.driver.pitch + (pitchBob), SPF_INTERPOLATE);

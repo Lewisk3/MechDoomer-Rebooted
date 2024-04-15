@@ -11,6 +11,7 @@ class MechMountDeco : EffectsActor
 	{
 		Scale 1.5;
 		MechMountDeco.MountOffset (0, 0, 0);
+		+INTERPOLATEANGLES;
 	}
 	
 	static MechMountDeco Attach(MechWeapon src, class<MechMountDeco> type, int mountIndex = 0)
@@ -39,9 +40,9 @@ class MechMountDeco : EffectsActor
 		mountPos = src.parent.OffsetPos(mountPos.x * sc, mountPos.y * sc, mountPos.z * sc);
 		
 		SetOrigin(mountPos, true);
-		angle = src.parent.angle; 
-		pitch = src.parent.pitch;
-		roll = src.parent.roll;
+		A_SetAngle(src.parent.angle, SPF_INTERPOLATE);
+		A_SetPitch(src.parent.pitch, SPF_INTERPOLATE);
+		A_SetRoll(src.parent.roll, SPF_INTERPOLATE);
 		
 		A_SetScale(default.scale.X * src.parent.scale.X * itemMountScale);
 	}

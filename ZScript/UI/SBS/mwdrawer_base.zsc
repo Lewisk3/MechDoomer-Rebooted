@@ -1,6 +1,29 @@
 const statscr_base_width = 1920.0;
 const statscr_base_height = 1080.0;
 
+struct HSLColor
+{
+	double h, s, l, a;
+	void Copy(HSLColor col)
+	{
+		self.h = col.h;
+		self.s = col.s;
+		self.l = col.l;
+		self.a = col.a;
+	}
+	void Set(double h, double s, double l, double a)
+	{
+		self.h = h;
+		self.s = s;
+		self.l = l;
+		self.a = a;
+	}
+	Color getRGB()
+	{
+		return MWDrawerColor.hslToRgb(h, s, l, a);
+	}
+}
+
 class MWDrawerColor Abstract 
 {
 	static clearscope double hue2rgb(double p, double q, double t)

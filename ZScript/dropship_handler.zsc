@@ -4,6 +4,7 @@ class MechDropship_Handler : StaticEventHandler
 	bool forceDropshipMap;
 	double scrfade;
 	bool onFirstMap;
+	bool reloadActiveMech;
 
 	virtual void RestoreActiveMechs()
 	{
@@ -34,6 +35,7 @@ class MechDropship_Handler : StaticEventHandler
 		if(gamestate == GS_TITLELEVEL) return;
 		
 		Name curMap = level.mapname;
+		
 		if(level.maptime >= 2 && forceDropshipMap && !sv_mdr_disabledropship)
 		{
 			level.ChangeLevel("DROPSHIP", flags:CHANGELEVEL_NOINTERMISSION);
@@ -46,6 +48,27 @@ class MechDropship_Handler : StaticEventHandler
 		{	
 			scrfade *= 0.97;
 			if(scrfade < 0.1) scrfade = 0;
+		}
+		
+		if(curMap == "DROPSHIP" && reloadActiveMech)
+			reloadActiveMech = false;
+		
+		// Load player's mech.
+		if(level.maptime >= 8 && reloadActiveMech)
+		{
+			// TODO: Maybe find a way to make all of this MP safe.
+			// Problem is that the dropship kind of inherently is not.
+			let plr = players[consoleplayer].mo;
+			let inv = I_MechItemStorage.Get(plr);
+		
+			// If there are active mechs, destroy them.
+			// This needs to be done because, if loaded from a save there will exist
+			// a kind of mech-voodoo situation.
+			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+			if(mechData) mechData.RecycleActiveMechs();
+			
+			RestoreActiveMechs();
+			reloadActiveMech = false;
 		}
 	}
 	
@@ -75,14 +98,7 @@ class MechDropship_Handler : StaticEventHandler
 			if(onFirstMap) inv.dropshipNextMap = curMap;
 			
 			level.NextMap = "DROPSHIP";		
-			
-			// If there are active mechs, destroy them.
-			// This needs to be done because, if loaded from a save there will exist
-			// a kind of mech-voodoo situation.
-			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-			if(mechData) mechData.RecycleActiveMechs();
-			
-			RestoreActiveMechs();
+			reloadActiveMech = true;
 		}
 		else
 		{
@@ -111,10 +127,6 @@ class MechDropship_Handler : StaticEventHandler
 			
 		let activeMenu = Menu.getCurrentMenu();
 		let mechlabMenu = MechMenu_Mechlab(activeMenu);
-		
-		// Mark mechlab as closed.
-		if( usingMechlab && !mechlabMenu)
-			EventHandler.SendNetworkEvent("mw_status_closedmechlab");
 		
 		// Mark mechlab as opened
 		if(!usingMechlab && mechlabMenu)

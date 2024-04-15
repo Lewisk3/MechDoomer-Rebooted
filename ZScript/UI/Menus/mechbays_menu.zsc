@@ -569,7 +569,7 @@ class MechbayMenu : MechMenu
 		string menuCmd = e.Name;
 		Array<String> menuArgs;
 		menuCmd.Split(menuArgs, ":");
-		
+	
 		if(menuArgs[0] ~== "mechbays")
 		{
 			if(menuArgs[1] ~== "swap")

@@ -1,0 +1,242 @@
+
+class MDRDialogButton : MenuButton
+{
+	MDRDialogMenu base;
+	double alpha;
+	int optionID;
+	string buttonText;
+	
+	override void Init()
+	{
+		base = MDRDialogMenu(parentMenu);
+		alpha = 1.0;
+	}
+	
+	override void Draw(double dT)
+	{
+		bool selected = (base.selection == optionID);
+		if(!selected) MWDrawer.Fill(0xFF000000, pos.x + 2, pos.y + 2, size.x + 2, size.y + 2, 0.7);
+		alpha = MDRDialogBox(parentElement).alpha;
+		
+		HSLColor btnCol;
+		btnCol.Set(0.65, selected ? 0.33 : 0.01, btnDown ? 0.2 : 0.7, 1.0);
+		
+		HSLColor shadowCol;
+		shadowCol.Copy(btnCol);
+		shadowCol.l *= 0.5;
+		
+		MWDrawer.Fill(shadowCol.getRGB(), pos.x, pos.y, size.x, size.y, alpha);
+		MWDrawer.Fill(btnCol.getRGB(), pos.x + 4, pos.y + 4, size.x - 8, size.y - 8, alpha);
+		
+		double fitX = size.x - 16;
+		double textWidth = base.btnFont.StringWidth(buttonText) * 2.0;
+		double fitScale = textWidth > fitX ? fitX / textWidth : 1.0;
+		double textHeight = base.btnFont.GetHeight() * (2.0 * fitScale);
+		vector2 center = (
+			size.x * 0.5, 
+			(size.y * 0.5) - (textHeight * 0.5)
+		);
+		
+		// Draw message
+		MWDrawer.DrawString(base.btnFont, buttonText, pos + center, MWDrawer.SS_TEXT_CENTER, alpha:alpha, scale:(fitScale,fitScale));
+	}
+	
+	override void Update(double dT)
+	{
+		super.Update(dT);
+		if(hovered && base) base.selection = optionID;
+	}
+	
+	override void OnPressed()
+	{
+		base.selection = optionID;
+		base.awaitingSubmit = true;
+	}
+}
+
+class MDRDialogBox : MenuElement
+{
+	MDRDialogMenu base;
+	double msgScale;
+	double animTics;
+	double alpha;
+
+	override void Init()
+	{
+		base = MDRDialogMenu(parentMenu);
+		msgScale = 1.0;
+		animTics = 0.01;
+		alpha = 1.0;
+		
+		int optionID = 0;
+		foreach(option : base.options)
+		{
+			let btn = MDRDialogButton(AddChild(base, "MDRDialogButton", "DialogButton", pos, (128, 64)));
+			btn.buttonText = option;
+			btn.optionID = optionID;
+			optionID++;
+		}
+	}
+	
+	override void Draw(double dT)
+	{		
+		BrokenLines msgLines;
+		double fontHeight = base.msgFont.GetHeight() * (2.0 * msgScale);
+		double charSize = base.msgFont.StringWidth("A") * (2.0 * msgScale);
+		double boxSize = size.x * (1/(2.0 * msgScale));
+		double maxLen = boxSize - (charSize * 4.0);
+		msgLines = base.msgFont.BreakLines(base.message, maxLen);
+
+		vector2 msgPos = pos + (size.x * 0.5, fontHeight * 1.5); 
+		
+		// Auto-scale
+		double scaledHeight = (msgPos.y - pos.y) + ((fontHeight * 1.5) * msgLines.Count());
+		scaledHeight = max(256, scaledHeight + 64);
+		
+		if(base.awaitingSubmit)
+			alpha = DrivablesMath.Lerp(alpha, 0, min(0.3, 0.3 * dT));
+		else
+			size.y = DrivablesMath.Lerp(size.y, scaledHeight, min(0.3, 0.3 * dT));
+
+		// Auto-center
+		vector2 center = (
+			MWDrawer.getBaseWidth(),
+			MWDrawer.getBaseHeight()
+		) * 0.5;
+		pos = center - (size.x * 0.5, size.y * 0.5);
+		
+		// Box
+		MWDrawer.Fill(0xFF9F9F9F, pos.x - 4, pos.y - 4, size.x + 8, size.y + 8, alpha * 0.85);
+		MWDrawer.Fill(0xC77F7F7F, pos.x, pos.y, size.x, size.y, alpha * 0.85);
+		
+		// Draw Messages
+		for(int i = 0; i < msgLines.Count(); i++)
+		{
+			string ln = msgLines.StringAt(i);
+			MWDrawer.DrawString(base.msgFont, ln, msgPos, MWDrawer.SS_TEXT_CENTER, alpha:alpha, scale:(msgScale, msgScale));
+			msgPos.y += (fontHeight * 1.5);
+		}
+		
+		// Adjust button positions
+		Array<MenuElement> btns;
+		base.getElementsOfClass(btns, "MDRDialogButton");
+		
+		double buttonSpace = size.x / btns.Size();
+		vector2 buttonPos = pos + (buttonSpace * 0.5, size.y);
+		double squish = (16 * btns.Size()-1);
+		foreach(btn : btns)
+		{	
+			btn.pos = buttonPos - (btn.size.x * 0.5, btn.size.y + 16);
+			buttonPos.x += (128 - squish) + (buttonSpace * 0.5);
+		}
+	}
+}
+
+class MDRDialogMenu : MechMenu
+{
+	Font msgFont, btnFont;
+	MechMenu parent;
+	MenuCursor cursor;
+	Array<string> options;
+	string value;
+	int selection;
+	string message;
+	string eventType;
+	bool awaitingSubmit;
+	MDRDialogBox dialogBox;
+	
+	override void Init(Menu parent)
+	{
+		super.Init(parent);
+		self.parent = MechMenu(parent);
+	}
+	
+	override void InitElements() 
+	{
+		elements.Clear(); // Repopulate elements
+		
+		msgFont = "hm_thin";
+		btnFont = "hm_type";
+		
+		// Dialog boxes auto-center themselves.
+		dialogBox = MDRDialogBox(AddElement("MDRDialogBox", "Dialog", (0,0), (512,0)));
+		
+		// Cursor
+		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+	
+	override void Drawer()
+	{
+		if(parent) parent.Drawer();
+		super.Drawer();
+		
+		pauseUpdates = awaitingSubmit;
+		
+		if(dialogBox.alpha <= 0.01 && awaitingSubmit) SubmitSelection();
+	}
+			
+	static MDRDialogMenu Open(MechMenu parent, string eventType, string message, string opt1 = "", string opt2 = "", string opt3 = "")
+	{
+		MDRDialogMenu dialogInput = new("MDRDialogMenu");
+		if(opt1) dialogInput.options.Push(opt1);
+		if(opt2) dialogInput.options.Push(opt2);
+		if(opt3) dialogInput.options.Push(opt3);
+		dialogInput.message = message;
+		dialogInput.eventType = eventType;
+		
+		dialogInput.Init(parent);
+		dialogInput.ActivateMenu();
+		
+		return dialogInput;
+	}
+	
+	override bool TranslateKeyboardEvents()
+	{
+		// Obscure shit that blocks backspace from being picked up by UIEvent, wtf.
+		return false;
+	}
+	
+	virtual void SubmitSelection()
+	{
+		if(options.Size()) value = options[selection];
+		parent.MenuEvent(MKEY_Input, false);
+		string dialogEvent = String.Format("dialog:%s:%s", eventType, value);
+		EventHandler.SendNetworkEvent(dialogEvent);
+		Close();
+	}
+	
+	void MoveSelection(int dir)
+	{
+		selection += dir;
+		if(selection >= options.Size()) 
+			selection = 0;
+			
+		if(selection < 0)
+			selection = options.Size()-1;
+	}
+	
+	override bool OnUIEvent(UIEvent ev)
+	{
+		super.OnUIEvent(ev);
+	
+		int ch = ev.KeyChar;
+		if(ev.Type == UIEvent.Type_KeyDown || ev.Type == UIEvent.Type_KeyRepeat)
+		{
+			switch (ch)
+			{
+				case UIEvent.Key_Return:
+					SubmitSelection();
+				break;
+			
+				case UIEvent.Key_Left: 
+					MoveSelection(-1);
+				break;
+				
+				case UIEvent.Key_Right:
+					MoveSelection(1);
+				break;
+			}
+		}
+		return false;
+	}
+}
