@@ -232,10 +232,10 @@ class MechHardpointContainer : MenuElement
 				btn.disabled = hardpoint.armorPoints <= 0;
 			if( btn.Tag ~== "rearArmorDOWN")
 				btn.disabled = hardpoint.rearArmor <= 0;	
-			if(disabled) btn.disabled = true;
+			if(disabled || !!mechlab.mech.driver) btn.disabled = true;
 				
-			if(btn.pressed)
-			{
+			if(btn.pressed && !btn.disabled)
+			{			
 				if(btn.Tag ~== "ArmorUP")
 				{
 					EventHandler.SendNetworkEvent(
@@ -279,7 +279,7 @@ class MechHardpointContainer : MenuElement
 			
 			// Draw Item stats
 				if(mechlab.cursor.CheckCollision(slot, false) && slot && slot.slotItem)
-					MenuItemsInvContainer.DrawItemStats(mechlab, slot.slotItem, (340,570), 350);
+					MenuItemsInvContainer.DrawItemStats(mechlab, slot.slotItem, (340,250), 350);
 			
 			// Skip if item is being dragged.
 			if(mechlab.cursor.draggingElement == slot) continue;
@@ -300,16 +300,19 @@ class MechHardpointContainer : MenuElement
 
 class MechItemSlot : MenuElement
 {
+	MechMenu_MechLab mechlab;
 	MechHardpointContainer container;
 	vector2 defaultPos;
 	MechItem slotItem;
 	double slotHeight;
 	double scale;
 	double alpha;
+	bool locked; // If true, disables dragging on this item.
 
 	override void Init()
 	{
 		super.Init();
+		mechlab = MechMenu_MechLab(parentMenu);
 		defaultPos = pos;
 		slotHeight = size.y;
 		scale = 0.5;
@@ -395,7 +398,7 @@ class MechItemSlot : MenuElement
 	
 	
 	override bool checkDraggable()
-	{
+	{	
 		return slotItem && slotItem.movable;
 	}
 	
@@ -409,8 +412,13 @@ class MechItemSlot : MenuElement
 	
 	override void OnDrop(MenuCursor cursor)
 	{
-		let mechlab = MechMenu_MechLab(parentMenu);
 		if(!mechlab || !cursor) return;
+		
+		if(locked) 
+		{
+			MDRDialogMenu.Open(mechlab, "Hardmount", "Only ammo can be modified while mech is in active use.", "Continue");
+			return;
+		}
 		
 		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));
 		string itemIDs = mechlab.mech.getMechItemIndex(slotItem);
@@ -441,6 +449,9 @@ class MechItemSlot : MenuElement
 		double scaledSlotHeight = slotHeight * scale;
 		size.y = slotItem ? scaledSlotHeight * max(1,slotItem.size) : scaledSlotHeight;
 		disabled = container ? container.disabled : false;
+		
+		// Disable hard-pointed items such as weapons, from being moved while the mech is being piloted.
+		locked = (mechlab.mech.driver && !(slotItem is "MechAmmo"));
 	}
 }
 
@@ -452,10 +463,11 @@ class MenuItemsInvContainer : MenuElement
 	Array<MechInvItem> invItems;
 	Array<int> itemIndexes;
 	Array<MechItemSortTab> tabs;
-	Array<MechlabUtilityButton> utils;
 	
 	double scroll, scrollVel, scrollMax;
 	MechContainerScrollBar scrollBar;
+	
+	string itemSearch;
 	
 	override void Init()
 	{
@@ -467,7 +479,7 @@ class MenuItemsInvContainer : MenuElement
 		);
 		scrollBar.Setup(self);
 		
-		vector2 tabPos = (36, -125);
+		vector2 tabPos = (36, -190);
 		vector2 tabOffs = (0, 0);
 		double tabSpacing = size.x * 0.3;
 		vector2 tabSize = (size.x/4.,42);
@@ -525,47 +537,23 @@ class MenuItemsInvContainer : MenuElement
 		armorTab.parentContainer = self;
 		armorTab.active = false;
 		tabOffs.x += tabSpacing;
-		
-		vector2 utilButtonPos = (pos.x + 8, pos.y + size.y + 30);
-		utilButtonPos.y += SetupUtilButtons("MechArmor_Standard", "MechArmor_Ferro", utilButtonPos);
-		utilButtonPos.y += SetupUtilButtons("MechChassis_Standard", "MechChassis_Endosteel", utilButtonPos);
-		
+
 		tabs.Push(energyTab);
 		tabs.Push(ballisticsTab);
 		tabs.Push(missileTab);
 		tabs.Push(ammoTab);
 		tabs.Push(equipmentTab);
 		tabs.Push(armorTab);
-	}
-	
-	double SetupUtilButtons(class<MechItem> itemOne, class<MechItem> itemTwo, vector2 buttonPos)
-	{
-		// Util buttons
-		vector2 utilButtonSize = (size.x * 0.45, size.x * 0.2);
-	
-		let utilItemOne = MechUtility(mechlab.inv.FindItem(itemOne));
-		let utilItemTwo = MechUtility(mechlab.inv.FindItem(itemTwo));
-
-		if(utilItemOne && utilItemTwo)
-		{
-			let utilOne = MechlabUtilityButton(
-				MenuElement.Create("MechlabUtilityButton", "UtilButton1", parentMenu, buttonPos, utilButtonSize)
-			);
-			utilOne.Setup(mechlab, utilItemOne);
-			buttonPos.x += utilButtonSize.x * 1.15;
-			
-			let utilTwo = MechlabUtilityButton(
-				MenuElement.Create("MechlabUtilityButton", "UtilButton2", parentMenu, buttonPos, utilButtonSize)
-			);
-			utilTwo.Setup(mechlab, utilItemTwo);
-			
-			utils.Push(utilOne);
-			utils.Push(utilTwo);
-		}
 		
-		return utilButtonSize.y + 20;
+		// SearchBar
+		AddChild(mechlab, "InvContainerSearchBar", "SearchBar", pos + tabPos + (-10, tabOffs.y + 60), (size.x - 40, 30));
 	}
 	
+	void DoSearchFilter(string search)
+	{
+		itemSearch = search;
+	}
+		
 	static void DrawItemStats(MechMenu_Mechlab mechlab, MechItem invItem, vector2 pos, double width)
 	{
 		if(invItem is "MechDynamicStructure") return;
@@ -688,8 +676,8 @@ class MenuItemsInvContainer : MenuElement
 		MWDrawer.DrawRect(pos + (0,-20), size + (0,40), edgeColor);
 		
 		// Tab Background
-		MWDrawer.Fill(0xFFAAAAAA, pos.x,pos.y-135, size.x,115);
-		MWDrawer.DrawRect(pos + (0,-135), (size.x,115), edgeColor);
+		MWDrawer.Fill(0xFFAAAAAA, pos.x,pos.y-200, size.x,180);
+		MWDrawer.DrawRect(pos + (0,-200), (size.x,180), edgeColor);
 		
 		// Scrollbar Background
 		double xoffs = scrollBar.size.x * 0.35;
@@ -708,7 +696,7 @@ class MenuItemsInvContainer : MenuElement
 		double itemSpacing = 16;
 		double startY = 20;
 		double curY = (pos.y + startY) - scroll;
-		bool doScrollEnd = false; // If true, scrolls to the end of items list.
+		bool doScrollTop = false; // If true, scrolls to the top of items list.
 		
 		Array<MechItem> filteredItems;
 		bool skipItem;
@@ -725,11 +713,24 @@ class MenuItemsInvContainer : MenuElement
 			if(item.hidden) continue;
 			
 			skipItem = false;
-			for(int x = 0; x < tabs.Size(); x++)
+			
+			if(itemSearch && MenuSearchBar.getSearchRelevancy(itemSearch, item.displayName) < 0.8)
+				skipItem = true;
+			
+			if(!itemSearch)
 			{
-				if(tabs[x].doFilterItem(item)) 
-					skipItem = true;
+				bool anyActive = false;
+				for(int x = 0; x < tabs.Size(); x++)
+				{
+					if(tabs[x].active) anyActive = true;
+					if(tabs[x].doFilterItem(item)) 
+						skipItem = true;
+				}
+				
+				// Do not skip if no tabs are active.
+				if(!anyActive) skipItem = false;
 			}
+			
 			if(!skipItem) 
 			{
 				filteredItems.Push(item);
@@ -742,7 +743,7 @@ class MenuItemsInvContainer : MenuElement
 		int newSize = filteredItems.Size();
 		if(curSize != newSize)
 		{
-			if(newSize > curSize) doScrollEnd = true;
+			if(newSize > curSize) doScrollTop = true;
 			invItems.Resize(filteredItems.Size());
 		}
 		
@@ -823,7 +824,7 @@ class MenuItemsInvContainer : MenuElement
 		scroll = scrollMax <= 0 ? 0 : clamp(scroll, 0, scrollMax);
 		scrollBar.disabled = scrollMax <= 0;
 		
-		if(doScrollEnd) scroll = scrollMax;
+		if(doScrollTop) scroll = 0;
 		scrollBar.barSize = (size.y - scrollMax);
 		if(mechlab.cursor.draggingElement != scrollBar)
 		{
@@ -856,29 +857,6 @@ class MenuItemsInvContainer : MenuElement
 			
 			tab.Draw(dT);
 			tab.Update(dT);
-		}
-		
-		// Utility buttons
-		if(utils.Size() >= 2)
-		{
-			int utilities = floor(utils.Size() / 2);
-			TextureID boxTex = TexMan.CheckForTexture("Graphics/Mechlab/toggleBox.png");
-			vector2 boxRes;
-			[boxRes.x, boxRes.y] = TexMan.getSize(boxTex);
-			vector2 boxScale = ((size.x*1.0) / boxRes.x, (size.x * 0.25) / boxRes.y);
-			vector2 boxPos = (pos.x, pos.y) + (0.5, size.y + 21);
-			
-			for(int i = 0; i < utils.Size(); i+=2)
-			{
-				let utilButtonOne = utils[i];
-				let utilButtonTwo = utils[i+1];
-				utilButtonOne.Update(dT);
-				utilButtonTwo.Update(dT);
-				utilButtonOne.Draw(dT);
-				utilButtonTwo.Draw(dT);
-				MWDrawer.DrawImage("Graphics/Mechlab/toggleBox.png", boxPos, scale:boxScale, texOffs:(0,0));
-				boxPos.y += (boxRes.y * boxScale.y);
-			}
 		}
 	}
 }
@@ -930,6 +908,22 @@ class MechContainerScrollBar : MenuElement
 			MWDrawer.Fill("Black", pos.x-2, pos.y-2, size.x+4, size.y+4);
 			MWDrawer.Fill("Gray", pos.x , pos.y  , size.x, size.y);
 		}
+	}
+}
+class InvContainerSearchBar : MenuSearchBar
+{	
+	MenuItemsInvContainer parentContainer;
+	
+	override void Init()
+	{
+		super.Init();
+		parentContainer = MenuItemsInvContainer(parentElement);
+	}
+	
+	override void OnSubmit()
+	{
+		if(parentContainer) 
+			parentContainer.DoSearchFilter(buffer);
 	}
 }
 
@@ -998,6 +992,15 @@ class MechItemSortTab : MechContainerTab
 		active = false;
 	}
 	
+	override void Update(double dT)
+	{
+		super.Update(dT);
+		
+		// Tabs are not active while searching for all items.
+		if(parentContainer && parentContainer.itemSearch != "")
+			active = false;
+	}
+	
 	// Return true to sort item out of list 
 	virtual bool doFilterItem(MechItem item)
 	{
@@ -1057,12 +1060,22 @@ class MechInvItem : MenuElement
 	bool grayed;
 	bool outOfBounds;
 	bool dragging;
+	bool locked;
 	vector2 defaultPos;
 	
 	override void Init()
 	{
 		super.Init();
 		defaultPos = pos;
+	}
+	
+	override void Update(double dT)
+	{
+		// Disable hard-pointed items such as weapons, from being equipped while the mech is being piloted.
+		locked = (mechlab.mech.driver && !(item is "MechAmmo"));
+		
+		// Keep repair kits enabled.
+		if( (item is "MechRepairKit") && locked) locked = false;
 	}
 	
 	override bool checkDraggable()
@@ -1082,6 +1095,12 @@ class MechInvItem : MenuElement
 	{
 		pos = defaultPos;
 		dragging = false;
+		
+		if(locked) 
+		{
+			MDRDialogMenu.Open(mechlab, "Hardmount", "Only ammo can be equipped while mech is in active use.", "Continue");
+			return;
+		}
 		
 		let mouseOverContainer = MechHardpointContainer(cursor.getCollidingWithType("MechHardpointContainer"));	
 		let mouseOverItem = mouseOverContainer ? mouseOverContainer.mouseHoverSlot : NULL; 
@@ -1120,6 +1139,11 @@ class MechInvItem : MenuElement
 		{
 			itemFontColor = Font.CR_BLACK;
 			slotColor = "Gray";
+		}
+		if(locked)
+		{
+			itemFontColor = Font.CR_GRAY;
+			slotColor = 0xFF3F3F3F;
 		}
 		
 		double scale = 0.5;
@@ -1183,6 +1207,7 @@ class MechInfoContainer : MenuElement
 {
 	Mechmenu_Mechlab mechlab;
 	DrivableMech mech;
+	Array<MechlabUtilityButton> utils;
 	
 	override void Init()
 	{
@@ -1191,6 +1216,38 @@ class MechInfoContainer : MenuElement
 		if(!mechlab) return;
 		
 		mech = mechlab.mech;
+		
+		vector2 utilButtonPos = (pos.x + 8, pos.y + size.y + 9);
+		utilButtonPos.y += SetupUtilButtons("MechArmor_Standard", "MechArmor_Ferro", utilButtonPos);
+		utilButtonPos.y += SetupUtilButtons("MechChassis_Standard", "MechChassis_Endosteel", utilButtonPos);
+	}
+		
+	double SetupUtilButtons(class<MechItem> itemOne, class<MechItem> itemTwo, vector2 buttonPos)
+	{
+		// Util buttons
+		vector2 utilButtonSize = (size.x * 0.45, size.x * 0.2);
+	
+		let utilItemOne = MechUtility(mechlab.inv.FindItem(itemOne));
+		let utilItemTwo = MechUtility(mechlab.inv.FindItem(itemTwo));
+
+		if(utilItemOne && utilItemTwo)
+		{
+			let utilOne = MechlabUtilityButton(
+				MenuElement.Create("MechlabUtilityButton", "UtilButton1", parentMenu, buttonPos, utilButtonSize)
+			);
+			utilOne.Setup(mechlab, utilItemOne);
+			buttonPos.x += utilButtonSize.x * 1.15;
+			
+			let utilTwo = MechlabUtilityButton(
+				MenuElement.Create("MechlabUtilityButton", "UtilButton2", parentMenu, buttonPos, utilButtonSize)
+			);
+			utilTwo.Setup(mechlab, utilItemTwo);
+			
+			utils.Push(utilOne);
+			utils.Push(utilTwo);
+		}
+		
+		return utilButtonSize.y + 20;
 	}
 	
 	override void Draw(double dT)
@@ -1201,6 +1258,8 @@ class MechInfoContainer : MenuElement
 		MWDrawer.Fill(bgColor, pos.x, pos.y, size.x, size.y);
 		MWDrawer.Fill("Blue", pos.x+1, pos.y+1, size.x-2, 40);
 		MWDrawer.Fill("DarkGray", pos.x, pos.y+42, size.x, 24);
+		
+		MWDrawer.Fill(edgeColor, pos.x-2, pos.y+size.y, size.x+4, 195);
 		
 		string mechName = mech.mechChassisName;
 		string mechVariant = mech.mechVariantName;
@@ -1396,6 +1455,43 @@ class MechInfoContainer : MenuElement
 			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT,
 			scale:(textSize, textSize)*0.7
 		);
+		
+		// CBills
+		textPos.y = pos.y + size.y - 60;
+		string userCBills = MWDrawer.FormatNumber(mechlab.inv.cbills);
+		MWDrawer.DrawString(textFont, 
+			"\c[Teal]CBills", 
+			textPos, scale:(textSize, textSize)
+		);
+		MWDrawer.DrawString(textFont, 
+			String.Format("\c[White]%s", userCBills), 
+			textPos + (size.x - 20, 0), flags:MWDrawer.SS_TEXT_RIGHT,
+			scale:(textSize, textSize)*1.0
+		);
+		
+		
+		// Utility buttons
+		if(utils.Size() >= 2)
+		{
+			int utilities = floor(utils.Size() / 2);
+			TextureID boxTex = TexMan.CheckForTexture("Graphics/Mechlab/toggleBox.png");
+			vector2 boxRes;
+			[boxRes.x, boxRes.y] = TexMan.getSize(boxTex);
+			vector2 boxScale = ((size.x*1.0) / boxRes.x, (size.x * 0.25) / boxRes.y);
+			vector2 boxPos = (pos.x, pos.y) + (0, size.y);
+			
+			for(int i = 0; i < utils.Size(); i+=2)
+			{
+				let utilButtonOne = utils[i];
+				let utilButtonTwo = utils[i+1];
+				utilButtonOne.Update(dT);
+				utilButtonTwo.Update(dT);
+				utilButtonOne.Draw(dT);
+				utilButtonTwo.Draw(dT);
+				MWDrawer.DrawImage("Graphics/Mechlab/toggleBox.png", boxPos, scale:boxScale, texOffs:(0,0));
+				boxPos.y += (boxRes.y * boxScale.y);
+			}
+		}
 	}
 }
 
@@ -1468,7 +1564,7 @@ class MechlabUtilityButton : MenuButton
 		{
 			bgColor = "Gray";
 			fontColor = Font.CR_Black;
-			MenuItemsInvContainer.DrawItemStats(mechlab, util, (340,570), 350);
+			MenuItemsInvContainer.DrawItemStats(mechlab, util, (720,850), 350);
 		}
 		
 		if(active)
@@ -1491,6 +1587,21 @@ class MechlabUtilityButton : MenuButton
 		if(!mechlab) return;
 		
 		int itemID = mechlab.inv.items.Find(util);
+		double utilCost = util.getEquipmentCost(mechlab.mech);
+		if(utilCost > 0)
+		{
+			string formatCost = MWDrawer.FormatNumber(utilCost);
+			string msg = String.Format("This Item costs %s cbills to equip.\nPurchase and equip item?", formatCost);
+			MDRDialogMenu.Open(mechlab, String.Format("Util.Confirm:%d", itemID), msg, "Yes", "No");
+			return;
+		}
+		
+		if(mechlab.mech.driver)
+		{
+			MDRDialogMenu.Open(mechlab, "Util.NoAccess", "Structure cannot be modified while mech is active.", "Continue");
+			return;
+		}
+		
 		EventHandler.SendNetworkEvent(String.Format("mechlab.utility.activate.%d", itemID));
 	}
 }
@@ -1520,7 +1631,7 @@ class MechMenu_Mechlab : MechMenu
 		double spacing = 205;
 		
 		// Mech info screen
-		AddElement("MechInfoContainer", "MechInfoScreen", (15,25), (380,1000));
+		AddElement("MechInfoContainer", "MechInfoScreen", (15,25), (380,850));
 	
 		// Head
 		let headSlots = MechHardpointContainer(
@@ -1567,11 +1678,24 @@ class MechMenu_Mechlab : MechMenu
 		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
 		
 		// Items inventory
-		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,170), (400,500));
+		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,250), (400,600));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 
 		
+	}
+	
+	override void Drawer()
+	{
+		super.Drawer();
+		
+		// Mech must be shutdown to use the mechlab to reload.
+		if(mech && mech.driver && !mech.shutdown)
+		{
+			MWDrawer.Fill(0xFF0F0F0F, 0, 0, MWDrawer.getBaseWidth(), MWDrawer.getBaseHeight(), 0.60);
+			if(!pauseUpdates) MDRDialogMenu.Open(self, "Mechlab.NoAccess", "Mech must be shutdown prior to accessing the mechlab.", "Exit Mechlab");
+			pauseUpdates = true;
+		}
 	}
 	
 	override void OnMenuClose()
@@ -1603,8 +1727,34 @@ class MechMenu_Mechlab : MechMenu
 		Array<String> menuArgs;
 		menuCmd.Split(menuArgs, ".");
 		
+		Array<String> dialogInfo;
+		menuCmd.Split(dialogInfo, ":");
+		
 		uint argc = menuArgs.Size();
 		if(!argc) return;
+		
+		if(dialogInfo[0] ~== "dialog")
+		{
+			if(dialogInfo[1] ~== "Mechlab.NoAccess")
+			{
+				// Process to close mechlab.
+				EventHandler.SendInterfaceEvent(e.Player, "mechlab.forceclose");
+			}
+			
+			if(dialogInfo[1] ~== "Util.Confirm")
+			{
+				int utilID = dialogInfo[2].ToInt();
+				if( !(dialogInfo[3] ~== "yes") ) return; // User declined purchase.
+				
+				let toHardpoint = MechHardpoint(mech.torso);
+				if(!toHardpoint) return;
+
+				let item = inv.items[utilID];
+				int success = item.TryAttach(toHardpoint);
+				if(success != MechItem.IAE_SUCCESS) 
+					SendItemErrorMessage(e.Player, item, success);
+			}
+		}
 		
 		if(menuArgs[0] ~== "mechlab")
 		{
@@ -1725,6 +1875,28 @@ class MechMenu_Mechlab : MechMenu
 	{
 		Array<String> cmds;
 		event.Split(cmds, ".");
+		
+		let plr = players[playerNumber].mo;
+		if(cmds[0] == "mechlab")
+		{		
+			if(cmds[1] == 'update')
+			{
+				let mechEvents = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+				if(!mechEvents) return;
+			
+				invSource = plr;
+				mech = mechEvents.mechlab_curmech[playerNumber];
+				InitElements();
+			}
+			
+			if(cmds[1] == "forceclose")
+			{
+				// We shouldn't need to save the mech when no changes have been made.
+				// OnMenuClose(); 
+				
+				Close();
+			}
+		}
 		
 		if(cmds.Size() >= 3)
 		{

@@ -171,6 +171,7 @@ class MechArmor_Ferro : MechArmor
 		damageMod = 1.0;
 		displayName = "Ferro-fibrous";
 		armorTier = 1; // Advanced armor tier
+		costPerTon = 4000;
 		
 		// Wasn't able to find a source for this price, so I have to make it the fuck up.
 		// Maybe one day search engines will work properly again, but that isn't today.
@@ -213,6 +214,7 @@ class MechChassis_EndoSteel : MechChassisStructure
 		displayName = "Endosteel";
 		chassisWeightPercent = 0.5;
 		structureTier = 1; // Advanced structure tier
+		costPerTon = 8000; // Per-ton of structural materials.
 		
 		value = 150000;
 	}

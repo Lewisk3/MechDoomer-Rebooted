@@ -55,6 +55,18 @@ class MechInteraction_Handler : EventHandler
 		SendInterfaceEvent(PID, "mechbaymenu.update");
 	}
 	
+	play void OpenMechRepairMenu(int PID, DrivableMech mech)
+	{
+		if(!mech) return;
+		
+		mechlab_curmech[PID] = mech;
+		if(PID == consoleplayer) 
+		{
+			Menu.SetMenu("MechRepairMenu");
+			SendInterfaceEvent(PID, "repairmenu.update");
+		}
+	}
+	
 	override void WorldUnloaded(WorldEvent e)
 	{
 		// Call vehicle travelling virtuals
@@ -69,19 +81,8 @@ class MechInteraction_Handler : EventHandler
 		string cmd = e.Name;
 		let plr = players[consoleplayer].mo;
 		
-		let mechlab = MechMenu_Mechlab(Menu.getCurrentMenu());
 		let mdrMenu = MechMenu(Menu.getCurrentMenu());
-		
 		if(mdrMenu) mdrMenu.processPlayEvent(consoleplayer, e.Name);		
-		if(mechlab) 
-		{
-			if(cmd == 'mechlab.update')
-			{
-				mechlab.invSource = plr;
-				mechlab.mech = mechlab_curmech[consoleplayer];
-				mechlab.InitElements();
-			}
-		}
 	}
 	
 	// Item information canvases
@@ -175,6 +176,12 @@ class MechInteraction_Handler : EventHandler
 			
 		if(cmd ~== "mw_openmechbaymenu")
 			OpenMechbayMenu(e.Player);
+			
+		if(cmd ~== "mw_debug_openmechrepair")
+		{
+			let mechData = I_SaveMechData(plr.mo.FindInventory("I_SaveMechData"));
+			OpenMechRepairMenu(e.Player, mechData.mechsData[0].mechobj);
+		}
 					
 		/*
 		if(cmd ~== "+mw_opendronemenu")

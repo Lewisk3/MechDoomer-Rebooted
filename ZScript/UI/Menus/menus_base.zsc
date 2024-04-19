@@ -352,6 +352,7 @@ class MenuSearchBar : MenuElement
 	string defaultText;
 	Font searchFont;
 	Font bufferFont;
+	MenuCursor userCursor;
 	
 	override void Init()
 	{
@@ -361,6 +362,24 @@ class MenuSearchBar : MenuElement
 		
 		active = false;
 		alpha = 1.0;
+	}
+	
+	static double getSearchRelevancy(string searchStr, string itemName)
+	{
+		Array<string> searchKeywords;
+		string normalizedSearch = searchStr.MakeLower();
+		normalizedSearch.Split(searchKeywords, " ");
+		
+		int matches = 0;
+		if(searchKeywords.Size() > 0)
+		{
+			itemName = itemName.MakeLower();
+			
+			foreach(keyword : searchKeywords)
+				if(itemName.IndexOf(keyword) != -1) matches++;
+		}
+		
+		return matches / double(searchKeywords.Size());
 	}
 	
 	override void Draw(double dT)
@@ -413,7 +432,10 @@ class MenuSearchBar : MenuElement
 	{
 		let cursor = MenuCursor(getCollidingWithType("MenuCursor"));
 		if(cursor && !active && cursor.leftPressed)
+		{
+			userCursor = cursor;
 			OpenTextInput();
+		}
 	}
 	
 	virtual void OnSubmit()

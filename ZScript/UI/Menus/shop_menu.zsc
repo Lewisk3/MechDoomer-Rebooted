@@ -76,17 +76,14 @@ class ShopItemsContainer : MenuElement
 			{
 				let mech = mechs[i];
 				let mechdefs = GetDefaultByType(mech.mechType);
+				string mechVariant = mechdefs.mechVariantName;
+				string mechName = mechdefs.mechChassisName .. mechVariant;
+				mechName = mechName.MakeLower();
 				
 				int matches = 0;
 				foreach(keyword : searchKeywords)
-				{
-					string mechVariant = mechdefs.mechVariantName;
-				
-					string mechName = mechdefs.mechChassisName .. mechVariant;
-					mechName = mechName.MakeLower();
-					
 					if(mechName.IndexOf(keyword) != -1) matches++;
-				}
+					
 				relevancy[i] = matches >= searchKeywords.Size();
 			}
 	

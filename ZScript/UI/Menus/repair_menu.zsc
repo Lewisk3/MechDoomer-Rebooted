@@ -1,0 +1,49 @@
+
+// Mech repair Menu
+class MechRepairMenu : MechMenu 
+{
+	PlayerPawn plr;
+	DrivableMech mech;
+	MenuCursor cursor;
+
+	override void InitElements() 
+	{
+		elements.Clear(); // Repopulate elements
+		
+		// Cursor is added last, to keep always on-top.
+		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+	
+	
+	play static void processMechbayMenuEvents(ConsoleEvent e)
+	{
+		// Menu events
+		let plr = players[e.Player].mo;
+		let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+		if(!playerMechs) return;
+		
+		string menuCmd = e.Name;
+		Array<String> menuArgs;
+		menuCmd.Split(menuArgs, ":");
+	}
+	
+	override void processPlayEvent(int playerNumber, string event) 
+	{
+		Array<String> cmds;
+		event.Split(cmds, ".");
+		
+		let plr = players[playerNumber].mo;
+		if(cmds[0] == "repairmenu")
+		{		
+			if(cmds[1] == 'update')
+			{
+				let mechEvents = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+				if(!mechEvents) return;
+			
+				self.plr = plr;
+				mech = mechEvents.mechlab_curmech[playerNumber];
+				InitElements();
+			}
+		}
+	}
+}

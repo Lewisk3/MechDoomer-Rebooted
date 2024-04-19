@@ -27,6 +27,7 @@ class MechItem : Object
 		IAE_EXCLUSIVE	= 4,
 		IAE_NOTFOUND	= 5,
 		IAE_TOOCOMPLEX  = 6,
+		IAE_NOMONEY		= 7,
 		IAE_SUCCESS 	= 0xFF
 	};
 	
@@ -82,6 +83,7 @@ class MechItem : Object
 			case IAE_EXCLUSIVE : return ("Only one of these items may be equipped.");
 			case IAE_NOTFOUND  : return ("Missing component.");
 			case IAE_TOOCOMPLEX: return ("Mech' structure is too complex to be modified.");
+			case IAE_NOMONEY   : return ("Insufficient funds.");
 			
 			// No Error message.
 			case IAE_SUCCESS:
@@ -549,6 +551,13 @@ class MechUtility : MechItem
 	{
 		template = true;
 	}
+	
+	// How many CBills this util costs to equip.
+	// Managed differently by each item type.
+	virtual double GetEquipmentCost(DrivableMech mech)
+	{
+		return 0;
+	}
 }
 class MechArmor : MechUtility
 {
@@ -558,6 +567,7 @@ class MechArmor : MechUtility
 	int armorTier; // 0 is repairable by any armor kit. 1 requires an advanced armor kit.
 	class<MechDynamicStructure> structType;
 	int structureSlots;
+	double costPerTon; // CBill armor cost per-ton.
 
 	override void Defaults()
 	{
@@ -639,6 +649,12 @@ class MechArmor : MechUtility
 		}
 	}
 	
+	override double getEquipmentCost(DrivableMech mech)
+	{
+		double tons = getMaxArmorPoints(mech) * armorWeight;
+		return costPerTon * tons;
+	}
+	
 	override int TryAttach(MechHardpoint part)
 	{
 		let mech = part.mech;
@@ -649,6 +665,10 @@ class MechArmor : MechUtility
 		
 		if(prevArmor && (prevArmor.armorTier-1) > armorTier)
 			return IAE_TOOCOMPLEX;
+			
+		double cbillChange = (prevArmor ? prevArmor.getEquipmentCost(mech) : 0) - getEquipmentCost(mech);
+		if(inv && (inv.cbills + cbillChange) < 0)
+			return IAE_NOMONEY;
 		
 		if(prevArmor) prevArmor.OnDetach();
 		mech.armorType = NULL;
@@ -669,6 +689,9 @@ class MechArmor : MechUtility
 		}
 		else
 		{
+			// Modify user cbills by equipmentCost
+			if(inv) inv.cbills += cbillChange;
+		
 			self.mech = mech;
 			self.armorAmount = 0;
 			mech.armorType = self;
@@ -719,6 +742,7 @@ class MechChassisStructure : MechUtility
 	class<MechDynamicStructure> structType;
 	int structureSlots;
 	int structureTier;
+	double costPerTon; // Per-ton of structural materials.
 
 	override void Defaults()
 	{
@@ -731,6 +755,11 @@ class MechChassisStructure : MechUtility
 		structureSlots = 0;
 		chassisWeightPercent = 1.0;
 		structureTier = 0;
+	}
+	
+	override double getEquipmentCost(DrivableMech mech)
+	{
+		return costPerTon * (mech.maxWeight * 0.1 * chassisWeightPercent);
 	}
 		
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -760,6 +789,11 @@ class MechChassisStructure : MechUtility
 		if(prevStructure && (prevStructure.structureTier-1) > structureTier)
 			return IAE_TOOCOMPLEX;
 		
+		double cbillChange = (prevStructure ? prevStructure.getEquipmentCost(mech) : 0) - getEquipmentCost(mech);
+		
+		if(inv && (inv.cbills + cbillChange) < 0) 
+			return IAE_NOMONEY;
+		
 		if(prevStructure) prevStructure.OnDetach();
 		mech.chassisStructure = NULL;
 		
@@ -775,6 +809,7 @@ class MechChassisStructure : MechUtility
 		}
 		else
 		{
+			if(inv) inv.cbills += cbillChange;
 			mech.chassisStructure = self;
 			OnAttach();
 		}

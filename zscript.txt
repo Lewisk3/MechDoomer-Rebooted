@@ -23,6 +23,7 @@ version "4.10.0"
 #include "ZScript/UI/Menus/input_menu.zsc"
 #include "ZScript/UI/Menus/mechbays_menu.zsc"
 #include "ZScript/UI/Menus/dialogue_menu.zsc"
+#include "ZScript/UI/Menus/repair_menu.zsc"
 
 // Vehicle System
 #include "ZScript/drivables/drivables_math.zsc"

@@ -120,14 +120,9 @@ class MechbayInventory : MenuElement
 				
 				string mechName = String.Format("%s %s %s", mechdefs.mechChassisName, mechdefs.mechVariantName, mechEngineName);
 				mechName = mechName.MakeLower();
-
-				bool doFilter = true;
-				foreach(term : searchTerms)
-				{
-					if(mechName.IndexOf(term) != -1)
-						doFilter = false;
-				}
-				if(doFilter) continue;
+			
+				// Filter mech if not relevant to search
+				if(MenuSearchBar.getSearchRelevancy(mechSearch, mechName) < 0.9) continue;
 			}
 			
 			let card = MechCard(AddChild(base, "MechCard", "InvMechCard", cardsPos, cardsSize));

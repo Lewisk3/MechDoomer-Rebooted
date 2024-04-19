@@ -291,6 +291,9 @@ class MechHUD : VehicleHUD
 		vector2 radarPos = (960,900);
 		double radius = 150;
 		
+		if(mech.camActive == mech.camDrone)
+			radarPos = (160, 160);
+		
 		// Powerup animation
 		if(powerupTics > 0) radius *= (1.0-(powerupTics/POWERANIM));
 		

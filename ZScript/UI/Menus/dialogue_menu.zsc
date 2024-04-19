@@ -87,6 +87,13 @@ class MDRDialogBox : MenuElement
 		double maxLen = boxSize - (charSize * 4.0);
 		msgLines = base.msgFont.BreakLines(base.message, maxLen);
 
+		// Auto-center
+		vector2 center = (
+			MWDrawer.getBaseWidth(),
+			MWDrawer.getBaseHeight()
+		) * 0.5;
+		pos = center - (size.x * 0.5, size.y * 0.5);
+
 		vector2 msgPos = pos + (size.x * 0.5, fontHeight * 1.5); 
 		
 		// Auto-scale
@@ -97,13 +104,6 @@ class MDRDialogBox : MenuElement
 			alpha = DrivablesMath.Lerp(alpha, 0, min(0.3, 0.3 * dT));
 		else
 			size.y = DrivablesMath.Lerp(size.y, scaledHeight, min(0.3, 0.3 * dT));
-
-		// Auto-center
-		vector2 center = (
-			MWDrawer.getBaseWidth(),
-			MWDrawer.getBaseHeight()
-		) * 0.5;
-		pos = center - (size.x * 0.5, size.y * 0.5);
 		
 		// Box
 		MWDrawer.Fill(0xFF9F9F9F, pos.x - 4, pos.y - 4, size.x + 8, size.y + 8, alpha * 0.85);
