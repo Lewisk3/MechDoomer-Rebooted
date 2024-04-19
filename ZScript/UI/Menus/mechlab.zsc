@@ -1586,6 +1586,12 @@ class MechlabUtilityButton : MenuButton
 		pressed = false;
 		if(!mechlab) return;
 		
+		if(mechlab.mech.driver)
+		{
+			MDRDialogMenu.Open(mechlab, "Util.NoAccess", "Structure cannot be modified while mech is active.", "Continue");
+			return;
+		}
+		
 		int itemID = mechlab.inv.items.Find(util);
 		double utilCost = util.getEquipmentCost(mechlab.mech);
 		if(utilCost > 0)
@@ -1593,12 +1599,6 @@ class MechlabUtilityButton : MenuButton
 			string formatCost = MWDrawer.FormatNumber(utilCost);
 			string msg = String.Format("This Item costs %s cbills to equip.\nPurchase and equip item?", formatCost);
 			MDRDialogMenu.Open(mechlab, String.Format("Util.Confirm:%d", itemID), msg, "Yes", "No");
-			return;
-		}
-		
-		if(mechlab.mech.driver)
-		{
-			MDRDialogMenu.Open(mechlab, "Util.NoAccess", "Structure cannot be modified while mech is active.", "Continue");
 			return;
 		}
 		

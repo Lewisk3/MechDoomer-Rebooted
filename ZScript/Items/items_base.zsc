@@ -525,6 +525,9 @@ class MechDynamicStructure : MechItem
 		int curFreeslots = getFreeslots();
 		MechHardpoint freeHardpoint = findFreeslots(mech);
 		
+		// Scale HP to internals health.
+		hp = floor((parent.healthPoints / parent.maxHP) * 10);
+		
 		if(parent.healthPoints <= 0) return; // Do not move if we're in a dead hardpoint.
 		if( (curFreeslots <= 1 && !freeHardpoint) && size < 1 )
 		{
@@ -600,7 +603,7 @@ class MechArmor : MechUtility
 	play static bool addToMech(DrivableMech mech, class<MechArmor> type = "MechArmor")
 	{
 		let ar = MechItem.Init(type);
-		if(ar) return ar.TryAttach(mech.torso) == IAE_SUCCESS;
+		if(ar) return ar.TryAttach(mech.torso, forced:true) == IAE_SUCCESS;
 		return false;
 	}
 	
@@ -655,7 +658,8 @@ class MechArmor : MechUtility
 		return costPerTon * tons;
 	}
 	
-	override int TryAttach(MechHardpoint part)
+	// Forced skips cbill transaction
+	override int TryAttach(MechHardpoint part, bool forced)
 	{
 		let mech = part.mech;
 		if( !mech || (mech.armorType && mech.armorType.getClass() == getClass()) ) return IAE_FAIL;
@@ -667,6 +671,8 @@ class MechArmor : MechUtility
 			return IAE_TOOCOMPLEX;
 			
 		double cbillChange = (prevArmor ? prevArmor.getEquipmentCost(mech) : 0) - getEquipmentCost(mech);
+		if(forced) cbillChange = 0;
+		
 		if(inv && (inv.cbills + cbillChange) < 0)
 			return IAE_NOMONEY;
 		
@@ -774,11 +780,12 @@ class MechChassisStructure : MechUtility
 	play static bool addToMech(DrivableMech mech, class<MechChassisStructure> type = "MechChassisStructure")
 	{
 		let ar = MechItem.Init(type);
-		if(ar) return ar.TryAttach(mech.torso) == IAE_SUCCESS;
+		if(ar) return ar.TryAttach(mech.torso, forced:true) == IAE_SUCCESS;
 		return false;
 	}
-		
-	override int TryAttach(MechHardpoint part)
+	
+	// Forced bypasses cbill transaction.
+	override int TryAttach(MechHardpoint part, bool forced)
 	{
 		let mech = part.mech;
 		if(!mech) return IAE_FAIL;
@@ -790,6 +797,7 @@ class MechChassisStructure : MechUtility
 			return IAE_TOOCOMPLEX;
 		
 		double cbillChange = (prevStructure ? prevStructure.getEquipmentCost(mech) : 0) - getEquipmentCost(mech);
+		if(forced) cbillChange = 0;
 		
 		if(inv && (inv.cbills + cbillChange) < 0) 
 			return IAE_NOMONEY;
