@@ -1,10 +1,291 @@
 
+class PaperDollContainer : MenuElement
+{
+	MechRepairMenu base;
+	HardpointButton selectedHardpoint;
+	
+	enum PaperDollMode 
+	{	
+		PDM_ARMOR,
+		PDM_INTERNAL
+	};
+	
+	enum ArmorMode 
+	{
+		AM_FRONT,
+		AM_REAR
+	};
+	
+	int paperDollType;
+	int paperDollArmor;
+		
+	RepairMenuButton btnArmorMode, btnInternalMode;
+	RepairMenuButton btnArmorFront, btnArmorRear;
+
+	override void Init()
+	{
+		base = MechRepairMenu(parentMenu);
+		paperDollType = PDM_ARMOR;
+		paperDollArmor = AM_FRONT;
+		
+		Array<MechHardpoint> hardpoints;
+		base.mech.getHardpoints(hardpoints, skipDestroyed:false);
+		
+		foreach(hp : hardpoints)
+		{
+			let hpButton = HardpointButton(AddChild(base, "HardpointButton", "Hardpoint", pos + (size * 0.5), size));
+			hpButton.hp = hp;
+		}
+		
+		vector2 pdmPos = pos + (0, -100);
+		btnArmorMode = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Armor", pdmPos, (160,64));
+		btnInternalMode = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Internals", pdmPos + (238, 0), (160,64));
+		
+		vector2 amPos = pos + (0, size.y + 30);
+		btnArmorFront = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Front", amPos + (8, 0), (160,64));
+		btnArmorRear = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Rear", amPos + (230, 0), (160,64));
+	}
+	
+	override void Draw(double dT)
+	{
+		// Background
+		MWDrawer.Fill(0xFF7F7F7F, pos.x, pos.y, size.x, size.y, 1.0);		
+		
+		// Paperdoll background
+		double scale = size.y / 300.0;
+		MWDrawer.DrawImage(base.mech.paperdoll_background, pos + (size * 0.5), scale:(scale,scale)); 
+		
+		// Button background
+		MWDrawer.Fill(0xFF7F7F7F, btnArmorMode.pos.x - 8, btnArmorMode.pos.y - 16, size.x + 16, btnArmorMode.size.y + 32);
+		
+		MWDrawer.Fill(
+			btnArmorFront.active ? 0xFF7F7F7F : 0xFF3F3F3F, 
+			btnArmorFront.pos.x - 8, btnArmorFront.pos.y - 30, 
+			btnArmorFront.size.x + 16, btnArmorFront.size.y + 48
+		);
+		MWDrawer.Fill(
+			btnArmorRear.active ? 0xFF7F7F7F : 0xFF3F3F3F, 
+			btnArmorRear.pos.x - 8, btnArmorRear.pos.y - 30, 
+			btnArmorRear.size.x + 16, btnArmorRear.size.y + 48
+		);
+	}
+	
+	override void Update(double dT)
+	{
+		if(btnArmorMode.pressed)
+		{
+			paperDollType = PDM_ARMOR;
+			btnArmorMode.pressed = false;
+		}
+		if(btnInternalMode.pressed)
+		{
+			paperDollType = PDM_INTERNAL;
+			btnInternalMode.pressed = false;
+		}
+		if(btnArmorFront.pressed)
+		{
+			paperDollArmor = AM_FRONT;
+			btnArmorFront.pressed = false;
+			selectedHardpoint = NULL;
+		}
+		if(btnArmorRear.pressed)
+		{
+			paperDollArmor = AM_REAR;
+			btnArmorRear.pressed = false;
+			selectedHardpoint = NULL;
+		}
+		
+		btnArmorMode.active = (paperDollType == PDM_ARMOR);
+		btnInternalMode.active = (paperDollType == PDM_INTERNAL);
+		btnArmorFront.active = (paperDollArmor == AM_FRONT);
+		btnArmorRear.active = (paperDollArmor == AM_REAR);
+	}
+}
+
+class HardpointButton : MenuElement
+{
+	MechHardpoint hp;
+	MechRepairMenu base;
+	PaperDollContainer parent;
+	
+
+	override void Init()
+	{
+		base = MechRepairMenu(parentMenu);
+		parent = PaperDollContainer(parentElement);
+	}
+	
+	static string getGraphicOutline(string graphic)
+	{
+		int ext = graphic.IndexOf(".");
+		return graphic.Mid(0, ext) .. "_outline" .. graphic.Mid(ext);
+	}
+	
+	override void OnCollision(MenuElement element)
+	{
+		let cursor = MenuCursor(element);
+		if(!cursor) return;
+		
+		if(cursor && cursor.leftPressed)
+		{
+			if(parent.selectedHardpoint == self)
+				parent.selectedHardpoint = NULL;
+			else
+				parent.selectedHardpoint = self;
+				
+			cursor.leftPressed = false;
+		}
+	}
+	
+	override void Draw(double dT)
+	{
+		double scale = parentElement.size.y / 300.0;
+		
+		bool hovered = !!getCollidingWithType("MenuCursor");
+		bool selected = parent.selectedHardpoint == self;
+		bool internalMode = parent.paperDollType == parent.PDM_INTERNAL;
+		bool rearArmor = parent.paperDollArmor == parent.AM_REAR;
+	
+		string baseGraphic = "Graphics/HUD/PaperDoll/";
+		string hpArmor =  baseGraphic .. hp.paperdoll_ArmorGraphic;
+		string hpInternals = baseGraphic .. hp.paperdoll_InternalGraphic;
+		string hpArmor_Outline = getGraphicOutline(hpArmor);
+		
+		if(rearArmor && !hp.hasRearArmor) return;
+		
+		double curArmor, curInternals;
+		[curArmor, curInternals] = hp.getVitals();
+		if(rearArmor) curArmor = hp.getRearVitals();
+		
+		Color armorCol = hp.getHealthyColor(curArmor);
+		Color internalCol = hp.getHealthyColor(curInternals);
+		
+		MWDrawer.DrawImage(
+			hpArmor, 
+			parentElement.pos + (parentElement.size * 0.5), 
+			alpha: internalMode ? 0 : 1.0,
+			scale:(scale,scale), 
+			tint:armorCol
+		);
+		
+		MWDrawer.DrawImage(
+			hpInternals, 
+			parentElement.pos + (parentElement.size * 0.5), 
+			alpha: internalMode ? 1.0 : 0,
+			scale:(scale,scale), 
+			tint:internalCol
+		);
+		
+		if(selected)
+		{
+			Color hpTint = 0xE70000FF;
+			MWDrawer.DrawImage(
+				hpArmor, 
+				parentElement.pos + (parentElement.size * 0.5), 
+				alpha:0.5, 
+				scale:(scale,scale), 
+				tint:hpTint
+			);
+		}
+		
+		if(hovered || selected) MWDrawer.DrawImage(
+			hpArmor_Outline, 
+			parentElement.pos + (parentElement.size * 0.5), 
+			scale:(scale,scale), 
+			tint:0xFF0000FF
+		);
+		
+		// Adjust pos and size
+		vector2 basePos = parentElement.pos;
+		pos = (0,0);
+		size = (0,0);
+		
+		if(hp == base.mech.leftArm)
+		{
+			pos = (15,65);
+			size = (45,90);
+		}
+		if(hp == base.mech.rightArm)
+		{
+			pos = (15 + 120,65);
+			size = (45,90);
+		}
+		if(hp == base.mech.leftTorso)
+		{
+			pos = (65,55);
+			size = (20,65);
+		}
+		if(hp == base.mech.rightTorso)
+		{
+			pos = (65 + 49,55);
+			size = (20,65);
+		}
+		if(hp == base.mech.torso)
+		{
+			pos = (85,85);
+			size = (30,50);
+		}
+		if(hp == base.mech.leftLeg)
+		{
+			pos = (30,160);
+			size = (55,100);
+		}
+		if(hp == base.mech.rightLeg)
+		{
+			pos = (30 + 83,160);
+			size = (55,100);
+		}
+		if(hp == base.mech.head)
+		{
+			pos = (89,56);
+			size = (21,20);
+		}
+		pos *= scale;
+		size *= scale;
+		pos += basePos;
+	}
+}
+
+class RepairMenuButton : MenuButton
+{
+	bool active;
+	string text;
+
+	static RepairMenuButton AddToParent(MenuElement parent, class<RepairMenuButton> cls, string txt, vector2 pos, vector2 size)
+	{
+		let btn = RepairMenuButton(parent.AddChild(parent.parentMenu, cls, txt, pos, size));
+		if(btn)
+		{
+			btn.text = txt;
+		}
+		return btn;
+	}
+	
+	override void Draw(double dT)
+	{
+		Font fnt = "hm_type";
+		double txtScale = 0.8;
+		vector2 txtPos = pos + (size * 0.5);
+		double textHeight = fnt.getHeight() * (1/txtScale);
+		
+		Color bgColor = hovered ? 0xA3092f9e : 0xFFa1a1a1;
+		if(active) bgColor = 0xFF49494a;
+		
+		if(!hovered && !active) MWDrawer.Fill(0xFF1F1F1F, pos.x + 2, pos.y + 2, size.x + 2, size.y + 2);
+		MWDrawer.Fill(bgColor, pos.x, pos.y, size.x, size.y);
+		
+		MWDrawer.DrawString(fnt, text, txtPos - (0, textHeight * 0.75), MWDrawer.SS_TEXT_CENTER, scale:(txtScale,txtScale));
+	}
+}
+
+
 // Mech repair Menu
 class MechRepairMenu : MechMenu 
 {
 	PlayerPawn plr;
 	DrivableMech mech;
 	MenuCursor cursor;
+	PaperDollContainer paperDoll;
 
 	override void InitElements() 
 	{
@@ -12,6 +293,11 @@ class MechRepairMenu : MechMenu
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+	
+	void PopulateMechElements()
+	{
+		paperDoll = PaperDollContainer(AddElement("PaperDollContainer", "PaperDoll", (750,250), (400,600)));
 	}
 	
 	
@@ -42,7 +328,7 @@ class MechRepairMenu : MechMenu
 			
 				self.plr = plr;
 				mech = mechEvents.mechlab_curmech[playerNumber];
-				InitElements();
+				PopulateMechElements();
 			}
 		}
 	}
