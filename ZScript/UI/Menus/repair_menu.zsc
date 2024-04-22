@@ -68,6 +68,88 @@ class PaperDollContainer : MenuElement
 			btnArmorRear.pos.x - 8, btnArmorRear.pos.y - 30, 
 			btnArmorRear.size.x + 16, btnArmorRear.size.y + 48
 		);
+		
+		drawMechInfo(dT);
+	}
+	
+	void drawMechInfo(double dT)
+	{
+		let mech = base.mech;
+		vector2 infoPos = pos - (550,120);
+		vector2 infoSize = size + (50,-50);
+
+		Color bgColor = 0xFF151515;
+		Color edgeColor = 0xFF7A7A7A;
+		MWDrawer.Fill(edgeColor, infoPos.x-2, infoPos.y-2, infoSize.x+4, infoSize.y+4);
+		MWDrawer.Fill(bgColor, infoPos.x, infoPos.y, infoSize.x, infoSize.y);
+		MWDrawer.Fill("Blue", infoPos.x+1, infoPos.y+1, infoSize.x-2, 40);
+		MWDrawer.Fill("DarkGray", infoPos.x, infoPos.y+42, infoSize.x, 24);
+		
+		string mechName = mech.mechChassisName;
+		string mechVariant = mech.mechVariantName;
+		string armorType = "Unknown";
+		string structureType = "Unknown";
+		string internals = "Unknown";
+		string armorRating = "0 / 0";
+		string armorWeight = "0";
+		string internalsWeight = "0";
+		string armorDamage = "0";
+		string internalDamage = "0";
+		double armorRepairCost;
+		double internalRepairCost;
+		string cbills = MWDrawer.FormatNumber(base.playerItems.cbills);
+		
+		if(mech.armorType) armorType = mech.armorType.displayName;
+		if(mech.chassisStructure) structureType = mech.chassisStructure.displayName;
+		
+		[armorRepairCost, internalRepairCost] = mech.getAllRepairCosts();
+		
+		string mechTonnage = String.Format(
+			"\c[%s] %.2f \c[White]/ %.1f", 
+			(mech.maxWeight-mech.weight) < 1 ? "Red" : "White", 
+			mech.weight, mech.maxWeight
+		);
+		
+		if(mech.armorType)
+		{
+			int curArmor = mech.armorType.getArmorPoints(mech);
+			int maxArmor = mech.armorType.getMaxArmorPoints(mech);
+			armorRating = String.Format("%d / %d", curArmor, maxArmor);
+			armorWeight = String.Format("%.2f tons", curArmor * mech.armorType.armorWeight);
+			armorDamage = String.Format("%.2f", mech.getArmorDamage());
+		}
+		if(mech.chassisStructure)
+		{
+			int curInternals = mech.chassisStructure.getInternals(mech);
+			int maxInternals = mech.chassisStructure.getMaxInternals(mech);
+			internals = String.Format("%d / %d", curInternals, maxInternals);
+			internalsWeight = String.Format("%.2f tons", mech.chassisStructure.GetChassisWeight());
+			internalDamage = String.Format("%.2f", mech.getInternalDamage());
+		}
+		
+		MWDrawer.DrawString("hm_type", mechName, infoPos + (10,5));
+		MWDrawer.DrawString("hm_type", String.Format("Variant - %s", mechVariant), infoPos + (10,40), scale:(0.8,0.8));
+		
+		DrawMechStat(1, "Tonnage", mechTonnage, infoPos, infoSize);
+		DrawMechStat(2, "Armor Weight", armorWeight, infoPos, infoSize);
+		DrawMechStat(3, "Chassis Weight", internalsWeight, infoPos, infoSize);
+		DrawMechStat(5, "Armor Damage", armorDamage, infoPos, infoSize);
+		DrawMechStat(6, "Internal Damage", internalDamage, infoPos, infoSize);
+		DrawMechStat(7, "Armor Cost", String.Format("%d CB", armorRepairCost), infoPos, infoSize);
+		DrawMechStat(8, "Internal Cost", String.Format("%d CB", internalRepairCost), infoPos, infoSize);
+		DrawMechStat(10, "Armor Type", armorType, infoPos, infoSize);
+		DrawMechStat(11, "Structure Type", structureType, infoPos, infoSize);
+		DrawMechStat(14, "Balance", cbills .. " CB", infoPos, infoSize);
+	}
+	
+	void DrawMechStat(int lnPos, string stat, string value, vector2 infoBoxPos, vector2 infoBoxSize)
+	{	
+		vector2 statPos = infoBoxPos + (10,100);
+		vector2 valuePos = infoBoxPos + (infoBoxSize.x - 20, 105);
+		vector2 offs = (0, 30 * (lnPos-1));
+		
+		MWDrawer.DrawString("hm_type", stat, statPos + offs);
+		MWDrawer.DrawString("hm_thin", value, valuePos + offs, MWDrawer.SS_TEXT_RIGHT);
 	}
 	
 	override void Update(double dT)
@@ -157,8 +239,8 @@ class HardpointButton : MenuElement
 		[curArmor, curInternals] = hp.getVitals();
 		if(rearArmor) curArmor = hp.getRearVitals();
 		
-		Color armorCol = hp.getHealthyColor(curArmor);
-		Color internalCol = hp.getHealthyColor(curInternals);
+		Color armorCol = hp.getHealthyColor(max(0.01, curArmor));
+		Color internalCol = hp.getHealthyColor(max(0.01, curInternals));
 		
 		MWDrawer.DrawImage(
 			hpArmor, 
@@ -285,6 +367,8 @@ class MechRepairMenu : MechMenu
 	PlayerPawn plr;
 	DrivableMech mech;
 	MenuCursor cursor;
+	
+	I_MechItemStorage playerItems;
 	PaperDollContainer paperDoll;
 
 	override void InitElements() 
@@ -297,6 +381,7 @@ class MechRepairMenu : MechMenu
 	
 	void PopulateMechElements()
 	{
+		playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
 		paperDoll = PaperDollContainer(AddElement("PaperDollContainer", "PaperDoll", (750,250), (400,600)));
 	}
 	

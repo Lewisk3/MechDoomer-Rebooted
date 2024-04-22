@@ -206,6 +206,24 @@ class MechHardpoint : MechPart
 		// Setup weapon mount points here.
 		
 	}
+	
+	clearscope double, double getRepairCosts()
+	{
+		if(!mech.chassisStructure || !mech.armorType) return 0,0;
+	
+		double internalWeight = mech.chassisStructure.getChassisWeight() / mech.chassisStructure.getMaxInternals(mech);
+		double armorRepairTons = armorDamage * mech.armorType.armorWeight;
+		double internalRepairTons = (maxHP - healthPoints) * internalWeight;
+		double armorCostPerTon = mech.baseArmorRepairCost;
+		double internalCostPerTon = mech.baseInternalRepairCost;
+		
+		if(mech.armorType.costPerTon > 0) armorCostPerTon = mech.armorType.costPerTon;
+		if(mech.chassisStructure.costPerTon > 0) internalCostPerTon = mech.chassisStructure.costPerTon;
+		armorCostPerTon *= 1.5;
+		internalCostPerTon *= 2.0;
+		
+		return armorRepairTons * armorCostPerTon, internalRepairTons * internalCostPerTon;
+	}
 		
 	virtual void adjustLocalHeat(double amt)
 	{
@@ -239,11 +257,14 @@ class MechHardpoint : MechPart
 	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)
 	{
 		if(ratio <= 0) return MWDrawerColor.HSLtoRGB(0,1.0,0.0,1.0);
-		return MWDrawerColor.HSLtoRGB(0.28*(ratio-0.3), 1.0, 0.5, tintalpha);
+		double hue = DrivablesMath.fmap(max(0.3,ratio), 0.3, 1.0, 0, 0.36);
+		return MWDrawerColor.HSLtoRGB(hue, 1.0, 0.5, tintalpha);
 	}
 	clearscope double, double getVitals()
 	{
-		return maxArmor > 0 ? ( (armorPoints / (maxArmor-maxRearArmor) )) : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
+		double armorRatio = (maxArmor - armorDamage) / maxArmor;
+	
+		return maxArmor > 0 ? armorRatio : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
 	}
 	clearscope double getRearVitals()
 	{
@@ -686,7 +707,9 @@ class MechHardpoint : MechPart
 				}
 				if(!item.parent) continue;
 				
-				if( (!item.checkDestroyed() || !item.damagable) && !item.disabled ) 
+				bool alwaysTick = item is "MechDynamicStructure";
+				
+				if( alwaysTick || ((!item.checkDestroyed() || !item.damagable) && !item.disabled) ) 
 					item.DoEffect();
 			}
 		}
@@ -730,9 +753,9 @@ class MechHardpoint : MechPart
 		}
 	}
 	
-	clearscope virtual int countItems(class<MechItem> type, bool subclass = false)
+	clearscope virtual int countItems(class<MechItem> type, bool subclass = false, bool countIfDestroyed = false)
 	{
-		if(healthPoints <= 0) return 0;
+		if(healthPoints <= 0 && !countIfDestroyed) return 0;
 		int typeCount = 0;
 		for(int i = 0; i < items.Size(); i++)
 		{
@@ -764,10 +787,10 @@ class MechHardpoint : MechPart
 		return weap;
 	}
 	
-	virtual MechItem, int AddItem(class<MechItem> type)
+	virtual MechItem, int AddItem(class<MechItem> type, bool forced = false)
 	{
 		let item = MechItem.Init(type);
-		int success = item.TryAttach(self);
+		int success = item.TryAttach(self, forced);
 		if(success != MechItem.IAE_SUCCESS) 
 		{	
 			item.Destroy();	

@@ -40,6 +40,7 @@ class DrivableMech : DrivableObject
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
+	double baseArmorRepairCost, baseInternalRepairCost;
 
 	double EMI; // TODO: Electro-Magnetic interferrence, affects the HUD and targetting computer depending on how much interference is present.
 
@@ -102,6 +103,7 @@ class DrivableMech : DrivableObject
 	Property ItemGraphic : MechItemGraphic;
 	Property CBillValue : mechvalue;
 	Property Manufacturer : manufacturer;
+	Property BaseRepairCost : baseArmorRepairCost, baseInternalRepairCost;
 	
 	enum MechBtns
 	{
@@ -157,6 +159,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.HUD_Class "MechHUD";
 		DrivableMech.CombatZoom 0.1;
 		DrivableMech.Manufacturer "Unknown";
+		DrivableMech.BaseRepairCost 2500, 5000;
 	}
 	
 	override void PreTravelled()
@@ -165,6 +168,43 @@ class DrivableMech : DrivableObject
 		
 		// Save mech to serializer
 		if(MechSerializer) MechSerializer.SaveMechData(self);
+	}
+	
+	clearscope double getArmorDamage()
+	{
+		Array<MechHardpoint> hardpoints;
+		getHardpoints(hardpoints, skipDestroyed:false);
+	
+		double dmg = 0;
+		foreach(hp : hardpoints) dmg += hp.armorDamage;
+		return dmg;
+	}
+	
+	clearscope double getInternalDamage()
+	{
+		Array<MechHardpoint> hardpoints;
+		getHardpoints(hardpoints, skipDestroyed:false);
+		
+		double dmg = 0;
+		foreach(hp : hardpoints) dmg += hp.maxHP - hp.healthPoints;
+		return dmg;
+	}
+	
+	clearscope double, double getAllRepairCosts()
+	{
+		Array<MechHardpoint> hardpoints;
+		getHardpoints(hardpoints, skipDestroyed:false);
+		double armorRC, internalRC;
+		
+		foreach(hp : hardpoints)
+		{
+			double arc, irc;
+			[arc, irc] = hp.getRepairCosts();
+			armorRC += arc;
+			internalRC += irc;
+		}
+		
+		return armorRC, internalRC;
 	}
 	
 	clearscope static string GetMechWeightClass(double tonnage)

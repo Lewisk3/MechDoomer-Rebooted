@@ -180,7 +180,7 @@ class MechInteraction_Handler : EventHandler
 		if(cmd ~== "mw_debug_openmechrepair")
 		{
 			let mechData = I_SaveMechData(plr.mo.FindInventory("I_SaveMechData"));
-			OpenMechRepairMenu(e.Player, mechData.mechsData[0].mechobj);
+			OpenMechRepairMenu(e.Player, mechData.getMechbayMech(1));
 		}
 					
 		/*

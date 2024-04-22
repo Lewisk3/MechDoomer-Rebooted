@@ -424,7 +424,7 @@ class MechDynamicStructure : MechItem
 	play static void ReattachAll(DrivableMech mech)
 	{	
 		Array<MechHardpoint> hardpoints;
-		mech.getHardPoints(hardpoints);
+		mech.getHardPoints(hardpoints, skipDestroyed:false);
 		
 		Array<MechDynamicStructure> dynStructs;
 		foreach(hardpoint : hardpoints) foreach(item : hardpoint.items)
@@ -451,17 +451,17 @@ class MechDynamicStructure : MechItem
 	{
 		int curSlots = parent.slots;
 		int maxSlots = parent.maxSlots;
-		curSlots += parent.countItems("MechDynamicStructure", true);
+		curSlots += parent.countItems("MechDynamicStructure", true, countIfDestroyed:true);
 		
 		return (maxSlots-curSlots);
 	}
 	
-	clearscope static int getTotalFreeslots(DrivableMech mech)
+	clearscope static int getTotalFreeslots(DrivableMech mech, bool skipDestroyed = true)
 	{
 		int maxSlots;
 		int curSlots;
 		Array<MechHardpoint> hardpoints;
-		mech.getHardPoints(hardpoints);
+		mech.getHardPoints(hardpoints, skipDestroyed);
 		
 		for(int i = 0; i < hardpoints.Size(); i++)
 		{
@@ -481,10 +481,10 @@ class MechDynamicStructure : MechItem
 		return (maxSlots-curSlots);
 	}
 	
-	clearscope static MechHardpoint findFreeslots(DrivableMech mech)
+	clearscope static MechHardpoint findFreeslots(DrivableMech mech, bool skipDestroyed = true)
 	{
 		Array<MechHardpoint> hardpoints;
-		mech.getHardPoints(hardpoints);
+		mech.getHardPoints(hardpoints, skipDestroyed);
 		
 		// Sort hardpoint priorities
 		foreach(hardpoint : hardpoints)
@@ -495,7 +495,7 @@ class MechDynamicStructure : MechItem
 				if(item is "MechDynamicStructure") continue;
 				curSlots += item.size;
 			}
-			curSlots += hardpoint.countItems("MechDynamicStructure", true);
+			curSlots += hardpoint.countItems("MechDynamicStructure", true, countIfDestroyed:true);
 			
 			int freeSlots = hardpoint.maxSlots - curSlots;
 			if(freeSlots > 0) return hardpoint;
@@ -504,9 +504,20 @@ class MechDynamicStructure : MechItem
 		return NULL;
 	}
 	
+	override int TryAttach(MechHardpoint part, bool forced)
+	{
+		if(part.mech.noItemSlots) return false;
+		
+		parent = part;
+		part.items.Push(self);
+		OnAttach();
+				
+		return IAE_SUCCESS;
+	}
+	
 	play virtual void ReAttach()
 	{
-		let freeHardpoint = findFreeslots(mech);
+		let freeHardpoint = findFreeslots(mech, skipDestroyed:false);
 		if(freeHardpoint)
 		{
 			TryDetach(true);
@@ -523,12 +534,11 @@ class MechDynamicStructure : MechItem
 	{
 		super.DoEffect();
 		int curFreeslots = getFreeslots();
-		MechHardpoint freeHardpoint = findFreeslots(mech);
-		
+		MechHardpoint freeHardpoint = findFreeslots(mech, skipDestroyed:false);
+
 		// Scale HP to internals health.
 		hp = floor((parent.healthPoints / parent.maxHP) * 10);
 		
-		if(parent.healthPoints <= 0) return; // Do not move if we're in a dead hardpoint.
 		if( (curFreeslots <= 1 && !freeHardpoint) && size < 1 )
 		{
 			size = 1;
@@ -761,6 +771,32 @@ class MechChassisStructure : MechUtility
 		structureSlots = 0;
 		chassisWeightPercent = 1.0;
 		structureTier = 0;
+	}
+	
+	clearscope static double getMaxInternals(DrivableMech mech)
+	{
+		double maxInternalPts = 0;
+		Array<MechHardpoint> hardpoints;
+		mech.getHardPoints(hardpoints);
+		
+		for(int i = 0; i < hardpoints.Size(); i++)
+			maxInternalPts += hardpoints[i].maxHP;
+		
+		return maxInternalPts;
+	}
+	
+	clearscope static double getInternals(DrivableMech mech)
+	{
+		double curInternalPts = 0;
+		Array<MechHardpoint> hardpoints;
+		mech.getHardPoints(hardpoints);
+		
+		for(int i = 0; i < hardpoints.Size(); i++)
+		{
+			let hardpoint = hardpoints[i];
+			curInternalPts += (hardpoint.healthPoints);
+		}
+		return curInternalPts;
 	}
 	
 	override double getEquipmentCost(DrivableMech mech)

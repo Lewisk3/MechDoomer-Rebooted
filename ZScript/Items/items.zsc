@@ -187,6 +187,7 @@ class MechArmor_ClanFerro : MechArmor_Ferro
 		displayName = "Clan-Ferro-fibrous";
 		structureSlots = 7;
 		armorTier = 3;
+		costPerTon = 40000;
 		
 		value = 700000;
 	}
@@ -228,6 +229,7 @@ class MechChassis_ClanEndoSteel : MechChassis_EndoSteel
 		structureSlots = 7;
 		displayName = "Clan-Endosteel";
 		structureTier = 3;
+		costPerTon = 80000;
 		
 		value = 300000;
 	}
