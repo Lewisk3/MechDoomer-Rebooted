@@ -258,6 +258,19 @@ class MechbayScripts abstract play
 		evh.OpenShop(plr.PlayerNumber());	
 	}
 	
+	static int OpenRepairMenu(Actor activator, int mechbayID)
+	{
+		let plr = PlayerPawn(activator);
+		let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+		
+		let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+		DrivableMech mech = mechData.getMechbayMech(mechbayID);
+		if(!mech || !plr) return 0;
+		
+		evh.OpenMechRepairMenu(plr.PlayerNumber(), mech);
+		return 1;	
+	}
+	
 	static void SaveMechbayData(Actor activator)
 	{
 		let it = ThinkerIterator.Create("MechBay");
