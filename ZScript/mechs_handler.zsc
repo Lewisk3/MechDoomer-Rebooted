@@ -193,6 +193,7 @@ class MechInteraction_Handler : EventHandler
 		MechMenu_Mechlab.processMechlabEvents(e, mechlab_curmech[e.Player]);
 		ShopMenu.processShopMenuEvents(e);
 		MechbayMenu.processMechbayMenuEvents(e);
+		MechRepairMenu.processRepairMenuEvents(e);
 
 		// Cheats and Debug
 		Array<string> args;

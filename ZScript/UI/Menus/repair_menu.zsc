@@ -18,9 +18,11 @@ class PaperDollContainer : MenuElement
 	
 	int paperDollType;
 	int paperDollArmor;
+	double curRepairCost;
 		
 	RepairMenuButton btnArmorMode, btnInternalMode;
 	RepairMenuButton btnArmorFront, btnArmorRear;
+	RepairMenuButton btnDoRepair;
 
 	override void Init()
 	{
@@ -44,6 +46,7 @@ class PaperDollContainer : MenuElement
 		vector2 amPos = pos + (0, size.y + 30);
 		btnArmorFront = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Front", amPos + (8, 0), (160,64));
 		btnArmorRear = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Rear", amPos + (230, 0), (160,64));
+		btnDoRepair = RepairMenuButton.AddToParent(self, "RepairMenuButton", "Repair", amPos + (500, 250), (160,64));
 	}
 	
 	override void Draw(double dT)
@@ -70,6 +73,93 @@ class PaperDollContainer : MenuElement
 		);
 		
 		drawMechInfo(dT);
+		drawRepairInfo(dT);
+	}
+	
+	void drawRepairInfo(double dT)
+	{
+		let selected = selectedHardpoint ? selectedHardpoint.hp : NULL;
+		let mech = base.mech;
+		
+		// Repair button
+		btnDoRepair.disabled = (selected == NULL);
+		
+		vector2 infoPos = pos + (480,-120);
+		vector2 infoSize = size + (50,-80);
+		Color edgeColor = 0xFF151515;
+		Color bgColor = 0xFF7A7A7A;
+		btnDoRepair.pos = infoPos + ((infoSize.x * 0.5) - 84,infoSize.y - 96);
+		
+		// Draw box
+		MWDrawer.Fill(edgeColor, infoPos.x-2, infoPos.y-2, infoSize.x+4, infoSize.y+4);
+		MWDrawer.Fill(bgColor, infoPos.x, infoPos.y, infoSize.x, infoSize.y);
+		
+		if(selected)
+		{
+			string armorRating = "0 / 0";
+			string internals = "0 / 0";
+			double armorRepairCost, internalRepairCost;
+			double repairCost;
+			string hpName = "";
+			if(selected ==       mech.head) hpName = "Head";
+			if(selected ==       mech.torso) hpName = "Center Torso";
+			if(selected ==   mech.leftTorso) hpName = "Left Torso";
+			if(selected ==  mech.rightTorso) hpName = "Right Torso";
+			if(selected ==     mech.leftArm) hpName = "Left Arm";
+			if(selected == 	  mech.rightArm) hpName = "Right Arm";
+			if(selected == 	   mech.leftLeg) hpName = "Left Leg";
+			if(selected == 	  mech.rightLeg) hpName = "Right Leg";
+			switch(paperDollArmor)
+			{
+				case AM_FRONT:
+					hpName = String.Format("%s - %s", hpName, "Front");
+				break;
+				case AM_REAR:
+					hpName = String.Format("%s - %s", hpName, "Rear");
+				break;
+			}
+			
+			// Draw selected hardpoint name
+			MWDrawer.DrawString("hm_type", hpName, infoPos + (infoSize.x * 0.5, 20), MWDrawer.SS_TEXT_CENTER);
+			
+			[armorRepairCost, internalRepairCost] = selected.getRepairCosts(paperDollArmor == AM_REAR);
+			curRepairCost = (paperDollType == PDM_ARMOR ? armorRepairCost : internalRepairCost);
+			btnDoRepair.disabled = curRepairCost <= 0;
+			
+			double finalBalance = base.playerItems.cbills - curRepairCost;
+			string balString = MWDrawer.FormatNumber(finalBalance);
+			balString = String.Format("\c[%s]%s", (finalBalance < 0 ? "Red" : "Green"), balString);
+			
+			if(mech.armorType)
+			{
+				int curArmor = selected.armorPoints;
+				int maxArmor = selected.maxArmor - (selected.rearArmor + selected.rearArmorDamage);
+				if(paperDollArmor == AM_REAR)
+				{
+					curArmor = selected.rearArmor;
+					maxArmor = selected.rearArmor + selected.rearArmorDamage;
+				}
+				
+				armorRating = String.Format("%d / %d", curArmor, maxArmor);
+			}
+			if(mech.chassisStructure)
+			{
+				int curInternals = mech.chassisStructure.getInternals(mech);
+				int maxInternals = mech.chassisStructure.getMaxInternals(mech);
+				internals = String.Format("%d / %d", curInternals, maxInternals);
+			}
+		
+			string armorCol = (paperDollType == PDM_ARMOR ? "\c[Blue]" : "\c[White]");
+			string internalsCol = (paperDollType == PDM_INTERNAL ? "\c[Blue]" : "\c[White]");
+			DrawMechStat(2, armorCol .. "Armor", armorCol .. armorRating, infoPos, infoSize);
+			DrawMechStat(3, internalsCol .. "Internals", internalsCol .. internals, infoPos, infoSize);
+			DrawMechStat(5, "Repair Cost", MWDrawer.FormatNumber(curRepairCost), infoPos, infoSize);
+			DrawMechStat(7, "Final Balance", balString, infoPos, infoSize);
+		}
+		else
+		{
+			DrawMechStat(4, "No Hardpoint Selected", " ", infoPos + (20,0), infoSize);
+		}
 	}
 	
 	void drawMechInfo(double dT)
@@ -177,6 +267,21 @@ class PaperDollContainer : MenuElement
 			selectedHardpoint = NULL;
 		}
 		
+		if(btnDoRepair.pressed && selectedHardpoint)
+		{
+			// Send repair request
+			// repair:cost:hardpointID:armor/internal:front/rear
+			string repairString = String.Format(
+				"repair:%d:%f:%i:%s:%s",
+				base.playerMechs.mechsData[base.mech.saveID-1].mechbayID,
+				curRepairCost, base.mech.parts.Find(selectedHardpoint.hp),
+				(paperDollType == PDM_ARMOR) ? "armor" : "internal",
+				(paperDollArmor ==  AM_REAR) ? "rear" : "front"
+			);
+			EventHandler.SendNetworkEvent(repairString);
+			btnDoRepair.pressed = false;
+		}
+		
 		btnArmorMode.active = (paperDollType == PDM_ARMOR);
 		btnInternalMode.active = (paperDollType == PDM_INTERNAL);
 		btnArmorFront.active = (paperDollArmor == AM_FRONT);
@@ -207,6 +312,9 @@ class HardpointButton : MenuElement
 	{
 		let cursor = MenuCursor(element);
 		if(!cursor) return;
+		
+		bool rearArmor = parent.paperDollArmor == parent.AM_REAR;
+		if(rearArmor && !hp.hasRearArmor) return;
 		
 		if(cursor && cursor.leftPressed)
 		{
@@ -351,7 +459,7 @@ class RepairMenuButton : MenuButton
 		double textHeight = fnt.getHeight() * (1/txtScale);
 		
 		Color bgColor = hovered ? 0xA3092f9e : 0xFFa1a1a1;
-		if(active) bgColor = 0xFF49494a;
+		if(active || disabled) bgColor = 0xFF49494a;
 		
 		if(!hovered && !active) MWDrawer.Fill(0xFF1F1F1F, pos.x + 2, pos.y + 2, size.x + 2, size.y + 2);
 		MWDrawer.Fill(bgColor, pos.x, pos.y, size.x, size.y);
@@ -369,7 +477,9 @@ class MechRepairMenu : MechMenu
 	MenuCursor cursor;
 	
 	I_MechItemStorage playerItems;
+	I_SaveMechData playerMechs;
 	PaperDollContainer paperDoll;
+	
 
 	override void InitElements() 
 	{
@@ -382,20 +492,49 @@ class MechRepairMenu : MechMenu
 	void PopulateMechElements()
 	{
 		playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
+		playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 		paperDoll = PaperDollContainer(AddElement("PaperDollContainer", "PaperDoll", (750,250), (400,600)));
 	}
 	
 	
-	play static void processMechbayMenuEvents(ConsoleEvent e)
+	play static void processRepairMenuEvents(ConsoleEvent e)
 	{
 		// Menu events
 		let plr = players[e.Player].mo;
 		let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-		if(!playerMechs) return;
+		let playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
+		if(!playerMechs || !playerItems) return;
 		
 		string menuCmd = e.Name;
 		Array<String> menuArgs;
 		menuCmd.Split(menuArgs, ":");
+		
+		if(menuArgs[0] ~== "repair")
+		{
+			int mechbayID = menuArgs[1].toInt();
+			double cost = menuArgs[2].toDouble();
+			int partID = menuArgs[3].toInt();
+			string type = menuArgs[4];
+			string face = menuArgs[5];
+			
+			if( (playerItems.cbills - cost) < 0 ) return;
+			
+			let mech = playerMechs.getMechbayMech(mechbayID);
+			let hp = MechHardpoint(mech.parts[partID]);
+			
+			if(!hp)
+			{	
+				console.printf("Failed to find hardpoint for repair.");
+				return;
+			}
+			
+			if(type ~== "armor")
+				hp.fullRepairArmor(face ~== "rear");
+			else
+				hp.fullRepairInternals();
+				
+			playerItems.cbills -= cost;
+		}
 	}
 	
 	override void processPlayEvent(int playerNumber, string event) 

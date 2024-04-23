@@ -199,8 +199,11 @@ class DrivableMech : DrivableObject
 		foreach(hp : hardpoints)
 		{
 			double arc, irc;
+			double rearARC;
 			[arc, irc] = hp.getRepairCosts();
-			armorRC += arc;
+			[rearARC, irc] = hp.getRepairCosts(rearArmorCost:true);
+			
+			armorRC += arc + rearARC;
 			internalRC += irc;
 		}
 		

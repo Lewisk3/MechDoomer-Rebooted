@@ -207,12 +207,12 @@ class MechHardpoint : MechPart
 		
 	}
 	
-	clearscope double, double getRepairCosts()
+	clearscope double, double getRepairCosts(bool rearArmorCost = false)
 	{
 		if(!mech.chassisStructure || !mech.armorType) return 0,0;
 	
 		double internalWeight = mech.chassisStructure.getChassisWeight() / mech.chassisStructure.getMaxInternals(mech);
-		double armorRepairTons = armorDamage * mech.armorType.armorWeight;
+		double armorRepairTons = (rearArmorCost ? rearArmorDamage : armorDamage - rearArmorDamage) * mech.armorType.armorWeight;
 		double internalRepairTons = (maxHP - healthPoints) * internalWeight;
 		double armorCostPerTon = mech.baseArmorRepairCost;
 		double internalCostPerTon = mech.baseInternalRepairCost;
@@ -268,7 +268,8 @@ class MechHardpoint : MechPart
 	}
 	clearscope double getRearVitals()
 	{
-		return maxRearArmor > 0 ? (rearArmor / maxRearArmor) : 1.0;
+		double maxRear = rearArmor + rearArmorDamage;
+		return maxRear > 0 ? (rearArmor / maxRear) : 1.0;
 	}
 
 	ui virtual void DrawPaperdoll(vector2 dollPos, double dollAlpha = 1.0, vector2 dollScale = (1.0,1.0), uint drawFlags = 0, double deltaTime = 1.0, bool rear = false)
@@ -337,10 +338,16 @@ class MechHardpoint : MechPart
 			double radiateDmg = hpDmg * (localHeat / (mech.maxHeat / 4.0));
 		
 			if(armorPoints > 0)
+			{
 				armorPoints = max(0, armorPoints - (radiateDmg * 0.75)); 
-				
+				TallyArmorDamage(radiateDmg * 0.75, 0);
+			}
+			
 			if(rearArmor > 0)
+			{
 				rearArmor = max(0, rearArmor - (radiateDmg * 0.25)); 
+				TallyArmorDamage(0, radiateDmg * 0.75);
+			}
 		}
 		
 		if(!skipArmor)
@@ -628,6 +635,25 @@ class MechHardpoint : MechPart
 		Array<MechWeapon> weaps;
 		getWeapons(weaps, grp);
 		MechWeapon.FireWeapons(weaps, mech.weaponGroups, grp, instantFire);
+	}
+	
+	virtual void fullRepairArmor(bool rear = false)
+	{
+		if(rear)	
+		{
+			rearArmor += rearArmorDamage;
+			armorDamage -= rearArmorDamage;
+			rearArmorDamage = 0;
+		}
+		else
+		{
+			armorPoints += (armorDamage - rearArmorDamage);
+			armorDamage = rearArmorDamage;
+		}
+	}
+	virtual void fullRepairInternals()
+	{
+		healthPoints = maxHP;
 	}
 	
 	virtual void Repair(double armorAmt, double healthAmt, bool restoreArmorPoints = false)
