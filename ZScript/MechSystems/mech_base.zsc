@@ -32,6 +32,7 @@ class DrivableMech : DrivableObject
 	int saveID; // Used for saving mechs to the correct location.
 	bool noItemSlots; // If true, prevents any items from being equipped.
 	bool inCombatZoom; // If true, combat zoom is active.
+	bool isCriticallyDamaged; // If true, mech has sustained critical damage.
 	double combatZoomScale; // Multiplied by desiredFOV.
 	MechChassisStructure chassisStructure;
 	string MechItemGraphic; // UI Graphic for mech.
@@ -135,6 +136,9 @@ class DrivableMech : DrivableObject
 		GROUPFLG_FOUR  = 1 << 3,
 		GROUPFLG_FIVE  = 1 << 4
 	};
+	
+	const CHAN_TARGETLOCK = 16;
+	const CHAN_DMGCRIT = 21;
 	
 	// CVars
 	transient CVar cv_throttleDecay;
@@ -272,7 +276,7 @@ class DrivableMech : DrivableObject
 		selectedWeapon = 1;
 	}
 	
-	virtual string getHardpointTypeName(MechHardpoint hp)
+	clearscope virtual string getHardpointTypeName(MechHardpoint hp)
 	{
 		// Ugly but, works.
 		// Needed for overriding if our mech is for example a Tank or helicopter.
@@ -402,20 +406,16 @@ class DrivableMech : DrivableObject
 		vector3 diff = level.vec3Diff(head.pos, curTarget.pos);
 		double angTo = abs(Normalize180(atan2(diff.y, diff.x) - head.angle));
 		double zTo = abs( (curTarget.pos.z+curTarget.height*0.5) - head.lookingPos.z );
-		
+				
 		if(angTo > 25 || zTo > 200 || EMI >= 50) 
 		{
 			targetProgress *= targetDecay;
 			return;
 		}
-		else
-		{
-			if(targetProgress < 1.0) DoCockpitSound("Mech/Target/Locking", flags:CHANF_NOSTOP, volume:0.3);
-			if(targetProgress < 1.0 && targetProgress + targetSpeed >= 1.0) 
-				DoCockpitSound("Mech/Target/Locked");
-				
-			targetProgress = min(1.0, targetProgress + targetSpeed); 
-		}
+
+		if(targetProgress < 1.0) DoCockpitSound("Mech/Target/Locking", flags:CHANF_NOSTOP, volume:0.3);
+		if(targetProgress < 1.0 && targetProgress + targetSpeed >= 1.0) DoCockpitSound("Mech/Target/Locked");
+		targetProgress = min(1.0, targetProgress + targetSpeed); 
 	}
 	
 	virtual void FetchCVars()
@@ -734,6 +734,12 @@ class DrivableMech : DrivableObject
 		
 		// Handle targetting
 		HandleHoming(filteredWeaps);
+		
+		// Target lock tone
+		if(targetProgress >= 1.0)
+			DoCockpitSound("Mech/Target/HasLock", CHAN_TARGETLOCK, CHANF_LOOPING | CHANF_NOSTOP, 0.45);
+		else if(head)
+			head.A_StopSound(CHAN_TARGETLOCK);
 		
 		// Lose target if target is dead.
 		if(curTarget && (curTarget.bCORPSE || curTarget.health <= 0) )
@@ -1108,11 +1114,22 @@ class DrivableMech : DrivableObject
 		
 		if(curHeat <= kelvinToBHU(500.0)) heatCritical = false;
 		
-		if(getHeatPerc() >= 0.85)
+		if(curHeat > kelvinToBHU(650.0))
 			DoCockpitSound("Mech/OverheatWarning", CHAN_ITEM, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
 		else if(head) 
 			head.A_StopSound(CHAN_ITEM);
-			
+		
+		// Critical damage handling
+		if(isCriticallyDamaged)
+		{
+			A_StartSound("Damage/CriticalAlarm", CHAN_DMGCRIT, CHANF_LOOPING | CHANF_NOSTOP);
+			double ltHP = lefttorso.healthPoints / lefttorso.maxHP;
+			double rtHP = righttorso.healthPoints / righttorso.maxHP;
+			double ctHP = torso.healthPoints / lefttorso.maxHP;
+			if(ctHP > 0.5 && ltHP > 0.35 && rtHP > 0.35)
+				isCriticallyDamaged = false;
+		}
+		if(!isCriticallyDamaged) A_StopSound(CHAN_DMGCRIT);
 		
 		// System buttons (Active regardless of power-state)
 		if(getExtBtn(BT_POWERCYCLE, DriverBtns.BTS_PRESSED))
@@ -1129,13 +1146,7 @@ class DrivableMech : DrivableObject
 			overrideShutdown = !overrideShutdown;
 			if(overrideShutdown) betty.Push("Betty/Shutdown/Override");
 		}
-		
-		// Damage notification(s)
-		double curHealthPerc = getHealthyPercent();
-		if(curHealthPerc <= 0.35 && healthPerc > 0.35)
-			betty.Push("Betty/DamageCritical");
-		healthPerc = getHealthyPercent();
-		
+				
 		// Powerup and shutdown states.
 		powerupCycleTics = max(0, powerupCycleTics-1);
 		if(shutdown || powerupCycleTics > 0) 
@@ -1369,6 +1380,7 @@ class HardpointSaveData : Object
 {
 	Array<MechItem> items;
 	double armorPoints, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, armorDamage, rearArmorDamage;
+	bool isCriticallyDamaged;
 	
 	virtual HardpointSaveData MakeCopy()
 	{
@@ -1426,11 +1438,28 @@ class MechSaveData : Object
 	Array<MechWeaponGroup> weaponGroups;
 	DrivableMech mechobj; // This mech's active Map Object.
 	int mechbayID;
+	bool isCriticallyDamaged;
 	
 	// Shop information
 	Array<String> ShopStats;
 	Array<String> ShopValues;
 	string shopDescription;
+	
+	virtual void Save(DrivableMech mech)
+	{
+		mechType = mech.getClass();
+		weaponGroups.Copy(mech.weaponGroups);
+		engineType = mech.engine ? mech.engine.getClass() : NULL;
+		armorType = mech.armorType ? mech.armorType.getClass() : NULL;
+		chassisStructure = mech.chassisStructure ? mech.chassisStructure.getClass() : NULL;
+		isCriticallyDamaged = mech.isCriticallyDamaged; 
+		
+		// Populate shop information
+		mech.GetShopProperties(ShopStats, ShopValues);
+		shopDescription = mech.getShopDescription();
+		
+		Cache(mech);
+	}
 	
 	virtual MechSaveData MakeCopy()
 	{
@@ -1442,6 +1471,7 @@ class MechSaveData : Object
 		saveData.ShopStats.Copy(ShopStats);
 		saveData.ShopValues.Copy(ShopValues);
 		saveData.shopDescription = shopDescription;
+		saveData.isCriticallyDamaged = isCriticallyDamaged;
 		
 		foreach(hp : hardpointData)
 			saveData.hardpointData.Push(hp.MakeCopy());
@@ -1711,16 +1741,7 @@ class I_SaveMechData : Inventory
 	{
 		// Save basic mech data.
 		let data = MechSaveData(new(mech.saveDataType));	
-		data.mechType = mech.getClass();
-		data.weaponGroups.Copy(mech.weaponGroups);
-		data.engineType = mech.engine ? mech.engine.getClass() : NULL;
-		data.armorType = mech.armorType ? mech.armorType.getClass() : NULL;
-		data.chassisStructure = mech.chassisStructure ? mech.chassisStructure.getClass() : NULL;
-		data.Cache(mech);
-		
-		// Populate shop information
-		mech.GetShopProperties(data.ShopStats, data.ShopValues);
-		data.shopDescription = mech.getShopDescription();
+		data.Save(mech);
 		
 		Array<MechHardpoint> hardpoints;
 		mech.getHardpoints(hardpoints, skipDestroyed:false);

@@ -182,6 +182,7 @@ class MechHUD : VehicleHUD
 			DrawCompass();
 			DrawPaperDoll(mech);
 			DrawLockonRet(crosshairAlpha);
+			DrawDamageEffects(mech);
 			
 			if(mech.EMI >= 5)
 				interferenceDuration = 80;
@@ -878,6 +879,47 @@ class MechHUD : VehicleHUD
 		MWDrawer.DrawImage("Compass", (compassPos + (720,0)) - compassOffs, drawFlags, scale:(scale,scale*0.8));
 		MWDrawer.DrawImage("Compass", (compassPos - (720,0)) - compassOffs, drawFlags, scale:(scale,scale*0.8));	
 		MWDrawer.ClearClipRect();
+	}
+
+	double dmgFade, dmgTimer;
+	void DrawDamageEffects(DrivableMech mech)
+	{
+		vector2 res = (
+			MWDrawer.getBaseWidth(),
+			MWDrawer.getBaseHeight()
+		);
+		
+		if(mech.isCriticallyDamaged)
+		{
+			dmgTimer += deltaTime;
+			dmgFade = 0.45 * ((cos(dmgTimer * 3.5) * 0.20) + 0.35);
+			let dmgTex = TexMan.CheckForTexture("Graphics/criticalDamage.png");
+			vector2 imgSize; [imgSize.x, imgSize.y] = TexMan.GetSize(dmgTex);
+			vector2 imgScale = (
+				res.x / imgSize.x,
+				res.y / imgSize.y
+			);
+			
+			MWDrawer.DrawTexture(dmgTex, (0,0), MWDrawer.SS_SCREEN_CENTER, dmgFade, scale:imgScale);
+		}
+		
+		if(flashColor) 
+		{
+			if(abs(flashFade - desiredFlashFade) > 0.01 && flashTimer > 1)
+				flashFade = DrivablesMath.Lerp(flashFade, desiredFlashFade, 0.25 * deltaTime); 
+		
+			MWDrawer.Fill(flashColor, 0,0, res.x, res.y, flashFade);
+			
+			flashTimer -= deltaTime;
+			if(flashTimer <= 0)
+				flashFade = DrivablesMath.Lerp(flashFade, 0, 0.1 * deltaTime); 
+				
+			if(flashFade <= 0.01)
+			{
+				flashFade = 0;
+				flashColor = 0;
+			}
+		}
 	}
 }
 

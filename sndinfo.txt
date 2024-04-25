@@ -39,7 +39,13 @@ Mech/Land "Sounds/Mech/heavyland.wav"
 Mech/Target/New "Sounds/Mech/newtarget.wav"
 Mech/Target/Locking "Sounds/Mech/lockingtarget.wav"
 Mech/Target/Locked "Sounds/Mech/newtarget.wav"
+Mech/Target/HasLock "Sounds/Mech/targetlocked.mp3"
 Mech/OverheatWarning "Sounds/Mech/overheating.wav"
+
+Damage/NoArmor "Sounds/Mech/damage_alarm1.wav"
+Damage/CriticalInternals "Sounds/Mech/damage_alarm2.wav"
+Damage/Critical	"Sounds/Mech/damage_critical.wav"
+Damage/CriticalAlarm "Sounds/Mech/critical_alarm.wav"
 
 // Ambient mech sounds
 Torso/Twist     "Sounds/Ambient/torso_twist.wav"
@@ -99,6 +105,8 @@ Energy/PPC/Ambient "Sounds/Weapons/ppc_ambient.wav"
 Energy/Flamer/Start "Sounds/Weapons/flamethrower_start.wav"
 Energy/Flamer/Loop  "Sounds/Weapons/flamethrower_loop.wav"
 
+Ballistic/Jammed "Sounds/Weapons/weapon_jammed.wav"
+
 //$volume Energy/PPC/Thunder 5.0
 
 IMPACT1 "Sounds/Weapons/impact1.wav"
@@ -153,3 +161,4 @@ $rolloff Missile/Explosion linear 500 2500
 $rolloff Laser/Pulse/Impact linear 500 1500
 $rolloff Ballistic/Gauss/Impact linear 800 3000
 $rolloff Energy/PPC/Impact linear 600 3000
+

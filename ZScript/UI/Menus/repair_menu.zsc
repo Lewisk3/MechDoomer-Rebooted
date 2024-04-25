@@ -144,8 +144,8 @@ class PaperDollContainer : MenuElement
 			}
 			if(mech.chassisStructure)
 			{
-				int curInternals = mech.chassisStructure.getInternals(mech);
-				int maxInternals = mech.chassisStructure.getMaxInternals(mech);
+				int curInternals = selected.healthPoints;
+				int maxInternals = selected.maxHP;
 				internals = String.Format("%d / %d", curInternals, maxInternals);
 			}
 		

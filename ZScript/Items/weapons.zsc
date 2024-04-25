@@ -86,7 +86,7 @@ class SmallPulseLaser : SmallLaser
 		
 		laserRange = 220; // Meters
 		range = 110;
-		damage = convertDMG(3.50, maxLaserTime);
+		damage = convertDMG(4.55, maxLaserTime);
 		laserHeat = convertHeat(2.70, maxLaserTime); // Laserbeam heat.
 		pulseSpeed = 90;
 		energyUse = 0.02 / double(fireTime);
@@ -198,7 +198,7 @@ class MediumPulseLaser : MediumLaser
 		
 		laserRange = 440; // Meters
 		range = 220;
-		damage = convertDMG(6.0, maxLaserTime);
+		damage = convertDMG(7.0, maxLaserTime);
 		laserHeat = convertHeat(7.60, maxLaserTime); // Laserbeam heat.
 		pulseSpeed = 70;
 		energyUse = 0.04 / double(fireTime);
@@ -313,7 +313,7 @@ class LargePulseLaser : LargeLaser
 		
 		laserRange = 740; // Meters
 		range = 370;
-		damage = convertDMG(10.0, maxLaserTime);
+		damage = convertDMG(13.0, maxLaserTime);
 		laserHeat = convertHeat(12.0, maxLaserTime); // Laserbeam heat.
 		energyUse = 0.06 / double(fireTime);
 		pulseSpeed = 50;

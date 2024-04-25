@@ -80,6 +80,11 @@ class MechHUD_Handler : EventHandler
 				mech.activeHUD.NotifyHUD(args, e.Args[0]);
 		}
 	}
+	
+	play static void FlashScreen(int plrnum, string hexColor, double intensity, int tics)
+	{
+		SendInterfaceEvent(plrnum, String.Format("hud>flash>%s>%f", hexColor, intensity), tics);
+	}
 }
 
 class VehicleHUDMessage : Object ui
@@ -150,6 +155,9 @@ class VehicleHUD : Object ui
 	const ANIM_FPS = 60.0;
 	const POWERANIM = ANIM_FPS * 2.0; 
 
+	double desiredFlashFade, flashFade, flashTimer;
+	Color flashColor;	
+
 	DrivableMech mech;
 	double uiTics;
 	double prevMS, deltatime;
@@ -159,19 +167,32 @@ class VehicleHUD : Object ui
 	Array<VehicleHUDMessage> messages;
 
 	virtual void NotifyHUD(out Array<String> args, int duration)
-	{
+	{		
 		Name type = args[1];
-		string strArg = args[2];
-		string msgID = args[3];
-		
 		switch(type)
 		{
 			case 'notify':
+				string strArg = args[2];
+				string msgID = args[3];
+				
 				AppendMessage(CreateMessage(strArg, duration, msgID));
+			break;
+			
+			case 'flash':
+				Color col = args[2].ToInt(16);
+				double intensity = args[3].ToDouble();
+				SetupScreenFlash(col, duration, intensity);
 			break;
 			
 			default: break;
 		}
+	}
+		
+	void SetupScreenFlash(Color col, double time, double intensity)
+	{
+		flashColor = col;
+		flashTimer = time;
+		desiredFlashFade = intensity;
 	}
 	
 	// Overridable for easy switching to a custom HUD message class.

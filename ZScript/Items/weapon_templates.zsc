@@ -463,6 +463,7 @@ class UltraAC : MechBallisticWeapon
 {
 	string baseName;
 	int jamChance;
+	int jamNotifyWait; // Wait this many tics before playing the jammed SFX.
 	bool jammed;
 	
 	virtual void SetupUAC(double jamperc = 10)
@@ -486,12 +487,23 @@ class UltraAC : MechBallisticWeapon
 		if(!jammed) displayName = baseName;
 	}
 	
+	override void preFire()
+	{
+		// Play weapon jammed sound.
+		if(jammed && jamNotifyWait <= 0) 
+		{
+			parent.A_StartSound("Ballistic/Jammed", CHAN_BODY, CHANF_OVERLAP);
+			jamNotifyWait = 10;
+		}
+	}
+	
 	override bool Fire(vector3 firePos)
 	{
 		if(random[UACRNG](0,100) <= jamChance && refire >= refireCount)
 		{
 			// Weapon jammed
 			cooldown = 3.0 * TICRATE;
+			parent.A_StartSound("Ballistic/Jammed", CHAN_BODY, CHANF_OVERLAP);
 			SetJammed(true);
 			return true;
 		}
@@ -503,9 +515,13 @@ class UltraAC : MechBallisticWeapon
 	{
 		super.DoEffect();
 		
+		if(jammed && jamNotifyWait)
+			jamNotifyWait--;
+		
 		if( jammed && cooldown <= 0)
 		{
 			SetJammed(false);
+			parent.A_StartSound("Ballistic/Autocannon/Reload", CHAN_BODY, CHANF_OVERLAP);
 		}
 	}
 }

@@ -262,7 +262,7 @@ class MechHardpoint : MechPart
 	}
 	clearscope double, double getVitals()
 	{
-		double armorRatio = (maxArmor - armorDamage) / maxArmor;
+		double armorRatio = (maxArmor - ceil(armorDamage)) / maxArmor;
 	
 		return maxArmor > 0 ? armorRatio : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
 	}
@@ -331,12 +331,16 @@ class MechHardpoint : MechPart
 	
 	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
 	{
+		double prevArmor = armorPoints;
+		double prevRearArmor = rearArmor;
+		double prevInternals = healthPoints;
+	
 		double hpDmg = damage;
 		if(type == 'MechHeat') 
 		{			
 			// Radiate local heat to armor
 			double radiateDmg = hpDmg * (localHeat / (mech.maxHeat / 4.0));
-		
+			
 			if(armorPoints > 0)
 			{
 				armorPoints = max(0, armorPoints - (radiateDmg * 0.75)); 
@@ -380,9 +384,8 @@ class MechHardpoint : MechPart
 					TallyArmorDamage(damage, 0);
 				}
 			}
-			
 		}
-		
+			
 		// Item damage; only occurs if armor is gone on hardpoint.
 		int toHit = random[ItemHitChance](0,20) >= 16;
 		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
@@ -417,7 +420,46 @@ class MechHardpoint : MechPart
 		
 		healthPoints -= hpDmg;
 		if(healthPoints <= 0) DestroyHardpoint();
-
+	
+		// Damage SFX
+		if(mech.head)
+		{
+			string dmgFlash = "FFFF0000";
+			if( (prevArmor > 0 && armorPoints <= 0) || (prevRearArmor > 0 && rearArmor <= 0) )
+			{
+				mech.head.A_StartSound("Damage/NoArmor", CHAN_BODY, CHANF_OVERLAP);
+				MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.5, 20);
+			}
+				
+			if(prevInternals > (maxHP * 0.3) && healthPoints <= (maxHP * 0.3))
+			{
+				mech.head.A_StartSound("Damage/CriticalInternals", CHAN_BODY, CHANF_OVERLAP);
+				MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.7, 35);
+			}
+				
+			// Damage notification(s)
+			if(self is "MechTorso" || self is "MechSideTorso")
+			{
+				double threshold = mech.torso == self ? 0.5 : 0.35;
+				if( (healthPoints / maxHP <= threshold) && !mech.isCriticallyDamaged )
+				{
+					mech.head.A_StartSound("Damage/Critical", flags:CHANF_OVERLAP);
+					mech.betty.Push("Betty/DamageCritical");
+					mech.isCriticallyDamaged = true;
+					MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.9, 35);
+				}
+			}
+			
+			double armorDmg = abs(prevArmor - armorPoints) + abs(prevRearArmor - rearArmor); 
+			double hpDamage = abs(prevInternals - healthPoints);
+			double totalDamage = armorDmg + hpDamage;
+			if( armorDmg >= 2 || hpDamage > 2 ) 
+			{
+				double dmgIntensity = DrivablesMath.fmap(totalDamage, 2, 8, 0.3, 0.7);
+				double dmgTics = DrivablesMath.fmap(totalDamage, 2, 8, 10, 35);
+				MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, dmgIntensity, dmgTics);
+			}
+		}
 	}
 	
 	virtual void DestroyHardpoint()

@@ -379,7 +379,7 @@ class MGBullet : MechAutocannon
 		Radius 1;
 		Height 1;
 		Scale 0.2;
-		MechProjectile.Dmg 0.06 / MechHardpoint.DMGSCALE; // Roughly 1 damage a second.
+		MechProjectile.Dmg 0.12 / MechHardpoint.DMGSCALE; // Roughly 2 damage a second.
 		MechProjectile.Ranges 0, 100;
 		MechProjectile.SpeedKPH 1200;
 		MechProjectile.ImpactSound "MGun/Impact";

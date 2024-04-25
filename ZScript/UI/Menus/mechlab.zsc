@@ -766,7 +766,7 @@ class MenuItemsInvContainer : MenuElement
 			item.itemID = itemIndexes[i];
 			
 			bool dragging = mechlab.cursor.draggingElement == item;
-			bool outOfBounds = !item.AABBCollision(pos, size, item.pos, (item.size.x, item.size.y * 0.5));
+			bool outOfBounds = !item.AABBCollision(pos, size, item.pos + (0, item.size.y * 0.5), (item.size.x, item.size.y * 0.25));
 			item.outOfBounds = outOfBounds;
 			
 			if(!dragging)
@@ -1606,6 +1606,95 @@ class MechlabUtilityButton : MenuButton
 	}
 }
 
+// Mechlab Toolbox
+// Strip Armor, Max Armor, Strip Equipment, Strip All
+class MechlabToolbox : MenuElement
+{
+	double alpha;
+	MechMenu_Mechlab base;
+	MechToolButton stripArmor, maxArmor, stripItems, stripAll;
+	
+	
+	override void Init()
+	{
+		alpha = 1.0;
+		base = MechMenu_Mechlab(parentMenu);
+		
+		vector2 btnPos = pos + (18,28);
+		vector2 btnSize = (256, 86) * 0.65;
+		stripArmor = MechToolButton(AddChild(parentMenu, "MechToolButton", "Strip Armor", btnPos, btnSize));
+		maxArmor = MechToolButton(AddChild(parentMenu, "MechToolButton", "Max Armor", btnPos + (200,0), btnSize));
+		stripItems = MechToolButton(AddChild(parentMenu, "MechToolButton", "Strip Items", btnPos + (0,80), btnSize));
+		stripAll = MechToolButton(AddChild(parentMenu, "MechToolButton", "Strip All", btnPos + (200,80), btnSize));
+	}
+	
+	override void Draw(double dT)
+	{
+		MWDrawer.Fill(0xFF7F7F7F, pos.x - 2, pos.y - 2, size.x + 4, size.y + 4);
+		MWDrawer.Fill(0xFF4F4F4F, pos.x, pos.y, size.x, size.y);
+	}
+	
+	override void Update(double dT)
+	{
+		let mech = base.mech;
+		string cmd = "";
+	
+		if(stripArmor.pressed)
+		{
+			cmd = String.Format("mechlab.striparmor.%d", mech.saveID);
+			stripArmor.pressed = false;
+		}
+		if(maxArmor.pressed)
+		{
+			// Check weight
+			maxArmor.pressed = false;
+			if(!mech.armorType) return;
+			
+			double curArmorWeight = mech.armorType.getArmorPoints(mech) * mech.armorType.armorWeight;
+			double maxArmorWeight = mech.armorType.getMaxArmorPoints(mech) * mech.armorType.armorWeight;
+			double weightDiff = maxArmorWeight - curArmorWeight;
+			if( (mech.weight + weightDiff) > mech.maxWeight )
+			{
+				MDRDialogMenu.Open(base, "armorweighterr", "Maximizing this mech's armor would exceed chassis maximum supported weight.", "Continue");
+				return;
+			}
+		
+			cmd = String.Format("mechlab.maxarmor.%d", mech.saveID);
+		}
+		if(stripItems.pressed)
+		{
+			cmd = String.Format("mechlab.stripitems.%d", mech.saveID);
+			stripItems.pressed = false;
+		}
+		if(stripAll.pressed)
+		{
+			cmd = String.Format("mechlab.stripall.%d", mech.saveID);
+			stripAll.pressed = false;
+		}
+		
+		if(cmd != "") EventHandler.SendNetworkEvent(cmd);
+	}
+}
+
+class MechToolButton : MenuButton
+{
+	override void Draw(double dT)
+	{
+		string btnGraphic = "Graphics/Mechlab/rounded_button.png";
+		vector2 gScale = ScaleGraphicToCollider(btnGraphic);
+		
+		Color tint = pressed ? 0xC6111bd4 : 0;
+		if(hovered) tint = 0xC63b3e80;
+		
+		MWDrawer.DrawImage(btnGraphic, pos + (size * 0.5), scale:gScale, tint:tint);
+		
+		Font fnt = "hm_type";
+		double txtScale = 0.65;
+		vector2 txtOffs = (0,10);
+		MWDrawer.DrawString(fnt, Tag, pos + (size * 0.5) - txtOffs, flags:MWDrawer.SS_TEXT_CENTER, scale:(txtScale, txtScale));
+	}
+}
+
 // Mechlab Menu
 class MechMenu_Mechlab : MechMenu 
 {
@@ -1679,6 +1768,9 @@ class MechMenu_Mechlab : MechMenu
 		
 		// Items inventory
 		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,250), (400,600));
+		
+		// Toolbox
+		AddElement("MechlabToolbox", "Toolbox", (1481,872), (398, 200));
 		
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 
@@ -1783,6 +1875,53 @@ class MechMenu_Mechlab : MechMenu
 				
 				if(menuArgs[3] ~== "remove")
 					srcHardpoint.adjustArmor(front ? -amt : 0, rear ? -amt : 0);		
+			}
+			
+			if(menuArgs[1] ~== "maxarmor")
+			{
+				let mechID = menuArgs[2].ToInt();
+				let mech = playerMechs.mechsData[mechID-1].mechobj;
+				
+				Array<MechHardpoint> hardpoints;
+				mech.getHardpoints(hardpoints, skipDestroyed:false);	
+				foreach(hp : hardpoints)
+				{
+					double maxFrontArmor = hp.maxArmor - hp.maxRearArmor;
+					double maxRearArmor = hp.maxRearArmor;
+					hp.adjustArmor(maxFrontArmor, maxRearArmor);
+				}		
+			}
+			if(menuArgs[1] ~== "striparmor" || menuArgs[1] ~== "stripall")
+			{
+				let mechID = menuArgs[2].ToInt();
+				let mech = playerMechs.mechsData[mechID-1].mechobj;
+				
+				Array<MechHardpoint> hardpoints;
+				mech.getHardpoints(hardpoints, skipDestroyed:false);	
+				foreach(hp : hardpoints)
+				{
+					hp.armorPoints = 0;
+					hp.rearArmor = 0;
+				}		
+			}
+			if(menuArgs[1] ~== "stripitems" || menuArgs[1] ~== "stripall")
+			{
+				let mechID = menuArgs[2].ToInt();
+				let mech = playerMechs.mechsData[mechID-1].mechobj;
+				
+				Array<MechHardpoint> hardpoints;
+				mech.getHardpoints(hardpoints, skipDestroyed:false);	
+				foreach(hp : hardpoints)
+				{
+					for(int itemID = hp.items.Size()-1; itemID >= 0; itemID--)
+					{
+						let srcItem = hp.items[itemID];
+						if(!srcItem) return;
+					
+						if(srcItem.TryDetach()) 
+							inv.AddItem(srcItem);
+					}
+				}		
 			}
 			
 			if(menuArgs[1] ~== "utility")
