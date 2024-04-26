@@ -524,7 +524,8 @@ class MechbayMenu : MechMenu
 	{
 		elements.Clear(); // Repopulate elements
 		
-		mbPlayer = players[consoleplayer].mo;
+		if(!mbPlayer) return;
+		
 		vector2 centerPos = (
 			MWDrawer.getBaseWidth(),
 			MWDrawer.getBaseHeight()
@@ -613,9 +614,16 @@ class MechbayMenu : MechMenu
 	{
 		Array<String> cmds;
 		event.Split(cmds, ".");
+		let plr = players[playerNumber].mo;
 		
 		if(cmds[0] ~== "mechbays")
 		{
+			if(cmds[1] == 'update')
+			{
+				mbPlayer = plr;
+				InitElements();
+			}
+		
 			if(cmds[1] == "updateinv")
 				MechsInv.updateMechs();
 		}

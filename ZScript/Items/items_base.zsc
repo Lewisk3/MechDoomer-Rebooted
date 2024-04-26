@@ -1842,8 +1842,7 @@ class I_MechItemStorage : Inventory
 				{
 					let shopInstance = itemInstance.MakeCopy();
 					itm.shopItems.Push(shopInstance);
-					
-					// Randomly add items for the player
+
 					if(random[startItemsRNG](0,100) >= 75)
 						itm.AddItem(itemInstance, random[startItemsRNG](1,20));	
 				}

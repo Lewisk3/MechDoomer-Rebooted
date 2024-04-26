@@ -7,7 +7,7 @@ class MechInteraction_Handler : EventHandler
 		super.OnRegister();
 		mechlab_curmech.Resize(MAXPLAYERS);
 	}
-
+	
 	// Setup MechItems for players
 	override void WorldTick()
 	{
@@ -16,7 +16,6 @@ class MechInteraction_Handler : EventHandler
 			PlayerInfo plrInfo = players[i];
 			if(!plrInfo || !playerInGame[i]) continue;
 			let plr = players[i].mo;
-			I_MechItemStorage.Get(plr);
 			
 			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 			if(!mechData) plr.GiveInventoryType("I_SaveMechData");
@@ -32,17 +31,15 @@ class MechInteraction_Handler : EventHandler
 		if(!mech) return;
 		
 		mechlab_curmech[PID] = mech;
-		if(PID == consoleplayer) 
-		{
-			Menu.SetMenu("MechMenu_Mechlab");
-			SendInterfaceEvent(PID, "mechlab.update");
-		}
+		if(PID != consoleplayer) return;
+		
+		Menu.SetMenu("MechMenu_Mechlab");
+		SendInterfaceEvent(PID, "mechlab.update");
 	}
 	
 	play void OpenShop(int PID)
 	{
 		if(PID != consoleplayer) return;
-		
 		Menu.SetMenu("ShopMenu");
 		SendInterfaceEvent(PID, "shop.update");
 	}
@@ -50,9 +47,8 @@ class MechInteraction_Handler : EventHandler
 	play void OpenMechbayMenu(int PID)
 	{
 		if(PID != consoleplayer) return;
-		
 		Menu.SetMenu("MechbayMenu");
-		SendInterfaceEvent(PID, "mechbaymenu.update");
+		SendInterfaceEvent(PID, "mechbays.update");
 	}
 	
 	play void OpenMechRepairMenu(int PID, DrivableMech mech)
@@ -60,11 +56,10 @@ class MechInteraction_Handler : EventHandler
 		if(!mech) return;
 		
 		mechlab_curmech[PID] = mech;
-		if(PID == consoleplayer) 
-		{
-			Menu.SetMenu("MechRepairMenu");
-			SendInterfaceEvent(PID, "repairmenu.update");
-		}
+		if(PID != consoleplayer) return;
+		
+		Menu.SetMenu("MechRepairMenu");
+		SendInterfaceEvent(PID, "repairmenu.update");
 	}
 	
 	override void WorldUnloaded(WorldEvent e)

@@ -5,6 +5,12 @@ class MechDropship_Handler : StaticEventHandler
 	double scrfade;
 	bool onFirstMap;
 	bool reloadActiveMech;
+	
+	override void PlayerEntered(PlayerEvent e)
+	{
+		let plr = players[e.PlayerNumber].mo;
+		if(plr) I_MechItemStorage.Get(plr);
+	}
 
 	virtual void RestoreActiveMechs()
 	{
@@ -271,6 +277,7 @@ class MechbayScripts abstract play
 		return 1;	
 	}
 	
+	/*
 	static void SaveMechbayData(Actor activator)
 	{
 		let it = ThinkerIterator.Create("MechBay");
@@ -281,6 +288,7 @@ class MechbayScripts abstract play
 				bay.mechData.SaveMechData(bay.mech);
 		}
 	}
+	*/
 	
 	static bool IsMechlabActive(Actor activator)
 	{
@@ -305,38 +313,90 @@ class MechBay : EffectsActor
 	
 	int mechbayID;
 	I_SaveMechData mechData;
-	DrivableMech mech;
 	Actor camera;
+	vector3 offmapPos;
+	
+	Array<DrivableMech> mechs;
+	
+	DrivableMech getMech(Actor mechOwner)
+	{
+		return mechs[mechOwner.PlayerNumber()];
+	}
+	
+	void ReloadMech(Actor mechOwner)
+	{
+		mechData = I_SaveMechData(mechOwner.FindInventory("I_SaveMechData"));
+		if(!mechData) return;
+	
+		int PID = mechOwner.PlayerNumber();
+		let cplr = players[consoleplayer].mo;
+		
+		let desiredMech = mechs[PID];
+		if(desiredMech) desiredMech.Destroy();
+		
+		bool isLocal = (mechOwner == cplr);
+		vector3 localPos = isLocal ? pos : offmapPos;
+		mechs.Insert(PID, mechData.LoadMechData(mechbayID, localPos, angle));
+	}
 
 	override void Activate(Actor activator)
 	{
 		bInvisible = true;
 		
 		mechbayID = args[0];
-		mechData = I_SaveMechData(activator.FindInventory("I_SaveMechData"));
 		
-		// Find Camera
+		// Find Camera, and offmap storage.
 		let camIt = ThinkerIterator.Create();
-		Actor cam;
-		while(cam = Actor(camIt.Next()))
+		Actor act;
+		while(act = Actor(camIt.Next()))
 		{
-			if(cam.TID == args[1])
-			{
-				camera = cam;
-				break;
-			}
-		}
-
-		if(!mechData) return;
+			if(act.TID == args[1]) camera = act;
+			
+			if(act is "MechOffMapCell")
+			offmapPos = act.pos;
+		}	
 		
-		// Load mech
-		mech = mechData.LoadMechData(mechbayID, pos, angle);
+		mechs.Clear();
+		mechs.Resize(MAXPLAYERS);
+		
+		// Setup mechs for ALL players, and isolate non-client mechs to their own space.
+		let cplr = players[consoleplayer].mo;
+		for(int i = 0; i < MAXPLAYERS; i++)
+		{
+			PlayerInfo plrInfo = players[i];
+			if(!plrInfo || !playerInGame[i]) continue;
+			let plr = players[i].mo;
+			
+			mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+			if(!mechData) continue;
+			
+			// Load mech
+			bool isLocal = (plr == cplr);
+			vector3 localPos = isLocal ? pos : offmapPos;
+			mechs.Insert(i, mechData.LoadMechData(mechbayID, localPos, angle));
+		}
 	}
 
 	States
 	{
 		Spawn:
 			PLSS A -1;
+		stop;
+	}
+}
+
+// Used to store non-client mech actors.
+class MechOffMapCell : Actor 
+{
+	Default
+	{
+		+NOINTERACTION;
+	}	
+
+	States
+	{
+		Spawn:
+			VILE H -1;
 		stop;
 	}
 }

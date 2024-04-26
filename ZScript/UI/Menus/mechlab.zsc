@@ -1812,7 +1812,7 @@ class MechMenu_Mechlab : MechMenu
 		let plr = players[e.Player].mo;
 		let inv = I_MechItemStorage.Get(plr);
 		let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-	
+			
 		if(!mech) return;
 		
 		string menuCmd = e.Name;
@@ -1968,6 +1968,7 @@ class MechMenu_Mechlab : MechMenu
 					
 					let toHardpoint = MechHardpoint(mech.parts[toHardpointID]);
 					if(!toHardpoint) return;
+					
 					let item = inv.takeItem(itemID, deplete:false);
 					if(!item) return;
 

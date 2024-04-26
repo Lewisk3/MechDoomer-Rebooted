@@ -8,6 +8,5 @@ server bool sv_mdr_startondropship = true;
 server bool sv_mdr_skipmaploading = false;
 server bool sv_mdr_disabledropship = false;
 
-
 user bool cl_mdr_throttledecay = true;
 user bool cl_mdr_analogthrottle = false;

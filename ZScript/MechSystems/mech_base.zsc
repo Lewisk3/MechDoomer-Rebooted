@@ -1668,19 +1668,17 @@ class I_SaveMechData : Inventory
 	
 	void ReloadMechbay(int mechbayID)
 	{	
-		// Re-activate each bay.
+		// Reload specific mechbay
 		let bayIt = ThinkerIterator.Create("MechBay");
 		Mechbay bay;
 		while(bay = MechBay(bayIt.Next()))
 		{
 			if(bay.mechbayID == mechbayID)
 			{
-				if(bay.mech)
-				{
-					saveMechData(bay.mech);
-					bay.mech.Destroy();
-				}
-				bay.Activate(Owner);
+				let bayMech = bay.getMech(Owner);
+				if(bayMech) saveMechData(bayMech);
+				
+				bay.ReloadMech(Owner);
 				break;
 			}
 		}
@@ -1828,7 +1826,7 @@ class I_SaveMechData : Inventory
 				mechSaveID = i;
 			}
 		}	
-		if(!mechData) return NULL;
+		if(!mechData) return NULL;		
 
 		// Destroy old mechs of this same type.
 		if(mechData.mechobj)
