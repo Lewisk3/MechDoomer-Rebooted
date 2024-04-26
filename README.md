@@ -7,17 +7,20 @@
 * Jenner
 * Marauder
 * Centurion
+* Timberwolf
 
 ### CVars
 #### Server
 `sv_mdr_mechscale`
-`sv_mdr_mechspeedscale`
+`sv_mdr_mechspeedscale` 
 `sv_mdr_wireframe`
 `sv_mdr_drawmechhitboxes`
 `sv_mdr_exitanytime`
 `sv_mdr_simplemechmovement`
 `sv_mdr_startondropship`
 `sv_mdr_skipmaploading`
+`sv_mdr_disabledropship` 
+
 #### Client
 `cl_mdr_throttledecay`
 `cl_mdr_analogthrottle`
