@@ -1638,16 +1638,29 @@ class MechlabToolbox : MenuElement
 	{
 		let mech = base.mech;
 		string cmd = "";
-	
+		bool mechIsActive = base.mech.driver;
+			
 		if(stripArmor.pressed)
 		{
-			cmd = String.Format("mechlab.striparmor.%d", mech.saveID);
 			stripArmor.pressed = false;
+			if(mechIsActive)
+			{
+				MDRDialogMenu.Open(base, "Util.NoAccess", "Armor cannot be modified while mech is active.", "Continue");
+				return;
+			}
+		
+			cmd = String.Format("mechlab.striparmor.%d", mech.saveID);
 		}
 		if(maxArmor.pressed)
 		{
-			// Check weight
 			maxArmor.pressed = false;
+			if(mechIsActive)
+			{
+				MDRDialogMenu.Open(base, "Util.NoAccess", "Armor cannot be modified while mech is active.", "Continue");
+				return;
+			}
+		
+			// Check weight
 			if(!mech.armorType) return;
 			
 			double curArmorWeight = mech.armorType.getArmorPoints(mech) * mech.armorType.armorWeight;
@@ -1663,13 +1676,25 @@ class MechlabToolbox : MenuElement
 		}
 		if(stripItems.pressed)
 		{
-			cmd = String.Format("mechlab.stripitems.%d", mech.saveID);
 			stripItems.pressed = false;
+			if(mechIsActive)
+			{
+				MDRDialogMenu.Open(base, "Util.NoAccess", "Equipment cannot be modified while mech is active.", "Continue");
+				return;
+			}
+		
+			cmd = String.Format("mechlab.stripitems.%d", mech.saveID);
 		}
 		if(stripAll.pressed)
 		{
-			cmd = String.Format("mechlab.stripall.%d", mech.saveID);
 			stripAll.pressed = false;
+			if(mechIsActive)
+			{
+				MDRDialogMenu.Open(base, "Util.NoAccess", "Equipment cannot be modified while mech is active.", "Continue");
+				return;
+			}
+		
+			cmd = String.Format("mechlab.stripall.%d", mech.saveID);
 		}
 		
 		if(cmd != "") EventHandler.SendNetworkEvent(cmd);

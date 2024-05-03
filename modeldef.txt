@@ -9,6 +9,7 @@ Model MechLaser
 	
 	FrameIndex MODL A 0 0
 }
+
 Model MechPulseLaser
 {
 	Path "models/lasers/"

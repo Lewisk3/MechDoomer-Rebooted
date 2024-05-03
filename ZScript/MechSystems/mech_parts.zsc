@@ -387,12 +387,14 @@ class MechHardpoint : MechPart
 		}
 			
 		// Item damage; only occurs if armor is gone on hardpoint.
-		int toHit = random[ItemHitChance](0,20) >= 16;
+		bool heatDamage = (type == 'MechHeat');
+		int toHit = random[ItemHitChance](0,100) <= (heatDamage ? 1 : 10);
 		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
 		
 		if(noArmor && items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
-			bool criticalHit = random[HardpointCrit](0,100) <= (type == 'MechHeat' ? 1 : 10); // 10 percent chance of crit, if heat damage then 1% chance.
+			bool criticalHit = random[HardpointCrit](0,100) <= 10; // 10 percent chance of crit, if heat damage then 1% chance.
+			if(heatDamage) hpDmg *= 5.0;
 			
 			double itemDmg = (criticalHit ? 100 : (hpDmg*20.0));
 			Array<MechItem> itemList;
@@ -407,14 +409,13 @@ class MechHardpoint : MechPart
 			
 			if(itemToDamage >= 0 && itemToDamage < itemList.Size())
 			{
-				let dmgItem = itemList[itemToDamage];
-				dmgItem.OnDamaged(itemDmg);
-							
+				let dmgItem = itemList[itemToDamage];			
 				if(criticalHit && dmgItem.damagable)
 				{
 					mech.betty.Push("Betty/CriticalHit");
 					mech.betty.Push(String.Format("Betty/Hardpoint/%s", mech.getHardpointTypeName(self)));
 				}
+				dmgItem.OnDamaged(itemDmg);
 			}
 		}
 		
