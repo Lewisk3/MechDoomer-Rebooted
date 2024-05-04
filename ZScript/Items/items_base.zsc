@@ -1496,7 +1496,7 @@ class MechWeapon : MechItem
 		if(checkAmmo() <= 0) reloadAmmo();
 		if(loadedAmmo) loadedAmmo.curAmmo -= amt;
 		
-		double criticalAmmo = ammoUse*3.0;
+		double criticalAmmo = ammoUse*(refireCount+1)*3.0;
 		double ammoAmount = countAmmo();
 		double prevAmmoCount = ammoAmount + amt;
 		

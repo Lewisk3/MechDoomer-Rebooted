@@ -1,4 +1,5 @@
 // Standard
+class MechEngine_STD195 : MechEngine {}
 class MechEngine_STD200 : MechEngine {}
 class MechEngine_STD205 : MechEngine {}
 class MechEngine_STD210 : MechEngine {}

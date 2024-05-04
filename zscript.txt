@@ -76,6 +76,7 @@ version "4.10.0"
 #include "ZScript/Mechs/marauder_iic.zsc"
 #include "ZScript/Mechs/centurion.zsc"
 #include "ZScript/Mechs/timberwolf.zsc"
+#include "ZScript/Mechs/rifleman.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

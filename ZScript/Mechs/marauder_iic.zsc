@@ -84,7 +84,7 @@ class MechMarauderIIC : DrivableMech
 }
 
 /*
-11/2 tons = 230pts STD Armor (IIC uses Endo though armor points arte conserved)
+11/2 tons = 230pts STD Armor
 [HD] - 12
 [CT] - 46 
 [LT] - 32 - 1

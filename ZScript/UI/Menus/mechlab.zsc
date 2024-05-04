@@ -1252,6 +1252,8 @@ class MechInfoContainer : MenuElement
 	
 	override void Draw(double dT)
 	{
+		if(!mech) return;
+	
 		Color bgColor = 0xFF151515;
 		Color edgeColor = 0xFF7A7A7A;
 		MWDrawer.Fill(edgeColor, pos.x-2, pos.y-2, size.x+4, size.y+4);

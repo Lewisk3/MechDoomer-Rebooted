@@ -1885,7 +1885,7 @@ class AMS : MechWeapon
 		
 		fireTime = 2;
 		cooldownTime = 16;
-		range = 120;
+		range = 90;
 		ammoUse = 1;
 		
 		refireCount = 8;
@@ -1949,8 +1949,8 @@ class AMS : MechWeapon
 	{
 		super.DoEffect();
 		
-		// Don't run if mech is shutdown.
-		if(mech.shutdown || !canFire()) return;
+		// Don't run if mech is shutdown, or in cooldown.
+		if(mech.shutdown || !canFire() || cooldown > 0) return;
 		
 		// Firing is handled manually by the AMS computer
 		// Manually because I am the AMS computer, lazy bastard...
@@ -1962,10 +1962,7 @@ class AMS : MechWeapon
 		Actor act;
 		while(act = Actor(it.Next()))
 		{
-			// Out of range
-			double dist = DrivableMech.unitsToKM(DrivablesMath.Distance3D(globalFirePos,act.pos)) * 1000.0;
-			if(dist > range) continue;
-		
+			// Find a valid projectile.			
 			// Don't fire at our own projectiles stoopid
 			let hardpointSource = MechHardpoint(act.target);
 			let mechProj = MechProjectile(act);
@@ -1974,10 +1971,14 @@ class AMS : MechWeapon
 			
 			// If we're dealing with a mech projectile, only target missiles
 			if( mechProj && !(mechProj is "MechMissile") ) continue;
+		
+			// Out of range
+			double dist = DrivableMech.unitsToKM(DrivablesMath.Distance3D(globalFirePos,act.pos)) * 1000.0;
+			if(dist > range) continue;
 			
 			// In range and an enemy projectile, engage
 			curTarget = act;
-			if(!cooldown) Fire(localFirePos);
+			Fire(localFirePos);
 		}
 	}
 	

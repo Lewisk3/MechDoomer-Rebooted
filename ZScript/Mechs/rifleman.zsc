@@ -1,0 +1,228 @@
+class MechRiflemanIIC : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 25, 28;
+		DrivableMech.MaxWeight 65; // In Tons.
+		DrivableMech.ChassisName "Rifleman";
+		DrivableMech.VariantName "IIC-3";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/rifleman_icon.png";
+		DrivableMech.CBillValue (5741587  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Trellshire Heavy Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Rifleman IIC is an upgrade of the venerable Rifleman BattleMech. "
+			"Five tons heavier than the design it is based on, the Rifleman IIC is also slower. "
+			"This creates a great deal more room with which to mount other equipment. Further "
+			"weight savings are found in the use of an Endo Steel frame."
+			" (Source: https://www.sarna.net/wiki/Rifleman_IIC)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Rifleman_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Rifleman_Hips",  0,0,44, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Rifleman_CenterTorso", 0,0,16, hips);
+		leftTorso  = AddHardpoint("Rifleman_LeftTorso",  0,-20,0, torso);
+		rightTorso = AddHardpoint("Rifleman_RightTorso", 0, 20,0, torso);
+		
+		leftLeg = AddHardpoint("Rifleman_LeftLeg",  0,-14,0, legs);
+		rightLeg = AddHardpoint("Rifleman_RightLeg", 0, 14,0, legs);
+			
+		leftArm  = AddHardpoint("Rifleman_LeftArm",  0,-9,12, leftTorso);
+		rightArm = AddHardpoint("Rifleman_RightArm", 0, 12,12, rightTorso);
+		
+		head = AddHardpoint("Rifleman_Cockpit", 0,0,23, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD195");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("UltraAC2", GROUPFLG_TWO);
+		
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("UltraAC2", GROUPFLG_TWO);
+		
+		leftArm.AddItem("UAC2Ammo");
+		rightArm.AddItem("UAC2Ammo");
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechJumpJet");
+		
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechJumpJet");
+		
+		torso.AddItem("MechJumpJet");
+	}
+}
+
+/*
+ 11 tons = 220pts
+ [HD] - 12
+ [CT] - 44
+ [LT] - 30
+ [RT] - 30
+ [LA] - 24
+ [RA] - 24
+ [LL] - 28
+ [RL] - 28
+ Wildcard points 0 
+*/
+
+class Rifleman_Hips : MechHips {}
+class Rifleman_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 52; // * 2.4 = 1.20 LL.
+	}
+}
+
+class Rifleman_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 6;
+		Height 8;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+}
+
+class Rifleman_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 6;
+		Height 50;
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 28, 0;
+	}	
+}
+class Rifleman_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 6;
+		Height 50;
+		
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 28, 0;
+	}	
+}
+
+class Rifleman_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 95, 95;
+		MechTorso.TurnRange 100;
+		MechTorso.PitchRange 25, 25;
+		Radius 14;
+		Height 20;
+		
+		MechHardpoint.Vitals 44, 22;
+		MechHardpoint.SetupArmor 40, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts() 
+	{
+		// AMS
+		AddMountPoint("PDS", 0, -9, 34.5);
+	}
+}
+
+class Rifleman_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 8;
+		Height 25;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 27, 3;
+		MechHardpoint.RearArmor true;
+	}
+}
+class Rifleman_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 8;
+		Height 25;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 27, 3;
+		MechHardpoint.RearArmor true;
+	}	
+}
+
+class Rifleman_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 1;
+		MechArm.PitchRange 50, 50;
+		MechHardpoint.HitBox 10,18, 30,-7,-10;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 60, -4.65, 5, scale:0.75);
+		AddMountPoint("Ballistic", 64, -4.65, -6, scale:0.75);
+		AddMountPoint("Ballistic", 15, -4.65, 12, scale:1.0);
+	}
+}
+
+class Rifleman_RightArm : Rifleman_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 10,18, 30,7,-10;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 60, 4.65, 5, scale:0.75);
+		AddMountPoint("Ballistic", 64, 4.65, -6, scale:0.75);
+		AddMountPoint("Ballistic", 15, 4.65, 12, scale:1.0);
+	}
+}

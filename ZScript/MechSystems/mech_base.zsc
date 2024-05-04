@@ -390,7 +390,7 @@ class DrivableMech : DrivableObject
 		{
 			let curweap = weaps[i];
 			let proj = curweap.projType;
-			if(!proj) continue;
+			if(!proj || !curweap.checkSelectable()) continue;
 			
 			let defs = GetDefaultByType(proj);
 			if(defs.hasHoming) hasHomingWeapon = true;
