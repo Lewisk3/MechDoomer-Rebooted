@@ -10,7 +10,7 @@ class MechRiflemanIIC : DrivableMech
 		DrivableMech.ItemGraphic "Graphics/MechIcons/rifleman_icon.png";
 		DrivableMech.CBillValue (5741587  * MECHPRICESCALAR);
 		
-		DrivableMech.Manufacturer "Trellshire Heavy Industries";
+		DrivableMech.Manufacturer "Trellshire Industries";
 	}
 	
 	override string getShopDescription()

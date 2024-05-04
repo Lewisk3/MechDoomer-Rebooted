@@ -852,6 +852,23 @@ class ShopItem : MenuElement
 			namePos, MWDrawer.SS_TEXT_RIGHT, translation:itemFontColor,
 			alpha, scale:(fontScale * fitScale, fontScale)
 		);
+		
+		// Draw mountpoint info
+		int ballistic, missile, energy, pds;
+		foreach(hp : mech.hardpointData)
+		{
+			ballistic += hp.countMounts("ballistic");
+			missile += hp.countMounts("missile");
+			energy += hp.countMounts("energy");
+			pds += hp.countMounts("pds");
+		}	
+		
+		string mounts = String.Format("\c[Yellow]%dE, \c[Purple]%dB, \c[Green]%dM, \c[Red]%dPDS", energy, ballistic, missile, pds);
+		MWDrawer.DrawString(
+			itemFont, mounts,
+			namePos + (0,20), MWDrawer.SS_TEXT_RIGHT, translation:itemFontColor,
+			alpha, scale:(fontScale, fontScale)
+		);
 	}
 	
 	virtual void DrawMechValue(vector2 drawPos, double alpha)

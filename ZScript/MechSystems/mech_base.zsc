@@ -1375,9 +1375,16 @@ class DrivableMech : DrivableObject
 	}
 }
 
+class MountSaveInfo : Object
+{
+	string mountType;
+	MechItem attached;
+}
+
 // Convert mechs into data so they can be saved between runs.
 class HardpointSaveData : Object
 {
+	Array<MountSaveInfo> mounts;
 	Array<MechItem> items;
 	double armorPoints, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, armorDamage, rearArmorDamage;
 	bool isCriticallyDamaged;
@@ -1411,6 +1418,26 @@ class HardpointSaveData : Object
 		maxHP = src.maxHP;
 		armorDamage = src.armorDamage;
 		rearArmorDamage = src.rearArmorDamage;
+		
+		// Mount information
+		foreach(mnt : src.mountPoints)
+		{
+			let mntInfo = new("MountSaveInfo");
+			mntInfo.mountType = mnt.type;
+			mntInfo.attached = mnt.mountedItem;
+			mounts.Push(mntInfo);
+		}
+	}
+	
+	clearscope int countMounts(string type)
+	{
+		int cnt = 0;
+		foreach(mnt : mounts)
+		{
+			if(!(mnt.mountType ~== type) && type != "") continue;			
+			cnt++;
+		}	
+		return cnt;
 	}
 	
 	play virtual void Load(MechHardpoint dest)
