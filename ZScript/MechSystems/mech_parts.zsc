@@ -2,6 +2,8 @@ class MechPart : DrivableObjectPart
 {
 	vector3 lookingPos;
 	DrivableMech mech;
+	bool isDebris;
+	vector3 debrisAngles;
 	
 	Default
 	{
@@ -12,13 +14,67 @@ class MechPart : DrivableObjectPart
 		Height 0;
 	}
 	
+	// Spawns a copy of this part as debris
+	virtual MechPart CreateDebris(double spd = 1.0, double grav = 0.1)
+	{
+		let deb = MechPart(Spawn(getClass(), pos));
+		deb.angle = angle;
+		deb.pitch = pitch + frandom[MechPartDebris](-45,45);
+		deb.roll = roll + frandom[MechPartDebris](-20,20);
+		deb.A_SetScale(scale.x, scale.y);
+		deb.isDebris = true;
+		
+		deb.debrisAngles = (
+			frandom[MechPartDebris](-1,1),
+			frandom[MechPartDebris](-1,1),
+			frandom[MechPartDebris](-1,1)
+		) * (spd * 0.25);
+		
+		vector3 debspd = (
+			frandom[MechPartDebris](-1,1),
+			frandom[MechPartDebris](-1,1),
+			frandom[MechPartDebris](0.25,2.0)
+		) * spd;
+		
+		deb.vel = Quat.FromAngles(deb.angle, deb.pitch, deb.roll) * debspd;
+		deb.bNOGRAVITY = false;
+		deb.A_SetGravity(grav);
+		
+		return deb;
+	}
+	
 	override bool CanCollideWith(Actor other, bool passive)
 	{
 		if(!mech) return super.CanCollideWith(other, passive);
 		
 		return mech.CanCollideWith(other, passive);
 	}
-		
+
+	override void Tick()
+	{
+		super.Tick();
+		if(isDebris) 
+		{
+			DebrisThink();
+			if(alpha <= 0.05) Destroy();
+		}
+	}
+	
+	virtual void DebrisThink()
+	{
+		if(pos.z <= floorz) 
+		{
+			A_SetRenderStyle(alpha, STYLE_Translucent);
+			alpha -= 0.02;
+		}
+		else
+		{
+			A_SetAngle(angle + debrisAngles.x, SPF_INTERPOLATE);
+			A_SetPitch(pitch + debrisAngles.y, SPF_INTERPOLATE);
+			A_SetRoll(roll + debrisAngles.z, SPF_INTERPOLATE);
+		}
+	}
+
 	override void OnAttach()
 	{
 		mech = getMech();
@@ -149,6 +205,7 @@ class MechHardpoint : MechPart
 {
 	bool hasRearArmor;
 	bool immuneToExplosions;
+	bool doSpawnDebris; // If true, debris is spawned when this hardpoint is destroyed.
 	double healthPoints, maxHP;
 	double armorPoints, rearArmor, maxArmor, maxRearArmor;
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
@@ -182,6 +239,7 @@ class MechHardpoint : MechPart
 	class<MechExplosion> explosionType;
 	Property ExplosionType : explosionType;
 	Property ImmuneToExplosions : immuneToExplosions;
+	Property CreatesDebris : doSpawnDebris;
 	
 	// Hardpoint damage scalar.
 	const DMGSCALE = 0.04; // 0.025
@@ -199,8 +257,9 @@ class MechHardpoint : MechPart
 		MechHardpoint.RearArmor false;
 		MechHardpoint.ExplosionType "HardpointExplosion";
 		MechHardpoint.ImmuneToExplosions false;
+		MechHardpoint.CreatesDebris true;
 	}
-	
+
 	virtual void SetupMounts()
 	{
 		// Setup weapon mount points here.
@@ -420,10 +479,10 @@ class MechHardpoint : MechPart
 		}
 		
 		healthPoints -= hpDmg;
-		if(healthPoints <= 0) DestroyHardpoint();
+		if(healthPoints <= 0) DestroyHardpoint(hpDmg);
 	
 		// Damage SFX
-		if(mech.head)
+		if(mech && mech.head && mech.driver)
 		{
 			string dmgFlash = "FFFF0000";
 			if( (prevArmor > 0 && armorPoints <= 0) || (prevRearArmor > 0 && rearArmor <= 0) )
@@ -463,17 +522,31 @@ class MechHardpoint : MechPart
 		}
 	}
 	
-	virtual void DestroyHardpoint()
+	virtual MechExplosion CreateExplosion(class<MechExplosion> type)
+	{
+		let exp = MechExplosion(Spawn(type, pos));
+		if(exp) 
+		{
+			exp.angle = frandom[EXPLSRNG](0,360);
+			exp.pitch = frandom[EXPLSRNG](-30,30);
+			exp.roll = frandom[EXPLSRNG](0,360);
+			exp.target = self;	
+		}
+		return exp;
+	}
+	
+	virtual void DestroyHardpoint(double hitDamage = 0)
 	{
 		healthPoints = 0;
 		if(explosionType)
 		{
-			let exp = Spawn(explosionType, pos);
-			if(exp) 
+			CreateExplosion(explosionType);
+			
+			// Spawn debris if enabled
+			if(doSpawnDebris)
 			{
-				exp.angle = frandom[EXPLSRNG](0,360);
-				exp.pitch = frandom[EXPLSRNG](-30,30);
-				exp.target = self;	
+				CreateDebris(clamp(hitDamage, 1.0, 5.0));
+				doSpawnDebris = false;
 			}
 		}
 		
@@ -485,6 +558,17 @@ class MechHardpoint : MechPart
 				itm.hp = 0;
 				itm.onDamaged(999);
 			}
+		}
+	}
+	
+	override void DebrisThink()
+	{
+		super.DebrisThink();
+		if(pos.z <= floorz && vel.length() >= 3.0)
+		{
+			// Explode if hit the floor
+			CreateExplosion(explosionType);
+			alpha = 0;
 		}
 	}
 		
@@ -528,6 +612,7 @@ class MechHardpoint : MechPart
 	
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
+		if(!mech) return 0;
 		double trueDamage = double(damage) * DMGSCALE;
 		double hitAngle = 0;
 		
@@ -724,6 +809,13 @@ class MechHardpoint : MechPart
 		if(healthPoints > 0) bInvisible = false;
 	}
 	
+	// Flags set when this hardpoint has been destroyed
+	virtual void DestroyedFlags()
+	{
+		bSOLID = bSHOOTABLE = false;
+		bInvisible = true;
+	}
+	
 	override void Tick()
 	{
 		super.Tick();
@@ -741,8 +833,7 @@ class MechHardpoint : MechPart
 		
 		if(healthPoints <= 0) 
 		{
-			bSOLID = bSHOOTABLE = false;
-			bInvisible = true;
+			DestroyedFlags();
 		}
 		else
 		{
@@ -893,6 +984,7 @@ class MechLeg : MechHardpoint
 	Default
 	{
 		MechHardpoint.Slots 6;
+		MechHardpoint.CreatesDebris false;
 	}
 	
 	override void Tick()
@@ -983,8 +1075,6 @@ class MechLegs : MechPart
 			A_StartSound("Legs/Decel", CHAN_BODY, CHANF_OVERLAP);
 			prevSpd = spd;
 		}
-		
-		// bInvisible = (mech.leftLeg && mech.leftLeg.healthPoints <= 0) && (mech.rightLeg && mech.rightLeg.healthPoints <= 0);
 	}
 
 	States
@@ -1014,7 +1104,7 @@ class MechHips : MechPart
 		super.Tick();
 		
 		let torso = MechTorso(mech.torso);
-		bInvisible = torso && torso.healthPoints <= 0;
+		bInvisible = torso && torso.exploded;
 	}
 
 	override void UpdateAngles()
@@ -1041,6 +1131,7 @@ class MechTorso : MechHardpoint
 	double turnDir;
 	double prevAngle, prevPitch;
 	double zAccel;
+	bool exploded; // True if torso went nuclear.
 	
 	bool infiniteTurnRange;
 	Property InfiniteTurnRange : infiniteTurnRange;
@@ -1066,15 +1157,35 @@ class MechTorso : MechHardpoint
 		AddItem("MechGyro");
 	}
 	
+	override void DestroyedFlags()
+	{
+		super.DestroyedFlags();
+		bInvisible = exploded;
+	}
+	
+	override void DestroyHardpoint(double hitDamage)
+	{
+		if(frandom[NukeChance](0,100) <= 25)
+		{
+			doSpawnDebris = false;	
+			console.printf("Did not explode!");
+		}
+		else
+			exploded = true;
+			
+		super.DestroyHardpoint();
+	}
+	
 	override void UpdateAngles()
 	{
-		// Do not update to parent angles.
+		// Do not update to parent angles. 
 		if(!mech) return;
 		lookingPos = mech.head.lookingPos;
 		
 		let localPlayer = players[consoleplayer].mo;
 		bool localView = (mech.driver == localPlayer) && (mech.camActive == mech.cam);
-		bInvisible = healthPoints > 0 && localView;
+		bInvisible = localView || exploded;
+		if(mech.legs) mech.legs.bInvisible = exploded;
 		
 		vector3 shake = (
 			random[RecoilFXRNG](-1,1) * recoilShake.x,
@@ -1171,6 +1282,7 @@ class MechSideTorso : MechHardpoint
 	Default
 	{
 		MechHardpoint.Slots 12;
+		MechHardpoint.CreatesDebris false;
 	}
 		
 	override void UpdateAngles()
@@ -1193,7 +1305,7 @@ class MechRightTorso : MechSideTorso
 {
 	Default
 	{
-		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
 	}
 }
 
@@ -1211,6 +1323,7 @@ class MechCockpit : MechHardpoint
 		MechHardpoint.Slots 6;
 		MechHardpoint.UIGraphics "paperdoll_HD.png", "paperdoll_SK_HD.png";
 		MechHardpoint.ImmuneToExplosions true;
+		MechHardpoint.CreatesDebris false;
 	}
 	
 	override void DestroyHardpoint()

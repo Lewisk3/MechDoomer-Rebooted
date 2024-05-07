@@ -683,6 +683,12 @@ class DrivableMech : DrivableObject
 		camActive = cam;
 	}
 	
+	override void OnDestroy()
+	{
+		// Destroy all parts too
+		foreach(part : parts) part.Destroy();
+	}
+	
 	// FFS this is ugly...
 	virtual MechWeapon selectNextWeapon(Array<MechWeapon> weaps)
 	{
@@ -1293,8 +1299,29 @@ class DrivableMech : DrivableObject
 		EventHandler.SendInterfaceEvent(driver.PlayerNumber(), ev, lifetime);
 	}
 	
+	virtual bool CheckMechDestroyed()
+	{
+		Array<MechHardpoint> hardpoints;
+		getHardpoints(hardpoints);
+		
+		// If all hardpoints are skipped due to being destroyed.
+		return hardpoints.Size() <= 0 && (!torso || MechTorso(torso).exploded);
+	}
+	
 	override void Tick()
 	{
+		// Set camera to drone if driver has been killed and mech hasn't exploded.
+		bool driverDead = driver && (driver.health <= 0 || driver.bCORPSE);
+		if(driverDead && (torso && !MechTorso(torso).exploded))
+			SetDroneCamera();
+	
+		// Determine when mech needs to be destroyed
+		if( CheckMechDestroyed() && driverDead )
+		{
+			Destroy();
+			return;
+		}
+	
 		GetEngine(); // Update engine.
 		super.Tick();
 		
@@ -1388,6 +1415,7 @@ class HardpointSaveData : Object
 	Array<MechItem> items;
 	double armorPoints, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, armorDamage, rearArmorDamage;
 	bool isCriticallyDamaged;
+	bool doSpawnDebris;
 	
 	virtual HardpointSaveData MakeCopy()
 	{
@@ -1400,6 +1428,7 @@ class HardpointSaveData : Object
 		hpData.maxHP = maxHP;
 		hpData.armorDamage = armorDamage;
 		hpData.rearArmorDamage = rearArmorDamage;
+		hpData.doSpawnDebris = doSpawnDebris;
 		
 		foreach(itm : items)
 			hpData.items.Push(itm.MakeCopy());
@@ -1418,6 +1447,7 @@ class HardpointSaveData : Object
 		maxHP = src.maxHP;
 		armorDamage = src.armorDamage;
 		rearArmorDamage = src.rearArmorDamage;
+		doSpawnDebris = src.doSpawnDebris;
 		
 		// Mount information
 		foreach(mnt : src.mountPoints)
@@ -1450,6 +1480,7 @@ class HardpointSaveData : Object
 		dest.maxHP = maxHP;
 		dest.armorDamage = armorDamage;
 		dest.rearArmorDamage = rearArmorDamage; 
+		dest.doSpawnDebris = doSpawnDebris;
 		
 		// Item loading is done after this, as it needs to be done
 		// in a specific order.

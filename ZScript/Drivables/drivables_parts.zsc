@@ -107,6 +107,13 @@ class ThirdpersonCamera : DrivableObjectPart
 	override void UpdateAngles()
 	{
 		if(!viewer) return;
+		if(viewer.health <= 0) // Camera pan
+		{
+			A_SetAngle(angle + 0.74, SPF_INTERPOLATE);
+			A_SetPitch(15, SPF_INTERPOLATE);
+			A_SetRoll(0, SPF_INTERPOLATE);
+			return;
+		}
 		
 		A_SetAngle(viewer.angle, SPF_INTERPOLATE);
 		A_SetPitch(viewer.pitch, SPF_INTERPOLATE);

@@ -80,3 +80,32 @@ version "4.10.0"
 
 // Other
 #include "ZScript/cine_drone.zsc"
+
+
+class DisposableShotgun : Shotgun
+{
+	Default
+	{
+		Weapon.SlotNumber 2;
+	}
+
+	States
+	{
+		Deselect:
+			TNT1 A 0 A_JumpIf(countInv(invoker.ammotype1), "Deselect.Normal");
+			SHTG A 1
+			{
+				// Discard weapon
+				player.PendingWeapon = PlayerPawn(self).PickNextWeapon();
+				player.ReadyWeapon = NULL;
+				invoker.BecomePickup();
+				invoker.bSPECIAL = false;
+				invoker.SetOrigin((pos.xy, player.viewz), false);
+				invoker.vel = Quat.FromAngles(angle, pitch, roll) * (4,0,-5);
+				invoker.bNOGRAVITY = false;
+			}	
+		Deselect.Normal:
+			SHTG A 1 A_Lower();
+		Loop;
+	}
+}
