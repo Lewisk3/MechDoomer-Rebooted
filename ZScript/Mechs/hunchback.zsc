@@ -69,6 +69,89 @@ class MechHunchback4G : DrivableMech
 	}
 }
 
+class MechHunchback4P : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 43, 55;
+		DrivableMech.MaxWeight 50; // In Tons.
+		DrivableMech.ChassisName "Hunchback";
+		DrivableMech.VariantName "4P";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/hunchback_4P_icon.png";
+		DrivableMech.CBillValue (3467875  * MECHPRICESCALAR);	
+		DrivableMech.Manufacturer "Nissan Industries";
+	
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The 4P Hunchback is modified to carry "
+			"only energy weapons. The AC/20 was replaced with six additional medium "
+			"lasers and the number of single heat sinks carried brought up to 23 in "
+			"order to handle the incredibly high heat load."
+			" (Source: https://www.sarna.net/wiki/Hunchback)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Hunchback_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Hunchback_Hips",  0,0,48, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Hunchback4P_CenterTorso", 0,0,5, hips);
+		leftTorso  = AddHardpoint("Hunchback4P_LeftTorso",  0,-10,10, torso);
+		rightTorso = AddHardpoint("Hunchback_RightTorso", 0, 10,4, torso);
+		
+		leftLeg = AddHardpoint("Hunchback_LeftLeg",  0,-18,0, legs);
+		rightLeg = AddHardpoint("Hunchback_RightLeg", 0, 18,0, legs);
+			
+		leftArm  = AddHardpoint("Hunchback_LeftArm",  0,-10,10, leftTorso);
+		rightArm = AddHardpoint("Hunchback_RightArm", 0, 10,16, rightTorso);
+		
+		head = AddHardpoint("Hunchback_Cockpit", 0,5,28, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD200");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftArm.AddWeapon("MediumLaser", GROUPFLG_THREE);
+		rightArm.AddWeapon("MediumLaser", GROUPFLG_THREE);
+		head.AddWeapon("SmallLaser", GROUPFLG_FOUR);
+		
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		
+		leftLeg.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		torso.AddItem("MechHeatsink");
+		torso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+	}
+}
+
 /*
  10 tons = 200pts
 [HD] - 12
@@ -174,7 +257,13 @@ class Hunchback4P_LeftTorso : Hunchback4G_LeftTorso
 {
 	override void SetupMounts() 
 	{
+		AddMountPoint("Energy", 14.5, 3.7, 25, scale:0.8);
+		AddMountPoint("Energy", 14.5, 3.7, 25 - 4, scale:0.8);
+		AddMountPoint("Energy", 14.5, 3.7, 25 - 7.5, scale:0.8);
 		
+		AddMountPoint("Energy", 14.5, -5.0, 25, scale:0.8);
+		AddMountPoint("Energy", 14.5, -5.0, 25 - 4, scale:0.8);
+		AddMountPoint("Energy", 14.5, -5.0, 25 - 7.5, scale:0.8);
 	}
 }
 
