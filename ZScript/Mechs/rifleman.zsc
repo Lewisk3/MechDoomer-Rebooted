@@ -98,7 +98,7 @@ class Rifleman_Legs : MechLegs
 {
 	Default
 	{
-		MechLegs.TurnSpeed 52; // * 2.4 = 1.20 LL.
+		MechLegs.TurnSpeed 52;
 	}
 }
 

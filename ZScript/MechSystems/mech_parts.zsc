@@ -1043,13 +1043,14 @@ class MechLegs : MechPart
 			if(mech.driver) mech.driver.A_AlertMonsters(512,0);
 			if(mech.head && mech.torso) 
 			{
-				mech.head.animOffsets.z -= 5;
+				// mech.head.animOffsets.z -= 5;
 				MechTorso(mech.torso).pitchBobVel += 0.2;
 				// mech.vel *= 0.96;
 			}
 		}
+		/*
 		else if(mech.head)
-			mech.head.animOffsets.z *= 0.8;
+			mech.head.animOffsets.z *= 0.8; */
 			
 		double spd = mech.GetSpd();
 		tics = max(1, 5 - DrivablesMath.fmap(spd, 0, 8, 1, 6));

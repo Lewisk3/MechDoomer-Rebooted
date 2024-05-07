@@ -122,6 +122,16 @@ material texture models/mechs/riflemaniic/rifleman.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/hunchback/hb_full_3gun.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/hunchback/hb_full_6gun.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"
