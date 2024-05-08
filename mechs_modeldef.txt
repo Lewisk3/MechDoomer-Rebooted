@@ -567,6 +567,28 @@ Model Timberwolf_CenterTorso
 	
    FrameIndex MODL A 0 0
 }
+Model Timberwolf_leftTorso
+{
+	Path "models/mechs/"
+	Model 0 "Timberwolf/Timberwolf_sideTorso.md3"
+	SurfaceSkin 0 0 "Timberwolf/Timberwolf.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	
+   FrameIndex MODL A 0 0
+}
+Model Timberwolf_rightTorso
+{
+	Path "models/mechs/"
+	Model 0 "Timberwolf/Timberwolf_sideTorso.md3"
+	SurfaceSkin 0 0 "Timberwolf/Timberwolf.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	
+   FrameIndex MODL A 0 0
+}
 Model Timberwolf_Hips
 {
 	Path "models/mechs/Timberwolf/"

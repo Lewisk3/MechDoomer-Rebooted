@@ -25,6 +25,12 @@ class GaussCannon : MechProjectile
 		FireRailgun();
 	}
 	
+	override double GetDamageModifier(Actor victim)
+	{
+		// Damage multiplier for non-mech targets.
+		return 5.0;
+	}
+	
 	void LightningSparks()
 	{
 		for(int i = 0; i < 10; i++)

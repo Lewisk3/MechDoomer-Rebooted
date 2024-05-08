@@ -125,6 +125,7 @@ class MechLaser : MechLaserBeam
 			if(!(hitActor is "DrivableObjectPart")) 
 			{
 				trueDamage /= (MechHardpoint.DMGSCALE * 11.0);
+				trueDamage *= 1.25;
 			}
 			
 			hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Fire");

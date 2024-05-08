@@ -198,6 +198,7 @@ class Timberwolf_LeftTorso : MechSideTorso
 		MechHardpoint.Vitals 36, 18;
 		MechHardpoint.SetupArmor 32, 4;
 		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
 	}
 		
 	override void SetupMounts()
@@ -220,6 +221,7 @@ class Timberwolf_RightTorso : MechSideTorso
 		MechHardpoint.Vitals 36, 18;
 		MechHardpoint.SetupArmor 32, 4;
 		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
 	}	
 	
 	
