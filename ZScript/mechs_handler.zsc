@@ -7,7 +7,7 @@ class MechInteraction_Handler : EventHandler
 		super.OnRegister();
 		mechlab_curmech.Resize(MAXPLAYERS);
 	}
-	
+		
 	// Setup MechItems for players
 	override void WorldTick()
 	{

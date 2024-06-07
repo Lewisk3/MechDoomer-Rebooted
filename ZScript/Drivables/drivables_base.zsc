@@ -158,8 +158,12 @@ class DriverBtns abstract
 
 class DrivableComponent : Actor 
 {	
+	bool noaccel;
+
 	DrivableComponent parent;
 	vector2 spawnSize;
+	
+	Property CannotAccelerate : noaccel;
 	
 	Default
 	{
@@ -170,6 +174,8 @@ class DrivableComponent : Actor
 		+DONTTHRUST;
 		+CANPASS;
 		+NOBLOOD; 
+		-BLOCKEDBYSOLIDACTORS;
+		DrivableComponent.CannotAccelerate true;
 		Scale 1.0;
 	}
 	
@@ -187,6 +193,8 @@ class DrivableComponent : Actor
 			A_SetSize(spawnSize.x * parent.Scale.X, spawnSize.y * parent.Scale.Y);
 			A_SetScale(parent.scale.X);
 		}
+		
+		if(noaccel) vel *= 0;
 	}
 	
 	vector3 OffsetPos(double fw, double lr, double ud)
@@ -223,6 +231,9 @@ class DrivableObject : DrivableComponent
 		Height 32;
 		+NOFRICTION; // Best to handle friction ourselves.
 		+DROPOFF;
+		
+		// This is the vehicle source portion, which should use velocity.
+		DrivableComponent.CannotAccelerate false;
 	}
 	
 	virtual void PreTravelled()

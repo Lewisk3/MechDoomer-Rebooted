@@ -1449,9 +1449,9 @@ class MechWeapon : MechItem
 	{
 		if(!ammoType || !parent) return;
 		
-		loadedAmmo = MechAmmo(parent.FindItem(ammoType));
+		loadedAmmo = MechAmmo(parent.FindItem(ammoType, skipDestroyed:true));
 		if(!loadedAmmo) 
-			loadedAmmo = MechAmmo(parent.mech.FindItem(ammoType));
+			loadedAmmo = MechAmmo(parent.mech.FindItem(ammoType, skipDestroyed:true));
 	}
 	
 	
@@ -1848,7 +1848,7 @@ class I_MechItemStorage : Inventory
 				}
 			}
 			
-			itm.cbills = 12345660;
+			itm.cbills = 10e8;
 		}
 		
 		return itm;

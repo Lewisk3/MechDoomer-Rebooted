@@ -390,6 +390,7 @@ class MechHardpoint : MechPart
 	
 	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
 	{
+		if(healthPoints <= 0) return; // Don't damage an already destroyed hardpoint.
 		double prevArmor = armorPoints;
 		double prevRearArmor = rearArmor;
 		double prevInternals = healthPoints;
@@ -612,7 +613,7 @@ class MechHardpoint : MechPart
 	
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
-		if(!mech) return 0;
+		if(!mech || healthPoints <= 0) return 0;
 		double trueDamage = double(damage) * DMGSCALE;
 		double hitAngle = 0;
 		
@@ -895,19 +896,23 @@ class MechHardpoint : MechPart
 		doDamageEffects();
 	}
 	
-	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false)
+	clearscope virtual MechItem FindItem(class<MechItem> type, bool subclass = false, bool skipDestroyed = false)
 	{	
 		if(healthPoints <= 0) return NULL;
 		foreach(itm : items) 
-			 if(itm.isTypeOf(type, subclass)) return itm;
+		{
+			if(itm.checkDestroyed() && skipDestroyed) continue;
+			if(itm.isTypeOf(type, subclass)) return itm;
+		}
 		return NULL;
 	}
 	
-	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems)
+	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems, bool skipDestroyed = false)
 	{
 		if(healthPoints <= 0) return;
 		foreach(itm : items)
 		{	
+			if(itm.checkDestroyed() && skipDestroyed) continue;
 			if(itm.isTypeOf(type, subclass))
 				foundItems.Push(itm);
 		}

@@ -71,7 +71,7 @@ class MunitionsStation : Actor
 	{
 		// Find depleted ammo
 		Array<MechItem> ammoStructs;
-		mech.FindAllItems("MechAmmo", true, ammoStructs);
+		mech.FindAllItems("MechAmmo", true, ammoStructs, skipDestroyed:true);
 
 		double fullAmmo; double curAmmo; double ammoPerc;
 		foreach(itm : ammoStructs)

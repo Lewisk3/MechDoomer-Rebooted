@@ -349,6 +349,7 @@ class DrivableMech : DrivableObject
 	
 	virtual void AcquireTarget(bool requireSight = true)
 	{
+		if(!head) return;
 		let it = ThinkerIterator.Create();
 		Actor act;
 		double angleDist = double.infinity;
@@ -518,14 +519,14 @@ class DrivableMech : DrivableObject
 		if(rightTorso) rightTorso.getWeapons(weaps, grp, ignoreDead:readDeadHardpoints);
 	}
 	
-	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems)
+	clearscope virtual void FindAllItems(class<MechItem> type, bool subclass, out Array<MechItem> foundItems, bool skipDestroyed = false)
 	{
 		for(int p = 0; p < parts.Size(); p++)
 		{
 			let hardpoint = MechHardpoint(parts[p]);
 			if(!hardpoint || hardpoint.healthPoints <= 0) continue;
 			
-			hardpoint.findAllItems(type, subclass, foundItems);
+			hardpoint.findAllItems(type, subclass, foundItems, skipDestroyed);
 		}
 	}
 	
@@ -547,7 +548,7 @@ class DrivableMech : DrivableObject
 	clearscope virtual int countAllAmmo(class<MechAmmo> type)
 	{
 		Array<MechItem> ammos;
-		FindAllItems(type, false, ammos);
+		FindAllItems(type, false, ammos, skipDestroyed:true);
 		
 		int totalAmmo = 0;
 		for(int i = 0; i < ammos.Size(); i++)
@@ -584,14 +585,14 @@ class DrivableMech : DrivableObject
 		}
 	}
 	
-	clearscope virtual MechItem FindItem(class<MechItem> item, bool subclass = false)
+	clearscope virtual MechItem FindItem(class<MechItem> item, bool subclass = false, bool skipDestroyed = false)
 	{
 		for(int i = 0; i < parts.Size(); i++)
 		{
 			let part = MechHardpoint(parts[i]);
 			if(!part) continue;
 			
-			let found = part.FindItem(item, subclass);
+			let found = part.FindItem(item, subclass, skipDestroyed);
 			if(found) return found;
 		}
 		return NULL;
