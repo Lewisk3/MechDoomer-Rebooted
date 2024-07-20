@@ -38,6 +38,7 @@ class MechPart : DrivableObjectPart
 		
 		deb.vel = Quat.FromAngles(deb.angle, deb.pitch, deb.roll) * debspd;
 		deb.bNOGRAVITY = false;
+		deb.noaccel = false;
 		deb.A_SetGravity(grav);
 		
 		return deb;
