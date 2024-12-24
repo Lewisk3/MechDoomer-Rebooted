@@ -69,7 +69,8 @@ class ThirdpersonCamera : DrivableObjectPart
 	
 	override void UpdatePos()
 	{
-		double maxdist = camdist.x;
+		vector2 adjustedCamDist = camdist * parent.Scale.X;
+		double maxdist = adjustedCamDist.x;
 
 		if(viewer)
 		{
@@ -77,7 +78,7 @@ class ThirdpersonCamera : DrivableObjectPart
 			parent.LineTrace(
 				viewer.angle, maxdist, viewer.pitch, 
 				TRF_THRUACTORS|TRF_THRUBLOCK|TRF_ABSOFFSET, 
-				camdist.y + sin(viewer.pitch), 0, 0, lndata
+				adjustedCamDist.y + sin(viewer.pitch), 0, 0, lndata
 			);
 			
 			if( lndata.HitType == lndata.TRACE_HitWall    || 
@@ -89,12 +90,14 @@ class ThirdpersonCamera : DrivableObjectPart
 		}
 		
 		vector3 offs = parentOffset + animOffsets;
+		// offs *= parent.Scale.X;
+		
 		vector3 offsPos = parent.OffsetPos(offs.x,offs.y,offs.z); 
 		vector3 toPos = DrivablesMath.V3Offset(
 			angle, pitch, roll, 1.0, 0, 0, maxdist
 		);
 		toPos = level.vec3offset(
-			toPos, (offsPos.x, offsPos.y, camdist.y+offsPos.z + parent.GetBobOffset())
+			toPos, (offsPos.x, offsPos.y, adjustedCamDist.y+offsPos.z + parent.GetBobOffset())
 		);
 		toPos = level.vec3offset(toPos, parent.vel);
 	

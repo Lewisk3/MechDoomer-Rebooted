@@ -190,7 +190,9 @@ class MechLaserBeam : Actor
 		double zoffs = source.player ? (source.player.viewz-source.pos.z) : source.height * 0.5;
 		if(dcm) zoffs = 0;
 		
-		source.LineTrace(angle, maxDist, pitch - 90, 0, zoffs+offsets.z-bob.y, offsets.x + 20, offsets.y-bob.x, data:hitData);
+		source.LineTrace(angle, maxDist, pitch - 90, 0, zoffs+offsets.z-bob.y, offsets.x, offsets.y-bob.x, data:hitData);
+		if(hitData.Distance <= 0) // Linetrace failed, attempt to recalculate.
+			source.LineTrace(angle, maxDist, pitch - 90, 0, zoffs+offsets.z-bob.y, offsets.x + 20, offsets.y-bob.x, data:hitData);
 		
 		// Scale to Distance.
 		double dist = min(hitData.Distance, maxDist);

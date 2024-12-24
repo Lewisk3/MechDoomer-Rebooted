@@ -145,6 +145,7 @@ class MechLaser : MechLaserBeam
 		lasdec.angle = angle;
 		lasdec.pitch = pitch;
 		lasdec.target = self;
+		lasdec.A_SetScale(lasdec.Scale.X * hardpoint.mech.Scale.X, lasdec.Scale.Y * hardpoint.mech.Scale.Y);
 	}
 }
 

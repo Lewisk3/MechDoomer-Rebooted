@@ -323,7 +323,7 @@ class MechLRM : MechMissile
 		MechProjectile.Ranges 120, 900;
 		MechProjectile.FirePitch 30;
 		MechProjectile.Homing true;
-		MechMissile.HomingInaccuracy 30;
+		MechMissile.HomingInaccuracy 15;
 		MechProjectile.SpeedKPH 400; 
 	}
 }

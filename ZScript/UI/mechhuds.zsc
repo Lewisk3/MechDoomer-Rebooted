@@ -68,7 +68,7 @@ class MechHUD : VehicleHUD
 						MWDrawer.GetBaseWidth() / sRes.x,
 						MWDrawer.GetBaseHeight() / sRes.y
 					);
-					viewproj = MWDrawer.GetRenderEventViewProj(e, mech.driver.player.desiredFOV * mech.combatZoomScale);
+					viewproj = MWDrawer.GetRenderEventViewProj(e, FOV * mech.combatZoomScale);
 					viewproj.resolution = (winRes.x / scale.x, winRes.y / scale.y);
 					viewproj.screenOffs = (sRes * 0.5) - (viewproj.resolution * 0.5);
 					

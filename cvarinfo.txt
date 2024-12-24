@@ -1,4 +1,5 @@
-server float sv_mdr_mechscale = 0.8;
+server float sv_mdr_mechscale = 0.35;
+server float sv_mdr_distancescale = 1.0;
 server float sv_mdr_mechspeedscale = 1.0;
 server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;

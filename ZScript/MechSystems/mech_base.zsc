@@ -5,17 +5,17 @@
 	the Hellbringer's observed height.
 	
 	This number is derrived like so
-	HellBringer = 12.9m, 92 units.
+	HellBringer = 12.9m, ~70 units.
 	
-	12.9m / 92.0u = ~0.14 meters a unit.
-	
-	If we compare Doomguy instead, at an assumed height of ~1.70 meters
-	we get; 3.039047882723666
+	12.9m / 70.0u = ~0.18 meters a unit.
 */
 
-const UTOCM_Scaled = ((12.9 / 92.0) * 100.0);
-const UTOCM_Real = UTOCM_Scaled / 5.54;
-const UTOCM = UTOCM_Scaled;
+const UTOCM_OLD = ((12.9 / 92.0) * 100.0);
+const UTOCM_AdjustedOLD = UTOCM_OLD / 5.54;
+
+// TODO: Make a getter function which multiplies by the server CVar for mechscale.
+const UTOCM = ( (12.9 / (70.0 * 0.35) ) * 100.0); 
+
 const MECHPRICESCALAR = 0.5;
 
 class DrivableMech : DrivableObject
@@ -326,9 +326,10 @@ class DrivableMech : DrivableObject
 	
 			if(hp)
 			{
-				curHeight = hp.pos.z + hp.height;
+				double hpRelZ = hp.pos.z - pos.z;
+				curHeight = hpRelZ + hp.height;
 				if(hp.hitboxHeight > 0) 
-					curHeight = max(curHeight, hp.pos.z + hp.hitboxPos_UD + hp.hitboxHeight);		
+					curHeight = max(curHeight, hpRelZ + hp.hitboxPos_UD + hp.hitboxHeight);		
 			}
 		 
 			if(maxHeight < curHeight) maxHeight = curHeight;
@@ -650,7 +651,7 @@ class DrivableMech : DrivableObject
 		bInvisible = true;
 		
 		// Camera(s)
-		camDrone = ThirdpersonCamera.Create(1,0,20, -100, 60);
+		camDrone = ThirdpersonCamera.Create(1,15,40, -150, 60);
 		AttachPart(camDrone, self);
 	}
 	
@@ -949,23 +950,20 @@ class DrivableMech : DrivableObject
 		if(mtorso) mtorso.infiniteTurnRange = mtorso.default.infiniteTurnRange;	
 		
 		// Slow down while turning
-		if(vel.xy.length())
+		if(vel.xy.length() && onground)
 		{
-			double dist = vel.xy.length() / 2.0;
-			double omega = angVel*angVel;
-			double pushBack = (dist * (omega*0.02));
+			double dist = vel.xy.length();
+			double omega = abs(angVel);
+			double pushBack = (dist * (omega*0.04));
 			vector2 dir = AngleToVector(angle);
-			angVel -= DrivablesMath.sign(angVel)*(pushBack * 3.0); 
-			vel.xy -= dir * (pushBack * 1.25);
+			angVel -= DrivablesMath.sign(angVel)*(pushBack * 6.7); 
+			vel.xy -= dir * (pushBack * 0.33);
 		}
 		
 		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
 		
-		if(onground)
-		{
-			angVel -= legTurnSpeed * DrivablesMath.sign(sm);
-			angle += angVel;
-		}
+		angVel -= legTurnSpeed * DrivablesMath.sign(sm);
+		angle += angVel;
 	
 		if(centerToTorso && abs(angle - torso.angle) > 0.1)
 		{
@@ -1007,7 +1005,7 @@ class DrivableMech : DrivableObject
 		let mtorso = MechTorso(torso);
 		if(mtorso) mtorso.infiniteTurnRange = true;	
 		
-		if( (fm || sm) && onground && moveSpeedKPH > 0 )
+		if( (fm || sm) && moveSpeedKPH > 0 )
 		{
 			// Move Inputs
 			vector2 moveDir = (fm, -sm);
@@ -1024,7 +1022,7 @@ class DrivableMech : DrivableObject
 			angle = DrivablesMath.LerpDegrees(angle, moveAngle, lerpAmt);			
 			throttle = (1.0 * maxSpdMod) * (!fm ? abs(sm) : abs(clamp(fm, -0.5, 1.0)));
 			
-			vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * abs(accel) * accelDirModifier);
+			if(onground) vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * abs(accel) * accelDirModifier);
 		}
 		else
 		{
@@ -1032,7 +1030,7 @@ class DrivableMech : DrivableObject
 		}
 		
 		angVel *= 0.75;
-		
+			
 		int accelSign = fm < 0 ? -1 : 1;
 		double moveAmt = !moveSpeedKPH ? 1 : accelKPH / moveSpeedKPH;
 		accel = accelSign * DrivablesMath.Lerp(abs(accel), throttle, moveAmt / 10.);
@@ -1282,7 +1280,7 @@ class DrivableMech : DrivableObject
 	
 	clearscope static double DegToTurnSpeed(double degreeSeconds)
 	{
-		return degreeSeconds / 140.0; // Needs to be recalculated if turn friction is changed.
+		return degreeSeconds / 130.0; // Needs to be recalculated if turn friction is changed.
 	}
 	
 	virtual MechEngine GetEngine()

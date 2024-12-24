@@ -15,7 +15,7 @@ class SmallLaser : MechLaserWeapon
 		laserRange = 300; // Maximum laser range.
 		damage = convertDMG(3.25, fireTime);
 		laserHeat = convertHeat(1.10, fireTime); // Laserbeam heat.
-		energyUse = 0.2 / double(fireTime);
+		energyUse = 0.1 / double(fireTime);
 		
 		fireSound = "Laser/Small";
 		laserType = "MechLaser";
@@ -51,7 +51,7 @@ class ERSmallLaser : SmallLaser
 		range = 200; // Damage dropoff
 		laserRange = 400; // Maximum laser range.
 		laserHeat = convertHeat(1.90, fireTime); // Laserbeam heat.
-		energyUse = 0.3 / double(fireTime);
+		energyUse = 0.15 / double(fireTime);
 		
 		laserColor = "Yellow";
 		sndItemName = "Betty/Item/ERLaser";
@@ -129,7 +129,7 @@ class MediumLaser : MechLaserWeapon
 		range = 270;
 		damage = convertDMG(5.0, fireTime);
 		laserHeat = convertHeat(3.25, fireTime); // Laserbeam heat.
-		energyUse = 0.4 / double(fireTime);
+		energyUse = 0.2 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechLaser";
@@ -163,7 +163,7 @@ class ERMediumLaser : MediumLaser
 		range = 360; 
 	
 		laserHeat = convertHeat(3.80, fireTime); // Laserbeam heat.
-		energyUse = 0.5 / double(fireTime);
+		energyUse = 0.25 / double(fireTime);
 		
 		laserColor = "Cyan";
 		sndItemName = "Betty/Item/ERLaser";
@@ -201,7 +201,7 @@ class MediumPulseLaser : MediumLaser
 		damage = convertDMG(9.0, maxLaserTime);
 		laserHeat = convertHeat(7.60, maxLaserTime); // Laserbeam heat.
 		pulseSpeed = 70;
-		energyUse = 0.04 / double(fireTime);
+		energyUse = 0.02 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
@@ -243,7 +243,7 @@ class LargeLaser : MechLaserWeapon
 		range = 450;
 		damage = convertDMG(9.0, fireTime);
 		laserHeat = convertHeat(6.0, fireTime); // Laserbeam heat.
-		energyUse = 0.6 / double(fireTime);
+		energyUse = 0.3 / double(fireTime);
 		
 		fireSound = "Laser/Large";
 		laserType = "MechLaser";
@@ -277,7 +277,7 @@ class ERLargeLaser : LargeLaser
 		laserRange = 1480; // Meters
 		range = 740;
 		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
-		energyUse = 0.7 / double(fireTime);
+		energyUse = 0.45 / double(fireTime);
 		
 		laserColor = "Purple";
 		sndItemName = "Betty/Item/ERLaser";
@@ -315,7 +315,7 @@ class LargePulseLaser : LargeLaser
 		range = 370;
 		damage = convertDMG(15.0, maxLaserTime);
 		laserHeat = convertHeat(12.0, maxLaserTime); // Laserbeam heat.
-		energyUse = 0.06 / double(fireTime);
+		energyUse = 0.03 / double(fireTime);
 		pulseSpeed = 50;
 		
 		fireSound = "Laser/Large";
@@ -736,7 +736,7 @@ class LRM5 : MechMissileWeapon
 		weight = 2.0;
 		refireCount = 5;
 		refireDelay = 2;
-		heat = 2.20;
+		heat = 1.0;
 		size = 1;
 		
 		fireTime     = refireDelay * refireCount;
@@ -776,7 +776,7 @@ class LRM10 : MechMissileWeapon
 		weight = 5.0;
 		refireCount = 10;
 		refireDelay = 2;
-		heat = 3.60;
+		heat = 2.0;
 		size = 2;
 		
 		fireTime     = refireDelay * refireCount;
@@ -821,7 +821,7 @@ class LRM15 : MechMissileWeapon
 		weight = 7.0;
 		refireCount = 15;
 		refireDelay = 2;
-		heat = 4.50;
+		heat = 3.0;
 		size = 3;
 		
 		fireTime     = refireDelay * refireCount;
@@ -866,7 +866,7 @@ class LRM20 : MechMissileWeapon
 		weight = 10.0;
 		refireCount = 20;
 		refireDelay = 2;
-		heat = 5.60;
+		heat = 4.0;
 		size = 5;
 		
 		fireTime     = refireDelay * refireCount;
