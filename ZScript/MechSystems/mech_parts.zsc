@@ -1369,7 +1369,9 @@ class MechCockpit : MechHardpoint
 	
 	void DoCockpitBob()
 	{
-		double curSpeed = mech.GetSpd() * 2.5;
+		
+		double curSpeed = MechEngine.mechSpeedToKPH(mech.GetSpd()) / 17.0;
+		
 		double tiltosc_amp =  10 + (curSpeed * 0.25);
 		double steposc_amp = curSpeed * 1.2;
 		tiltosc_amp = clamp(tiltosc_amp,0,18);

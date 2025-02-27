@@ -3,6 +3,5 @@ extend class MechHUD_Handler
 	ui virtual void DrawOverlays(RenderEvent e)
 	{
 		// Used to convey information from in-world actors to the player.
-		// Used extensively by Drones.
 	}
 }

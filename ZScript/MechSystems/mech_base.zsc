@@ -13,7 +13,7 @@
 const UTOCM_OLD = ((12.9 / 92.0) * 100.0);
 const UTOCM_AdjustedOLD = UTOCM_OLD / 5.54;
 
-// TODO: Make a getter function which multiplies by the server CVar for mechscale.
+// Modified by sv_mdr_distancescale and sv_mdr_campaignmode.
 const UTOCM = ( (12.9 / (70.0 * 0.35) ) * 100.0); 
 
 const MECHPRICESCALAR = 0.5;
@@ -213,7 +213,7 @@ class DrivableMech : DrivableObject
 		
 		return armorRC, internalRC;
 	}
-	
+		
 	clearscope static string GetMechWeightClass(double tonnage)
 	{
 		if(tonnage > 100) return "Super-Heavy";
@@ -344,6 +344,7 @@ class DrivableMech : DrivableObject
 		// Dropship map has a fixed mechscale.
 		Name mapname = level.mapname;
 		if(mapname == 'DROPSHIP') return 3.0;
+		if(sv_mdr_campaignmode) return 0.35;
 		
 		return sv_mdr_mechscale;
 	}
@@ -1267,14 +1268,20 @@ class DrivableMech : DrivableObject
 	{
 		return !onground ? 0 : vel.xy.length() + abs((angVel+legVel) * 0.5);
 	}
+	
+	clearscope static double GetUTOCM()
+	{
+		double campaignModifier = sv_mdr_campaignmode ? 2.5 : 1.0;
+		return UTOCM * (sv_mdr_distancescale * campaignModifier);
+	}
 		
 	clearscope static double unitsToKM(double units)
 	{
-		return ( units * UTOCM ) / 100000.0;
+		return ( units * GetUTOCM() ) / 100000.0;
 	}
 	clearscope static double MetersToUnits(double meters)
 	{
-		double UTOM = UTOCM / 100.0;
+		double UTOM = GetUTOCM() / 100.0;
 		return ( meters / UTOM );
 	}
 	

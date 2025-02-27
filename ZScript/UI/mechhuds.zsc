@@ -284,7 +284,7 @@ class MechHUD : VehicleHUD
 	
 		vector3 aimPos = mech.curTarget ? mech.curTarget.pos : mech.aimingPos;
 		double aimDist = (hardpointPos.xy - aimPos.xy).Length();
-		return (aimDist * UTOCM) / 100.0;	
+		return (aimDist * DrivableMech.GetUTOCM()) / 100.0;	
 	}
 	
 	void DrawRadar()

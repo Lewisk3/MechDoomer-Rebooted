@@ -34,12 +34,6 @@ class MechMissile : MechProjectile
 			trueDamage = default.trueDamage;
 	}
 	
-	override double GetDamageModifier(Actor victim)
-	{
-		// Damage multiplier for non-mech targets.
-		return 2.0;
-	}
-	
 	override void HandleRanges()
 	{
 		super.HandleRanges();

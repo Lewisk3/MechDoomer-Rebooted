@@ -8,7 +8,7 @@ class SmallLaser : MechLaserWeapon
 		heat = 0; // Initial heat.
 		weight = 0.5;
 				
-		fireTime     = floor(0.4 * TICRATE);
+		fireTime     = floor(1.0 * TICRATE);
 		cooldownTime = 1 * TICRATE;
 		
 		range = 150; // Meters
@@ -80,7 +80,7 @@ class SmallPulseLaser : SmallLaser
 		heat = 0; // Initial heat.
 		weight =1.0;
 				
-		fireTime     = 5 + floor(0.1 * TICRATE);
+		fireTime     = 5 + floor(0.2 * TICRATE);
 		cooldownTime = floor(0.75 * TICRATE);
 		maxLaserTime = floor(1.75 * TICRATE);
 		
@@ -122,12 +122,12 @@ class MediumLaser : MechLaserWeapon
 		mountType = "Energy";
 		weight = 1;
 		
-		fireTime     = floor(0.4 * TICRATE);
+		fireTime     = floor(1.5 * TICRATE);
 		cooldownTime = 2 * TICRATE;
 		
 		laserRange = 540; // Meters
 		range = 270;
-		damage = convertDMG(5.0, fireTime);
+		damage = convertDMG(10.0, fireTime);
 		laserHeat = convertHeat(3.25, fireTime); // Laserbeam heat.
 		energyUse = 0.2 / double(fireTime);
 		
@@ -192,7 +192,7 @@ class MediumPulseLaser : MediumLaser
 		heat = 0; // Initial heat.
 		weight = 2.0;
 				
-		fireTime     = 5 + floor(0.1 * TICRATE);
+		fireTime     = 5 + floor(0.4 * TICRATE);
 		cooldownTime = floor(1.50 * TICRATE);
 		maxLaserTime = floor(3.0 * TICRATE);
 		
@@ -236,12 +236,12 @@ class LargeLaser : MechLaserWeapon
 		weight = 5.0;
 		size = 2;
 		
-		fireTime     = floor(0.5 * TICRATE);
+		fireTime     = floor(2.0 * TICRATE);
 		cooldownTime = 3 * TICRATE;
 		
 		laserRange = 900; // Meters
 		range = 450;
-		damage = convertDMG(9.0, fireTime);
+		damage = convertDMG(18.0, fireTime);
 		laserHeat = convertHeat(6.0, fireTime); // Laserbeam heat.
 		energyUse = 0.3 / double(fireTime);
 		
@@ -307,7 +307,7 @@ class LargePulseLaser : LargeLaser
 		weight = 7.0;
 		size = 2;
 				
-		fireTime     = 5 + floor(0.1 * TICRATE);
+		fireTime     = 5 + floor(0.8 * TICRATE);
 		cooldownTime = floor(3.0 * TICRATE);
 		maxLaserTime = floor(4.25 * TICRATE);
 		
@@ -776,7 +776,7 @@ class LRM10 : MechMissileWeapon
 		weight = 5.0;
 		refireCount = 10;
 		refireDelay = 2;
-		heat = 2.0;
+		heat = 1.5;
 		size = 2;
 		
 		fireTime     = refireDelay * refireCount;
@@ -821,7 +821,7 @@ class LRM15 : MechMissileWeapon
 		weight = 7.0;
 		refireCount = 15;
 		refireDelay = 2;
-		heat = 3.0;
+		heat = 2.0;
 		size = 3;
 		
 		fireTime     = refireDelay * refireCount;
@@ -866,7 +866,7 @@ class LRM20 : MechMissileWeapon
 		weight = 10.0;
 		refireCount = 20;
 		refireDelay = 2;
-		heat = 4.0;
+		heat = 3.0;
 		size = 5;
 		
 		fireTime     = refireDelay * refireCount;

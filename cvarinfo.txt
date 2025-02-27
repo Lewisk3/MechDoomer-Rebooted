@@ -1,6 +1,7 @@
-server float sv_mdr_mechscale = 0.35;
-server float sv_mdr_distancescale = 1.0;
-server float sv_mdr_mechspeedscale = 1.0;
+server float sv_mdr_mechscale = 0.7; // Fixed at 0.35 for campaign mode.
+server float sv_mdr_distancescale = 0.4; // This ideally, should not be touched by the player, but it's here as an option.
+server float sv_mdr_mechspeedscale = 1.0; // The player should use this over distancescale if they wish to modify the speed of mechs.
+server bool sv_mdr_campaignmode = false; // If true, adjusts scale parameters for campaign mode.
 server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;
 server bool sv_mdr_exitanytime = false;

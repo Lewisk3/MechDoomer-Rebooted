@@ -27,12 +27,6 @@ class ParticleCannon : MechProjectile
 	{
 		if(mechVictim) mechVictim.EMI += 25;
 	}
-	
-	override double GetDamageModifier(Actor victim)
-	{
-		// Damage multiplier for non-mech targets.
-		return 5.0;
-	}
 
 	override void Tick()
 	{

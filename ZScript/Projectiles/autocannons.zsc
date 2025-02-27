@@ -33,13 +33,7 @@ class MechAutocannon : MechProjectile
 		
 		HandleRanges();
 	}
-	
-	override double GetDamageModifier(Actor victim)
-	{
-		// Buff autocannon damage on non-mech targets.
-		return 2.0;
-	}
-	
+		
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();

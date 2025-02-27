@@ -79,7 +79,7 @@ class MechProjectile : FastProjectile
 		double kmPerSecond = KPH / 3600.0;
 		double cmPerTick = (kmPerSecond / TICRATE) * 100000.0;
 		
-		return cmPerTick / UTOCM;
+		return cmPerTick / DrivableMech.GetUTOCM();
 	}
 	
 	virtual void playImpactSound(bool randomizedPitch = true)
@@ -123,7 +123,7 @@ class MechProjectile : FastProjectile
 	// Only called on non-mech targets.
 	virtual double GetDamageModifier(Actor victim)
 	{
-		return 1.0;
+		return MechHardpoint.DMGSCALE * 14.;
 	}
 	
 	virtual void UpdateVelocity()

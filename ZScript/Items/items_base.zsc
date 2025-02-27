@@ -1129,7 +1129,7 @@ class MechEngine : MechItem
 	{
 		double unitsPerSecond = spd * TICRATE;
 		double unitsPerHour = unitsPerSecond * 3600.0;
-		return (( unitsPerHour * UTOCM ) / 100000.0);
+		return (( unitsPerHour * DrivableMech.GetUTOCM() ) / 100000.0);
 	}
 	
 	// Holy fuck this is a mess LMFAO
@@ -1138,7 +1138,7 @@ class MechEngine : MechItem
 	const MOVESPEED_MOD = 10 * MOVEFRICMOD; 
 	clearscope static double getMechKPHSpeed(double KPH)
 	{
-		double unitsPerHour = (KPH*100000.0) / UTOCM;
+		double unitsPerHour = (KPH*100000.0) / DrivableMech.GetUTOCM();
 		double unitsPerSecond = unitsPerHour / 3600.0;
 		
 		unitsPerSecond /= MOVESPEED_MOD;
