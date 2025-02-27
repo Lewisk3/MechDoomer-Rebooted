@@ -121,8 +121,12 @@ class MechProjectile : FastProjectile
 	}
 	
 	// Only called on non-mech targets.
-	virtual double GetDamageModifier(Actor victim)
+	// NOTE: All play-scope data accessed from this function must not be written to.
+	virtual clearscope double GetDamageModifier(Actor victim) const
 	{
+		// Always null-check victim if you overwrite this!
+		// Damage descriptions are generated with victim set to NULL.
+	
 		return MechHardpoint.DMGSCALE * 14.;
 	}
 	
