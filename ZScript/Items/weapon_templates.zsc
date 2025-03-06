@@ -67,7 +67,7 @@ class MechLaserWeapon : MechWeapon
 	
 	override double getCooldownTime()
 	{
-		return continuous ? fireTime : super.getCooldownTime();
+		return continuous ? cooldownTime * (fireTime / double(maxLaserTime)) : super.getCooldownTime();
 	}
 	
 	// Called so long as the weapon's fire button is held.
@@ -75,15 +75,15 @@ class MechLaserWeapon : MechWeapon
 	{
 		if(!continuous || !laser) return;
 		
-		// Continuous laser firing
-		if(canFire() && laser.time <= 1)
-		{
-			laser.time = fireTime;
-			if(maxLaserTime) contLaserTime += fireTime;
-		}
-		
 		if(maxLaserTime > 0 && contLaserTime > 0)
 			cooldown = cooldownTime * (contLaserTime / double(maxLaserTime));
+		
+		// Continuous laser firing
+		if(canFire())
+		{
+			if(laser.time <= 1) laser.time = fireTime;
+			contLaserTime++;
+		}
 		
 		// If we've been firing continuously for too long.
 		if(contLaserTime >= maxLaserTime)
@@ -102,6 +102,7 @@ class MechLaserWeapon : MechWeapon
 		WeapSound(fireSound);
 		laser = MechLaser.FireLaser(parent, firePos, damage, fireTime, range, laserRange, laserType);
 		laser.shade = laserColor;
+		
 		contLaserTime = fireTime;
 		return true;
 	}

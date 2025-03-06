@@ -1,7 +1,7 @@
 class MechInteraction_Handler : EventHandler
 {
 	Array<DrivableMech> mechlab_curmech;
-	
+
 	override void OnRegister()
 	{
 		super.OnRegister();
@@ -78,51 +78,6 @@ class MechInteraction_Handler : EventHandler
 		
 		let mdrMenu = MechMenu(Menu.getCurrentMenu());
 		if(mdrMenu) mdrMenu.processPlayEvent(consoleplayer, e.Name);		
-	}
-	
-	// Item information canvases
-	override void RenderOverlay(RenderEvent e)
-	{
-		double FOV = e.Camera.player ? e.Camera.player.FOV : e.Camera.CameraFOV;
-		let vp = MWDrawer.GetRenderEventViewProj(e, FOV);
-	
-		let astIt = ThinkerIterator.Create("MunitionsStation");
-		MunitionsStation st;		
-		
-		while(st = MunitionsStation(astIt.Next()))
-		{
-			// Project text information
-			bool infront; vector2 textPos;
-			[infront, textPos] = MWDrawer.GetActorHUDPos(vp, st, 45, 10, 20, rotatecoords:false, rotatewithactor:true);
-			if(!infront) continue;
-			
-			double txtScale = 1.0 - (DrivablesMath.fmap(e.Camera.Distance3D(st), 64, 512, 0, 1.0));
-			txtScale = clamp(txtScale, 0, 1.0);
-			
-			string munitionsText = String.Format("\c[Sapphire]MUNITIONS STATION\n\t\t\t\c[Orange]Capacity %d\%%", st.munitions);
-			
-			MWDrawer.DrawString("SmallFont", munitionsText, textPos, scale:(txtScale,txtScale), absolute:true);
-		}
-	
-		/* Munition Station Canvas
-		Canvas cv = TexMan.GetCanvas("AmmoStationCanvas");
-		TextureID infoTex = TexMan.CheckForTexture("AmmoStationCanvas");
-		
-		let astIt = ThinkerIterator.Create("MunitionsStation");
-		MunitionsStation st;
-		while(st = MunitionsStation(astIt.Next()))
-		{
-			// Resolution
-			int w, h;
-			[w, h] = TexMan.GetSize(infoTex);
-			
-			string ammoStr = String.Format("Ammo: %d", st.munitions);
-			
-			cv.Dim(0xFF000000, 1.0, 0,0, w,h);
-			cv.DrawText("SmallFont", Font.CR_WHITE, 20,20, ammoStr);
-			//cv.Dim(0xFFFF0000, 1.0, (w * 0.5) - 20, (h * 0.5) - 20, 40,40); 
-		}
-		*/
 	}
 	
 	// Moar keys

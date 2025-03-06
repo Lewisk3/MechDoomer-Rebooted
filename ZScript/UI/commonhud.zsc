@@ -1,0 +1,132 @@
+class CommonHUD_Handler : EventHandler
+{
+	ui double actualCBills;
+	ui double currentCBills;
+	ui double prevMS, deltatime, uiTics;
+	
+	ui void UpdateDeltaTime(double FPS = 60.0)
+	{
+		// Keep track of time, always.
+		if(!prevMS)
+		{
+			prevMS = MSTimeF();
+			return;
+		}
+		double ftime = MSTimeF()-prevMS;
+		prevMS = MSTimeF();
+		double dtime = 1000.0 / FPS;
+		deltatime = (ftime/dtime);
+		uiTics += deltaTime;
+	}
+
+	override void RenderOverlay(RenderEvent e)
+	{
+		double FOV = e.Camera.player ? e.Camera.player.FOV : e.Camera.CameraFOV;
+		let vp = MWDrawer.GetRenderEventViewProj(e, FOV);
+	
+		let astIt = ThinkerIterator.Create("MunitionsStation");
+		MunitionsStation st;		
+		
+		while(st = MunitionsStation(astIt.Next()))
+		{
+			// Project text information
+			bool infront; vector2 textPos;
+			[infront, textPos] = MWDrawer.GetActorHUDPos(vp, st, 45, 10, 20, rotatecoords:false, rotatewithactor:true);
+			if(!infront) continue;
+			
+			double txtScale = 1.0 - (DrivablesMath.fmap(e.Camera.Distance3D(st), 64, 512, 0, 1.0));
+			txtScale = clamp(txtScale, 0, 1.0);
+			
+			string munitionsText = String.Format("\c[Sapphire]MUNITIONS STATION\n\t\t\t\c[Orange]Capacity %d\%%", st.munitions);
+			
+			MWDrawer.DrawString("SmallFont", munitionsText, textPos, scale:(txtScale,txtScale), absolute:true);
+		}
+	
+		UpdateDeltaTime();
+		DrawCommonHUD(e);
+	}
+	
+	// Displays information that isn't restricted to any HUD type.
+	Array<GFXMenuItem> CBFX;
+	
+	ui void DrawCommonHUD(RenderEvent e)
+	{
+		let cam = e.Camera;
+		let camplr = PlayerPawn(cam);
+		
+		// Update and Draw all UI effect items.
+		GFXMenuItem.UpdateItems(CBFX, deltatime);
+		GFXMenuItem.DrawItems(CBFX, deltatime);
+		
+		if(!camplr && cam is "MechPart")
+		{
+			let mech = MechPart(e.Camera).getMech();
+			if(!mech) return;
+			camplr = PlayerPawn(mech.driver);
+		}
+		if(!camplr) return;
+		
+		// Get MDR inventory
+		let mdrInv = I_MechItemStorage(camplr.FindInventory("I_MechItemStorage"));
+		if(!mdrInv) return;
+		
+		// Draw CBills
+		actualCBills = mdrInv.cbills;
+		
+		// Skip interpolating cbills if the map just began.
+		if(level.maptime <= 3) currentCBills = actualCBills;
+		
+		String cbillStr = String.Format("\c[White]%s", MWDrawer.FormatNumber(currentCBills)); 
+		vector2 cbillPos = (50,32);
+		
+		double strWidth = MWDrawer.getTextWidth("hm_type", cbillStr);
+		vector2 cbillIconPos = cbillPos + (strWidth + 14,14);
+		
+		MWDrawer.DrawString(
+			"hm_type", 
+			cbillStr, 
+			cbillPos,  
+			alpha:0.75, 
+			scale:(1.0,1.0)
+		);
+		MWDrawer.DrawImage(
+			"Graphics/Shop/CBill_Icon.png", 
+			cbillIconPos,
+			alpha:0.75, 
+			scale:(0.75,0.75)
+		);
+		
+		// Difference string
+		double diff = actualCBills - currentCBills;
+		
+		if(round(diff) != 0)
+		{
+			string valueStr = diff > 0 ? "\c[Green]+ %s" : "\c[Red]- %s";
+			String diffStr = String.Format(valueStr, MWDrawer.FormatNumber(abs(diff))); 
+			strWidth = MWDrawer.getTextWidth("hm_type", diffStr);
+			
+			MWDrawer.DrawString(
+				"hm_type", 
+				diffStr, 
+				cbillPos + (0,32),  
+				alpha:0.55, 
+				scale:(1.0,0.85)
+			);
+			MWDrawer.DrawImage(
+				"Graphics/Shop/CBill_Icon.png", 
+				cbillIconPos + (0, 32), 
+				alpha:0.75, 
+				scale:(0.75,0.75*0.85)
+			);
+		}
+		
+		// Interpolate cbill counter
+		if(abs(currentCBills - actualCBills) < 1) 
+			currentCBills = actualCBills;
+		else
+			currentCBills = DrivablesMath.lerp(currentCBills, actualCBills, 0.15 * deltaTime);
+			
+		if( (currentCBills != actualCBills) && CBFX.Size() < 20 )
+			GFXMenuItem.AddEffect(CBFX, "GFX_CBills", cbillIconPos, random[CBFXSA](1,5));
+	}
+}

@@ -4,6 +4,7 @@ server float sv_mdr_mechspeedscale = 1.0; // The player should use this over dis
 server bool sv_mdr_campaignmode = false; // If true, adjusts scale parameters for campaign mode.
 server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;
+server bool sv_mdr_drawhitboxes = false;
 server bool sv_mdr_exitanytime = false;
 server bool sv_mdr_simplemechmovement = true;
 server bool sv_mdr_startondropship = true;

@@ -1,4 +1,23 @@
 // Standard
+class MechEngine_STD100 : MechEngine {}
+class MechEngine_STD105 : MechEngine {}
+class MechEngine_STD110 : MechEngine {}
+class MechEngine_STD115 : MechEngine {}
+class MechEngine_STD120 : MechEngine {}
+class MechEngine_STD125 : MechEngine {}
+class MechEngine_STD130 : MechEngine {}
+class MechEngine_STD135 : MechEngine {}
+class MechEngine_STD140 : MechEngine {}
+class MechEngine_STD145 : MechEngine {}
+class MechEngine_STD150 : MechEngine {}
+class MechEngine_STD155 : MechEngine {}
+class MechEngine_STD160 : MechEngine {}
+class MechEngine_STD165 : MechEngine {}
+class MechEngine_STD170 : MechEngine {}
+class MechEngine_STD175 : MechEngine {}
+class MechEngine_STD180 : MechEngine {}
+class MechEngine_STD185 : MechEngine {}
+class MechEngine_STD190 : MechEngine {}
 class MechEngine_STD195 : MechEngine {}
 class MechEngine_STD200 : MechEngine {}
 class MechEngine_STD205 : MechEngine {}

@@ -1,0 +1,66 @@
+class SalvageHelper abstract
+{
+	const SALVAGE_DEBUG = 0;
+
+	static double GetEnemyValue(Actor victim)
+	{
+		return DrivablesMath.fmap(victim.getSpawnHealth(), 0, 4000, 1000, 400000);
+	}
+
+	play static void GenerateItems(double maxValue, out Array<MechItem> items, out Array<class<MechItem> > excludedItems = NULL)
+	{
+		Array<MechItem> salvageList;
+	
+		foreach(cls : AllClasses) 
+		{
+			let item = (class<MechItem>)(cls);
+			bool excludedItem = !excludedItems ? false : (excludedItems.Find(item) != excludedItems.Size());
+			if(!item || excludedItem || item == "MechChassisStructure" || item == "MechArmor") continue;
+
+			// Instanciate item with randomized stats
+			let itemObj = MechItem.Init(item);
+			if(!itemObj) continue;
+			if(!itemObj.movable || itemObj.displayName == "") 
+			{
+				itemObj.Destroy();
+				continue;
+			}
+			itemObj.RandomizeStats();
+
+			// Skip items over budget.
+			if(itemObj.getValue() > maxValue) 
+			{
+				itemObj.Destroy();
+				continue;
+			}
+			
+			salvageList.Push(itemObj);
+		}	
+		
+		// Failed to populate salvage list.
+		if(salvageList.size() <= 0) return; 
+		
+		// Iterate through salvageList, choosing items at random, stop when maxValue has been met or exceeded.
+		double budget = maxValue;
+		while(budget > 0)
+		{
+			int randItem = random[SalvageRNG](0, salvageList.size()-1);
+			let itemObj = salvageList[randItem];
+			if(!itemObj) continue;
+			
+			budget -= itemObj.getValue();
+			if(budget <= 0) break;
+			
+			items.push(itemObj);
+			
+			// Debug info
+			if(SALVAGE_DEBUG) console.printf("Salvage: %s [CB: %d] (%d%%)", itemObj.displayName, itemObj.getValue(), (itemObj.hp / 10.) * 100);
+			
+			salvageList.Delete(randItem);
+		}
+		if(SALVAGE_DEBUG) console.printf("Total value of salvage: %dCB", maxValue);
+		
+		// Cleanup
+		foreach(itm : salvageList) itm.Destroy();
+	}
+}

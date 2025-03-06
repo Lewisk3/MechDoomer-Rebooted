@@ -132,6 +132,16 @@ material texture models/mechs/hunchback/hb_full_6guns.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/commando/commando.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/commando/commando_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

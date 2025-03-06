@@ -121,6 +121,10 @@ class MechLaserBeam : Actor
 		}
 		ontics++;
 		bInvisible = ontics < 3;
+		
+		// Used for tracking who did damage.
+		target = source; 
+		
 		if(shade) SetShade(shade);
 						
 		// PSprite tracking?

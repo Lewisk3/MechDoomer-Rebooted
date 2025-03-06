@@ -1933,21 +1933,9 @@ class I_SaveMechData : Inventory
 			mechObj.Destroy();
 		}		
 		
-		// DEBUG
-		GiveMech("MechCenturion");
-		
-		/*
-		GiveMech("MechJenner");
-		GiveMech("MechHellbringer");
-		GiveMech("MechMarauderIIC");
-		GiveMech("MechTimberwolf");
-		GiveMech("MechCenturion");
-		GiveMech("MechJenner");
-		GiveMech("MechHellbringer");
-		GiveMech("MechMarauderIIC");
-		GiveMech("MechTimberwolf");
-		GiveMech("MechCenturion");
-		*/
+		// Starting Mech
+		// TODO: Move this somewhere where it can be more easily modified.
+		GiveMech("MechCommando");
 	}
 
 	override void DoEffect()

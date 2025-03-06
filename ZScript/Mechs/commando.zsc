@@ -1,0 +1,227 @@
+class MechCommando : DrivableMech
+{
+   Default
+   {
+      Radius 48;
+      DrivableMech.Acceleration 27, 30;
+      DrivableMech.MaxWeight 25; // In Tons.
+      DrivableMech.ChassisName "Commando";
+      DrivableMech.VariantName "7X";
+      DrivableMech.ItemGraphic "Graphics/MechIcons/Commando_icon.png";
+      DrivableMech.CBillValue (1823750  * MECHPRICESCALAR);
+      
+      DrivableMech.Manufacturer "Various";
+   }
+   
+   override string getShopDescription()
+   {
+      return ( 
+         "\c[White]In 2463, Coventry Metal Works, then known as Coventry Defense Conglomerate, "
+		 "introduced their second BattleMech: the COM-1A Commando. Created for the Lyran "
+		 "Commonwealth Armed Forces and one of the first 'Mechs ever designed for reconnaissance, "
+		 "the Commando was much lighter and faster than its precursors."
+         " (Source: https://www.sarna.net/wiki/Commando"
+      );
+   }
+   
+   override void SetupParts()
+   {
+      super.SetupParts();
+      
+      legs  = AddMechPart("Commando_Legs",  0,0,0,  self);
+      hips  = AddMechPart("Commando_Hips",  0,0,40, legs);
+      
+      // Hardpoints
+      torso      = AddHardpoint("Commando_CenterTorso", 0,0,8, hips);
+      leftTorso  = AddHardpoint("Commando_LeftTorso",  0,-10,0, torso);
+      rightTorso = AddHardpoint("Commando_RightTorso", 0, 10,0, torso);
+      
+      leftLeg = AddHardpoint("Commando_LeftLeg",  0,-14,0, legs);
+      rightLeg = AddHardpoint("Commando_RightLeg", 0, 14,0, legs);
+         
+      leftArm  = AddHardpoint("Commando_LeftArm",  0,-8,0, leftTorso);
+      rightArm = AddHardpoint("Commando_RightArm", 0, 8,0, rightTorso);
+      
+      head = AddHardpoint("Commando_Cockpit", 0,0,24, torso);
+      cam  = AddPart("CockpitCamera", 0,0,0, head);
+   }
+   
+   override void SetupItems()
+   {  
+      // Armor and Engine
+      torso.AddItem("MechEngine_STD150");
+      MechArmor.addToMech(self, "MechArmor_Standard");
+      
+      // Weapons
+      leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+	  rightArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+	  head.AddWeapon("MediumLaser", GROUPFLG_THREE);
+	  leftArm.AddItem("MechHeatsink");
+	  leftArm.AddItem("MechHeatsink");
+	  rightArm.AddItem("MechHeatsink");
+	  rightArm.AddItem("MechHeatsink");
+	  leftTorso.AddItem("MechHeatsink");
+	  
+	  torso.AddWeapon("SRM6", GROUPFLG_TWO);
+	  
+      leftLeg.AddItem("SRMAmmo");
+      rightLeg.AddItem("SRMAmmo");
+   }
+}
+
+// Armor PTS
+/*
+	82pts 
+	
+[HD] - 12
+[CT] - 14
+[LT] - 10
+[RT] - 10
+[LA] - 8
+[RA] - 8
+[LL] - 9
+[RL] - 9
+*/
+
+
+class Commando_Hips : MechHips {}
+class Commando_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 110;
+   }
+}
+
+class Commando_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+   }
+   
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 3,6.6,5, scale:0.5);
+	}
+}
+
+class Commando_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 4;
+      Height 40;
+      MechHardpoint.Vitals 9, 5;
+      MechHardpoint.SetupArmor 9, 0;
+   }  
+}
+class Commando_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 4;
+      Height 40;
+      
+      MechHardpoint.Vitals 9, 5;
+      MechHardpoint.SetupArmor 9, 0;
+   }  
+}
+
+class Commando_CenterTorso : MechTorso 
+{
+   Default
+   {
+      MechTorso.TurnSpeed 198, 198;
+      MechTorso.TurnRange 120;
+      MechTorso.PitchRange 30, 30;
+      Radius 6;
+      Height 22;
+      
+      MechHardpoint.Vitals 14, 6;
+      MechHardpoint.SetupArmor 10, 4;
+      MechHardpoint.RearArmor true;
+   }  
+   
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 12,-3.5,5.35, 3,2, 3.5,3, scale:0.6);
+	}
+}
+
+class Commando_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 4;
+      Height 20;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 10, 5;
+      MechHardpoint.SetupArmor 7, 3;
+      MechHardpoint.RearArmor true;
+   }
+      
+   override void SetupMounts()
+   {
+   }
+}
+class Commando_RightTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 4;
+      Height 20;
+      MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+      
+      MechHardpoint.Vitals 10, 5;
+      MechHardpoint.SetupArmor 7, 3;
+      MechHardpoint.RearArmor true;
+   }  
+   
+   override void SetupMounts()
+   {
+   }
+}
+
+class Commando_LeftArm : MechArm
+{
+   Default
+   {
+      MechArm.ActuationRange 40;
+      MechArm.PitchRange 30, 30;
+      MechHardpoint.HitBox 7,8, 20,-2,-5;
+      MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+      MechHardpoint.Vitals 8, 4;
+      MechHardpoint.SetupArmor 8, 0;
+   }
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 28,-1.65,-0.80);
+	}
+}
+
+class Commando_RightArm : Commando_LeftArm 
+{
+   Default
+   {
+      MechHardpoint.HitBox 7,8, 20,2,-5;
+      MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+      MechHardpoint.Vitals 8, 4;
+      MechHardpoint.SetupArmor 8, 0;
+   }
+   
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 28,0.35,-0.50);
+	}
+}

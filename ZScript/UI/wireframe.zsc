@@ -7,13 +7,13 @@ class WireFrame_Handler : EventHandler
 	override void WorldTick()
 	{
 		map_enabled = sv_mdr_wireframe;
-		actors_enabled = sv_mdr_drawmechhitboxes;
+		actors_enabled = sv_mdr_drawmechhitboxes || sv_mdr_drawhitboxes;
 	}
 
 	override void RenderOverlay(RenderEvent e)
 	{		
 		if(map_enabled) DrawWireFrame(e);
-		if(actors_enabled) DrawHitboxes(e, onlyMechs:false);
+		if(actors_enabled) DrawHitboxes(e);
 	}
 	
 	ui static int getLineAlpha(double dist, double maxDist = 4096)
@@ -187,9 +187,9 @@ class WireFrame_Handler : EventHandler
 		}	
 	}
 	
-	ui static void DrawHitboxes(RenderEvent e, bool onlyMechs = false)
+	ui static void DrawHitboxes(RenderEvent e)
 	{
-		let cam = e.Camera;
+		let cam = e.Camera;	
 		let view = MWDrawer.GetRenderEventViewProj(e);
 	
 		// Hitboxes
@@ -209,6 +209,8 @@ class WireFrame_Handler : EventHandler
 
 			if(isMech) 
 			{
+				if(!sv_mdr_drawmechhitboxes) continue;
+			
 				DrivableMech mech = NULL;
 				let mechHP = MechHardpoint(act);
 				let mechHB = MechHitBox(act);
@@ -219,7 +221,7 @@ class WireFrame_Handler : EventHandler
 				if(isNonLocalMech) 
 					DrawHardpointBox(view, mechHP, mechHB);
 			}
-			if( (!isMech || !isNonLocalMech) && onlyMechs ) continue;
+			if(!isMech && !sv_mdr_drawhitboxes) continue;
 						
 			// LR, FB, UD factors of radius and height respectively.
 			vector3 FTL = (-1, -1, 0);

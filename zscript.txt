@@ -8,14 +8,16 @@ version "4.10.0"
 #include "ZScript/UI/SBS/mwdrawer_base.zsc"
 #include "ZScript/UI/SBS/mwdrawer_3D.zsc"
 #include "ZScript/UI/mechhud_handler.zsc"
+#include "ZScript/UI/commonhud.zsc"
 #include "ZScript/UI/mechhuds.zsc"
 #include "ZScript/UI/misc_overlays.zsc"
 #include "ZScript/UI/stringhelper.zsc"
 #include "ZScript/UI/wireframe.zsc"
 
 // Non-UI Event Handlers
-#include "ZScript/mechs_handler.zsc"
-#include "ZScript/dropship_handler.zsc" // Dropship events and ACS callback
+#include "ZScript/Events/mechs_handler.zsc"
+#include "ZScript/Events/dropship_handler.zsc" // Dropship events and ACS callback
+#include "ZScript/Events/salvage_handler.zsc"
 
 #include "ZScript/UI/Menus/menus_base.zsc"
 #include "ZScript/UI/Menus/mechlab.zsc"
@@ -43,6 +45,7 @@ version "4.10.0"
 #include "ZScript/Items/drone_base.zsc"
 #include "ZScript/Items/drones.zsc"
 #include "ZScript/Items/field_munitions.zsc"
+#include "ZScript/Items/salvage_generator.zsc"
 
 // Mech Basics
 #include "ZScript/MechSystems/mech_base.zsc"
@@ -78,6 +81,7 @@ version "4.10.0"
 #include "ZScript/Mechs/timberwolf.zsc"
 #include "ZScript/Mechs/rifleman.zsc"
 #include "ZScript/Mechs/hunchback.zsc"
+#include "ZScript/Mechs/commando.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

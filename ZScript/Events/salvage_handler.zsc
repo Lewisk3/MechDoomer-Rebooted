@@ -1,0 +1,68 @@
+class Salvage_Handler : EventHandler
+{
+
+	PlayerPawn FindDamager(Actor inflictor)
+	{
+		if(!inflictor) return NULL;
+		
+		let source = PlayerPawn(inflictor);
+		if(source) return source;
+		
+		source = PlayerPawn(inflictor.target);
+		if(source) return source;
+		
+		source = PlayerPawn(inflictor.damagesource);
+		if(source) return source;
+		
+		let mPart = MechPart(inflictor.target);
+		if( mPart && mPart.mech ) return PlayerPawn(mPart.mech.driver);
+		
+		return NULL;
+	}	
+
+	override void WorldThingDied(WorldEvent e)
+	{
+		if(!e.Thing) return;
+		if(PlayerPawn(e.Thing))
+		{
+			// Might add some sort of deathmatch condition for this, not sure yet.
+			return;
+		}
+		
+		int salvageRNG[9] = 
+		{
+			5,
+			7,
+			12,
+			18,
+			20,
+			35,
+			50,
+			80,
+			100
+		};
+		
+		// Reward killer with cbills
+		double deathValue = SalvageHelper.GetEnemyValue(e.Thing);
+		
+		// Get actual killer
+		let killer = FindDamager(e.Inflictor);
+		if(!PlayerPawn(killer)) return;
+		
+		// Get killer's mechdoomer inventory
+		let itemInv = I_MechItemStorage.Get(killer, give:false);
+		if(itemInv) itemInv.cbills += deathValue;
+		
+		// Salvage does not drop if player rolled too low.
+		int odds = min(8, DrivablesMath.fmap(e.Thing.getSpawnHealth(), 0, 1000, 0, 8)); 
+		double roll = random[SalvageDropRNG](0,100);
+		if(roll > salvageRNG[odds]) return;
+				
+		// Re-roll for crit, with half odds.
+		bool crit = (random[SalvageDropRNG](0,100) <= floor(salvageRNG[odds]*0.5)); 
+		if(crit) deathValue *= 2.0;
+		
+		Array<MechItem> output;
+		SalvageHelper.GenerateItems(deathValue, output);
+	}
+}

@@ -80,7 +80,7 @@ class SmallPulseLaser : SmallLaser
 		heat = 0; // Initial heat.
 		weight =1.0;
 				
-		fireTime     = 5 + floor(0.2 * TICRATE);
+		fireTime     = 5 + floor(0.15 * TICRATE);
 		cooldownTime = floor(0.75 * TICRATE);
 		maxLaserTime = floor(1.75 * TICRATE);
 		
@@ -192,7 +192,7 @@ class MediumPulseLaser : MediumLaser
 		heat = 0; // Initial heat.
 		weight = 2.0;
 				
-		fireTime     = 5 + floor(0.4 * TICRATE);
+		fireTime     = 5 + floor(0.3 * TICRATE);
 		cooldownTime = floor(1.50 * TICRATE);
 		maxLaserTime = floor(3.0 * TICRATE);
 		
@@ -307,7 +307,7 @@ class LargePulseLaser : LargeLaser
 		weight = 7.0;
 		size = 2;
 				
-		fireTime     = 5 + floor(0.8 * TICRATE);
+		fireTime     = 5 + floor(0.5 * TICRATE);
 		cooldownTime = floor(3.0 * TICRATE);
 		maxLaserTime = floor(4.25 * TICRATE);
 		

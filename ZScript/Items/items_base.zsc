@@ -58,6 +58,12 @@ class MechItem : Object
 		return value;
 	}
 	
+	play virtual void RandomizeStats()
+	{
+		if(damagable) 
+			hp = random[ItemStatRNG](0,10);
+	}
+	
 	play virtual void ToggleState()
 	{
 		// Called with toggle weapon state button is pressed.
@@ -307,6 +313,12 @@ class MechAmmo : MechItem
 		damagable = true;
 		explosionDamage = 1;
 		baseAmmoClass = "";
+	}
+	
+	override void RandomizeStats()
+	{
+		super.RandomizeStats();
+		curAmmo = floor(frandom[ItemStatRNG](0,1.0) * double(maxAmmo));
 	}
 	
 	override double getValue()
@@ -922,7 +934,6 @@ class MechEngineBlock : MechItem
 
 class MechEngine : MechItem
 {
-	double baseHeatEff;
 	double baseValue;
 	int rating, type;
 	uint blocks, blockSize; // How many engine blocks to add to both side torsos.
@@ -1824,7 +1835,8 @@ class I_MechItemStorage : Inventory
 					itemInstance.Destroy();
 			}
 			
-			// Debug: give all items
+			
+			// Populate Item Shop
 			foreach(cls : AllClasses)
 			{
 				let item = (class<MechItem>)(cls);
@@ -1837,18 +1849,22 @@ class I_MechItemStorage : Inventory
 					continue;
 				}
 								
-				// Give 25 of each item.
 				if(itemInstance) 
 				{
 					let shopInstance = itemInstance.MakeCopy();
 					itm.shopItems.Push(shopInstance);
-
-					if(random[startItemsRNG](0,100) >= 75)
-						itm.AddItem(itemInstance, random[startItemsRNG](1,20));	
 				}
 			}
 			
-			itm.cbills = 10e8;
+			// Start with medium-tier salvage
+			Array<MechItem> startingItems;
+			SalvageHelper.GenerateItems(250000, startingItems);
+			
+			foreach(item : startingItems)
+				itm.AddItem(item);
+			
+			// TODO: Move this somewhere more easily modifiable.
+			itm.cbills = 1e6; // Starting CBills 1,000,000.
 		}
 		
 		return itm;
