@@ -28,8 +28,9 @@ class GaussCannon : MechProjectile
 	override double GetDamageModifier(Actor victim)
 	{
 		// Damage multiplier for non-mech targets.
-		// The damage should be, essentially, exactly 1000 for non-mech targets.
-		return 2.66666666665;
+		// The damage should be, essentially, exactly 800 for non-mech targets.
+		double scalar = 800 / trueDamage;
+		return scalar;
 	}
 	
 	void LightningSparks()

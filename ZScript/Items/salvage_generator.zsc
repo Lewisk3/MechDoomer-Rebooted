@@ -4,7 +4,8 @@ class SalvageHelper abstract
 
 	static double GetEnemyValue(Actor victim)
 	{
-		return DrivablesMath.fmap(victim.getSpawnHealth(), 0, 4000, 1000, 400000);
+		double cbillPerHP = 100.;
+		return victim.getSpawnHealth() * cbillPerHP;
 	}
 
 	play static void GenerateItems(double maxValue, out Array<MechItem> items, out Array<class<MechItem> > excludedItems = NULL)

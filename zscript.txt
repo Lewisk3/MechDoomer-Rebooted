@@ -1,5 +1,15 @@
 version "4.10.0"
 
+
+// Constants
+const DMG_DELT_MONSTER = 15.0; // Multiplier for additional damage delt to non-mechs.
+
+// Multiplier for damage scaling against non-mechs.
+// Damage Recieved = DMG * SCALAR
+// Damage Delt = DMG / SCALAR
+const DMG_SCALAR_MONSTER = 0.065;
+
+
 // Helper Libraries
 #include "ZScript/fx_helper.zsc"
 #include "ZScript/sound.zsc"
@@ -85,48 +95,3 @@ version "4.10.0"
 
 // Other
 #include "ZScript/cine_drone.zsc"
-
-
-class FollowMe : Actor
-{
-	bool trackbob;
-
-	Default
-	{
-		+NOINTERACTION;
-	}
-	
-	override void Tick()
-	{
-		super.Tick();
-	
-		let plr = players[consoleplayer].mo;
-		double bobz = (plr.player.viewz - plr.pos.z - plr.player.viewheight);
-		
-		vector3 offs = (40, -10, 5); // fw, lr, ud; local offsets.
-		vector3 fromPos = (plr.pos.xy, plr.pos.z + plr.player.viewheight);
-		let dir = Quat.FromAngles(plr.angle, plr.pitch, plr.roll);
-	
-		bool togglePressed = (plr.player.cmd.buttons & BT_RELOAD) && !(plr.player.oldbuttons & BT_RELOAD);
-		if(togglePressed) trackBob = !trackBob;
-		
-		vector3 finalPos = level.vec3offset(fromPos, dir * offs);
-	
-		// Relevant bit; adds the result of bobz to the final pos.z
-		if(trackBob)
-		{
-			finalPos.z += bobz;
-			plr.player.cheats |= CF_INTERPVIEW;
-			console.printf("Bob: %f", bobz);
-		}
-		
-		SetOrigin(finalPos, true);
-	}
-	
-	States
-	{
-		Spawn:
-			PLS1 A 1;
-		loop;
-	}
-}

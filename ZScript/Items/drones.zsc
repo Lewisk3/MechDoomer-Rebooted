@@ -2,12 +2,16 @@
 class RepairDrone : DeployableDrone
 {
 	DrivableMech mech;
+	double minRepairAmt;
+
+	Property RepairPercent : minRepairAmt;
 
 	Default
 	{
 		DeployableDrone.DroneClass "FieldRepairDrone";
 		DeployableDrone.EnergyUse 0; //0.84;
 		DeployableDrone.PowerOutput 3;
+		RepairDrone.RepairPercent 60;
 	}
 	
 	override void DoEffect()
@@ -25,8 +29,11 @@ class RepairDrone : DeployableDrone
 		if(repairBtn && !dmo && mech.shutdown)
 		{
 			DeployDrone(DRM_MECHREPAIR);
-			FieldRepairDrone(dmo).mech = mech;
-			FieldRepairDrone(dmo).SetupHPList();
+			let repDrone = FieldRepairDrone(dmo);
+			mech.activeDronePtr = dmo;
+			repDrone.mech = mech;
+			repDrone.minRepairAmt = minRepairAmt;
+			repDrone.SetupHPList();
 		} 
 		else if(repairBtn && !mech.shutdown)
 		{
@@ -39,6 +46,7 @@ class FieldRepairDrone : MechFieldDrone
 {
 	int curHP;
 	Array<MechHardpoint> hpList;
+	double minRepairAmt;
 	DrivableMech mech;
 	DroneLaserGun droneLaser;
 
@@ -82,6 +90,7 @@ class FieldRepairDrone : MechFieldDrone
 		super.OnDeploy();
 		droneLaser = DroneLaserGun.Setup(self, (8.8,0,-5.5));
 		droneLaser.disabled = true;
+		curHP = 0;
 		
 		if(!mech) return;
 	} 
@@ -100,29 +109,42 @@ class FieldRepairDrone : MechFieldDrone
 				bool repairBtn = mech.GetExtBtn(DrivableMech.BT_DRONEREPAIR, DriverBtns.BTS_DOWN);
 			
 				// Go through damaged mech hardpoints.
-				curHP = 0;
 				MechHardpoint hp = hpList[curHP];
 				
-				while(hp.armorDamage <= 0 || hp.healthPoints <= 0)
+				// Armor must not be damaged to less than 60% 
+				// drone cannot repair extensive damage.
+				double minRepair = hp.maxArmor * (minRepairAmt/100.0); 
+				bool canRepair = hp.totalArmorDamage > 0 && hp.totalArmorDamage < minRepair;
+				if(!canRepair || hp.healthPoints <= 0)
 				{
-					if(curHP >= hpList.Size()-1)
-						return ResolveState("DroneReturn");
-					else
-						hp = hpList[++curHP];
+					// Cycle to next target
+					return ResolveState("DroneCycle");
 				}
-				engagingTarget = hp;
 				
+				engagingTarget = hp;
 				mech.SetDroneCamera();
-				if(A_TrackTarget() && hp.armorDamage > 0)
+				
+				if(A_TrackTarget())
 				{
 					// Repair damage and restore armor points.
 					droneLaser.disabled = false;
-					hp.Repair(0.05, 0, true);
+					hp.Repair(0.025, 0);
 				}
 					
 				return SetDroneState(!repairBtn || !mech.shutdown, "DroneReturn");
 			}
 		loop;
+		
+		DroneCycle:
+			DRON A 1
+			{
+				curHP++;
+				if(curHP >= hpList.Size()-1) 
+					return ResolveState("DroneReturn");
+					
+				return ResolveState(null);
+			}
+		goto MechRepair;
 		
 		DroneReturn:
 			DRON A 1

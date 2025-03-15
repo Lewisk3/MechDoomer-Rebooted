@@ -655,7 +655,7 @@ class MechArmor : MechUtility
 		for(int i = 0; i < hardpoints.Size(); i++)
 		{
 			let hardpoint = hardpoints[i];
-			fullArmorPts += (hardpoint.armorPoints + hardpoint.rearArmor);
+			fullArmorPts += (hardpoint.frontArmor + hardpoint.rearArmor);
 		}
 		return fullArmorPts;
 	}

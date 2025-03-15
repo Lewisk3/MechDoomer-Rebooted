@@ -75,6 +75,10 @@ class DrivableMech : DrivableObject
 	MechHardpoint torso, leftTorso, rightTorso, leftArm, rightArm, head, leftLeg, rightLeg;
 	MechEngine engine;
 	
+	// Points to whatever drone is currently opperating on this mech.
+	// Usually a repair drone.
+	Actor activeDronePtr; 
+	
 	ThirdpersonCamera camDrone;
 	DrivableComponent camActive;
 	
@@ -180,7 +184,7 @@ class DrivableMech : DrivableObject
 		getHardpoints(hardpoints, skipDestroyed:false);
 	
 		double dmg = 0;
-		foreach(hp : hardpoints) dmg += hp.armorDamage;
+		foreach(hp : hardpoints) dmg += hp.totalArmorDamage;
 		return dmg;
 	}
 	
@@ -1419,21 +1423,22 @@ class HardpointSaveData : Object
 {
 	Array<MountSaveInfo> mounts;
 	Array<MechItem> items;
-	double armorPoints, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, armorDamage, rearArmorDamage;
+	double frontArmor, rearArmor, maxRearArmor, healthPoints, maxArmor, maxHP, frontArmorDamage, rearArmorDamage, totalArmorDamage;
 	bool isCriticallyDamaged;
 	bool doSpawnDebris;
 	
 	virtual HardpointSaveData MakeCopy()
 	{
 		let hpData = new("HardpointSaveData");
-		hpData.armorPoints = armorPoints;
+		hpData.frontArmor = frontArmor;
 		hpData.healthPoints = healthPoints;
 		hpData.rearArmor = rearArmor;
 		hpData.maxRearArmor = maxRearArmor;
 		hpData.maxArmor = maxArmor;
 		hpData.maxHP = maxHP;
-		hpData.armorDamage = armorDamage;
+		hpData.frontArmorDamage = frontArmorDamage;
 		hpData.rearArmorDamage = rearArmorDamage;
+		hpData.totalArmorDamage = totalArmorDamage;
 		hpData.doSpawnDebris = doSpawnDebris;
 		
 		foreach(itm : items)
@@ -1445,14 +1450,15 @@ class HardpointSaveData : Object
 	virtual void Save(MechHardpoint src, bool saveItems = true)
 	{
 		if(saveItems) items.Copy(src.items);
-		armorPoints = src.armorPoints;
+		frontArmor = src.frontArmor;
 		healthPoints = src.healthPoints;
 		rearArmor = src.rearArmor;
 		maxRearArmor = src.maxRearArmor;
 		maxArmor = src.maxArmor;
 		maxHP = src.maxHP;
-		armorDamage = src.armorDamage;
+		frontArmorDamage = src.frontArmorDamage;
 		rearArmorDamage = src.rearArmorDamage;
+		totalArmorDamage = src.totalArmorDamage;
 		doSpawnDebris = src.doSpawnDebris;
 		
 		// Mount information
@@ -1478,14 +1484,15 @@ class HardpointSaveData : Object
 	
 	play virtual void Load(MechHardpoint dest)
 	{
-		dest.armorPoints = armorPoints;
+		dest.frontArmor = frontArmor;
 		dest.healthPoints = healthPoints;
 		dest.maxArmor = maxArmor;
 		dest.rearArmor = rearArmor;
 		dest.maxRearArmor = maxRearArmor;
 		dest.maxHP = maxHP;
-		dest.armorDamage = armorDamage;
+		dest.frontArmorDamage = frontArmorDamage;
 		dest.rearArmorDamage = rearArmorDamage; 
+		dest.totalArmorDamage = totalArmorDamage;
 		dest.doSpawnDebris = doSpawnDebris;
 		
 		// Item loading is done after this, as it needs to be done
@@ -1577,6 +1584,8 @@ class MechLoader : Actor
 			
 			// Restore vitals
 			hardpointData.Load(hardpoint);
+			// Reload armor defaults
+			hardpoint.SetArmorDefaults();
 		}
 		
 		// We have to waste more time here to populate things in a specific order

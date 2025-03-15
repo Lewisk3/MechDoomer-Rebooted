@@ -218,6 +218,13 @@ class MechHUD : VehicleHUD
 			powerupTics = weapPowerupTics = POWERANIM; // 2 seconds to powerup.
 		}
 		
+		// Keep drawing paperdoll if the mech is shutdown and repairing via Drone.
+		if(mech.shutdown && mech.activeDronePtr is "FieldRepairDrone")
+		{
+			powerupTics = 0;
+			DrawPaperDoll(mech);
+		}
+		
 		bool debugInv = mech.getExtBtn(DrivableMech.BT_PEEKINV, DriverBtns.BTS_DOWN);
 		if(debugInv)
 		{

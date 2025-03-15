@@ -208,11 +208,11 @@ class MechHardpoint : MechPart
 	bool immuneToExplosions;
 	bool doSpawnDebris; // If true, debris is spawned when this hardpoint is destroyed.
 	double healthPoints, maxHP;
-	double armorPoints, rearArmor, maxArmor, maxRearArmor;
+	double frontArmor, rearArmor, maxArmor, maxRearArmor, maxFrontArmor;
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	int heatDamageTics; // Timer for heat damage on items
 	
-	double armorDamage, rearArmorDamage;
+	double frontArmorDamage, rearArmorDamage, totalArmorDamage;
 	
 	// Determines which hardpoints take the most damage while overheated.
 	double localHeat;
@@ -224,7 +224,7 @@ class MechHardpoint : MechPart
 	
 	Property Slots : maxslots;
 	Property Vitals : maxArmor, healthPoints;
-	Property SetupArmor : armorPoints, rearArmor;
+	Property SetupArmor : frontArmor, rearArmor;
 	Property RearArmor : hasRearArmor; 
 	
 	Array<MechItem> items;	
@@ -243,7 +243,7 @@ class MechHardpoint : MechPart
 	Property CreatesDebris : doSpawnDebris;
 	
 	// Hardpoint damage scalar.
-	const DMGSCALE = 0.04; // 0.025
+	const DMGSCALE = DMG_SCALAR_MONSTER; // 0.025
 	
 	Default
 	{
@@ -272,7 +272,7 @@ class MechHardpoint : MechPart
 		if(!mech.chassisStructure || !mech.armorType) return 0,0;
 	
 		double internalWeight = mech.chassisStructure.getChassisWeight() / mech.chassisStructure.getMaxInternals(mech);
-		double armorRepairTons = (rearArmorCost ? rearArmorDamage : armorDamage - rearArmorDamage) * mech.armorType.armorWeight;
+		double armorRepairTons = (rearArmorCost ? rearArmorDamage : frontArmorDamage) * mech.armorType.armorWeight;
 		double internalRepairTons = (maxHP - healthPoints) * internalWeight;
 		double armorCostPerTon = mech.baseArmorRepairCost;
 		double internalCostPerTon = mech.baseInternalRepairCost;
@@ -296,22 +296,23 @@ class MechHardpoint : MechPart
 	{
 		if(!mech || !mech.armorType) return false;
 		
-		double frontArmorTo = floor(armorPoints) + front;
+		double frontArmorTo = floor(frontArmor) + front;
 		double rearArmorTo = floor(rearArmor) + rear;
 		bool overWeight = mech.weight + (mech.armorType.armorWeight * (front + rear)) > mech.maxWeight;
 		
-		if( frontArmorTo+rearArmorTo > (maxArmor-armorDamage) || 
+		if( frontArmorTo+rearArmorTo > (maxArmor-totalArmorDamage) || 
 		    frontArmorTo < 0 || rearArmorTo < 0 || 
 			overWeight ) return false;
 			
-		armorPoints = frontArmorTo;
+		frontArmor = frontArmorTo;
 		rearArmor = rearArmorTo;
 		return true;
 	}
 	
 	clearscope int getReserveArmorPoints()
 	{
-		return ceil(maxArmor - (armorPoints + rearArmor + armorDamage));
+		double totalArmorPoints = frontArmor + rearArmor + totalArmorDamage;
+		return ceil(maxArmor - totalArmorPoints);
 	}
 	
 	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)
@@ -322,14 +323,15 @@ class MechHardpoint : MechPart
 	}
 	clearscope double, double getVitals()
 	{
-		double armorRatio = (maxArmor - ceil(armorDamage)) / maxArmor;
+		double armorRatio = maxFrontArmor > 0 ? frontArmor / maxFrontArmor : 0;
+		double internalsRatio = maxHP > 0 ? healthPoints / maxHP : 0;
 	
-		return maxArmor > 0 ? armorRatio : 1.0, maxHP > 0 ? (healthPoints / maxHP) : 1.0;
+		return armorRatio, internalsRatio;
 	}
 	clearscope double getRearVitals()
 	{
 		double maxRear = rearArmor + rearArmorDamage;
-		return maxRear > 0 ? (rearArmor / maxRear) : 1.0;
+		return maxRear > 0 ? (rearArmor / maxRear) : 0;
 	}
 
 	ui virtual void DrawPaperdoll(vector2 dollPos, double dollAlpha = 1.0, vector2 dollScale = (1.0,1.0), uint drawFlags = 0, double deltaTime = 1.0, bool rear = false)
@@ -384,15 +386,15 @@ class MechHardpoint : MechPart
 	
 	virtual void TallyArmorDamage(double frontDamage, double rearDamage)
 	{
-		double totalArmorDamage = frontDamage + rearDamage;
-		if( (armorPoints+rearArmor) > 0 ) armorDamage = min(maxArmor, armorDamage + totalArmorDamage);
-		if(hasRearArmor && rearArmor > 0) rearArmorDamage = min(armorDamage, rearArmorDamage + rearDamage);
+		frontArmorDamage = min(maxFrontArmor, frontArmorDamage + frontDamage);
+		rearArmorDamage = min(maxRearArmor, rearArmorDamage + rearDamage);
+		totalArmorDamage = frontArmorDamage + rearArmorDamage;
 	}
 	
 	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
 	{
 		if(healthPoints <= 0) return; // Don't damage an already destroyed hardpoint.
-		double prevArmor = armorPoints;
+		double prevFrontArmor = frontArmor;
 		double prevRearArmor = rearArmor;
 		double prevInternals = healthPoints;
 	
@@ -402,9 +404,9 @@ class MechHardpoint : MechPart
 			// Radiate local heat to armor
 			double radiateDmg = hpDmg * (localHeat / (mech.maxHeat / 4.0));
 			
-			if(armorPoints > 0)
+			if(frontArmor > 0)
 			{
-				armorPoints = max(0, armorPoints - (radiateDmg * 0.75)); 
+				frontArmor = max(0, frontArmor - (radiateDmg * 0.75)); 
 				TallyArmorDamage(radiateDmg * 0.75, 0);
 			}
 			
@@ -435,13 +437,13 @@ class MechHardpoint : MechPart
 			}
 			else 
 			{
-				if(mech && mech.armorType && armorPoints > 0) 
+				if(mech && mech.armorType && frontArmor > 0) 
 					damage = mech.armorType.ProcessDamage(damage);
 					
-				if(armorPoints > 0)
+				if(frontArmor > 0)
 				{
-					hpDmg = max(0, hpDmg - armorPoints);
-					armorPoints = max(0, armorPoints-damage);	
+					hpDmg = max(0, hpDmg - frontArmor);
+					frontArmor = max(0, frontArmor-damage);	
 					TallyArmorDamage(damage, 0);
 				}
 			}
@@ -450,7 +452,7 @@ class MechHardpoint : MechPart
 		// Item damage; only occurs if armor is gone on hardpoint.
 		bool heatDamage = (type == 'MechHeat');
 		int toHit = random[ItemHitChance](0,200) <= (heatDamage ? 1 : 10);
-		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || armorPoints <= 0);
+		bool noArmor = skipArmor || ((isRearDamage && hasRearArmor && rearArmor <= 0) || frontArmor <= 0);
 		
 		if(noArmor && items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
@@ -487,7 +489,7 @@ class MechHardpoint : MechPart
 		if(mech && mech.head && mech.driver)
 		{
 			string dmgFlash = "FFFF0000";
-			if( (prevArmor > 0 && armorPoints <= 0) || (prevRearArmor > 0 && rearArmor <= 0) )
+			if( (prevFrontArmor > 0 && frontArmor <= 0) || (prevRearArmor > 0 && rearArmor <= 0) )
 			{
 				mech.head.A_StartSound("Damage/NoArmor", CHAN_BODY, CHANF_OVERLAP);
 				MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.5, 20);
@@ -512,7 +514,7 @@ class MechHardpoint : MechPart
 				}
 			}
 			
-			double armorDmg = abs(prevArmor - armorPoints) + abs(prevRearArmor - rearArmor); 
+			double armorDmg = abs(prevFrontArmor - frontArmor) + abs(prevRearArmor - rearArmor); 
 			double hpDamage = abs(prevInternals - healthPoints);
 			double totalDamage = armorDmg + hpDamage;
 			if( armorDmg >= 2 || hpDamage > 2 ) 
@@ -641,7 +643,7 @@ class MechHardpoint : MechPart
 		// Apply hardpoint damage
 		DamageHardpoint(mod, trueDamage, isRearDamage:behind, skipArmor:false);
 
-		// console.printf("Damaged: %s for %d damage. [%d :> %d]", getClassName(), trueDamage, armorPoints, healthPoints);
+		// console.printf("Damaged: %s for %d damage. [%d :> %d]", getClassName(), trueDamage, frontArmor, healthPoints);
 		return 0;
 	}
 	
@@ -649,12 +651,18 @@ class MechHardpoint : MechPart
 	{
 		super.OnAttach();
 		maxHP = healthPoints;
-		maxRearArmor = rearArmor;
+		SetArmorDefaults();
 		SetupMounts();
 		if(mech) angle = mech.angle;
 		
 		if(hitboxRadius > 0) 
 			AddHitBox(hitboxPos_FW, hitboxPos_LR, hitboxPos_UD, hitboxRadius, hitboxHeight);
+	}
+	
+	void SetArmorDefaults()
+	{
+		maxRearArmor = rearArmor;
+		maxFrontArmor = frontArmor;
 	}
 	
 	virtual void AddHitBox(double fw, double lr, double ud, double r, double h)
@@ -772,42 +780,45 @@ class MechHardpoint : MechPart
 		if(rear)	
 		{
 			rearArmor += rearArmorDamage;
-			armorDamage -= rearArmorDamage;
 			rearArmorDamage = 0;
 		}
 		else
 		{
-			armorPoints += (armorDamage - rearArmorDamage);
-			armorDamage = rearArmorDamage;
+			frontArmor += frontArmorDamage;
+			frontArmorDamage = 0;
 		}
+		totalArmorDamage = 0;
 	}
 	virtual void fullRepairInternals()
 	{
 		healthPoints = maxHP;
 	}
 	
-	virtual void Repair(double armorAmt, double healthAmt, bool restoreArmorPoints = false)
+	virtual void Repair(double armorAmt, double healthAmt)
 	{
-		if(restoreArmorPoints)
+		if( rearArmorDamage > 0 )
 		{
-			if(rearArmorDamage > 0)
-				rearArmor += armorAmt;
-			else 
-				armorPoints += armorAmt;
+			rearArmor += armorAmt;
+			rearArmorDamage -= armorAmt;
 		}
 	
-		armorDamage -= armorAmt;
-		rearArmorDamage -= armorAmt;
+		if( frontArmorDamage > 0 )
+		{
+			frontArmor += armorAmt;
+			frontArmorDamage -= armorAmt;
+		} 
 		
 		healthPoints += healthAmt;
-		armorDamage = max(0, armorDamage);
-		rearArmorDamage = max(0, rearArmorDamage);
 		healthPoints = min(maxHP, healthPoints);
 		
-		// Round fractional health and armor up to maximum.
-		if(armorDamage < 1) armorDamage = 0;
-		if(abs(healthPoints - maxHP) < 1) healthPoints = maxHP;
+		frontArmorDamage = max(0, frontArmorDamage);
+		rearArmorDamage = max(0, rearArmorDamage);		
 		
+		// Addresses annoying rounding errors.
+		if(frontArmorDamage <= 0) frontArmor = maxFrontArmor;
+		if(rearArmorDamage <= 0) rearArmor = maxRearArmor;
+		
+		totalArmorDamage = (frontArmorDamage + rearArmorDamage);
 		if(healthPoints > 0) bInvisible = false;
 	}
 	
@@ -844,17 +855,14 @@ class MechHardpoint : MechPart
 		}
 	
 		// If we have no armor type, don't have armor.
-		if(!mech.armorType) armorPoints = rearArmor = 0;
+		if(!mech.armorType) frontArmor = rearArmor = 0;
 
 		// Keep maximum values non-negative.
 		maxArmor = max(0, maxArmor);
 		maxHP = max(0, maxHP);
-		armorDamage = max(0, armorDamage);
-		
-		// Ajust current armor to max armor.
-		if(armorPoints > maxArmor) 
-			armorPoints = maxArmor;
-		
+		frontArmorDamage = max(0, frontArmorDamage);
+		rearArmorDamage = max(0, rearArmorDamage);
+				
 		// loop through items
 		if(items.Size())
 		{

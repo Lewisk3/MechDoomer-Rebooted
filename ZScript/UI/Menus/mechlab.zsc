@@ -170,7 +170,7 @@ class MechHardpointContainer : MenuElement
 		filterMountpoints(missilePoints);
 		filterMountpoints(podPoints);
 		
-		double frontArmor = floor(hardpoint.armorPoints);
+		double frontArmor = floor(hardpoint.frontArmor);
 		double rearArmor = floor(hardpoint.hasRearArmor ? hardpoint.rearArmor : -1);
 		
 		MWDrawer.Fill("Black", topBarPos.x,topBarPos.y + 8, size.x, topBarHeight);
@@ -184,7 +184,7 @@ class MechHardpointContainer : MenuElement
 		MWDrawer.DrawString("hm_type", ""..int(reserveArmorPoints), topBarPos + (190,6), MWDrawer.SS_TEXT_RIGHT, translation:Font.CR_Sapphire, scale:(0.8,0.8)); 
 		
 		// Damage
-		MWDrawer.DrawString("hm_type", String.Format("-%.2f", hardpoint.armorDamage), topBarPos + (92,7), translation:Font.CR_Brick, scale:(0.65,0.65)); 
+		MWDrawer.DrawString("hm_type", String.Format("-%.2f", hardpoint.totalArmorDamage), topBarPos + (92,7), translation:Font.CR_Brick, scale:(0.65,0.65)); 
 		
 		MWDrawer.DrawString("hm_type", ""..int(frontArmor), topBarPos + (rearArmor >= 0 ? size.x*0.25 : size.x*0.4,45));
 		if(rearArmor >= 0)
@@ -229,7 +229,7 @@ class MechHardpointContainer : MenuElement
 			if( btn.Tag.IndexOf("UP") != -1 )
 				btn.disabled = reserveArmorPoints <= 0;
 			if( btn.Tag ~== "ArmorDOWN")
-				btn.disabled = hardpoint.armorPoints <= 0;
+				btn.disabled = hardpoint.frontArmor <= 0;
 			if( btn.Tag ~== "rearArmorDOWN")
 				btn.disabled = hardpoint.rearArmor <= 0;	
 			if(disabled || !!mechlab.mech.driver) btn.disabled = true;
@@ -1927,7 +1927,7 @@ class MechMenu_Mechlab : MechMenu
 				mech.getHardpoints(hardpoints, skipDestroyed:false);	
 				foreach(hp : hardpoints)
 				{
-					hp.armorPoints = 0;
+					hp.frontArmor = 0;
 					hp.rearArmor = 0;
 				}		
 			}

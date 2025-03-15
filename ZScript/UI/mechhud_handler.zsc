@@ -34,7 +34,7 @@ class MechHUD_Handler : EventHandler
 	override void RenderUnderlay(RenderEvent e)
 	{
 		let mech = getPilotingMech(e);
-		if(mech && mech.HUDType && !mech.shutdown) 
+		if(mech && mech.HUDType) 
 			HideHUD();
 		else
 			ShowHUD();
@@ -404,7 +404,7 @@ class VehicleHUD : Object ui
 		MWDrawer.DrawString("ConsoleFont", mountsText, inv + (0,infoOffs));
 		infoOffs += 20;
 		
-		MWDrawer.DrawString("ConsoleFont", String.Format("Armor: %d / %d", hp.armorPoints, hp.maxArmor-hp.maxRearArmor), inv + (0,infoOffs));
+		MWDrawer.DrawString("ConsoleFont", String.Format("Armor: %d / %d", hp.frontArmor, hp.maxArmor-hp.maxRearArmor), inv + (0,infoOffs));
 		infoOffs += 20;
 		
 		if(hp.hasRearArmor)

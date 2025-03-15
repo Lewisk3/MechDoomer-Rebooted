@@ -132,12 +132,12 @@ class PaperDollContainer : MenuElement
 			
 			if(mech.armorType)
 			{
-				int curArmor = selected.armorPoints;
-				int maxArmor = selected.maxArmor - (selected.rearArmor + selected.rearArmorDamage);
+				int curArmor = selected.frontArmor;
+				int maxArmor = selected.maxFrontArmor;
 				if(paperDollArmor == AM_REAR)
 				{
 					curArmor = selected.rearArmor;
-					maxArmor = selected.rearArmor + selected.rearArmorDamage;
+					maxArmor = selected.maxRearArmor;
 				}
 				
 				armorRating = String.Format("%d / %d", curArmor, maxArmor);

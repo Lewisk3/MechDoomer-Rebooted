@@ -124,7 +124,7 @@ class MechLaser : MechLaserBeam
 		{
 			if(!(hitActor is "DrivableObjectPart")) 
 			{
-				double monsterDmgMod = (MechHardpoint.DMGSCALE * 14.0);
+				double monsterDmgMod = (MechHardpoint.DMGSCALE * DMG_DELT_MONSTER);
 				trueDamage *= monsterDmgMod;
 			}
 			

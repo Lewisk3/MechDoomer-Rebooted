@@ -40,7 +40,7 @@ class MechRepairKit : MechItem
 	{
 		if(armorRepairAmount)
 		{
-			if(part.armorDamage <= 0) 
+			if(part.totalArmorDamage <= 0) 
 				return IAE_INVALID;
 		
 			let curArmor = part.mech.armorType;

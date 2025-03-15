@@ -127,7 +127,7 @@ class MechProjectile : FastProjectile
 		// Always null-check victim if you overwrite this!
 		// Damage descriptions are generated with victim set to NULL.
 	
-		return MechHardpoint.DMGSCALE * 14.;
+		return MechHardpoint.DMGSCALE * DMG_DELT_MONSTER;
 	}
 	
 	virtual void UpdateVelocity()

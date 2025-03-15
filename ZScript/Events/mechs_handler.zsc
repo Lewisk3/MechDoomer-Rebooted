@@ -168,7 +168,7 @@ class MechInteraction_Handler : EventHandler
 			if(args[1] == "printmoney")
 			{
 				inv.cbills += args[2].ToInt();
-				console.printf("Printed %s more cbills. (You should run for presidency next!)", args[2]);
+				console.printf("Printed %s more cbills. (I believe this is what they call the \"STONKS\", comrade.)", args[2]);
 			}
 		}
 	}
