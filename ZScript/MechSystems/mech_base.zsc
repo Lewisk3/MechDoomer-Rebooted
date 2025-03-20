@@ -1938,7 +1938,7 @@ class I_SaveMechData : Inventory
 		{
 			let mechcls = (class<DrivableMech> )(cls);
 			if(!mechcls || mechcls == "DrivableMech") continue;
-			GiveMech(mechcls); // DEBUG give all mechs.
+			// GiveMech(mechcls); // DEBUG give all mechs.
 			
 			let mechObj = CreateMech(mechcls);
 			let shopMech = getSerializedMechData(mechObj);
