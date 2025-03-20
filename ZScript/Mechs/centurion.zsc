@@ -58,11 +58,9 @@ class MechCenturion : DrivableMech
 		leftArm.AddWeapon("AC10", GROUPFLG_ONE);
 		leftTorso.AddItem("AC10Ammo");
 		leftTorso.AddItem("AC10Ammo");
-		leftTorso.AddItem("MechHeatsink");
 		rightTorso.AddWeapon("LRM10", GROUPFLG_THREE);
 		rightTorso.AddItem("LRMAmmo");
 		rightTorso.AddItem("LRMAmmo");
-		rightTorso.AddItem("MechHeatsink");
 	}
 }
 

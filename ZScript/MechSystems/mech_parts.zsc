@@ -290,6 +290,7 @@ class MechHardpoint : MechPart
 		// Double cooling while shutdown.
 		if(amt < 0 && mech.shutdown) amt *= 2.0;
 		localHeat += amt;
+		localHeat = max(0, localHeat);
 	}
 	
 	bool adjustArmor(double front, double rear = 0)
@@ -330,8 +331,7 @@ class MechHardpoint : MechPart
 	}
 	clearscope double getRearVitals()
 	{
-		double maxRear = rearArmor + rearArmorDamage;
-		return maxRear > 0 ? (rearArmor / maxRear) : 0;
+		return maxRearArmor > 0 ? (rearArmor / maxRearArmor) : 0;
 	}
 
 	ui virtual void DrawPaperdoll(vector2 dollPos, double dollAlpha = 1.0, vector2 dollScale = (1.0,1.0), uint drawFlags = 0, double deltaTime = 1.0, bool rear = false)
@@ -388,7 +388,7 @@ class MechHardpoint : MechPart
 	{
 		frontArmorDamage = min(maxFrontArmor, frontArmorDamage + frontDamage);
 		rearArmorDamage = min(maxRearArmor, rearArmorDamage + rearDamage);
-		totalArmorDamage = frontArmorDamage + rearArmorDamage;
+		totalArmorDamage = min(maxArmor, frontArmorDamage + rearArmorDamage);
 	}
 	
 	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
@@ -419,13 +419,10 @@ class MechHardpoint : MechPart
 		
 		if(!skipArmor)
 		{
-			bool rearHit;
 			if(isRearDamage && hasRearArmor)
 			{
 				if(mech && mech.armorType && rearArmor > 0) 
-				{
 					damage = mech.armorType.ProcessDamage(damage);
-				}
 				
 				if(rearArmor > 0)
 				{
@@ -433,7 +430,6 @@ class MechHardpoint : MechPart
 					rearArmor = max(0, rearArmor-damage);
 					TallyArmorDamage(0, damage);
 				}
-				rearHit = true;
 			}
 			else 
 			{
@@ -661,8 +657,8 @@ class MechHardpoint : MechPart
 	
 	void SetArmorDefaults()
 	{
-		maxRearArmor = rearArmor;
-		maxFrontArmor = frontArmor;
+		maxRearArmor = rearArmor + rearArmorDamage;
+		maxFrontArmor = frontArmor + frontArmorDamage;
 	}
 	
 	virtual void AddHitBox(double fw, double lr, double ud, double r, double h)
@@ -779,12 +775,12 @@ class MechHardpoint : MechPart
 	{
 		if(rear)	
 		{
-			rearArmor += rearArmorDamage;
+			rearArmor = maxRearArmor;
 			rearArmorDamage = 0;
 		}
 		else
 		{
-			frontArmor += frontArmorDamage;
+			frontArmor = maxFrontArmor;
 			frontArmorDamage = 0;
 		}
 		totalArmorDamage = 0;
@@ -818,7 +814,7 @@ class MechHardpoint : MechPart
 		if(frontArmorDamage <= 0) frontArmor = maxFrontArmor;
 		if(rearArmorDamage <= 0) rearArmor = maxRearArmor;
 		
-		totalArmorDamage = (frontArmorDamage + rearArmorDamage);
+		totalArmorDamage = min(maxArmor, frontArmorDamage + rearArmorDamage);
 		if(healthPoints > 0) bInvisible = false;
 	}
 	
@@ -858,10 +854,10 @@ class MechHardpoint : MechPart
 		if(!mech.armorType) frontArmor = rearArmor = 0;
 
 		// Keep maximum values non-negative.
-		maxArmor = max(0, maxArmor);
-		maxHP = max(0, maxHP);
 		frontArmorDamage = max(0, frontArmorDamage);
 		rearArmorDamage = max(0, rearArmorDamage);
+		frontArmor = max(0, frontArmor);
+		rearArmor = max(0, rearArmor);
 				
 		// loop through items
 		if(items.Size())
@@ -1235,11 +1231,16 @@ class MechTorso : MechHardpoint
 	override void DriverUpdate(Actor driver)
 	{				
 		// Bobbing
-		if(!mech) return;
+		if(!mech || !mech.engine) return;
 		
-		if(mech.getSpd() >= 0.1 && mech.onground)
+		// Calculate Bob	
+		double curSpeed = MechEngine.mechSpeedToKPH(mech.GetSpd());
+		double bobmax = 2.0;
+		
+		if(curSpeed >= 1 && mech.onground)
 		{
-			double str = 0.05; // 0.07
+			double strMod = curSpeed*0.020;
+			double str = clamp(0.05 * strMod, -(bobmax/2.), bobmax/2.); 			
 			pitchBobVel += mech.legs.frame >= 11 ? (str*1.50) : -str;
 			
 			rollBob += cos(rollBobTimer * 2.5) * str;
@@ -1258,8 +1259,11 @@ class MechTorso : MechHardpoint
 				mech.legs.A_StartSound("Mech/Land", flags:CHANF_OVERLAP);
 		}
 		
-		pitchBob = clamp(pitchBobVel, -8, 8);
-
+		pitchBob = clamp(pitchBobVel, -bobmax, bobmax);
+		
+		double bobIntensity = 1 / max(1, DrivablesMath.fmap(curSpeed, 32, 200, 1.0, 3.0));
+		pitchBob *= bobIntensity;
+		
 		double toAngle = driver.angle;
 		double toPitch = driver.pitch + pitchBob;
 		
@@ -1377,16 +1381,15 @@ class MechCockpit : MechHardpoint
 	
 	void DoCockpitBob()
 	{
-		
 		double curSpeed = MechEngine.mechSpeedToKPH(mech.GetSpd()) / 17.0;
 		
-		double tiltosc_amp =  10 + (curSpeed * 0.25);
-		double steposc_amp = curSpeed * 1.2;
+		double tiltosc_amp =  10 + (curSpeed/4);
+		double steposc_amp =  5 + (curSpeed/2);
 		tiltosc_amp = clamp(tiltosc_amp,0,18);
 		steposc_amp = clamp(steposc_amp,0,24);
 		TiltOsc += tiltosc_amp;
 		StepOsc += steposc_amp;
-		
+
 		if (TiltOsc >= 360.0 || TiltOsc < 0.0)    {
 			TiltOsc = 0.0;
 		}
@@ -1398,16 +1401,14 @@ class MechCockpit : MechHardpoint
 		double StepOffset = 0;
 		if(curSpeed != 0)
 		{
-			double TiltOffset = sin(TiltOsc);
-			TiltOffset *= clamp((curSpeed*0.5) - (mech.LegVel*0.8), 0.05, 5.0);
-			TiltOffset *= 0.75;
-			// if(defaultmovement) TiltOffset *= 0.6;
-		
+			TiltOffset  = sin(TiltOsc);
+			TiltOffset *= clamp((curSpeed/2) - (mech.LegVel*0.8), 0.05, 5.0);
+			TiltOffset *= 0.25;
+
 			StepOffset  = sin(StepOsc);
-			StepOffset *= (curSpeed*0.5) + (mech.LegVel*2);
+			StepOffset *= (curSpeed/2) + (mech.LegVel*2);
 			StepOffset *= (1.78 + ((mech.maxWeight)/100));
-			StepOffset *= 0.7; // 0.54
-			// if(defaultmovement) StepOffset *= 0.7;
+			StepOffset *= 0.24; 
 		}
 		
 		bobRollOffs = -TiltOffset;

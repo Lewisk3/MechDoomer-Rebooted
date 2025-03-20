@@ -92,6 +92,7 @@ const DMG_SCALAR_MONSTER = 0.065;
 #include "ZScript/Mechs/rifleman.zsc"
 #include "ZScript/Mechs/hunchback.zsc"
 #include "ZScript/Mechs/commando.zsc"
+#include "ZScript/Mechs/catapult.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

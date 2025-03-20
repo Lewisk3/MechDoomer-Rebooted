@@ -378,6 +378,29 @@ class MechHUD : VehicleHUD
 		Screen.ClearStencil();
 	}
 	
+	double getHeatBarPerc(double fromHeat)
+	{
+		double amMin = 0.02;
+		double ambient = mech.getAmbient();
+		if(fromHeat <= ambient) return (fromHeat / ambient) * amMin;
+		if(fromHeat >= mech.maxHeat) return 1.0;
+
+		double heatRange = mech.maxHeat - ambient;
+		double tPoint = ambient + (heatRange * 0.3);
+
+		if(fromHeat <= tPoint)
+		{
+			double perc = (fromHeat - ambient) / (tPoint - ambient);
+			double tPerc = (tPoint / mech.maxHeat);
+			return amMin + (tPerc * (sin(perc * 90) ** 2));
+		}
+		else
+		{
+			return fromHeat / mech.maxHeat;
+		}
+	}
+	
+	double heatCurve;
 	void DrawBars()
 	{
 		uint flags = MWDrawer.SS_NOASPECTCORRECTION;
@@ -442,9 +465,14 @@ class MechHUD : VehicleHUD
 		DrawRect(0, heatPos + (2,2), barSize - (3,3)); 
 		
 		// Fill
-		Color heatColor = 0xCCFF0000;
 		curHeat = DrivablesMath.Lerp(curHeat, min(mech.maxHeat, mech.curHeat), 0.25 * deltaTime);
-		double heatHeight = (curHeat / mech.maxHeat) * (barSize.y - 3);
+		double curHeatCurve = getHeatBarPerc(curHeat);
+		
+		// This helps hide the transition point when mapping heat onto the bar.
+		heatCurve = DrivablesMath.Lerp(heatCurve, curHeatCurve, 0.25 * deltaTime);
+		
+		Color heatColor = 0xCCFF0000;
+		double heatHeight = heatCurve * (barSize.y - 3);
 		DrawRect(heatColor, heatPos + (2,barSize.y-2), (barSize.x-3, -heatHeight), flags:flags); 
 		
 		// Heat bars
@@ -459,6 +487,29 @@ class MechHUD : VehicleHUD
 		MWDrawer.DrawString("ConsoleFont", GetHeatString('K'), kelvinPos, flags:flags, scale:txtScale);
 		MWDrawer.DrawString("ConsoleFont", "Heat", txtPos, flags:flags | MWDrawer.SS_TEXT_CENTER, scale:txtScale);
 		
+		// Draw heatbank information if applicable
+		Array<MechItem> heatbanks;
+		mech.FindAllItems("MechHeatBank", true, heatbanks);
+		
+		if(heatbanks.size() <= 0) return;
+		
+		double maxBankHeat = 0; 
+		double curBankHeat = 0;
+		foreach(bankItem : heatbanks)
+		{
+			let bank = MechHeatBank(bankItem);
+			curBankHeat += bank.curBuffer;
+			maxBankHeat += bank.maxBuffer;
+		}
+		double curHB = min(1.0, curBankHeat / maxBankHeat);
+		
+		vector2 heatBankSize = barSize * 0.35; 
+		vector2 heatBankPos = heatPos + (32, barSize.y - heatBankSize.y);
+		DrawRect(0xCC00FF00, heatBankPos, heatBankSize);
+		DrawRect(0, heatBankPos + (2,2), heatBankSize - (3,3)); 
+		
+		heatHeight = curHB * (heatBankSize.y - 3);
+		DrawRect(heatColor, heatBankPos + (2,heatBankSize.y-2), (heatBankSize.x-3, -heatHeight), flags:flags); 
 	}
 			
 	void DrawWeapons()

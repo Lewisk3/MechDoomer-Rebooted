@@ -18,6 +18,9 @@ const UTOCM = ( (12.9 / (70.0 * 0.35) ) * 100.0);
 
 const MECHPRICESCALAR = 0.5;
 
+// According to sarna, 1 turn = 10 seconds, so 350 tics.
+const TURNTICS = 35 * 10.0;
+
 class DrivableMech : DrivableObject
 {
 	const MECHFRICTION = 0.94;
@@ -161,7 +164,7 @@ class DrivableMech : DrivableObject
 		MaxStepHeight 36;
 		DrivableMech.Acceleration 25, 30; 
 		DrivableMech.MaxWeight 85; // In Tons.
-		DrivableMech.MaxHeat 200, 1050.0;
+		DrivableMech.MaxHeat 100, 900.0;
 		DrivableMech.PaperdollBG "Graphics/HUD/Paperdoll/paperdoll_background.png", "Graphics/HUD/Paperdoll/paperdoll_thickOutline.png";
 		DrivableMech.SaveDataFormat "MechSaveData";
 		DrivableMech.HUD_Class "MechHUD";
@@ -1100,31 +1103,31 @@ class DrivableMech : DrivableObject
 		}
 		
 		// More heat logic.
-		if(curHeat > kelvinToBHU(400.0) && !heatWarn)
+		if(curHeat > kelvinToBHU(maxKelvin * 0.40) && !heatWarn)
 		{
 			// TODO: Play heat warn sound here.
 			// betty.Push("Betty/Heat/Warn");
 			heatWarn = true;
 		}
 		
-		if(curHeat > kelvinToBHU(600.0) && !heatCritical)
+		if(curHeat > kelvinToBHU(maxKelvin * 0.60) && !heatCritical)
 		{
 			betty.Push("Betty/Heat/Critical");
 			heatCritical = true;
 		}
 		
-		if(curHeat > kelvinToBHU(900.0) && !heatShutdown && !shutdown)
+		if(curHeat > kelvinToBHU(maxKelvin * 0.85) && !heatShutdown && !shutdown)
 		{
 			if(!overrideShutdown) betty.Push("Betty/Heat/CriticalShutdown");
 			shutdownTimer = 35*3; // Three seconds till shutdown.
 			heatShutdown = true;
 		}
 		
-		if(curHeat <= kelvinToBHU(300.0)) heatWarn = false;
+		if(curHeat <= kelvinToBHU(maxKelvin * 0.30)) heatWarn = false;
 		
-		if(curHeat <= kelvinToBHU(500.0)) heatCritical = false;
+		if(curHeat <= kelvinToBHU(maxKelvin * 0.50)) heatCritical = false;
 		
-		if(curHeat > kelvinToBHU(650.0))
+		if(curHeat > kelvinToBHU(maxKelvin * 0.60))
 			DoCockpitSound("Mech/OverheatWarning", CHAN_ITEM, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
 		else if(head) 
 			head.A_StopSound(CHAN_ITEM);
@@ -1222,10 +1225,10 @@ class DrivableMech : DrivableObject
 		return curHeat / maxHeat;
 	}
 	
-	virtual double getAmbient()
+	clearscope virtual double getAmbient()
 	{
 		// Used to determine ambient temp.
-		return kelvinToBHU(20.0);
+		return kelvinToBHU(273.15 + 20.0);
 	}
 	
 	override void DoPhysics()
@@ -1935,6 +1938,7 @@ class I_SaveMechData : Inventory
 		{
 			let mechcls = (class<DrivableMech> )(cls);
 			if(!mechcls || mechcls == "DrivableMech") continue;
+			GiveMech(mechcls); // DEBUG give all mechs.
 			
 			let mechObj = CreateMech(mechcls);
 			let shopMech = getSerializedMechData(mechObj);
@@ -1944,7 +1948,7 @@ class I_SaveMechData : Inventory
 		
 		// Starting Mech
 		// TODO: Move this somewhere where it can be more easily modified.
-		GiveMech("MechCommando");
+		// GiveMech("MechCommando");
 	}
 
 	override void DoEffect()

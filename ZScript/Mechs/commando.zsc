@@ -3,7 +3,7 @@ class MechCommando : DrivableMech
    Default
    {
       Radius 48;
-      DrivableMech.Acceleration 27, 30;
+      DrivableMech.Acceleration 80, 140;
       DrivableMech.MaxWeight 25; // In Tons.
       DrivableMech.ChassisName "Commando";
       DrivableMech.VariantName "7X";
@@ -56,31 +56,25 @@ class MechCommando : DrivableMech
       leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
 	  rightArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
 	  head.AddWeapon("MediumLaser", GROUPFLG_THREE);
-	  leftArm.AddItem("MechHeatsink");
-	  leftArm.AddItem("MechHeatsink");
-	  rightArm.AddItem("MechHeatsink");
-	  rightArm.AddItem("MechHeatsink");
-	  leftTorso.AddItem("MechHeatsink");
-	  
 	  torso.AddWeapon("SRM6", GROUPFLG_TWO);
 	  
       leftLeg.AddItem("SRMAmmo");
-      rightLeg.AddItem("SRMAmmo");
+	  rightLeg.AddItem("SRMAmmo");
    }
 }
 
 // Armor PTS
 /*
-	82pts 
+	80pts 
 	
-[HD] - 12
+[HD] - 6
 [CT] - 14
-[LT] - 10
-[RT] - 10
+[LT] - 12
+[RT] - 12
 [LA] - 8
 [RA] - 8
-[LL] - 9
-[RL] - 9
+[LL] - 10
+[RL] - 10
 */
 
 
@@ -100,8 +94,8 @@ class Commando_Cockpit : MechCockpit
       // Head component
       Radius 5;
       Height 3;
-      MechHardpoint.Vitals 12, 6;
-      MechHardpoint.SetupArmor 12, 0;
+      MechHardpoint.Vitals 6, 3;
+      MechHardpoint.SetupArmor 6, 0;
    }
    
 	override void SetupMounts()
@@ -117,8 +111,8 @@ class Commando_LeftLeg : MechLeftLeg
       // Leg Stuff
       Radius 4;
       Height 40;
-      MechHardpoint.Vitals 9, 5;
-      MechHardpoint.SetupArmor 9, 0;
+      MechHardpoint.Vitals 10, 5;
+      MechHardpoint.SetupArmor 10, 0;
    }  
 }
 class Commando_RightLeg : MechRightLeg
@@ -129,8 +123,8 @@ class Commando_RightLeg : MechRightLeg
       Radius 4;
       Height 40;
       
-      MechHardpoint.Vitals 9, 5;
-      MechHardpoint.SetupArmor 9, 0;
+      MechHardpoint.Vitals 10, 5;
+      MechHardpoint.SetupArmor 10, 0;
    }  
 }
 
@@ -144,7 +138,7 @@ class Commando_CenterTorso : MechTorso
       Radius 6;
       Height 22;
       
-      MechHardpoint.Vitals 14, 6;
+      MechHardpoint.Vitals 14, 8;
       MechHardpoint.SetupArmor 10, 4;
       MechHardpoint.RearArmor true;
    }  
@@ -163,8 +157,8 @@ class Commando_LeftTorso : MechSideTorso
       Height 20;
       MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
       
-      MechHardpoint.Vitals 10, 5;
-      MechHardpoint.SetupArmor 7, 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 8, 4;
       MechHardpoint.RearArmor true;
    }
       
@@ -180,8 +174,8 @@ class Commando_RightTorso : MechSideTorso
       Height 20;
       MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
       
-      MechHardpoint.Vitals 10, 5;
-      MechHardpoint.SetupArmor 7, 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 8, 4;
       MechHardpoint.RearArmor true;
    }  
    

@@ -8,13 +8,13 @@ class SmallLaser : MechLaserWeapon
 		heat = 0; // Initial heat.
 		weight = 0.5;
 				
-		fireTime     = floor(1.0 * TICRATE);
+		fireTime     = floor(0.5 * TICRATE);
 		cooldownTime = 1 * TICRATE;
 		
 		range = 150; // Meters
 		laserRange = 300; // Maximum laser range.
-		damage = convertDMG(3.25, fireTime);
-		laserHeat = convertHeat(1.10, fireTime); // Laserbeam heat.
+		damage = convertDMG(3.0, fireTime);
+		laserHeat = convertHeat(1.00, fireTime); // Laserbeam heat.
 		energyUse = 0.1 / double(fireTime);
 		
 		fireSound = "Laser/Small";
@@ -23,7 +23,7 @@ class SmallLaser : MechLaserWeapon
 		sndItemName = "Betty/Item/Laser";
 		mountDeco = "LaserMountDeco";
 		
-		value = 10000;
+		value = 11250;
 		
 		damagable = true;
 	}
@@ -50,14 +50,14 @@ class ERSmallLaser : SmallLaser
 				
 		range = 200; // Damage dropoff
 		laserRange = 400; // Maximum laser range.
-		laserHeat = convertHeat(1.90, fireTime); // Laserbeam heat.
+		laserHeat = convertHeat(2.0, fireTime); // Laserbeam heat.
 		energyUse = 0.15 / double(fireTime);
 		
 		laserColor = "Yellow";
 		sndItemName = "Betty/Item/ERLaser";
 		mountDeco = "LaserMountDeco";
 		
-		value = 15000;
+		value = 11250;
 	}
 	
 	override string getShopDescription()
@@ -82,12 +82,12 @@ class SmallPulseLaser : SmallLaser
 				
 		fireTime     = 5 + floor(0.15 * TICRATE);
 		cooldownTime = floor(0.75 * TICRATE);
-		maxLaserTime = floor(1.75 * TICRATE);
+		maxLaserTime = floor(1.00 * TICRATE);
 		
 		laserRange = 220; // Meters
 		range = 110;
-		damage = convertDMG(5.0, maxLaserTime);
-		laserHeat = convertHeat(2.70, maxLaserTime); // Laserbeam heat.
+		damage = convertDMG(3.0, maxLaserTime);
+		laserHeat = convertHeat(2.00, maxLaserTime); // Laserbeam heat.
 		pulseSpeed = 90;
 		energyUse = 0.02 / double(fireTime);
 		
@@ -100,7 +100,7 @@ class SmallPulseLaser : SmallLaser
 		damagable = true;
 		continuous = true; 
 		
-		value = 30000;
+		value = 16000;
 	}
 	
 	override string getShopDescription()
@@ -122,13 +122,13 @@ class MediumLaser : MechLaserWeapon
 		mountType = "Energy";
 		weight = 1;
 		
-		fireTime     = floor(1.5 * TICRATE);
+		fireTime     = floor(0.5 * TICRATE);
 		cooldownTime = 2 * TICRATE;
 		
 		laserRange = 540; // Meters
 		range = 270;
-		damage = convertDMG(10.0, fireTime);
-		laserHeat = convertHeat(3.25, fireTime); // Laserbeam heat.
+		damage = convertDMG(5.0, fireTime);
+		laserHeat = convertHeat(3.00, fireTime); // Laserbeam heat.
 		energyUse = 0.2 / double(fireTime);
 		
 		fireSound = "Laser/Medium";
@@ -139,7 +139,7 @@ class MediumLaser : MechLaserWeapon
 		
 		damagable = true;
 		
-		value = 30000;
+		value = 40000;
 	}
 	
 	override string getShopDescription()
@@ -162,14 +162,14 @@ class ERMediumLaser : MediumLaser
 		laserRange = 720; // Meters
 		range = 360; 
 	
-		laserHeat = convertHeat(3.80, fireTime); // Laserbeam heat.
+		laserHeat = convertHeat(5.00, fireTime); // Laserbeam heat.
 		energyUse = 0.25 / double(fireTime);
 		
 		laserColor = "Cyan";
 		sndItemName = "Betty/Item/ERLaser";
 		mountDeco = "LaserMountDeco";
 		
-		value = 35000;
+		value = 80000;
 	}
 	
 	override string getShopDescription()
@@ -194,12 +194,12 @@ class MediumPulseLaser : MediumLaser
 				
 		fireTime     = 5 + floor(0.3 * TICRATE);
 		cooldownTime = floor(1.50 * TICRATE);
-		maxLaserTime = floor(3.0 * TICRATE);
+		maxLaserTime = floor(2.00 * TICRATE);
 		
 		laserRange = 440; // Meters
 		range = 220;
-		damage = convertDMG(9.0, maxLaserTime);
-		laserHeat = convertHeat(7.60, maxLaserTime); // Laserbeam heat.
+		damage = convertDMG(6.0, maxLaserTime);
+		laserHeat = convertHeat(4.00, maxLaserTime); // Laserbeam heat.
 		pulseSpeed = 70;
 		energyUse = 0.02 / double(fireTime);
 		
@@ -212,7 +212,7 @@ class MediumPulseLaser : MediumLaser
 		damagable = true;
 		continuous = true; 
 		
-		value = 70000;
+		value = 60000;
 	}
 	
 	override string getShopDescription()
@@ -236,13 +236,13 @@ class LargeLaser : MechLaserWeapon
 		weight = 5.0;
 		size = 2;
 		
-		fireTime     = floor(2.0 * TICRATE);
-		cooldownTime = 3 * TICRATE;
+		fireTime     = floor(0.5 * TICRATE);
+		cooldownTime = floor(3.25 * TICRATE);
 		
 		laserRange = 900; // Meters
 		range = 450;
-		damage = convertDMG(18.0, fireTime);
-		laserHeat = convertHeat(6.0, fireTime); // Laserbeam heat.
+		damage = convertDMG(8.0, fireTime);
+		laserHeat = convertHeat(8.0, fireTime); // Laserbeam heat.
 		energyUse = 0.3 / double(fireTime);
 		
 		fireSound = "Laser/Large";
@@ -253,7 +253,7 @@ class LargeLaser : MechLaserWeapon
 		
 		damagable = true;
 		
-		value = 70000;
+		value = 100000;
 	}
 	
 	override string getShopDescription()
@@ -276,14 +276,14 @@ class ERLargeLaser : LargeLaser
 	
 		laserRange = 1480; // Meters
 		range = 740;
-		laserHeat = convertHeat(7.0, fireTime); // Laserbeam heat.
+		laserHeat = convertHeat(12.0, fireTime); // Laserbeam heat.
 		energyUse = 0.45 / double(fireTime);
 		
 		laserColor = "Purple";
 		sndItemName = "Betty/Item/ERLaser";
 		mountDeco = "LaserMountDeco";
 		
-		value = 85000;
+		value = 200000;
 	}
 	
 	override string getShopDescription()
@@ -309,12 +309,12 @@ class LargePulseLaser : LargeLaser
 				
 		fireTime     = 5 + floor(0.5 * TICRATE);
 		cooldownTime = floor(3.0 * TICRATE);
-		maxLaserTime = floor(4.25 * TICRATE);
+		maxLaserTime = floor(3.0 * TICRATE);
 		
 		laserRange = 740; // Meters
 		range = 370;
-		damage = convertDMG(15.0, maxLaserTime);
-		laserHeat = convertHeat(12.0, maxLaserTime); // Laserbeam heat.
+		damage = convertDMG(9.0, maxLaserTime);
+		laserHeat = convertHeat(10.0, maxLaserTime); // Laserbeam heat.
 		energyUse = 0.03 / double(fireTime);
 		pulseSpeed = 50;
 		
@@ -327,7 +327,7 @@ class LargePulseLaser : LargeLaser
 		damagable = true;
 		continuous = true; 
 		
-		value = 140000;
+		value = 175000;
 	}
 	
 	override string getShopDescription()
@@ -350,13 +350,15 @@ class SRM2 : MechMissileWeapon
 	{	
 		DisplayName = "SRM2";
 		mountType = "Missile";
-		heat = 2;
+		
 		weight = 1.0;
-		refireCount = 2;
 		spread = 2.0;
-		doConverge = false;
 		ammoUse = 1;
+		
+		refireCount = 2;
 		refireDelay = 4;
+		
+		heat = 2; // Heat is applied per-missile.
 				
 		fireTime     = refireDelay * refireCount;
 		cooldownTime = 1 * TICRATE;
@@ -368,6 +370,7 @@ class SRM2 : MechMissileWeapon
 		mountDeco = "MissileMountDeco";
 		
 		damagable = true;
+		doConverge = false;
 		
 		value = 10000;
 	}
@@ -394,10 +397,11 @@ class SRM4 : MechMissileWeapon
 		doConverge = false;
 		ammoUse = 1;
 		
-		heat = 3.50;
-		weight = 2.0;
 		refireCount = 4;
 		refireDelay = 4;
+		
+		heat = 3.0;
+		weight = 2.0;
 				
 		fireTime     = refireDelay * refireCount;
 		cooldownTime = ceil(1.50 * TICRATE);
@@ -410,7 +414,7 @@ class SRM4 : MechMissileWeapon
 		
 		damagable = true;
 		
-		value = 30000;
+		value = 60000;
 	}
 	
 	override string getShopDescription()
@@ -434,9 +438,9 @@ class SRM6 : MechMissileWeapon
 		doConverge = false;
 		ammoUse = 1;
 		
-		heat = 5;
-		weight = 3.0;
 		refireCount = 6;
+		heat = 4.0;
+		weight = 3.0;
 		refireDelay = 4;
 		size = 2;
 				
@@ -451,7 +455,7 @@ class SRM6 : MechMissileWeapon
 		
 		damagable = true;
 		
-		value = 45000;
+		value = 80000;
 	}
 	
 	override string getShopDescription()
@@ -484,7 +488,7 @@ class ATM3 : MechMissileWeapon
 		doConverge = true;
 		ammoUse = 1;
 		
-		heat = 2.2;
+		heat = 2.0;
 		weight = 1.5;
 		refireCount = 3;
 		refireDelay = 2;
@@ -506,7 +510,7 @@ class ATM3 : MechMissileWeapon
 		
 		damagable = true;
 		
-		value = 20000;
+		value = 50000;
 	}
 	
 	play virtual void LoadNextAmmo()
@@ -562,13 +566,13 @@ class ATM6 : ATM3
 		DisplayName = "ATM6";
 		defName = displayName;
 		
-		heat = 4.1;
+		heat = 4.0;
 		weight = 3.5;
 		refireCount = 6;
 		size = 3;
 		cooldownTime = 4.0 * TICRATE;
 		
-		value = 60000;
+		value = 125000;
 	}
 	
 	override string getShopDescription()
@@ -590,13 +594,13 @@ class ATM9 : ATM3
 		DisplayName = "ATM9";
 		defName = displayName;
 		
-		heat = 5.8;
+		heat = 6.0;
 		weight = 5;
 		refireCount = 9;
 		size = 4;
 		cooldownTime = 5.0 * TICRATE;
 		
-		value = 90000;
+		value = 225000;
 	}
 	
 	override string getShopDescription()
@@ -618,7 +622,7 @@ class ATM12 : ATM3
 		DisplayName = "ATM12";
 		defName = displayName;
 		
-		heat = 7.5;
+		heat = 8.0;
 		weight = 7;
 		refireCount = 12;
 		size = 5;
@@ -678,7 +682,7 @@ class SSRM4 : SRM4
 		weight = 2.0;
 		requiresTarget = true;
 		
-		value = 40000;
+		value = 90000;
 	}
 	
 	override string getShopDescription()
@@ -706,7 +710,7 @@ class SSRM6 : SRM6
 		size = 2.0;
 		requiresTarget = true;
 		
-		value = 60000;
+		value = 120000;
 	}
 	
 	override string getShopDescription()
@@ -736,7 +740,7 @@ class LRM5 : MechMissileWeapon
 		weight = 2.0;
 		refireCount = 5;
 		refireDelay = 2;
-		heat = 1.0;
+		heat = 2.0;
 		size = 1;
 		
 		fireTime     = refireDelay * refireCount;
@@ -751,7 +755,7 @@ class LRM5 : MechMissileWeapon
 		damagable = true;
 		requiresTarget = true;
 		
-		value = 40000;
+		value = 30000;
 	}
 	
 	override string getShopDescription()
@@ -776,7 +780,7 @@ class LRM10 : MechMissileWeapon
 		weight = 5.0;
 		refireCount = 10;
 		refireDelay = 2;
-		heat = 1.5;
+		heat = 4.0;
 		size = 2;
 		
 		fireTime     = refireDelay * refireCount;
@@ -791,7 +795,7 @@ class LRM10 : MechMissileWeapon
 		damagable = true;
 		requiresTarget = true;
 		
-		value = 75000;
+		value = 100000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -821,7 +825,7 @@ class LRM15 : MechMissileWeapon
 		weight = 7.0;
 		refireCount = 15;
 		refireDelay = 2;
-		heat = 2.0;
+		heat = 5.0;
 		size = 3;
 		
 		fireTime     = refireDelay * refireCount;
@@ -836,7 +840,7 @@ class LRM15 : MechMissileWeapon
 		damagable = true;
 		requiresTarget = true;
 		
-		value = 110000;
+		value = 175000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -866,7 +870,7 @@ class LRM20 : MechMissileWeapon
 		weight = 10.0;
 		refireCount = 20;
 		refireDelay = 2;
-		heat = 3.0;
+		heat = 6.0;
 		size = 5;
 		
 		fireTime     = refireDelay * refireCount;
@@ -881,7 +885,7 @@ class LRM20 : MechMissileWeapon
 		damagable = true;
 		requiresTarget = true;
 		
-		value = 150000;
+		value = 250000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -912,7 +916,7 @@ class MRM10 : MechMissileWeapon
 		
 		refireCount = 10;
 		weight = 3.0;
-		heat = 3.0;
+		heat = 4.0;
 		size = 2;
 		refireDelay = 2;
 		
@@ -927,7 +931,7 @@ class MRM10 : MechMissileWeapon
 		
 		damagable = true;
 		
-		value = 90000;
+		value = 50000;
 	}
 	
 	override string getShopDescription()
@@ -950,13 +954,13 @@ class MRM20 : MRM10
 		
 		refireCount = 20;
 		weight = 7.0;
-		heat = 4.0;
+		heat = 6.0;
 		size = 3;
 		cooldownTime = ceil(3.8 * TICRATE);
 		
 		fireSound = "Missile/LRM20";
 		
-		value = 130000;
+		value = 125000;
 	}
 	
 	override string getShopDescription()
@@ -979,13 +983,13 @@ class MRM30 : MRM10
 		
 		refireCount = 30;
 		weight = 10.0 / double(refireCount);
-		heat = 5.0;
+		heat = 10.0;
 		size = 5;
 		cooldownTime = ceil(4.2 * TICRATE);
 		
 		fireSound = "Missile/LRM20";
 		
-		value = 210000;
+		value = 225000;
 	}
 	
 	override string getShopDescription()
@@ -1008,13 +1012,13 @@ class MRM40 : MRM10
 		
 		refireCount = 40;
 		weight = 12.0;
-		heat = 6.0;
+		heat = 12.0;
 		size = 7;
 		cooldownTime = ceil(4.6 * TICRATE);
 		
 		fireSound = "Missile/LRM20";
 		
-		value = 300000;
+		value = 350000;
 	}
 	
 	override string getShopDescription()
@@ -1036,7 +1040,7 @@ class AC2 : MechBallisticWeapon
 	{	
 		DisplayName = "AC/2";
 		mountType = "Ballistic";
-		heat = 0.50;
+		heat = 1.0;
 		weight = 6.0;
 		size = 1.0;
 		
@@ -1057,7 +1061,7 @@ class AC2 : MechBallisticWeapon
 		spread = 0;
 		damagable = true;
 		
-		value = 25000;
+		value = 150000;
 	}
 	
 	override string getShopDescription()
@@ -1104,7 +1108,7 @@ class UltraAC2 : UltraAC
 		
 		SetupUAC();
 		
-		value = 50000;
+		value = 120000;
 	}
 	
 	override string getShopDescription()
@@ -1127,7 +1131,7 @@ class LBXAC2 : AC2
 		
 		DisplayName = "LB 2-X AC";
 		mountType = "Ballistic";
-		heat = 0.40;
+		heat = 1.0;
 		weight = 6.0;
 		size = 3.0;
 		
@@ -1142,7 +1146,7 @@ class LBXAC2 : AC2
 		
 		spread = 4.0;
 		
-		value = 30000;
+		value = 150000;
 	}
 	
 	override string getShopDescription()
@@ -1165,7 +1169,7 @@ class AC5 : MechBallisticWeapon
 	{	
 		DisplayName = "AC/5";
 		mountType = "Ballistic";
-		heat = 1.40;
+		heat = 1.0;
 		weight = 8.0;
 		size = 4.0;
 		
@@ -1185,7 +1189,7 @@ class AC5 : MechBallisticWeapon
 		
 		damagable = true;
 		
-		value = 50000;
+		value = 250000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -1210,7 +1214,7 @@ class UltraAC5 : UltraAC
 	{	
 		DisplayName = "UAC/5";
 		mountType = "Ballistic";
-		heat = 3.0;
+		heat = 1.0;
 		weight = 9.0;
 		size = 5.0;
 		energyUse = 0.08;
@@ -1233,7 +1237,7 @@ class UltraAC5 : UltraAC
 		
 		SetupUAC(20); // UAC known to be more jam-prone.
 		
-		value = 100000;
+		value = 200000;
 	}	
 	override bool Fire(vector3 firePos)
 	{
@@ -1276,7 +1280,7 @@ class LBXAC5 : AC5
 		
 		spread = 4.0;
 		
-		value = 60000;
+		value = 250000;
 	}
 	
 	override string getShopDescription()
@@ -1296,7 +1300,7 @@ class AC10 : MechBallisticWeapon
 	{	
 		DisplayName = "AC/10";
 		mountType = "Ballistic";
-		heat = 2.5;
+		heat = 2.0;
 		weight = 12.0;
 		size = 7.0;
 		
@@ -1316,7 +1320,7 @@ class AC10 : MechBallisticWeapon
 		
 		damagable = true;
 		
-		value = 80000;
+		value = 400000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -1344,7 +1348,7 @@ class UltraAC10 : UltraAC
 	{	
 		DisplayName = "UAC/10";
 		mountType = "Ballistic";
-		heat = 5.0;
+		heat = 4.0;
 		weight = 9.0;
 		size = 7.0;
 		energyUse = 0.12;
@@ -1367,7 +1371,7 @@ class UltraAC10 : UltraAC
 		
 		SetupUAC();		
 		
-		value = 160000;
+		value = 320000;
 	}	
 	override bool Fire(vector3 firePos)
 	{
@@ -1408,7 +1412,7 @@ class LBXAC10 : AC10
 		
 		spread = 4.0;
 		
-		value = 100000;
+		value = 400000;
 	}
 	
 	override string getShopDescription()
@@ -1429,7 +1433,7 @@ class AC20 : MechBallisticWeapon
 	{	
 		DisplayName = "AC/20";
 		mountType = "Ballistic";
-		heat = 5.0;
+		heat = 6.0;
 		weight = 14.0;
 		size = 10.0;
 		
@@ -1449,7 +1453,7 @@ class AC20 : MechBallisticWeapon
 		
 		damagable = true;
 		
-		value = 120000;
+		value = 600000;
 	}
 	override bool Fire(vector3 firePos)
 	{
@@ -1474,7 +1478,7 @@ class UltraAC20 : UltraAC
 	{	
 		DisplayName = "UAC/20";
 		mountType = "Ballistic";
-		heat = 10.0;
+		heat = 8.0;
 		weight = 15.0;
 		size = 10.0;
 		energyUse = 0.2;
@@ -1497,7 +1501,7 @@ class UltraAC20 : UltraAC
 		
 		SetupUAC(20); // This needs to jam more often for balance, because holy shit are UAC20s scary.	
 		
-		value = 240000;
+		value = 480000;
 	}	
 	override bool Fire(vector3 firePos)
 	{
@@ -1524,7 +1528,7 @@ class LBXAC20 : AC20
 		
 		DisplayName = "LB 20-X AC";
 		mountType = "Ballistic";
-		heat = 4.0;
+		heat = 6.0;
 		weight = 14.0;
 		size = 11.0;
 		
@@ -1539,7 +1543,7 @@ class LBXAC20 : AC20
 		
 		spread = 4.0;
 		
-		value = 150000;
+		value = 600000;
 	}
 	
 	override string getShopDescription()
@@ -1632,13 +1636,14 @@ class GaussRifle : MechBallisticWeapon
 		
 		damagable = true;
 		
-		value = 130000;
+		value = 300000;
 	}
 	
 	override bool Fire(vector3 firePos)
 	{
+		bool justFired = super.Fire(firePos); 
 		A_Recoil(-5, 6);
-		return super.Fire(firePos);
+		return justFired;
 	}
 	
 	override void OnDestroyed()
@@ -1674,7 +1679,7 @@ class PPC : MechBallisticWeapon
 	{	
 		DisplayName = "PPC";
 		mountType = "Energy";
-		heat = 15.0;
+		heat = 10.0;
 		weight = 7.0;
 		size = 3.0;
 		
@@ -1697,7 +1702,7 @@ class PPC : MechBallisticWeapon
 		
 		damagable = true;
 		
-		value = 60000;
+		value = 200000;
 	}
 	
 	
@@ -1750,7 +1755,7 @@ class ERPPC : PPC
 		super.Defaults();
 		
 		DisplayName = "ER PPC";
-		heat = 20.0;
+		heat = 15.0;
 		energyUse = 0.40;
 				
 		projType = "RangedParticleCannon";
@@ -1763,7 +1768,7 @@ class ERPPC : PPC
 		
 		damagable = true;
 		
-		value = 120000;
+		value = 300000;
 	}
 	
 	// ER-PPCs don't need this behavior
@@ -1795,7 +1800,7 @@ class Flamer : MechWeapon
 		mountType = "Energy";
 		weight = 1;
 		size = 1;
-		heat = 0.5;
+		heat = 3 / TURNTICS;
 		energyUse = 0.02;
 		
 		fireTime = 1;
@@ -1811,7 +1816,7 @@ class Flamer : MechWeapon
 		
 		damagable = true;
 		
-		value = 10000;
+		value = 7500;
 	}
 		
 	override bool Fire(vector3 firePos)
@@ -1854,7 +1859,7 @@ class Flamer : MechWeapon
 		stats.Push("Raw Damage");
 		values.Push(String.Format("%.2f", projDefs.trueDamage));
 		stats.Push("Heat");
-		values.Push(String.Format("%.2f H/s", heat));
+		values.Push(String.Format("%.2f H/s", heat * double(TICRATE)));
 		stats.Push("Cooldown");
 		values.Push("N/A");
 	}

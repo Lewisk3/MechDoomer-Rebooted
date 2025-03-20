@@ -4,7 +4,7 @@ class SalvageHelper abstract
 
 	static double GetEnemyValue(Actor victim)
 	{
-		double cbillPerHP = 100.;
+		double cbillPerHP = 200.;
 		return victim.getSpawnHealth() * cbillPerHP;
 	}
 

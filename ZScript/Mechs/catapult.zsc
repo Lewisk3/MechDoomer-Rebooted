@@ -1,0 +1,257 @@
+class MechCatapult : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 27, 29;
+		DrivableMech.MaxWeight 65; // In Tons.
+		DrivableMech.ChassisName "Catapult";
+		DrivableMech.VariantName "C1";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/catapult_icon.png";
+		DrivableMech.CBillValue (5790125 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Hollis Incorporated";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Catapult is an offense oriented, second-line fire-support "
+			"BattleMech initially produced from 2561 to 2563 on a limited contract for "
+			"the Terran Hegemony. Representing Hollis Incorporated's first foray into "
+			"the 'Mech market, the Catapult was produced in record numbers over "
+			"its initial three-year period from the company's brand-new, state-of-the-art factory."
+			"(Source: https://www.sarna.net/wiki/Catapult)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Catapult_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Catapult_Hips",  -3,0,55, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Catapult_CenterTorso", 0,0,-1, hips);
+		leftTorso  = AddHardpoint("Catapult_LeftTorso",  0,-18,12, torso);
+		rightTorso = AddHardpoint("Catapult_RightTorso", 0, 18,12, torso);
+		
+		leftLeg = AddHardpoint("Catapult_LeftLeg",  0,-20,0, legs);
+		rightLeg = AddHardpoint("Catapult_RightLeg", 0, 20,0, legs);
+			
+		leftArm  = AddHardpoint("Catapult_LeftArm",  0, -7,11, leftTorso);
+		rightArm = AddHardpoint("Catapult_RightArm", 0,  7,11, rightTorso);
+		
+		head = AddHardpoint("Catapult_Cockpit", 37,0,25, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Engine, Structure and Armor 
+		torso.AddItem("MechEngine_STD260");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		torso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		torso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		rightTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("LRM15", GROUPFLG_THREE);
+		rightArm.AddWeapon("LRM15", GROUPFLG_THREE);
+		
+		leftTorso.AddItem("LRMAmmo");
+		rightTorso.AddItem("LRMAmmo");
+		
+		leftTorso.AddItem("MechJumpjet");
+		leftTorso.AddItem("MechJumpjet");
+		
+		rightTorso.AddItem("MechJumpjet");
+		rightTorso.AddItem("MechJumpjet");
+		
+		leftLeg.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		
+		/*
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		
+		rightTorso.AddWeapon("MachineGun", GROUPFLG_FOUR);
+		rightTorso.AddItem("MGAmmo");
+		torso.AddWeapon("MachineGun", GROUPFLG_FOUR);
+		
+		rightTorso.AddWeapon("LRM20", GROUPFLG_THREE);
+		rightTorso.AddItem("LRMAmmo");
+		leftTorso.AddWeapon("LRM20", GROUPFLG_THREE);
+		leftTorso.AddItem("LRMAmmo");
+		
+		leftTorso.AddWeapon("MediumPulseLaser", GROUPFLG_FOUR);
+		*/
+	}
+}
+
+/*
+10 tons = 200pts of Standard Armor
+[HD] - 12
+[CT] - 40
+[LT] - 28
+[RT] - 28
+[LA] - 20
+[RA] - 20
+[LL] - 26
+[RL] - 26
+*/
+
+class Catapult_Hips : MechHips {}
+
+class Catapult_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 0;
+		Height 0;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechHardpoint.HitBox 4,4, 0, 0, -10;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Catapult_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 55; // degs second
+	}
+}
+class Catapult_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 99, 99; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 120;
+		MechTorso.PitchRange 30, 30;
+		Radius 7;
+		Height 30;
+		MechHardpoint.HitBox 7,20, 37, 0, 0;
+		
+		MechHardpoint.Vitals 40, 20;
+		MechHardpoint.SetupArmor 30, 10;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 50, 7, 6, scale:0.65);
+		AddMountPoint("Energy", 50, -7, 6, scale:0.65);
+	}
+}
+
+class Catapult_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 0;
+		MechArm.PitchRange 35, 35;
+		MechHardpoint.HitBox 12,23, 0, -12, 0;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 20, 10;
+		MechHardpoint.SetupArmor 20, 0;
+	}
+
+	override void SetupMounts()
+	{	
+		SetupMountArray("Missile", 14, -19.5, 6, 4, 4, 5.25, 4, scale:1.0);
+	}
+}
+class Catapult_RightArm : Catapult_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 12,23, 0, 12, 0;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 20, 10;
+		MechHardpoint.SetupArmor 20, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 14, 4.5, 6, 4, 4, 5.25, 4, scale:1.0);
+	}
+}
+
+class Catapult_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 9;
+		Height 18;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 20, 8;
+		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 45, 10, -8, scale:0.6);
+	}
+}
+class Catapult_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 9;
+		Height 18;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 20, 8;
+		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 45, -10, -8, scale:0.6);
+	}
+}
+
+class Catapult_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}	
+}
+class Catapult_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}	
+}

@@ -7,8 +7,8 @@ class MechHeatsink : MechUtility
 	{	
 		damagable = true;
 		weight = 1;
-		heatEff = 0.26 / TICRATE;
-		buffer = 2.6;
+		heatEff = 3.0 / double(TURNTICS);
+		buffer = 0;
 		displayName = "Heatsink";
 		sndItemName = "Betty/Item/Heatsink";
 		
@@ -48,7 +48,7 @@ class MechHeatsink : MechUtility
 		}
 		
 		// Dissipate heat.
-		modifyHeat(-heatEff*3.0);
+		modifyHeat(-heatEff);
 	
 		// console.printf("Removing heat -%f  [%d]", heatEff, level.mapTime);
 	}
@@ -79,8 +79,8 @@ class MechDoubleHeatsink : MechHeatsink
 		damagable = true;
 		size = 2;
 		weight = 1;
-		heatEff = 0.40 / TICRATE;
-		buffer = 4;
+		heatEff = 6.0 / TURNTICS;
+		buffer = 0;
 		displayName = "Double Heatsink";
 		
 		value = 12000;
@@ -96,6 +96,130 @@ class MechDoubleHeatsink : MechHeatsink
 			"allowing it to be formed into a larger radiator for the same mass. "
 			"(Source: https://www.sarna.net/wiki/Heat_Sink)"
 		);
+	}
+}
+
+class MechHeatBank : MechUtility
+{
+	double curBuffer, maxBuffer;
+	double ventRate;
+
+	// A heat bank provides extra heat buffer so long as it isn't full.
+	override void Defaults()
+	{	
+		damagable = true;
+		weight = 1;
+		size = 2;
+		maxBuffer = 8;
+		displayName = "Small Heat Bank";
+		// sndItemName = "Betty/Item/Heatsink";
+		
+		value = 160000;
+		SetupHeatBank();
+	}
+	
+	void SetupHeatBank()
+	{
+		ventRate = maxBuffer / double(TURNTICS);
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		
+		statName.Push("BUFFER CAPACITY");
+		double capacity = mechInfo.BHUtoKelvin(maxBuffer);
+		statValue.Push(String.Format("\c[Green]+%.2f K", capacity));
+		statName.Push("VENT RATE");
+		double ventSpeed = mechInfo.BHUtoKelvin(ventRate * 35.0);
+		statValue.Push(String.Format("\c[Green]-%.2f K/s", ventSpeed));
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		statName.Push("STATUS");
+		double curBufferKelvin = mechInfo.BHUtoKelvin(curBuffer);
+		statValue.Push(String.Format("\c[Green]%.2f K (\c[Green]%.2f K)", curBufferKelvin, capacity));
+	}
+		
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(!mech) 
+		{
+			mech = parent.GetMech();
+			return;
+		}
+		
+		// Collect heat until buffer is full.
+		double capacity = maxBuffer - curBuffer;
+		double ambient = mech.getAmbient();
+		while(capacity > 0)
+		{
+			
+			if(mech.curHeat <= ambient) break; 
+			modifyHeat(-1);
+			
+			curBuffer++;
+			capacity = maxBuffer - curBuffer;
+		}
+		
+		// Dissipate buffer.
+		curBuffer = max(0, curBuffer - ventRate);
+	}
+	
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White] Where standard heat sinks rely on coolants, heat banks do not. They collect and "
+			" expel heat automatically, though only in certain increments. "
+			" This item effectively raises a mech's maximum heat capacity for a limited period; once a heat bank is full it must "
+			" vent it's heat before it becomes useful again."
+			"(Source: https://www.bta3062.com/index.php?title=Cooling#Heat_Bank)"
+		);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{	
+		stats.Push("BUFFER CAPACITY");
+		double capacity = maxBuffer;
+		values.Push(String.Format("\c[Green]+%.2f BHU", capacity));
+		stats.Push("VENT RATE");
+		double ventSpeed = (ventRate * 35.0);
+		values.Push(String.Format("\c[Green]-%.2f BHU/s", ventSpeed));
+		values.Push(" ");
+	}
+}
+
+class ImprovedHeatBank : MechHeatBank
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		
+		weight = 1.5;
+		size = 3;
+		maxBuffer = 12;
+		displayName = "Medium Heat Bank";
+		value = 320000;
+		SetupHeatBank();
+	}
+}
+
+class BulkHeatBank : MechHeatBank
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		
+		weight = 2;
+		size = 4;
+		maxBuffer = 16;
+		displayName = "Large Heat Bank";
+		value = 470000;
+		SetupHeatBank();
 	}
 }
 

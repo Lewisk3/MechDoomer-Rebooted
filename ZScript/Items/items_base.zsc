@@ -940,6 +940,7 @@ class MechEngine : MechItem
 	Array<MechItem> engineBlocks;
 	Array<MechHeatsink> heatSinks;
 	double energy; // Reactor available energy
+	double gyroWeight, cockpitWeight;
 	
 	enum EngineType 
 	{
@@ -970,6 +971,29 @@ class MechEngine : MechItem
 	{	
 		return ceil(value*2.0)/2.0;
 	}
+
+	/*
+		So, to convert walkMP to km/h we multiply by 10.8, this doesn't work for jump range.
+		The following is working under the assumption that: Performing a jump takes 1 turn.
+		If this is indeed the case then, we need to convert from km/h to m/s then multiply by TURNTICS / TICRATE.
+		
+		@returns: jump range in meters.
+	*/
+	clearscope double getJumpRange(DrivableMech targetMech = NULL)
+	{
+		if(!targetMech) targetMech = mech;
+		let [runMP, walkMP] = getRunWalkMP(targetMech);
+		
+		double convertMPS = (10.8 * 1000) / 3600.0; 
+		return (walkMP * convertMPS) * (TURNTICS / TICRATE);
+	}
+	
+	clearscope int getIntrinsicHeatsinks()
+	{
+		double hsRating = rating / 25.0;
+		double fpart = hsRating - int(hsRating);
+		return fpart <= 0.5 ? floor(hsRating) : ceil(hsRating);
+	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
@@ -984,17 +1008,24 @@ class MechEngine : MechItem
 		statName.Push("SIDE SLOTS");
 		statValue.Push(String.Format("%d",blocks*blockSize));
 		
+		statName.Push("GYRO TONS");
+		statValue.Push(String.Format("%d",gyroWeight));
+		
+		statName.Push("COCKPIT TONS");
+		statValue.Push(String.Format("%d",cockpitWeight));
+		statName.Push(" ");
+		statValue.Push(" ");
+		
 		statName.Push("HEATSINKS");
-		statValue.Push(String.Format("%d",floor(rating*0.04)));
+		statValue.Push(String.Format("%d",getIntrinsicHeatsinks()));
 		
 		if(mechInfo)
 		{
 			statName.Push("TOP SPEED");
 			statValue.Push(String.Format("%.2f KPH", getKPH(mechInfo)));
 			
-			let [runMP, walkMP] = getRunWalkMP(mechInfo);
 			statName.Push("JUMP RANGE");
-			statValue.Push(String.Format("%d m", walkMP));
+			statValue.Push(String.Format("%d m", getJumpRange(mechInfo)));
 		}
 	}
 	
@@ -1049,7 +1080,7 @@ class MechEngine : MechItem
 		values.Push(String.Format("%d",blocks*blockSize));
 		
 		stats.Push("HEATSINKS");
-		values.Push(String.Format("%d",floor(rating*0.04)));
+		values.Push(String.Format("%d",getIntrinsicHeatsinks()));
 	}
 	
 	double GetTonnage()
@@ -1086,7 +1117,11 @@ class MechEngine : MechItem
 			107.5,119.5,133.5,150.0,168.5,190.0,
 			214.5,243.0,313.0,356.0,405.5,462.5
 		};
-		double tons = std_index_tons[floor(rating/5)-2];
+		
+		gyroWeight = ceil(rating / 100.0);		
+		cockpitWeight = 3.0;
+		double tons = std_index_tons[floor(rating/5)-2] + gyroWeight + cockpitWeight;
+		
 		if(type == Type_STD    		) return tons;
 		if(type == Type_Light  		) return roundTons(tons*0.75);
 		if(type == Type_XL	   		) return roundTons(tons*0.50);
@@ -1109,12 +1144,12 @@ class MechEngine : MechItem
 		return gen * 0.1;
 	}
 	
-	int, int getRunWalkMP(DrivableMech mech, double hexSize = 30.0)
+	int, int getRunWalkMP(DrivableMech mech)
 	{
 		if(!mech) return 0, 0;
 		
-		int runMP = round( (getKPH(mech) / 10.8) * hexSize );
-		int walkMP = ceil(runMP * 0.6);
+		int walkMP = rating / mech.maxWeight;
+		int runMP = walkMP * 1.5; 
 		return runMP, walkMP;
 	}
 	
@@ -1132,8 +1167,10 @@ class MechEngine : MechItem
 	
 	clearscope double getKPH(DrivableMech mech)
 	{
-		double baserating = 187.5; 
-		return (32.4*(100./mech.maxWeight)) / (baserating/rating); 
+		let [runMP, walkMP] = getRunWalkMP(mech);
+	
+		double runMP_KPH = runMP * 10.8;
+		return runMP_KPH;
 	}
 		
 	clearscope static double speedToKPH(double spd)
@@ -1276,7 +1313,7 @@ class MechEngine : MechItem
 		}
 		
 		// Add heatsinks to Engine
-		int heatsinkAmt = floor(rating*0.04);
+		int heatsinkAmt = getIntrinsicHeatsinks();
 		
 		for(int i = 0; i < heatsinkAmt; i++)
 		{
@@ -1341,7 +1378,7 @@ class MechEngine : MechItem
 		super.DoEffect();
 		
 		double power = abs(mech.throttle);
-		modifyHeat(0.16 * power);
+		modifyHeat(0.08 * power);
 		
 		// Energy generation
 		energy += getPowerGeneration() / double(TICRATE * 0.33);
@@ -1399,10 +1436,10 @@ class MechWeapon : MechItem
 		return !!parent && (mount || mountType == "NONE");
 	}
 	
-	// Convert from spreadsheet data.
+	// Convert from fire tics.
 	virtual double convertHeat(double amt, double delta)
 	{
-		return (amt * 6.5) / delta;
+		return amt / delta;
 	}
 		
 	virtual double convertDMG(double dmg, double delta)
@@ -1410,6 +1447,11 @@ class MechWeapon : MechItem
 		return (dmg / MechHardpoint.DMGSCALE) / delta;
 	}
 	// --------------------------- \\
+	
+	clearscope double BHUToKelvin(double bhu)
+	{
+		return (bhu / 100.0) * 900.0;
+	}
 	
 	override MechItem MakeCopy()
 	{

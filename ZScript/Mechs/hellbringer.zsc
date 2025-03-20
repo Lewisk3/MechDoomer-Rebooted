@@ -62,8 +62,16 @@ class MechHellbringer : DrivableMech
 		leftTorso.AddWeapon("SSRM6", GROUPFLG_TWO);
 		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
 		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_FOUR);
+		torso.AddWeapon("Flamer", GROUPFLG_FOUR);
 		
 		head.AddWeapon("AMS");
+		
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		leftArm.AddItem("MechDoubleHeatsink");
 		
 		leftLeg.AddItem("AMSAmmo");
 		leftLeg.AddItem("MGAmmo");
@@ -137,6 +145,11 @@ class Hellbringer_CenterTorso : MechTorso
 		MechHardpoint.SetupArmor 22, 8;
 		MechHardpoint.RearArmor true;
 	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 20, 0, 17);
+	}
 }
 
 class Hellbringer_LeftTorso : MechSideTorso
@@ -155,8 +168,10 @@ class Hellbringer_LeftTorso : MechSideTorso
 	override void SetupMounts()
 	{
 		SetupMountArray("Missile", -12, 7, 47, 3,2, -4.7, -3.25);
-		AddMountPoint("Ballistic", 15, 6, 15);
-		AddMountPoint("Ballistic", 15, 6, 10);
+		AddMountPoint("Ballistic", 15, 6, 14);
+		AddMountPoint("Ballistic", 15, 6, 11);
+		AddMountPoint("Ballistic", 15, 7, 12.5);
+		AddMountPoint("Ballistic", 15, 4, 12.5);
 	}
 }
 class Hellbringer_RightTorso : MechSideTorso

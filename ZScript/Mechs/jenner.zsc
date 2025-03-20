@@ -67,12 +67,6 @@ class MechJenner : DrivableMech
 		leftTorso.AddItem("MechJumpJet");
 		torso.AddItem("MechJumpJet");
 
-		head.AddItem("MechHeatsink");
-		leftArm.AddItem("MechHeatsink");
-		leftArm.AddItem("MechHeatsink");
-		rightArm.AddItem("MechHeatsink");
-		rightArm.AddItem("MechHeatsink");
-		leftTorso.AddItem("MechHeatsink");
 	}
 }
 

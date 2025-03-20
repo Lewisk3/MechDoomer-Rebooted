@@ -61,10 +61,8 @@ class MechHunchback4G : DrivableMech
 		rightTorso.AddItem("AC20Ammo");
 		rightTorso.AddItem("AC20Ammo");
 
-		leftLeg.AddItem("MechHeatsink");
-		leftLeg.AddItem("MechHeatsink");
-		rightLeg.AddItem("MechHeatsink");
-		rightLeg.AddItem("MechHeatsink");
+		leftArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
 		torso.AddItem("MechHeatsink");
 	}
 }
@@ -134,21 +132,19 @@ class MechHunchback4P : DrivableMech
 		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
 		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
 		
-		leftLeg.AddItem("MechHeatsink");
-		leftLeg.AddItem("MechHeatsink");
-		rightLeg.AddItem("MechHeatsink");
-		rightLeg.AddItem("MechHeatsink");
+		leftArm.AddItem("MechHeatsink");
+		leftArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
 		torso.AddItem("MechHeatsink");
 		torso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
-		rightTorso.AddItem("MechHeatsink");
 		leftTorso.AddItem("MechHeatsink");
 		leftTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
 	}
 }
 

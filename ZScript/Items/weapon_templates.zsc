@@ -20,13 +20,15 @@ class MechLaserWeapon : MechWeapon
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue);
+		double laserHeat = (laserHeat * fireTime);
+		
 		statName.Push(" ");
 		statValue.Push(" ");
 		
 		statName.Push("DAMAGE");
 		statValue.Push(String.Format("%.2f", (damage * fireTime * MechHardpoint.DMGSCALE) ));
 		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f", (laserHeat/6.5) * fireTime) );
+		statValue.Push(String.Format("%.2f K", BHUToKelvin(laserHeat)));
 		statName.Push("COOLDOWN");
 		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
 		
@@ -181,8 +183,9 @@ class MechMissileWeapon : MechWeapon
 			statValue.Push(" ");
 		}
 		
+		double missileHeat = heat * refireCount;
 		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f", heat * refireCount));
+		statValue.Push(String.Format("%.2f K", BHUToKelvin(missileHeat)));
 		statName.Push("FIRE RATE");
 		statValue.Push(String.Format("%.1f/s", 1.0 / (refireDelay / double(TICRATE))));
 		statName.Push("COOLDOWN");
@@ -314,7 +317,8 @@ class MechMissileWeapon : MechWeapon
 		proj.master = mech.driver;
 		proj.homingTarget = homingTarget;
 		
-		modifyHeat(heat);
+		double heatMod = heat / double(max(1, refireCount));
+		modifyHeat(heatMod);
 		depleteAmmo(ammoUse);
 		return true;
 	}
@@ -355,7 +359,7 @@ class MechBallisticWeapon : MechWeapon
 		statName.Push("DAMAGE");
 		statValue.Push(String.Format("%.2f", projRawDamage));
 		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f", heat));
+		statValue.Push(String.Format("%.2f K", BHUTOKelvin(heat)));
 		statName.Push("FIRE RATE");
 		statValue.Push(String.Format("%.1f/s", 1.0 / cooldownSeconds));
 		statName.Push("COOLDOWN");

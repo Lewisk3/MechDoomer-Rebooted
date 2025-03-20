@@ -13,12 +13,13 @@ class MechJumpJet : MechUtility
 
 	override void Defaults()
 	{
+		double turnSeconds = TURNTICS / TICRATE;
 		damagable = true;
 		size = 1;
 		weight = 0.5;
 		displayName = "Jump Jet";
-		fuelTime = 10.0; // 10 seconds of fuel
-		rechargeRate = 10.0; // 10 seconds to recharge
+		fuelTime = turnSeconds; // 10 seconds of fuel
+		rechargeRate = turnSeconds; // 10 seconds to recharge
 		shakeIntensity = 3;
 		itemDescription = "When equipped, provides upwards thrust so-long as the jump key is held down and fuel is available.";
 		
@@ -73,13 +74,15 @@ class MechJumpJet : MechUtility
 	// Here for whoever wants to override this for addons or whatever.
 	virtual double GetAcceleration(DrivableMech mech)
 	{
-		// Each JJ provide 30m of thrust,
-		// JJ have 1 turn of fuel, so 10 seconds - 3 meters of thrust per second.
-		// This is a but much, so I've turned it down substantially.
+		// Each JJ provide 30m of thrust in a single turn, this needs to be converted into map units.
+		// However in actual gameplay this feels really odd, so I had to decrease it to 50% of what it was prior.
+		double muThrust = mech.MetersToUnits(30);
+		double thrustPerTic = 0.5 * (muThrust / TURNTICS);
 		
-		// 0.05
-		double thrustMod = 0.02 / DrivablesMath.fmap(mech.maxWeight, 25, 100, 0.1, 1.0);
-		return 3.0 * thrustMod;
+		// Adds a sense of weight to the mech.
+		double thrustMod = 1.0 - DrivablesMath.fmap(clamp(mech.maxWeight,25,100), 25, 100, 0.1, 0.9);
+		
+		return thrustPerTic * thrustMod;
 	}
 	virtual void rechargeFuel()
 	{
@@ -122,10 +125,12 @@ class MechJumpJet : MechUtility
 			adjustWeight(mechInfo);
 			updateThrust(mechInfo);
 		
+			double accelUnits = GetAcceleration(mechInfo);
+		
 			// Lets convert thrust to kilojoules for fun.
 			double mechKG = mechInfo.maxWeight * 907.185;
-			double accel = GetAcceleration(mechInfo); // meters per second
-			double newtonMeters = (mechKG * (thrust*thrust*TICRATE*fuelTime)) / fuelTime;
+			double accel = mechinfo.unitsToKM(accelUnits * TICRATE) * 1000.0; // meters per second
+			double newtonMeters = (mechKG * thrust);
 			double Joules = newtonMeters;
 			
 			statName.Push("THRUST");
@@ -174,9 +179,8 @@ class MechJumpJet : MechUtility
 		
 		let mech = parent.mech;
 		if(!mech || !mech.engine || mech.shutdown) return;
-				
-		let [runMP, walkMP] = mech.engine.getRunWalkMP(mech);
-		double maxJump = walkMP;
+		
+		double maxJump = mech.engine.getJumpRange();
 		
 		let driver = mech.driver;
 		if(!driver) return;
