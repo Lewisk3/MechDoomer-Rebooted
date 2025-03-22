@@ -204,7 +204,6 @@ class Catapult_LeftTorso : MechSideTorso
 		MechHardpoint.Vitals 28, 14;
 		MechHardpoint.SetupArmor 20, 8;
 		MechHardpoint.RearArmor true;
-		MechHardpoint.CreatesDebris true;
 	}
 		
 	override void SetupMounts()
@@ -223,7 +222,6 @@ class Catapult_RightTorso : MechSideTorso
 		MechHardpoint.Vitals 28, 14;
 		MechHardpoint.SetupArmor 20, 8;
 		MechHardpoint.RearArmor true;
-		MechHardpoint.CreatesDebris true;
 	}	
 	
 	override void SetupMounts()

@@ -1,0 +1,223 @@
+class MechMadDog : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 29, 35;
+		DrivableMech.MaxWeight 60; // In Tons.
+		DrivableMech.ChassisName "Mad Dog";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/MadDog_icon.png";
+		DrivableMech.CBillValue (15292000 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Bergan Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Mad Dog is a heavy Clan OmniMech used for long-range indirect fire support. With "
+			"hunched shoulders, a protruding head, and reverse-jointed legs, the Mad Dog resembles a vulture, "
+			"so much so that it was independently code-named Vulture and Hagetaka (or Hagetaga, \"Vulture\" in Japanese) "
+			"by the Inner Sphere forces which first encountered it. "
+			"(Source: https://www.sarna.net/wiki/Mad_Dog_(Vulture))"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("MadDog_Legs",  0,0,0,  self);
+		hips  = AddMechPart("MadDog_Hips",  0,0,57, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("MadDog_CenterTorso", 0,0,5, hips);
+		leftTorso  = AddHardpoint("MadDog_LeftTorso",  -14,-18,10, torso);
+		rightTorso = AddHardpoint("MadDog_RightTorso", -14, 18,10, torso);
+		
+		leftLeg = AddHardpoint("MadDog_LeftLeg",  0,-20,0, legs);
+		rightLeg = AddHardpoint("MadDog_RightLeg", 0, 20,0, legs);
+			
+		leftArm  = AddHardpoint("MadDog_LeftArm",  0, -6,8, leftTorso);
+		rightArm = AddHardpoint("MadDog_RightArm", 0,  6,8, rightTorso);
+		
+		head = AddHardpoint("MadDog_Cockpit", -7,0,30, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Engine, Structure and Armor 
+		torso.AddItem("MechEngine_XL300");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		leftTorso.AddWeapon("LRM15", GROUPFLG_THREE);
+		leftTorso.AddItem("LRMAmmo");
+		rightTorso.AddWeapon("LRM15", GROUPFLG_THREE);
+		rightTorso.AddItem("LRMAmmo");
+		
+		leftArm.AddWeapon("LargePulseLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("LargePulseLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+	}
+}
+
+/*
+8.5 tons = 170pts of Standard Armor
+[HD] - 12
+[CT] - 32
+[LT] - 24
+[RT] - 24
+[LA] - 17
+[RA] - 17
+[LL] - 22
+[RL] - 22
+*/
+
+class MadDog_Hips : MechHips {}
+
+class MadDog_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 3;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		//MechHardpoint.HitBox 2,2, -52, 0, 5;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class MadDog_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 70; // degs second
+	}
+}
+class MadDog_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 108, 108; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 110;
+		MechTorso.PitchRange 30, 30;
+		Radius 7;
+		Height 30;
+		MechHardpoint.HitBox 7,20, 17, 0, 0;
+		
+		MechHardpoint.Vitals 32, 16;
+		MechHardpoint.SetupArmor 26, 6;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class MadDog_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 30;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 12,10, 20, -15, -20;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 17, 9;
+		MechHardpoint.SetupArmor 17, 0;
+	}
+
+	override void SetupMounts()
+	{	
+		AddMountPoint("Energy", 34, -19, -14, scale:0.7);
+		AddMountPoint("Energy", 32, -12.2, -14, scale:0.5);
+	}
+}
+class MadDog_RightArm : MadDog_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 12,10, 20, 15, -20;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 17, 9;
+		MechHardpoint.SetupArmor 17, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 34, 19, -14, scale:0.7);
+		AddMountPoint("Energy", 32, 12.2, -14, scale:0.5);
+	}
+}
+
+class MadDog_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 10;
+		Height 22;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 20, 4;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", -1.2,-2,7.5, 3, 5, 4, 3.35, depth:13, scale:1.0);  
+	}
+}
+class MadDog_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 10;
+		Height 22;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 20, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", -1.2,-5,7.5, 3, 5, 4, 3.35, depth:13, scale:1.0);
+	}
+}
+
+class MadDog_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		MechHardpoint.Vitals 22, 11;
+		MechHardpoint.SetupArmor 22, 0;
+	}	
+}
+class MadDog_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		
+		MechHardpoint.Vitals 22, 11;
+		MechHardpoint.SetupArmor 22, 0;
+	}	
+}

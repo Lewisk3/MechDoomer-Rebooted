@@ -64,8 +64,10 @@ class MechMarauderIIC : DrivableMech
 		leftTorso.AddItem("MechDoubleHeatsink");
 		leftTorso.AddItem("MechDoubleHeatsink");
 		
-		leftLeg.AddItem("MechDoubleHeatsink");
-		rightLeg.AddItem("MechDoubleHeatsink");
+		//leftLeg.AddItem("MechDoubleHeatsink");
+		//rightLeg.AddItem("MechDoubleHeatsink");
+		leftArm.AddItem("BulkHeatBank");
+		rightArm.AddItem("BulkHeatBank");
 		
 		leftArm.AddWeapon("ERPPC", GROUPFLG_ONE);
 		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);

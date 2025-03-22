@@ -1948,7 +1948,7 @@ class I_SaveMechData : Inventory
 		
 		// Starting Mech
 		// TODO: Move this somewhere where it can be more easily modified.
-		// GiveMech("MechCommando");
+		GiveMech("MechCommando");
 	}
 
 	override void DoEffect()

@@ -1120,13 +1120,15 @@ class MechEngine : MechItem
 		
 		gyroWeight = ceil(rating / 100.0);		
 		cockpitWeight = 3.0;
-		double tons = std_index_tons[floor(rating/5)-2] + gyroWeight + cockpitWeight;
+		double structWeight = gyroWeight + cockpitWeight;
+		double tons = std_index_tons[floor(rating/5)-2];
+		double tonsMod = 1.0;
 		
-		if(type == Type_STD    		) return tons;
-		if(type == Type_Light  		) return roundTons(tons*0.75);
-		if(type == Type_XL	   		) return roundTons(tons*0.50);
-		if(type == Type_XXL    		) return roundTons(tons*0.33);
-		return tons;
+		if(type == Type_STD    		) tonsMod = 1.0;
+		if(type == Type_Light  		) tonsMod = 0.75;
+		if(type == Type_XL	   		) tonsMod = 0.50; 
+		if(type == Type_XXL    		) tonsMod = 0.33; 
+		return structWeight + roundTons(tons * tonsMod);
 	}
 	
 	virtual double getPowerGeneration()
