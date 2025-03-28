@@ -271,7 +271,7 @@ class DrivableObject : DrivableComponent
 	{
 		if(other == driver) return false;
 		if(passengers.Find(other) != passengers.Size()) return false;
-		if(parts.Find(other) != parts.Size()) return false;
+		if(parts.Find(DrivableObjectPart(other)) != parts.Size()) return false;
 		
 		return super.CanCollideWith(other, passive);
 	}

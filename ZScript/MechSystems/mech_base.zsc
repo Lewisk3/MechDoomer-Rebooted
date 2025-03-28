@@ -482,7 +482,7 @@ class DrivableMech : DrivableObject
 	{
 		if(!shutdown && !sv_mdr_exitanytime)
 		{
-			console.printf("\c[Red]Mech must be shutdown before exiting.\c[White]");
+			SendHUDMessage("\c[Yellow]Mech must be shutdown before exiting.", 35*2, "ExitMechMSG");	
 			return;
 		}
 		

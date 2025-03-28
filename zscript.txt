@@ -2,7 +2,7 @@ version "4.10.0"
 
 
 // Constants
-const DMG_DELT_MONSTER = 15.0; // Multiplier for additional damage delt to non-mechs.
+const DMG_DELT_MONSTER = 18.0; // Multiplier for additional damage delt to non-mechs.
 
 // Multiplier for damage scaling against non-mechs.
 // Damage Recieved = DMG * SCALAR
