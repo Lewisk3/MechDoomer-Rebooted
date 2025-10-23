@@ -236,17 +236,21 @@ class DrivableObject : DrivableComponent
 		DrivableComponent.CannotAccelerate false;
 	}
 	
+	// For now, needs to be defined here until GZDoom adds this officially.
+	// If or when that happens, it'll need to be deleted otherwise the game will error.
+	virtual void PreTravelled() {}
+	
+	/*
 	virtual void PreTravelled()
 	{
-		/*
 		if(!driver) return;
 		for(int i = 0; i < parts.Size(); i++)
 		{
 			let part = parts[i];
 			if(part) part.ChangeStatNum(STAT_TRAVELLING);
 		}
-		*/
 	}
+	*/
 	
 	/*
 	virtual void Travelled()

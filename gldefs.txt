@@ -5,16 +5,16 @@ material texture models/vfx/c_simple.png {
 }
 
 material texture models/mechs/c_glass.png {
-	// shader "shaders/simsun.fp"
+	// shader "shaders/glass.fp" (TODO: proper glass shader that doesn't break depth sorting on models...)
 	brightmap "models/mechs/c_glass.png"
-	brightness 1.0
+	// brightness 1.0
 	specularlevel 0.8
 	glossiness 50
 }
 
 material texture models/missiles/missile_exhaust.png {
 	brightmap "models/missiles/missile_exhaust.png"
-	brightness 1.0
+	// brightness 1.0
 	specularlevel 0.8
 	glossiness 50
 }
@@ -57,7 +57,7 @@ material texture models/vfx/steel2.png {
 material texture models/vfx/laserGlass.png {
 	// shader "shaders/simsun.fp"
 	brightmap "models/vfx/laserGlass.png"
-	brightness 1.0
+	// brightness 1.0
 	specularlevel 0.8
 	glossiness 50
 }
@@ -65,13 +65,13 @@ material texture models/vfx/laserGlass.png {
 material texture models/vfx/orange_glow.png {
 	// shader "shaders/simsun.fp"
 	brightmap "models/vfx/orange_glow.png"
-	brightness 1.0
+	// brightness 1.0
 	specularlevel 0.8
 }
 material texture models/vfx/eyeglow.png {
 	// shader "shaders/simsun.fp"
 	brightmap "models/vfx/eyeglow.png"
-	brightness 1.0
+	// brightness 1.0
 	specularlevel 0.8
 }
 
@@ -148,6 +148,11 @@ material texture models/mechs/catapult/catapult.png {
 	glossiness 10
 }
 material texture models/mechs/maddog/maddog.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/raven/raven_3l.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10

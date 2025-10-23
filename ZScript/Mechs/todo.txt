@@ -1,0 +1,31 @@
+[Light]
+Commando [x]
+Jenner   [x]
+Raven [x]
+Kitfox <13>
+Urbanmech <12>
+Tarantula <???>
+
+[Medium]
+Centurion [x]
+Hunchback [x]
+Stormcrow <2>
+Nova <2>
+Crab <8>
+Cicada <6>
+
+[Heavy]
+Catapult [x]
+Hellbringer [x]
+Mad Dog [x]
+Rifleman [x]
+Timberwolf [x]
+Summoner <3>
+
+[Assault]
+Marauder [x]
+Warhammer <4>
+Warhawk <7>
+Direwolf <5>
+BattleMaster <10>
+Atlas <9>

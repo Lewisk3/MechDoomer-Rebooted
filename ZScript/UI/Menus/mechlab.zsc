@@ -131,14 +131,20 @@ class MechHardpointContainer : MenuElement
 		}
 	}
 	
-	virtual void DrawHardpointMount(Name type, int count, vector2 drawPos, double iconScale = 1.0)
+	/* @returns
+		True - If the mountpoint is actually drawn (based on drawEmpty argument)
+		False - If the mountpoint wasn't drawn due to not being present on the mech.
+	*/
+	virtual bool DrawHardpointMount(Name type, int count, vector2 drawPos, double iconScale = 1.0, bool drawEmpty = false)
 	{
+		if(count <= 0 && !drawEmpty) return false;
 		Name mountType = type;
 		string mountGraphic = HardpointMount.getMountGraphic(type);
 		vector2 txtPos = drawPos + (15, -8);
 		
 		MWDrawer.DrawImage(mountGraphic, drawPos, scale:(iconScale,iconScale));
 		MWDrawer.DrawString("ConsoleFont", ""..count, txtPos, translation:Font.CR_GREEN); 
+		return true;
 	}
 	
 	override void Draw(double dT)
@@ -165,10 +171,16 @@ class MechHardpointContainer : MenuElement
 		hardpoint.getMountPoints(ballisticPoints, "Ballistic");
 		hardpoint.getMountPoints(missilePoints, "Missile");
 		hardpoint.getMountPoints(podPoints, "PDS");
-		filterMountpoints(energyPoints);
-		filterMountpoints(ballisticPoints);
-		filterMountpoints(missilePoints);
-		filterMountpoints(podPoints);
+		
+		/* 
+			This will visually show as mountpoints are used, however this leads to less 
+			readibility when a mech has all mount-points used. 
+
+			filterMountpoints(energyPoints);
+			filterMountpoints(ballisticPoints);
+			filterMountpoints(missilePoints);
+			filterMountpoints(podPoints);
+		*/
 		
 		double frontArmor = floor(hardpoint.frontArmor);
 		double rearArmor = floor(hardpoint.hasRearArmor ? hardpoint.rearArmor : -1);
@@ -199,14 +211,15 @@ class MechHardpointContainer : MenuElement
 		vector2 mountOffs = (10,113);
 		double spacing = 50;
 		
-		DrawHardpointMount('energy', energyPoints.Size(), topBarPos + mountOffs, iconScale);
-		mountOffs.x += spacing;
-		DrawHardpointMount('ballistic', ballisticPoints.Size(), topBarPos + mountOffs, iconScale);
-		mountOffs.x += spacing;
-		DrawHardpointMount('missile', missilePoints.Size(), topBarPos + mountOffs, iconScale);
-		mountOffs.x += spacing;
-		DrawHardpointMount('pds', podPoints.Size(), topBarPos + mountOffs, iconScale);
-		mountOffs.x += spacing;
+		bool success = false;
+		success = DrawHardpointMount('energy', energyPoints.Size(), topBarPos + mountOffs, iconScale, drawEmpty:false);
+		if(success) mountOffs.x += spacing;
+		success = DrawHardpointMount('ballistic', ballisticPoints.Size(), topBarPos + mountOffs, iconScale, drawEmpty:false);
+		if(success) mountOffs.x += spacing;
+		success = DrawHardpointMount('missile', missilePoints.Size(), topBarPos + mountOffs, iconScale, drawEmpty:false);
+		if(success) mountOffs.x += spacing;
+		success = DrawHardpointMount('pds', podPoints.Size(), topBarPos + mountOffs, iconScale, drawEmpty:false);
+		if(success) mountOffs.x += spacing;
 		
 		// Background
 		MWDrawer.Fill("Black", pos.x,pos.y, size.x, size.y);

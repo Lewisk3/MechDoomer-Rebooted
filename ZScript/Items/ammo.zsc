@@ -72,6 +72,22 @@ class SSRMAmmo : SRMAmmo
 		value = 7000; 
 	}
 }
+class SRMAmmoHalf : SRMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
+class SSRMAmmoHalf : SSRMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 
 class MRMAmmo : MechAmmo
 {
@@ -86,6 +102,14 @@ class MRMAmmo : MechAmmo
 		value = 8000; 
 		
 		SetupAmmo();
+	}
+}
+class MRMAmmoHalf : MRMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 
@@ -104,6 +128,14 @@ class LRMAmmo : MechAmmo
 		SetupAmmo();
 	}
 }
+class LRMAmmoHalf : LRMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 
 class AC2Ammo : MechAmmo
 {
@@ -118,6 +150,14 @@ class AC2Ammo : MechAmmo
 		value = 5000; 
 		
 		SetupAmmo();
+	}
+}
+class AC2AmmoHalf : AC2Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 class AC5Ammo : MechAmmo
@@ -135,6 +175,14 @@ class AC5Ammo : MechAmmo
 		SetupAmmo();
 	}
 }
+class AC5AmmoHalf : AC5Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 class AC10Ammo : MechAmmo
 {
 	override void Defaults()
@@ -148,6 +196,14 @@ class AC10Ammo : MechAmmo
 		value = 15000;
 		
 		SetupAmmo();
+	}
+}
+class AC10AmmoHalf : AC10Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 class AC20Ammo : MechAmmo
@@ -165,6 +221,14 @@ class AC20Ammo : MechAmmo
 		SetupAmmo();
 	}
 }
+class AC20AmmoHalf : AC20Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 class MGAmmo : MechAmmo
 {
 	override void Defaults()
@@ -180,6 +244,14 @@ class MGAmmo : MechAmmo
 		SetupAmmo();
 	}
 }
+class MGAmmoHalf : MGAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 
 class UAC2Ammo : AC2Ammo 
 {
@@ -189,6 +261,14 @@ class UAC2Ammo : AC2Ammo
 		displayName = "UAC/2 Ammo";
 		value *= 0.5;
 		value = 10000;
+	}
+}
+class UAC2AmmoHalf : UAC2Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 class UAC5Ammo : AC5Ammo
@@ -201,6 +281,14 @@ class UAC5Ammo : AC5Ammo
 		value = 15000;
 	}
 }
+class UAC5AmmoHalf : UAC5Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 class UAC10Ammo : AC10Ammo
 {
 	override void Defaults()
@@ -208,6 +296,14 @@ class UAC10Ammo : AC10Ammo
 		super.Defaults();
 		displayName = "UAC/10 Ammo";
 		value = 30000;
+	}
+}
+class UAC10AmmoHalf : UAC10Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 class UAC20Ammo : AC20Ammo
@@ -219,6 +315,14 @@ class UAC20Ammo : AC20Ammo
 		value = 40000;
 	}
 }
+class UAC20AmmoHalf : UAC20Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 
 class LBX2Ammo : AC2Ammo
 {
@@ -226,6 +330,14 @@ class LBX2Ammo : AC2Ammo
 	{
 		super.Defaults();
 		displayName = "LB 2-X AC Ammo";
+	}
+}
+class LBX2AmmoHalf : LBX2Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 class LBX5Ammo : AC5Ammo
@@ -236,6 +348,14 @@ class LBX5Ammo : AC5Ammo
 		displayName = "LB 5-X AC Ammo";
 	}
 }
+class LBX5AmmoHalf : LBX5Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 class LBX10Ammo : AC10Ammo
 {
 	override void Defaults()
@@ -244,12 +364,28 @@ class LBX10Ammo : AC10Ammo
 		displayName = "LB 10-X AC Ammo";
 	}
 }
+class LBX10AmmoHalf : LBX10Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
 class LBX20Ammo : AC20Ammo
 {
 	override void Defaults()
 	{
 		super.Defaults();
 		displayName = "LB 20-X AC Ammo";
+	}
+}
+class LBX20AmmoHalf : LBX20Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 
@@ -266,6 +402,14 @@ class GaussAmmo : MechAmmo
 		value = 25000;
 		
 		SetupAmmo();
+	}
+}
+class GaussAmmoHalf : GaussAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 
@@ -289,13 +433,7 @@ class AMSAmmoHalf : AMSAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		displayName = "AMS Ammo 1/2";
-		maxAmmo *= 0.5;
-		weight = 0.5;
-		baseAmmoClass = "AMSAmmo";
-		value *= 0.5;
-		
-		SetupAmmo();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 
@@ -326,6 +464,15 @@ class STDATMAmmo : MechSwitchableAmmo
 		);
 	}
 }
+class STDATMAmmoHalf : STDATMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
+	}
+}
+
 class ERATMAmmo : MechSwitchableAmmo
 {
 	override void Defaults()
@@ -350,6 +497,14 @@ class ERATMAmmo : MechSwitchableAmmo
 			"multistage-missile minimum range, it deals the same damage as a long-range missile. "
 			"\n(Source: https://www.sarna.net/wiki/ATM_3)"
 		);
+	}
+}
+class ERATMAmmoHalf : ERATMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }
 class HEATMAmmo : MechSwitchableAmmo
@@ -377,5 +532,13 @@ class HEATMAmmo : MechSwitchableAmmo
 			"and allows the missile to deal sixty points of damage. "
 			"\n(Source: https://www.sarna.net/wiki/ATM_3)"
 		);
+	}
+}
+class HEATMAmmoHalf : HEATMAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo(super.getClass());
 	}
 }

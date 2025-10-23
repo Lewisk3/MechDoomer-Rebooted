@@ -1148,11 +1148,13 @@ class MechTorso : MechHardpoint
 	bool exploded; // True if torso went nuclear.
 	
 	bool infiniteTurnRange;
+	bool hideTorsoInCockpit;
 	Property InfiniteTurnRange : infiniteTurnRange;
 	
 	Property TurnRange : turnMax;
 	Property PitchRange : pitchMin, pitchMax;
 	Property TurnSpeed : turnSpeed, pitchSpeed;
+	Property HideTorsoInCockpit : hideTorsoInCockpit;
 	
 	Default
 	{
@@ -1160,9 +1162,12 @@ class MechTorso : MechHardpoint
 		MechTorso.TurnRange 90;
 		MechTorso.PitchRange 40, 40;
 		MechTorso.InfiniteTurnRange false;
+		MechTorso.HideTorsoInCockpit true;
 		MechHardpoint.Slots 12;
 		MechHardpoint.UIGraphics "paperdoll_CT.png", "paperdoll_SK_CT.png";
 		MechHardpoint.ExplosionType "ReactorExplosion";
+		//RenderStyle "Translucent";
+		Alpha 1.0;
 	}
 		
 	override void OnAttach()
@@ -1198,7 +1203,7 @@ class MechTorso : MechHardpoint
 		
 		let localPlayer = players[consoleplayer].mo;
 		bool localView = (mech.driver == localPlayer) && (mech.camActive == mech.cam);
-		bInvisible = localView || exploded;
+		bInvisible = (localView || exploded) && hideTorsoInCockpit;
 		if(mech.legs) mech.legs.bInvisible = exploded;
 		
 		vector3 shake = (

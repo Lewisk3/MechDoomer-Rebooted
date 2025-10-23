@@ -345,6 +345,16 @@ class MechAmmo : MechItem
 		curAmmo = maxAmmo;
 	}
 	
+	virtual void SetupHalfAmmo(class<MechAmmo> baseClass)
+	{
+		baseAmmoClass = baseClass;
+		maxAmmo *= 0.5;
+		weight *= 0.5;
+		value *= 0.5;
+		displayName = displayName .. " 1/2";
+		SetupAmmo();		
+	}
+	
 	override void OnDestroyed()
 	{
 		if(curAmmo <= 0 || !explosionDamage) return;

@@ -277,7 +277,7 @@ class VehicleHUD : Object ui
 	
 	void DrawCircle(Color col = 0xFFAAAAAA, vector2 pos=(0,0), double radius=500, uint flags = MWDrawer.SS_NOASPECTCORRECTION)
 	{
-		double step = 1.0 / (radius/100);
+		double step = 1.0 / max(1.0, (radius/100));
 		for(double i = 0; i < 360; i+=step)
 		{
 			double xpos = pos.x + (cos(i)*radius);

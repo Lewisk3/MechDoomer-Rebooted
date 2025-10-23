@@ -1,0 +1,239 @@
+class MechRaven : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 82, 96;
+		DrivableMech.MaxWeight 35; // In Tons.
+		DrivableMech.ChassisName "Raven";
+		DrivableMech.VariantName "3L";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Raven_icon.png";
+		DrivableMech.CBillValue (2899575  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Hellespont Mech Works";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]"
+			"The Raven is a light-weight electronic warfare BattleMech which, "
+			"when it first debuted after the end of the Third Succession War, "
+			"was one of the first truly original 'Mech designs produced in "
+			"centuries. Originally the Capellan Confederation attempted to "
+			"recreate the sophisticated technology once common during the "
+			"Star League era, specifically the Guardian ECM suite."
+			"(Source: https://www.sarna.net/wiki/Raven)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Raven_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Raven_Hips",  0,0,40, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Raven_CenterTorso", 0,0,0, hips);
+		leftTorso  = AddHardpoint("Raven_LeftTorso",  0,-18,10, torso);
+		rightTorso = AddHardpoint("Raven_RightTorso", 0, 18,10, torso);
+		
+		leftLeg = AddHardpoint("Raven_LeftLeg",  0,-24,0, legs);
+		rightLeg = AddHardpoint("Raven_RightLeg", 0, 24,0, legs);
+			
+		leftArm  = AddHardpoint("Raven_LeftArm",  0,-5,10, leftTorso);
+		rightArm = AddHardpoint("Raven_RightArm", 0, 4.5,10, rightTorso);
+		
+		head = AddHardpoint("Raven_Cockpit", 25,0,10, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL210");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_ONE);
+		rightArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
+		
+		leftArm.AddWeapon("LRM5", GROUPFLG_FOUR);
+		
+		leftTorso.AddWeapon("AMS");
+		leftTorso.AddItem("SRMAmmo");
+		leftTorso.AddItem("SRMAmmo");
+		leftTorso.AddItem("LRMAmmo");
+		leftTorso.AddItem("AMSAmmo");
+		leftTorso.AddItem("AMSAmmoHalf");
+		leftTorso.AddItem("MechCASE");
+	
+		rightTorso.AddWeapon("SRM4", GROUPFLG_TWO);
+		rightTorso.AddWeapon("SmallPulseLaser", GROUPFLG_THREE);
+		rightTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+	}
+}
+
+/*
+4 tons = 80pts STD Armor
+[HD] - 12
+[CT] - 16
+[LT] - 10
+[RT] - 10 
+[LA] - 8
+[RA] - 8
+[LL] - 8
+[RL] - 8
+*/
+
+
+class Raven_Hips : MechHips {}
+
+class Raven_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Raven_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 100; // degs second
+	}
+}
+class Raven_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 176, 176; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 120;
+		MechTorso.PitchRange 30, 30;
+		// MechTorso.HideTorsoInCockpit false;
+		Radius 14;
+		Height 25;
+		
+		MechHardpoint.Vitals 16, 8;
+		MechHardpoint.SetupArmor 12, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Raven_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 1;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 5,10, 0,-6,0;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+	
+		MechHardpoint.Vitals 8, 4;
+		MechHardpoint.SetupArmor 8, 0;
+	}
+
+	override void SetupMounts()
+	{
+		// 1 Missile
+		SetupMountArray("Missile", 4,-9.1,3.9, 3, 2, 2.15, 3.2, scale:0.67);
+	}
+}
+class Raven_RightArm : Raven_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 5,10, 0,0,-4;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 8, 4;
+		MechHardpoint.SetupArmor 8, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 16, 2,  4.35, scale:0.4);
+		AddMountPoint("Energy", 16, 2, -0.35, scale:0.4);
+	}
+}
+
+class Raven_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 6;
+		Height 13;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 8, 2;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		// 1 AMS, 1 ECM (todo)
+		AddMountPoint("PDS", 0,0,12.3);
+	}
+}
+class Raven_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 6;
+		Height 13;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 8, 2;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		// 1 Energy, 1 Missile
+		SetupMountArray("Missile", 11.5,-2,3, 2, 3, 4, 3.35, scale:1.0);
+		
+		AddMountPoint("Energy", 10, 0, 13, scale:0.4);
+	}
+}
+
+class Raven_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 4;
+		Height 40;
+		MechHardpoint.Vitals 8, 4;
+		MechHardpoint.SetupArmor 8, 0;
+	}	
+}
+class Raven_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 4;
+		Height 40;
+		
+		MechHardpoint.Vitals 8, 4;
+		MechHardpoint.SetupArmor 8, 0;
+	}	
+}

@@ -393,7 +393,9 @@ class MechAAM : MechMissile // Anti-Air-Missile
 			// Explode missile
 			if(success) 
 			{
-				homingTarget.ExplodeMissile(null, homingTarget.target);
+				if(homingTarget.bMISSILE) 
+					homingTarget.ExplodeMissile(null, homingTarget.target);
+					
 				homingTarget = NULL;
 			}
 			
@@ -409,6 +411,7 @@ class MechAAM : MechMissile // Anti-Air-Missile
 		Death:
 			MODL A 10
 			{
+				died = true;
 				let fx = MissileExplosion(SpawnEffect("MissileExplosion", pos));
 				if(fx) 
 				{
