@@ -19,7 +19,7 @@ vec4 Process(vec4 color)
 	
 	// This lighting tweak results in things being a bit too bright.
 	// lightLevel *= 2;
-    // lightLevel = lightLevel - (((lightLevel * 0.5) - 0.5) * 0.5);
+    lightLevel = lightLevel - (((lightLevel * 0.5) - 0.5) * 0.5);
 	
 	return getTexel(texCoord) * color * vec4(tintColor.rgb,1.0) * vec4(lightLevel,lightLevel,lightLevel,1.0);
 }

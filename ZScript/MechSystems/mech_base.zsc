@@ -1011,26 +1011,40 @@ class DrivableMech : DrivableObject
 		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
 		
 		let mtorso = MechTorso(torso);
-		if(mtorso) mtorso.infiniteTurnRange = true;	
+		bool noTorsoTwist = (mtorso.turnMax <= 1);
+		if(mtorso && !noTorsoTwist) mtorso.infiniteTurnRange = true;	
 		
-		if( (fm || sm) && moveSpeedKPH > 0 )
+		if( (noTorsoTwist || (fm || sm)) && moveSpeedKPH > 0 )
 		{
 			// Move Inputs
 			vector2 moveDir = (fm, -sm);
 			double moveAngle = driver.angle + atan2(moveDir.y, moveDir.x);
-			
-			// Turn rate physics
-			double lerpAmt = useTurnSpeed ? clamp(1 / (abs(angle - moveAngle) / legTurnDegs), 0.05, 0.35) : 0.1;
 			double accelDirModifier = (cos(angle), sin(angle)) dot (cos(moveAngle), sin(moveAngle));
+			double lerpAmt = useTurnSpeed ? clamp(1 / (abs(angle - moveAngle) / legTurnDegs), 0.05, 0.35) : 0.1;
+			
+			throttle = maxSpdMod * (fm ? abs(clamp(fm, -0.5, 1.0)) : abs(sm));
 			if(accelDirModifier < 0) accelDirModifier = 0;
 			
-			angVel = lerpAmt * abs(angle - moveAngle);
+			if(!noTorsoTwist)
+			{
+				// Turn towards the desired movement direction (8-directional)
+				angVel = lerpAmt * abs(angle - moveAngle);
 
-			// Move and accelerate
-			angle = DrivablesMath.LerpDegrees(angle, moveAngle, lerpAmt);			
-			throttle = (1.0 * maxSpdMod) * (!fm ? abs(sm) : abs(clamp(fm, -0.5, 1.0)));
-			
-			if(onground) vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * abs(accel) * accelDirModifier);
+				// Interpolate angle (legs) to movement direction, then accelerate in that direction.
+				angle = DrivablesMath.LerpDegrees(angle, moveAngle, lerpAmt);	
+				if(onground) vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * abs(accel) * accelDirModifier);
+			}
+			else // This movement is used when the mech doesn't have a torso, for example the Nova.
+			{
+				// Turn towards look/aim direction.
+				angVel = lerpAmt * abs(angle - driver.angle);
+				
+				// This movement code allows for strafe, which looks kinda odd but, 
+				// without this functionality the player's view would be jolted left or right whenever they try 
+				// and move left or right, so this is the lesser of two jankiness.
+				angle = DrivablesMath.LerpDegrees(angle, driver.angle, lerpAmt);	
+				if(onground) vel += DrivablesMath.VecFromAngles(moveAngle, pitch, moveSpeed * abs(accel));
+			}			
 		}
 		else
 		{

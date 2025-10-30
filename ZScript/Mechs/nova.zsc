@@ -1,0 +1,276 @@
+class MechNovaPrime : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 35, 45;
+		DrivableMech.MaxWeight 50; // In Tons.
+		DrivableMech.ChassisName "Nova";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/nova_prime_icon.png";
+		DrivableMech.CBillValue (11586250   * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Olivetti Weaponry";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Nova is a versatile medium OmniMech that is capable of "
+			"acting as a workhorse design in most forces. In fact, the design is "
+			"so well balanced that it inspired the creation of the Black Hawk-KU, "
+			"an Inner Sphere design based on the Nova and named using the Inner "
+			"Sphere code name for this 'Mech: Black Hawk"
+			"(Source: https://www.sarna.net/wiki/NovaPrime_(Black_Hawk))"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("NovaPrime_Legs",  0,0,0,  self);
+		hips  = AddMechPart("NovaPrime_Hips",  -25,0,60, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("NovaPrime_CenterTorso", 0,0,0, hips);
+		leftTorso  = AddHardpoint("NovaPrime_LeftTorso",  0,-14,0, torso);
+		rightTorso = AddHardpoint("NovaPrime_RightTorso", 0, 14,0, torso);
+		
+		leftLeg = AddHardpoint("NovaPrime_LeftLeg",  0, -32,0, legs);
+		rightLeg = AddHardpoint("NovaPrime_RightLeg", 0, 32,0, legs);
+			
+		leftArm  = AddHardpoint("NovaPrime_LeftArm",  10,-22,0, leftTorso);
+		rightArm = AddHardpoint("NovaPrime_RightArm", 10, 22,0, rightTorso);
+		
+		head = AddHardpoint("NovaPrime_Cockpit", 28,0,-2, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL250");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_TWO);
+		
+		torso.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+		
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+	}
+}
+
+/*
+10 tons = 200 pts STD Armor
+[HD] - 12
+[CT] - 32
+[LT] - 28
+[RT] - 28
+[LA] - 24
+[RA] - 24
+[LL] - 26
+[RL] - 26
+*/
+
+class NovaPrime_Hips : MechHips {}
+
+class NovaPrime_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class NovaPrime_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 200; // degs second
+	}
+}
+class NovaPrime_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 360, 112; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 1;
+		MechTorso.PitchRange 30, 30;
+		Height 8;
+		
+		MechHardpoint.HitBox 16,16, 25,0,-15;
+		
+		MechHardpoint.Vitals 32, 16;
+		MechHardpoint.SetupArmor 28, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(0,0,-10, 12, 12);
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class NovaPrime_LeftArm : MechArm
+{
+	Default
+	{	
+		MechArm.ActuationRange 15;
+		MechArm.PitchRange 35, 35;
+		MechHardpoint.HitBox 12,15, 30, -12,-28;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(5,hitboxPos_LR,hitboxPos_UD, 12,15);
+		AddHitBox(-10,hitboxPos_LR,hitboxPos_UD + 10, 12,15);
+	}
+	override void SetupMounts()
+	{		
+		// 6E
+		AddMountPoint("Energy", 35, -15, -19); // TOP
+		AddMountPoint("Energy", 35, -21, -21); // UPPER_RIGHT
+		AddMountPoint("Energy", 35, -21, -26); // LOWER_RIGHT
+		AddMountPoint("Energy", 35, -15, -28); // BOTTOM
+		AddMountPoint("Energy", 35,  -9, -21); // LOWER_LEFT
+		AddMountPoint("Energy", 35,  -9, -26); // UPPER_LEFT
+	}
+}
+class NovaPrime_RightArm : NovaPrime_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 12,15, 30, 12,-28;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+	
+	override void SetupMounts()
+	{
+		// 6E
+		AddMountPoint("Energy", 35, 14, -19); // TOP
+		AddMountPoint("Energy", 35, 20, -21); // UPPER_RIGHT
+		AddMountPoint("Energy", 35, 20, -26); // LOWER_RIGHT
+		AddMountPoint("Energy", 35, 14, -28); // BOTTOM
+		AddMountPoint("Energy", 35,  8, -21); // LOWER_LEFT
+		AddMountPoint("Energy", 35,  8, -26); // UPPER_LEFT
+	}
+}
+
+class NovaPrime_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.HitBox 8,8, 0,-8,-4;
+		
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 24, 4;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+	}
+}
+class NovaPrime_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.HitBox 8,8, 0, 8,-4;
+		
+		MechHardpoint.Vitals 24, 14;
+		MechHardpoint.SetupArmor 24, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class NovaPrime_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(-15,0,25, 8, 16);
+		AddHitBox(-30,0,40, 4, 20);
+	}
+}
+class NovaPrime_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(-15,0,25, 8, 16);
+		AddHitBox(-30,0,40, 4, 20);
+	}
+}

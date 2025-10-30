@@ -157,6 +157,16 @@ material texture models/mechs/raven/raven_3l.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/nova/nova_prime.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/nova/nova_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

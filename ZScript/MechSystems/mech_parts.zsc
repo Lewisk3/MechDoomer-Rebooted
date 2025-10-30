@@ -651,6 +651,11 @@ class MechHardpoint : MechPart
 		SetupMounts();
 		if(mech) angle = mech.angle;
 		
+		SetupHitBoxes();
+	}
+	
+	virtual void SetupHitBoxes()
+	{
 		if(hitboxRadius > 0) 
 			AddHitBox(hitboxPos_FW, hitboxPos_LR, hitboxPos_UD, hitboxRadius, hitboxHeight);
 	}
@@ -1131,6 +1136,9 @@ class MechHips : MechPart
 	{
 		if(!mech) return;		
 		let torso = MechTorso(mech.torso);
+		bool noTorsoTwist = (torso.turnMax <= 1);
+		if(noTorsoTwist) return;
+		
 		double rollOffs = (torso.roll * torso.turnDir) * 0.5;
 		A_SetPitch(torso.pitch - rollOffs, SPF_INTERPOLATE);
 	}
@@ -1379,7 +1387,7 @@ class MechCockpit : MechHardpoint
 		// Become invisible if we're not currently looking through the cockpit.
 		let localPlayer = players[consoleplayer].mo;
 		bInvisible = (mech.camActive is "ThirdpersonCamera") || localPlayer != mech.driver;
-		
+
 		parentOffset.z = defz;// + bobHeightOffs; 
 		
 		A_SetAngle(torso.angle, SPF_INTERPOLATE);
