@@ -9,8 +9,8 @@ Tarantula <???>
 [Medium]
 Centurion [x]
 Hunchback [x]
+Nova <x>
 Stormcrow <2>
-Nova - Prime <2> + Nova - S
 Crab <8>
 Cicada <6>
 

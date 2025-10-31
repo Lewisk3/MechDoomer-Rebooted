@@ -1419,6 +1419,12 @@ class DrivableMech : DrivableObject
 		
 		// Interference reduces over time.
 		EMI *= 0.8;
+		
+		// Adjust gravity based on settings
+		if(sv_mdr_campaignmode) 
+			A_SetGravity(0.04);
+		else
+			A_SetGravity(default.gravity);
 	}
 	
 	States

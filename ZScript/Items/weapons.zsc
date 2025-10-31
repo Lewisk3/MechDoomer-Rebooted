@@ -1569,7 +1569,7 @@ class MachineGun : MechBallisticWeapon
 		DisplayName = "MACHINEGUN";
 		mountType = "Ballistic";
 		heat = 0;
-		weight = 0.5;
+		weight = 0.25;
 		size = 1.0;
 		
 		ammoUse = 1;
