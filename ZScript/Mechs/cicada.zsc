@@ -1,0 +1,233 @@
+class MechCicada : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 90, 100;
+		DrivableMech.MaxWeight 40; // In Tons.
+		DrivableMech.ChassisName "Cicada";
+		DrivableMech.VariantName "2A";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/cicada_icon.png";
+		DrivableMech.CBillValue (3705217 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "HartfordCo Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]HartfordCo Industries designed the Cicada to compete directly with the "
+			"Locust by making it just as fast but twice as large, allowing it to carry slightly "
+			"better weaponry and give it an edge in physical combat, all while keeping costs down. "
+			"The Star League was sufficiently impressed that they agreed to a contract with HartfordCo "
+			"for a small number of Cicadas, using them to replace many Locusts lost in fighting along "
+			"its border regions. "
+			"(Source: https://www.sarna.net/wiki/Cicada)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Cicada_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Cicada_Hips",  0,0,60, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Cicada_CenterTorso", 0,0,0, hips);
+		leftTorso  = AddHardpoint("Cicada_LeftTorso",  0,-28,10, torso);
+		rightTorso = AddHardpoint("Cicada_RightTorso", 0, 28,10, torso);
+		
+		leftLeg = AddHardpoint("Cicada_LeftLeg",  0, -26,0, legs);
+		rightLeg = AddHardpoint("Cicada_RightLeg", 0, 26,0, legs);
+			
+		leftArm  = AddHardpoint("Cicada_LeftArm",  0, 0,0, leftTorso);
+		rightArm = AddHardpoint("Cicada_RightArm", 0, 0,0, rightTorso);
+		
+		head = AddHardpoint("Cicada_Cockpit", 30,0,17, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD320");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		rightTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		
+		torso.AddWeapon("SmallLaser", GROUPFLG_TWO);
+	}
+}
+
+/*
+4 tons = 80 pts STD Armor
+[HD] - 12
+[CT] - 20
+[LT] - 11
+[RT] - 11
+[LA] - 6
+[RA] - 6
+[LL] - 7
+[RL] - 7
+*/
+
+class Cicada_Hips : MechHips 
+{
+	override void UpdateAngles()
+	{
+		super.UpdateAngles();
+		
+		// Track torso pitch for this mech.
+		if(mech && mech.torso)
+			A_SetPitch(clamp(mech.torso.pitch, -10, 10), SPF_INTERPOLATE);
+	}
+}
+
+class Cicada_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 3;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Cicada_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 240; // degs second
+	}
+}
+class Cicada_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 360, 112; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 0;
+		MechTorso.PitchRange 30, 30;
+		Height 8;
+		
+		MechHardpoint.HitBox 20,24, 0,0,0;
+		
+		MechHardpoint.Vitals 20, 10;
+		MechHardpoint.SetupArmor 16, 4;
+		MechHardpoint.RearArmor true;
+	}	
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 20,-4.5,8.7, 0.8);
+		AddMountPoint("Energy", 20, 5,  8.7, 0.8);
+	}
+}
+
+class Cicada_LeftArm : MechArm
+{
+	Default
+	{	
+		MechArm.ActuationRange 0;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 7,12, 0,-12,-6;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 6, 3;
+		MechHardpoint.SetupArmor 6, 0;
+		MechHardpoint.CreatesDebris false;
+	}
+
+	override void SetupMounts()
+	{		
+	}
+}
+class Cicada_RightArm : Cicada_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 7,12, 0,12,-6;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 6, 3;
+		MechHardpoint.SetupArmor 6, 0;
+		MechHardpoint.CreatesDebris false;
+	}
+	
+	override void SetupMounts()
+	{	
+	}
+}
+
+class Cicada_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.HitBox 10,12, 0,-4,-4;
+		
+		MechHardpoint.Vitals 11, 6;
+		MechHardpoint.SetupArmor 8, 3;
+		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 5,-7, 7, 0.75);
+		AddMountPoint("Energy", 5,-7,-3, 0.75);
+	}
+}
+class Cicada_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.HitBox 10,12, 0, 4,-4;
+		
+		MechHardpoint.Vitals 11, 6;
+		MechHardpoint.SetupArmor 8, 3;
+		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 5,6.6, 7, 0.75);
+		AddMountPoint("Energy", 5,6.6,-2.7, 0.75);
+		AddMountPoint("PDS", 0,6.6,9.5, 1.0);
+	}
+}
+
+class Cicada_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 7;
+		Height 50;
+		MechHardpoint.Vitals 7, 4;
+		MechHardpoint.SetupArmor 7, 0;
+	}	
+}
+class Cicada_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 7;
+		Height 50;
+		
+		MechHardpoint.Vitals 7, 4;
+		MechHardpoint.SetupArmor 7, 0;
+	}	
+}

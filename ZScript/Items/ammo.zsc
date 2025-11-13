@@ -77,7 +77,7 @@ class SRMAmmoHalf : SRMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("SRMAmmo");
 	}
 }
 class SSRMAmmoHalf : SSRMAmmo
@@ -85,7 +85,7 @@ class SSRMAmmoHalf : SSRMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("SSRMAmmo");
 	}
 }
 
@@ -109,7 +109,7 @@ class MRMAmmoHalf : MRMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("MRMAmmo");
 	}
 }
 
@@ -133,7 +133,7 @@ class LRMAmmoHalf : LRMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("LRMAmmo");
 	}
 }
 
@@ -157,7 +157,7 @@ class AC2AmmoHalf : AC2Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("AC2Ammo");
 	}
 }
 class AC5Ammo : MechAmmo
@@ -180,7 +180,7 @@ class AC5AmmoHalf : AC5Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("AC5Ammo");
 	}
 }
 class AC10Ammo : MechAmmo
@@ -203,7 +203,7 @@ class AC10AmmoHalf : AC10Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("AC10Ammo");
 	}
 }
 class AC20Ammo : MechAmmo
@@ -226,7 +226,7 @@ class AC20AmmoHalf : AC20Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("AC20Ammo");
 	}
 }
 class MGAmmo : MechAmmo
@@ -249,7 +249,7 @@ class MGAmmoHalf : MGAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("MGAmmo");
 	}
 }
 
@@ -268,7 +268,7 @@ class UAC2AmmoHalf : UAC2Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("UAC2Ammo");
 	}
 }
 class UAC5Ammo : AC5Ammo
@@ -286,7 +286,7 @@ class UAC5AmmoHalf : UAC5Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("UAC5Ammo");
 	}
 }
 class UAC10Ammo : AC10Ammo
@@ -303,7 +303,7 @@ class UAC10AmmoHalf : UAC10Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("UAC10Ammo");
 	}
 }
 class UAC20Ammo : AC20Ammo
@@ -320,7 +320,7 @@ class UAC20AmmoHalf : UAC20Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("UAC20Ammo");
 	}
 }
 
@@ -337,7 +337,7 @@ class LBX2AmmoHalf : LBX2Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("LBX2Ammo");
 	}
 }
 class LBX5Ammo : AC5Ammo
@@ -353,7 +353,7 @@ class LBX5AmmoHalf : LBX5Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("LBX5Ammo");
 	}
 }
 class LBX10Ammo : AC10Ammo
@@ -369,7 +369,7 @@ class LBX10AmmoHalf : LBX10Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("LBX10Ammo");
 	}
 }
 class LBX20Ammo : AC20Ammo
@@ -385,7 +385,7 @@ class LBX20AmmoHalf : LBX20Ammo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("LBX20Ammo");
 	}
 }
 
@@ -409,7 +409,7 @@ class GaussAmmoHalf : GaussAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("GaussAmmo");
 	}
 }
 
@@ -433,7 +433,7 @@ class AMSAmmoHalf : AMSAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("AMSAmmo");
 	}
 }
 
@@ -469,7 +469,7 @@ class STDATMAmmoHalf : STDATMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("STDATMAmmo");
 	}
 }
 
@@ -504,7 +504,7 @@ class ERATMAmmoHalf : ERATMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("ERATMAmmo");
 	}
 }
 class HEATMAmmo : MechSwitchableAmmo
@@ -539,6 +539,6 @@ class HEATMAmmoHalf : HEATMAmmo
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo(super.getClass());
+		SetupHalfAmmo("HEATMAmmo");
 	}
 }

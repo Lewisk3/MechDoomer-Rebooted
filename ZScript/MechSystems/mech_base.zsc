@@ -1014,7 +1014,7 @@ class DrivableMech : DrivableObject
 		bool noTorsoTwist = (mtorso.turnMax <= 1);
 		if(mtorso && !noTorsoTwist) mtorso.infiniteTurnRange = true;	
 		
-		if( (noTorsoTwist || (fm || sm)) && moveSpeedKPH > 0 )
+		if( (fm || sm) && moveSpeedKPH > 0 )
 		{
 			// Move Inputs
 			vector2 moveDir = (fm, -sm);
