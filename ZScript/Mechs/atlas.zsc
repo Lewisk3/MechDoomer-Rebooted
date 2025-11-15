@@ -1,0 +1,264 @@
+class MechAtlas : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 20, 22;
+		DrivableMech.MaxWeight 100; // In Tons.
+		DrivableMech.ChassisName "Atlas";
+		DrivableMech.VariantName "AS7-D";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Atlas_icon.png";
+		DrivableMech.CBillValue (9412000 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Defiance Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Atlas is probably the best-known BattleMech to ever set "
+			"foot on the modern battlefield. Designed with specifications from "
+			"Aleksandr Kerensky himself in 2755. The Atlas proved itself to be "
+			"everything General Kerensky requested; with the largest amount of "
+			"armor of nearly any 'Mech, crippling firepower, and the foreboding "
+			"skull-shaped \"Death's Head\" cockpit/head assembly, the Atlas lived "
+			"up to its reputation. The mere sight of an Atlas had been known to "
+			"make even a veteran MechWarrior break out in a cold sweat. "
+			"(Source: https://www.sarna.net/wiki/Atlas)"
+		);
+	}
+   
+   override void SetupParts()
+   {
+      super.SetupParts();
+      
+      legs  = AddMechPart("Atlas_Legs",  0,0,0,  self);
+      hips  = AddMechPart("Atlas_Hips",  0,0,60, legs);
+      
+      // Hardpoints
+      torso      = AddHardpoint("Atlas_CenterTorso", 0,0,7, hips);
+      leftTorso  = AddHardpoint("Atlas_LeftTorso",  0,-25,0, torso);
+      rightTorso = AddHardpoint("Atlas_RightTorso", 0, 25,0, torso);
+      
+      leftLeg = AddHardpoint("Atlas_LeftLeg",  0, -20,0, legs);
+      rightLeg = AddHardpoint("Atlas_RightLeg", 0, 20,0, legs);
+         
+      leftArm  = AddHardpoint("Atlas_LeftArm",  0,-5,30, leftTorso);
+      rightArm = AddHardpoint("Atlas_RightArm", 0, 5,30, rightTorso);
+      
+      head = AddHardpoint("Atlas_Cockpit", 10,-5,40, torso);
+      cam  = AddPart("CockpitCamera", 0,0,0, head);
+   }
+   
+   override void SetupItems()
+   {  
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD300");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+
+		head.AddItem("MechHeatsink");
+
+		torso.AddWeapon("MediumLaser", GROUPFLG_FIVE);
+		torso.AddWeapon("MediumLaser", GROUPFLG_FIVE);
+
+		leftArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		leftArm.AddItem("MechHeatsink");
+
+		rightArm.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		rightArm.AddItem("MechHeatsink");
+
+		rightTorso.AddWeapon("AC20", GROUPFLG_TWO);
+		rightTorso.AddItem("AC20Ammo");
+		rightTorso.AddItem("AC20Ammo");
+
+		leftTorso.AddWeapon("LRM20", GROUPFLG_FOUR); 
+		leftTorso.AddWeapon("SRM6", GROUPFLG_THREE);
+		leftTorso.AddItem("LRMAmmo");
+		leftTorso.AddItem("LRMAmmo");	 
+		leftTorso.AddItem("SRMAmmo");
+		leftTorso.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechCASE");
+
+		leftLeg.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+
+		rightLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+	}
+}
+
+// Armor PTS
+/*
+	380pts 
+	
+[HD] - 12
+[CT] - 80
+[LT] - 60
+[RT] - 60
+[LA] - 36
+[RA] - 36
+[LL] - 48
+[RL] - 48
+*/
+
+
+class Atlas_Hips : MechHips {}
+class Atlas_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 55;
+   }
+}
+
+class Atlas_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+   }
+   
+	override void SetupMounts()
+	{
+	}
+}
+
+class Atlas_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 60;
+      MechHardpoint.Vitals 48, 24;
+      MechHardpoint.SetupArmor 48, 0;
+   }  
+}
+class Atlas_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 60;
+      
+      MechHardpoint.Vitals 48, 24;
+      MechHardpoint.SetupArmor 48, 0;
+   }  
+}
+
+class Atlas_CenterTorso : MechTorso 
+{
+   Default
+   {
+      MechTorso.TurnSpeed 108, 108;
+      MechTorso.TurnRange 110;
+      MechTorso.PitchRange 30, 30;
+      Radius 15;
+      Height 40;
+      
+      MechHardpoint.Vitals 80, 40;
+      MechHardpoint.SetupArmor 60, 20;
+      MechHardpoint.RearArmor true;
+   }  
+   
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 16, -7, 20.5);
+		AddMountPoint("Energy", 16,  7, 20.5);
+	}
+}
+
+class Atlas_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 10;
+      Height 40;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 60, 30;
+      MechHardpoint.SetupArmor 46, 14;
+      MechHardpoint.RearArmor true;
+   }
+      
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 22,  4, 4.75, 1, 5, 0, 6.25, depth:-8, scale:1.2);
+		SetupMountArray("Missile", 22, -1.5, 4.75, 1, 5, 0, 6.25, depth:-8, scale:1.2);
+	}
+}
+class Atlas_RightTorso : MechSideTorso
+{
+	Default
+	{
+	  Radius 10;
+	  Height 40;
+	  MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+	  
+	  MechHardpoint.Vitals 60, 30;
+	  MechHardpoint.SetupArmor 46, 14;
+	  MechHardpoint.RearArmor true;
+	}  
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 12,-2,8, 1.35);
+		AddMountPoint("Ballistic", 12,-2,26.5, 1.35);
+	}
+}
+
+class Atlas_LeftArm : MechArm
+{
+   Default
+   {
+      MechArm.ActuationRange 40;
+      MechArm.PitchRange 30, 30;
+      MechHardpoint.HitBox 10,20, 35,-16,-33;
+      MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+      MechHardpoint.Vitals 36, 18;
+      MechHardpoint.SetupArmor 36, 0;
+   }
+
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBox(20,-16,-33, 10, 20);
+		AddHitBox(0,-16,-33, 10, 20);
+		AddHitBox(0,-16,-13, 10, 20);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 35, -14.8, -31.6, 0.8);
+	}
+}
+
+class Atlas_RightArm : Atlas_LeftArm 
+{
+	Default
+	{
+	  MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+	  MechHardpoint.Vitals 36, 18;
+	  MechHardpoint.SetupArmor 36, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		AddHitBox(35, 16,-33, 10, 20);
+		AddHitBox(20, 16,-33, 10, 20);
+		AddHitBox(0, 16,-33, 10, 20);
+		AddHitBox(0, 16,-13, 10, 20);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 35, 14.8, -31.6, 0.8);
+	}
+}

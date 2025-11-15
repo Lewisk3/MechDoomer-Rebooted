@@ -2,17 +2,17 @@
 Commando [x]
 Jenner   [x]
 Raven [x]
-Kitfox <13>
-Urbanmech <12>
+Kitfox <8>
+Urbanmech <9>
 Tarantula <???>
 
 [Medium]
 Centurion [x]
 Hunchback [x]
 Nova <x>
-Stormcrow <2>
-Crab <8>
-Cicada <6>
+Cicada <x>
+Stormcrow <4>
+Crab <7>
 
 [Heavy]
 Catapult [x]
@@ -20,12 +20,12 @@ Hellbringer [x]
 Mad Dog [x]
 Rifleman [x]
 Timberwolf [x]
-Summoner <3>
+Summoner <5>
 
 [Assault]
 Marauder [x]
-Warhammer <4>
-Warhawk <7>
-Direwolf <5>
+Atlas <x>
+Warhammer <6>
+Warhawk <2>
+Direwolf <3>
 BattleMaster <10>
-Atlas <9>

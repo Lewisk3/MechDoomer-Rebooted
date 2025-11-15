@@ -1156,12 +1156,12 @@ class MechEngine : MechItem
 		return gen * 0.1;
 	}
 	
-	int, int getRunWalkMP(DrivableMech mech)
+	double, double getRunWalkMP(DrivableMech mech)
 	{
 		if(!mech) return 0, 0;
 		
 		int walkMP = rating / mech.maxWeight;
-		int runMP = walkMP * 1.5; 
+		double runMP = walkMP * 1.5; 
 		return runMP, walkMP;
 	}
 	

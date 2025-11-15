@@ -623,6 +623,11 @@ class DrivableMech : DrivableObject
 		return "";
 	}
 	
+	void SetChainfire(int groupNumber, bool enable)
+	{
+		weaponGroups[groupNumber - 1].chainfire = enable;
+	}
+	
 	virtual MechHardpoint getAdjacentHardpoint(MechHardpoint from)
 	{
 		if(from ==  leftTorso) return torso;

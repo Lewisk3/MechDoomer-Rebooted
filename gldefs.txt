@@ -182,6 +182,16 @@ material texture models/mechs/cicada/cicada.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/atlas/atlas_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/atlas/atlas.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"
