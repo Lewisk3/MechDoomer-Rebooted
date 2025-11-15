@@ -16,10 +16,9 @@ class MechAtlas : DrivableMech
 	override string getShopDescription()
 	{
 		return ( 
-			"\c[White]The Atlas is probably the best-known BattleMech to ever set "
-			"foot on the modern battlefield. Designed with specifications from "
+			"\c[White]Designed with specifications from "
 			"Aleksandr Kerensky himself in 2755. The Atlas proved itself to be "
-			"everything General Kerensky requested; with the largest amount of "
+			"everything General Kerensky requested. With the largest amount of "
 			"armor of nearly any 'Mech, crippling firepower, and the foreboding "
 			"skull-shaped \"Death's Head\" cockpit/head assembly, the Atlas lived "
 			"up to its reputation. The mere sight of an Atlas had been known to "
