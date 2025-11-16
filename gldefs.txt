@@ -192,6 +192,16 @@ material texture models/mechs/atlas/atlas.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/summoner/summoner_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/summoner/summoner.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

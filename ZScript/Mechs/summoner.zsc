@@ -1,0 +1,350 @@
+class MechSummonerPrime : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 41, 32;
+		DrivableMech.MaxWeight 75; // In Tons.
+		DrivableMech.ChassisName "Summoner";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Summoner_icon.png";
+		DrivableMech.CBillValue (21150833  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Defiance Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Summoner is a highly mobile heavy OmniMech that is "
+			"commonly used by Clan Jade Falcon in a wide variety of roles. "
+			"Barely a second generation OmniMech, the Jade Falcons introduced "
+			"the Summoner just after becoming the first Clan to win OmniMech "
+			"technology from Clan Coyote in 2863. The Summoner was code-named "
+			"Thor, its Inner Sphere reporting name, by Victor Steiner-Davion "
+			"himself after fighting one on Trellwan. "
+			"(Source: https://www.sarna.net/wiki/Summoner_(Thor))"
+		);
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Summoner_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Summoner_Hips",  0,0,41, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Summoner_CenterTorso", 0,0,5, hips);
+		leftTorso  = AddHardpoint("Summoner_LeftTorso",  0,0,0, torso);
+		rightTorso = AddHardpoint("Summoner_RightTorso", 0,15,5, torso);
+
+		leftLeg = AddHardpoint("Summoner_LeftLeg",  0, -16,0, legs);
+		rightLeg = AddHardpoint("Summoner_RightLeg", 0, 16,0, legs);
+		 
+		leftArm  = AddHardpoint("Summoner_LeftArm",  -7,-24,27, leftTorso);
+		rightArm = AddHardpoint("Summoner_RightArm", -6, 10,18, rightTorso);
+
+		head = AddHardpoint("Summoner_Cockpit", 0, 13,35, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL350");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		torso.AddItem("MechJumpJet");
+		rightArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		rightArm.AddItem("BulkHeatBank");
+		
+		leftArm.AddWeapon("LBXAC10", GROUPFLG_TWO);
+		leftArm.AddItem("LBX10Ammo");
+		leftArm.AddItem("LBX10Ammo");
+		
+		leftTorso.AddWeapon("LRM15", GROUPFLG_THREE);
+		leftTorso.AddItem("LRMAmmo");
+		leftTorso.AddItem("LRMAmmo");
+		
+		leftLeg.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		
+		rightLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+	}
+}
+
+// 9.5tons Clan Ferro
+/*
+	237pts 
+	
+HD 12
+CT 51
+RT 37
+LT 37
+RA 24
+LA 24
+RL 26
+LL 26
+*/
+
+class Summoner_Hips : MechHips {}
+class Summoner_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 70;
+	}
+}
+
+class Summoner_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 5;
+		Height 3;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+   
+	override void SetupMounts()
+	{
+	}
+}
+
+class Summoner_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 8;
+		Height 45;
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}  
+}
+class Summoner_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 8;
+		Height 45;
+
+		MechHardpoint.Vitals 26, 13;
+		MechHardpoint.SetupArmor 26, 0;
+	}  
+}
+
+class Summoner_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 126, 126;
+		MechTorso.TurnRange 95;
+		MechTorso.PitchRange 30, 30;
+		Radius 7;
+		Height 30;
+
+		MechHardpoint.Vitals 51, 26;
+		MechHardpoint.SetupArmor 38, 13;
+		MechHardpoint.RearArmor true;
+	}  
+	   
+	override void SetupMounts()
+	{
+	}
+}
+
+class Summoner_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.HitBox 8,40, 0,-12,8;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+
+		MechHardpoint.Vitals 37, 18;
+		MechHardpoint.SetupArmor 28, 9;
+		MechHardpoint.RearArmor true;
+	}
+     
+	override void SetupHitboxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(-15,-12,8, 8,40);
+	}
+	
+	virtual void SetupSummonerMissiles()
+	{
+		vector3 basePos = (10.4,-11,40);
+		double baseSize = 0.6;
+	
+		let mnt = AddMountPoint("Missile", basePos.x,basePos.y,basePos.z, baseSize);
+		
+		// Inner Circle
+		mnt.newOffset(basePos.x, basePos.y - 2, basePos.z + 2);
+		mnt.newOffset(basePos.x, basePos.y - 3, basePos.z - 1);
+		mnt.newOffset(basePos.x, basePos.y, basePos.z - 2.5);
+		mnt.newOffset(basePos.x, basePos.y + 2.7, basePos.z - 1);
+		mnt.newOffset(basePos.x, basePos.y + 2.4, basePos.z + 1.9);
+		
+		// Outer Circle
+		double angOffs = 10;
+		double ang = 360 / 9.0;
+		double rad = 5;
+		vector2 scalar = (1.3, 1.0);
+		for(int i = 0; i < 9; i++)
+		{
+			double curAngle = (ang * i) + angOffs;
+			vector3 rot = ((0, cos(curAngle) * scalar.x, sin(curAngle) * scalar.y) * rad);
+			vector3 newPos = basePos + rot;
+			mnt.newOffset(newPos.x, newPos.y, newPos.z);
+		}
+	}
+	
+	override void SetupMounts()
+	{
+		SetupSummonerMissiles();
+	}
+}
+class Summoner_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 10;
+		Height 30;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+
+		MechHardpoint.Vitals 37, 18;
+		MechHardpoint.SetupArmor 28, 9;
+		MechHardpoint.RearArmor true;
+	}  
+
+	override void SetupMounts()
+	{
+	}
+}
+
+class Summoner_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 20;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 7,10, 35,-15,-20;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+
+	override void SetupHitboxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(25,-15,-20, 7,10);
+		AddHitBox(15,-15,-20, 7,10);
+		AddHitBox(5,-15,-20, 7,10);
+		AddHitBox(5,-2,-15, 7,20);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 30,-14,-15);
+	}
+}
+
+class Summoner_RightArm : Summoner_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}
+	
+	override void SetupHitboxes()
+	{
+		AddHitBox(25,15,-35, 8,10);
+		AddHitBox(15,15,-35, 8,10);
+		AddHitBox( 5,15,-35, 8,10);
+		AddHitBox(5,10,-25, 10,25);
+	}
+ 
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 20,14,-27);
+	}
+}
+
+class MechSummonerConfigA : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 41, 32;
+		DrivableMech.MaxWeight 75; // In Tons.
+		DrivableMech.ChassisName "Summoner";
+		DrivableMech.VariantName "A";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Summoner_icon.png";
+		DrivableMech.CBillValue (20478271 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Defiance Industries";
+		DrivableMech.CannotPurchaseMech true;
+	}
+	
+	override string getShopDescription()
+	{
+		return ("...");
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Summoner_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Summoner_Hips",  0,0,41, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Summoner_CenterTorso", 0,0,5, hips);
+		leftTorso  = AddHardpoint("Summoner_LeftTorso",  0,0,0, torso);
+		rightTorso = AddHardpoint("Summoner_RightTorso", 0,15,5, torso);
+
+		leftLeg = AddHardpoint("Summoner_LeftLeg",  0, -16,0, legs);
+		rightLeg = AddHardpoint("Summoner_RightLeg", 0, 16,0, legs);
+		 
+		leftArm  = AddHardpoint("Summoner_LeftArm",  -7,-24,27, leftTorso);
+		rightArm = AddHardpoint("Summoner_RightArm", -6, 10,18, rightTorso);
+
+		head = AddHardpoint("Summoner_Cockpit", 0, 13,35, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL350");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		torso.AddItem("MechJumpJet");
+		rightArm.AddWeapon("LargePulseLaser", GROUPFLG_ONE);
+		rightArm.AddItem("BulkHeatBank");
+		
+		leftArm.AddWeapon("GaussRifle", GROUPFLG_TWO);
+		leftArm.AddItem("GaussAmmo");
+		leftArm.AddItem("GaussAmmo");
+		
+		leftTorso.AddWeapon("SRM6", GROUPFLG_THREE);
+		leftTorso.AddItem("SRMAmmo");
+		leftTorso.AddItem("SRMAmmo");
+		
+		leftLeg.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		
+		rightLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+	}
+}

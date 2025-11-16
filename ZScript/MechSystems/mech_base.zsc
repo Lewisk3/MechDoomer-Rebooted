@@ -41,6 +41,7 @@ class DrivableMech : DrivableObject
 	string MechItemGraphic; // UI Graphic for mech.
 	double mechvalue; // Mech cbill value;
 	string manufacturer; // Used for UI properties.
+	bool cannotPurchase; // If true, this mech is not purchasable via the shop.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -112,6 +113,7 @@ class DrivableMech : DrivableObject
 	Property CBillValue : mechvalue;
 	Property Manufacturer : manufacturer;
 	Property BaseRepairCost : baseArmorRepairCost, baseInternalRepairCost;
+	Property CannotPurchaseMech : cannotPurchase;
 	
 	enum MechBtns
 	{
@@ -171,6 +173,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.CombatZoom 0.1;
 		DrivableMech.Manufacturer "Unknown";
 		DrivableMech.BaseRepairCost 2500, 5000;
+		DrivableMech.CannotPurchaseMech false;
 	}
 	
 	override void PreTravelled()
@@ -1966,8 +1969,11 @@ class I_SaveMechData : Inventory
 			// GiveMech(mechcls); // DEBUG give all mechs.
 			
 			let mechObj = CreateMech(mechcls);
-			let shopMech = getSerializedMechData(mechObj);
-			defaultMechs.Push(shopMech);
+			if(!mechObj.cannotPurchase)
+			{
+				let shopMech = getSerializedMechData(mechObj);
+				defaultMechs.Push(shopMech);
+			}
 			mechObj.Destroy();
 		}		
 		

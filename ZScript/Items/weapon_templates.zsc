@@ -425,7 +425,8 @@ class MechBallisticWeapon : MechWeapon
 	override void DoEffect()
 	{
 		super.DoEffect();
-		if( justFired && (cooldown <= S_GetLength(reloadSound) * 36.0) && checkAmmo() >= ammoUse )
+		int reloadSoundTics = ceil(S_GetLength(reloadSound) * (TICRATE*0.8));
+		if( justFired && (cooldown < reloadSoundTics) && checkAmmo() >= ammoUse )
 		{
 			// If we've just fired and fireTime has ended, play reload sound.
 			parent.A_StartSound(reloadSound, CHAN_BODY, CHANF_OVERLAP);

@@ -98,6 +98,7 @@ const DMG_SCALAR_MONSTER = 0.065;
 #include "ZScript/Mechs/nova.zsc"
 #include "ZScript/Mechs/cicada.zsc"
 #include "ZScript/Mechs/atlas.zsc"
+#include "ZScript/Mechs/summoner.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

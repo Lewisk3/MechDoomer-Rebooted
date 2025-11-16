@@ -27,30 +27,30 @@ class MechAtlas : DrivableMech
 		);
 	}
    
-   override void SetupParts()
-   {
-      super.SetupParts();
-      
-      legs  = AddMechPart("Atlas_Legs",  0,0,0,  self);
-      hips  = AddMechPart("Atlas_Hips",  0,0,60, legs);
-      
-      // Hardpoints
-      torso      = AddHardpoint("Atlas_CenterTorso", 0,0,7, hips);
-      leftTorso  = AddHardpoint("Atlas_LeftTorso",  0,-25,0, torso);
-      rightTorso = AddHardpoint("Atlas_RightTorso", 0, 25,0, torso);
-      
-      leftLeg = AddHardpoint("Atlas_LeftLeg",  0, -20,0, legs);
-      rightLeg = AddHardpoint("Atlas_RightLeg", 0, 20,0, legs);
-         
-      leftArm  = AddHardpoint("Atlas_LeftArm",  0,-5,30, leftTorso);
-      rightArm = AddHardpoint("Atlas_RightArm", 0, 5,30, rightTorso);
-      
-      head = AddHardpoint("Atlas_Cockpit", 10,-5,40, torso);
-      cam  = AddPart("CockpitCamera", 0,0,0, head);
-   }
-   
-   override void SetupItems()
-   {  
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Atlas_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Atlas_Hips",  0,0,60, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Atlas_CenterTorso", 0,0,7, hips);
+		leftTorso  = AddHardpoint("Atlas_LeftTorso",  0,-25,0, torso);
+		rightTorso = AddHardpoint("Atlas_RightTorso", 0, 25,0, torso);
+
+		leftLeg = AddHardpoint("Atlas_LeftLeg",  0, -20,0, legs);
+		rightLeg = AddHardpoint("Atlas_RightLeg", 0, 20,0, legs);
+		 
+		leftArm  = AddHardpoint("Atlas_LeftArm",  0,-5,30, leftTorso);
+		rightArm = AddHardpoint("Atlas_RightArm", 0, 5,30, rightTorso);
+
+		head = AddHardpoint("Atlas_Cockpit", 10,-5,40, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
 		// Armor and Engine
 		torso.AddItem("MechEngine_STD300");
 		MechArmor.addToMech(self, "MechArmor_Standard");
