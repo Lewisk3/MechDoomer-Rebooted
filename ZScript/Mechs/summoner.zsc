@@ -169,6 +169,7 @@ class Summoner_LeftTorso : MechSideTorso
 		MechHardpoint.Vitals 37, 18;
 		MechHardpoint.SetupArmor 28, 9;
 		MechHardpoint.RearArmor true;
+		MechHardpoint.CreatesDebris true;
 	}
      
 	override void SetupHitboxes()

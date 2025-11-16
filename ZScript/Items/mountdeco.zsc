@@ -26,6 +26,11 @@ class MechMountDeco : EffectsActor
 		return mountDeco;
 	}
 	
+	virtual void HandleAnimOffsets()
+	{
+		animOffs *= 0.95;
+	}
+	
 	virtual void followMountPos()
 	{
 		if(!src.parent || !src.mount) return;
@@ -60,7 +65,7 @@ class MechMountDeco : EffectsActor
 		}
 	
 		followMountPos();
-		animOffs *= 0.95;
+		HandleAnimOffsets();
 	}
 
 	States
@@ -116,23 +121,48 @@ class GaussMountDeco : ACMountDeco
 
 class MissileMountDeco : MechMountDeco 
 {
+	bool noAmmo;
+	bool justFired;
+	
 	override void Tick()
 	{	
 		super.Tick();
 		if(!src || !src.mount) return;
 		
 		int curAmmo = src.countAmmo();
-		bool noAmmo = (curAmmo < (mountIndex+1));
-		bInvisible = noAmmo;
+		noAmmo = (curAmmo < (mountIndex+1));
 		
+		bInvisible = noAmmo;
 		if(noAmmo) animOffs.x = -4;
-	
+		
 		if(!src.refire) return;
 		
 		int fireIndex = (src.refireCount - src.refire) % src.mount.countOffsets();
+		if(fireIndex == mountIndex) justFired = true;
+	}
+	
+	override void HandleAnimOffsets()
+	{
+		if(!justFired)
+		{
+			super.HandleAnimOffsets();
+			return;
+		}
+	
+		// Get cooldown of source weapon.
+		int pushback = 4;
+		double cooldownPerc = double(src.cooldown) / double(src.cooldownTime);
+		double reload = DrivablesMath.Lerp(0, pushback, max(0, 1.0 - cooldownPerc));
+		animOffs.x = -pushback + reload;
 		
-		if(fireIndex == mountIndex)
-			animOffs.x -= 2;
+		animOffs.y *= 0.95;
+		animOffs.z *= 0.95;
+		
+		if(cooldownPerc <= 0.01) 
+		{
+			justFired = false;
+			animOffs.x *= 0;
+		}
 	}
 }
 

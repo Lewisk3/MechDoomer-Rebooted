@@ -14,7 +14,7 @@ class CineDrone : DrivableObject
 	
 	override void DoPhysics()
 	{
-		vel *= 0.9;
+		vel *= 0.8;
 	}
 	
 	override void TakePilot(Actor user)
@@ -60,7 +60,7 @@ class CineDrone : DrivableObject
 		if(fw || lr) dir.xy = (fw, lr).Unit();
 		
 		vector3 wishDir = Quat.FromAngles(angle, pitch, roll) * (dir.x, -dir.y, dir.z);
-		vel += wishDir * 1.8;
+		vel += wishDir * 0.8;
 	}
 	
 	override void UpdateDriver()

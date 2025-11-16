@@ -900,10 +900,7 @@ class MechHardpoint : MechPart
 		// Destroyed attached hardpoints if destroyed.
 		let hardpointParent = MechHardpoint(parent);
 		if(hardpointParent && hardpointParent.healthPoints <= 0 && healthPoints > 0)
-		{
-			healthPoints = 0;
 			DamageHardpoint("Collateral", 999, skipArmor:true);
-		}
 		
 		// Damage Effects
 		doDamageEffects();
