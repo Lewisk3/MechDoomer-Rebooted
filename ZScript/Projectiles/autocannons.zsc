@@ -220,6 +220,7 @@ class LBXAutocannon : MechAutocannon
 		MechProjectile.Ranges 0, 800;
 		Scale 1.0;
 		MechProjectile.SpeedKPH 1800;
+		Mass 2;
 	}
 	
 	States
@@ -253,6 +254,7 @@ class Autocannon2 : MechAutocannon
 		MechProjectile.Ranges 0, 900;
 		Scale 1.0;
 		MechProjectile.SpeedKPH 1800;
+		Mass 7;
 	}
 	
 	States
@@ -273,6 +275,7 @@ class Autocannon5 : Autocannon2
 		MechProjectile.Ranges 0, 720;
 		Scale 1.25;
 		MechProjectile.SpeedKPH 1500;
+		Mass 20;
 	}
 }
 class Autocannon10 : Autocannon2
@@ -285,6 +288,7 @@ class Autocannon10 : Autocannon2
 		MechProjectile.Ranges 0, 540;
 		Scale 1.5;
 		MechProjectile.SpeedKPH 1300;
+		Mass 40;
 	}
 	
 	States
@@ -313,6 +317,7 @@ class Autocannon20 : Autocannon10
 		MechProjectile.Ranges 0, 360;
 		Scale 2.0;
 		MechProjectile.SpeedKPH 1100;
+		Mass 180;
 	}
 }
 
@@ -385,6 +390,7 @@ class MGBullet : MechAutocannon
 		MechProjectile.ImpactSound "MGun/Impact";
 		MechAutocannon.CreateOverlay false;
 		MechAutocannon.SmokeTrail false;
+		Mass 1;
 	}
 		
 	override void PostBeginPlay()

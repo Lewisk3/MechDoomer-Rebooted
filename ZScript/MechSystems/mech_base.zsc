@@ -1,25 +1,3 @@
-/*
-	How was this constant found?
-	First, a Hellbringer is placed in a map then a pillar
-	is placed next to it, the pillar is then risen until it matches
-	the Hellbringer's observed height.
-	
-	This number is derrived like so
-	HellBringer = 12.9m, ~70 units.
-	
-	12.9m / 70.0u = ~0.18 meters a unit.
-*/
-
-const UTOCM_OLD = ((12.9 / 92.0) * 100.0);
-const UTOCM_AdjustedOLD = UTOCM_OLD / 5.54;
-
-// Modified by sv_mdr_distancescale and sv_mdr_campaignmode.
-const UTOCM = ( (12.9 / (70.0 * 0.35) ) * 100.0); 
-
-const MECHPRICESCALAR = 0.5;
-
-// According to sarna, 1 turn = 10 seconds, so 350 tics.
-const TURNTICS = 35 * 10.0;
 
 class DrivableMech : DrivableObject
 {

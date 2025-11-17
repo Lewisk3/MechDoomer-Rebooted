@@ -2,6 +2,9 @@
 // PPC
 class ParticleCannon : MechProjectile
 {
+	double PowerKJ;
+	Property PowerKJ : PowerKJ;
+
 	bool disableFieldInhibitor;
 	Default
 	{
@@ -14,6 +17,16 @@ class ParticleCannon : MechProjectile
 		MechProjectile.Ranges 90, 1080;
 		MechProjectile.SpeedKPH 1400;
 		MechProjectile.ImpactSound "Energy/PPC/Impact";
+		ParticleCannon.PowerKJ 2500000;
+		Mass 0;
+	}
+
+	override double GetMonsterDamage(Actor victim) const
+	{
+		if(trueDamage <= 0) return 0;
+		
+		// The PPC doesn't really have mass, but it does exert joules.
+		return MechLaser.GetJoulesDamage(PowerKJ);
 	}
 
 	override void PostBeginPlay()

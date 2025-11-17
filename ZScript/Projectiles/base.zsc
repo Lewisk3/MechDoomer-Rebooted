@@ -82,6 +82,14 @@ class MechProjectile : FastProjectile
 		return cmPerTick / DrivableMech.GetUTOCM();
 	}
 	
+	clearscope double GetKPHFromSpeed()
+	{
+		double curSpeed = vel.Length();
+		double cmPerTic = curSpeed * DrivableMech.GetUTOCM();
+		double cmPerHr = (cmPerTic * TICRATE) * 3600.0;
+		return cmPerHr / 100000.0;
+	}
+	
 	virtual void playImpactSound(bool randomizedPitch = true)
 	{
 		double randomPitch = randomizedPitch ? 1.0 - frandom(-0.2, 0.6) : 0;
@@ -122,12 +130,21 @@ class MechProjectile : FastProjectile
 	
 	// Only called on non-mech targets.
 	// NOTE: All play-scope data accessed from this function must not be written to.
-	virtual clearscope double GetDamageModifier(Actor victim) const
+	virtual clearscope double GetMonsterDamage(Actor victim) const
 	{
 		// Always null-check victim if you overwrite this!
 		// Damage descriptions are generated with victim set to NULL.
+		
+		if(mass <= 0 || trueDamage <= 0) return 0;
 	
-		return MechHardpoint.DMGSCALE * DMG_DELT_MONSTER;
+		// Calculate real-world damage value using projectile speed and mass.
+		double roundWeight = mass * MASS_SCALAR; // KG per Round
+		double roundSpeed = (victim == NULL ? speedKPH : GetKPHFromSpeed()) * 0.28; // Meters Per Second
+
+		double kForce = 0.5 * (roundWeight * (roundSpeed*roundSpeed));
+		double dmg = ceil(kForce / 32);
+		
+		return dmg;
 	}
 	
 	virtual void UpdateVelocity()
@@ -138,6 +155,7 @@ class MechProjectile : FastProjectile
 	override int SpecialMissileHit(Actor victim)
 	{	
 		if(died || !victim.bSHOOTABLE || victim.bCORPSE || !victim.bSOLID) return 1;
+		double finalDamage = trueDamage;
 		
 		let hardpoint = MechHardpoint(target);
 		let hitHardpoint = MechHardpoint(victim);
@@ -160,12 +178,11 @@ class MechProjectile : FastProjectile
 			playImpactSound();
 
 		// Hit a non-vehicle
-		double damageMod = 1.0;
-		if( !(victim is "DrivableObjectPart") ) damageMod = GetDamageModifier(victim);
+		if( !(victim is "DrivableObjectPart") ) finalDamage = GetMonsterDamage(victim);
 		
 		if(!ripMax || rippedActors.Find(victim) == rippedActors.Size())
 		{
-			victim.DamageMobJ(self, master ? master : target, ceil(trueDamage * damageMod), DamageType, DMG_THRUSTLESS, angle);
+			victim.DamageMobJ(self, master ? master : target, ceil(finalDamage), DamageType, DMG_THRUSTLESS, angle);
 			// console.printf("Damaging for: %f damage", ceil(trueDamage * damageMod));
 			OnHit(victim, hitMech); 
 			if(ripMax && ripCount < ripMax)

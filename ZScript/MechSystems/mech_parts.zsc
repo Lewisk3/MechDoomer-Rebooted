@@ -243,7 +243,7 @@ class MechHardpoint : MechPart
 	Property CreatesDebris : doSpawnDebris;
 	
 	// Hardpoint damage scalar.
-	const DMGSCALE = DMG_SCALAR_MONSTER; // 0.025
+	const DMGSCALE = DMG_SCALAR_RECIEVED_MONSTER;
 	
 	Default
 	{

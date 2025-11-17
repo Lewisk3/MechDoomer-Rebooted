@@ -1,14 +1,7 @@
 version "4.10.0"
 
-
-// Constants
-const DMG_DELT_MONSTER = 18.0; // Multiplier for additional damage delt to non-mechs.
-
-// Multiplier for damage scaling against non-mechs.
-// Damage Recieved = DMG * SCALAR
-// Damage Delt = DMG / SCALAR
-const DMG_SCALAR_MONSTER = 0.065;
-
+// Internal Settings
+#include "skill_const.cfg"
 
 // Helper Libraries
 #include "ZScript/fx_helper.zsc"

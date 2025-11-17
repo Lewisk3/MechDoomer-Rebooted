@@ -285,6 +285,7 @@ class MechSRM : MechMissile
 		MechProjectile.FirePitch 0;
 		MechProjectile.Homing false;
 		MechProjectile.SpeedKPH 600;
+		Mass 8;
 	}
 }
 class MechSSRM : MechSRM
@@ -295,6 +296,7 @@ class MechSSRM : MechSRM
 		MechProjectile.Homing true;
 		MechMissile.HomingInaccuracy 20;
 		MechProjectile.SpeedKPH 700;
+		Mass 8;
 	}
 }
 
@@ -309,6 +311,7 @@ class MechMRM : MechMissile
 		MechProjectile.FirePitch 0;
 		MechProjectile.Homing false;
 		MechProjectile.SpeedKPH 500; 
+		Mass 4;
 	}
 }
 
@@ -324,6 +327,7 @@ class MechLRM : MechMissile
 		MechProjectile.Homing true;
 		MechMissile.HomingInaccuracy 15;
 		MechProjectile.SpeedKPH 400; 
+		Mass 5;
 	}
 }
 
@@ -339,6 +343,7 @@ class MechATM_STD : MechMissile
 		MechProjectile.SpeedKPH 800;
 		MechProjectile.Homing true;
 		MechMissile.HomingInaccuracy 10;
+		Mass 10;
 	}
 }
 class MechATM_ER : MechATM_STD
@@ -348,6 +353,7 @@ class MechATM_ER : MechATM_STD
 		MechProjectile.Dmg 1 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 120, 810;
 		MechProjectile.SpeedKPH 800;
+		Mass 10;
 	}
 }
 class MechATM_HE : MechATM_STD
@@ -357,6 +363,7 @@ class MechATM_HE : MechATM_STD
 		MechProjectile.Dmg 3 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 270;
 		MechProjectile.SpeedKPH 800;
+		Mass 10;
 	}
 }
 
@@ -379,6 +386,7 @@ class MechAAM : MechMissile // Anti-Air-Missile
 		MechAAM.ToHitChance 50;
 		
 		Scale 0.5;
+		Mass 0;
 	}
 	
 	override void Tick()

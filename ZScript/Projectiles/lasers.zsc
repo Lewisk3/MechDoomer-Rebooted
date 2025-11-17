@@ -7,6 +7,7 @@ class MechLaser : MechLaserBeam
 	Sound fireSound, impactSound;
 	MechLaser core;
 	double dmgAccumulator;
+	double energyOutputKJ; // Energy of laser, for use in non-mech damage.
 	Actor curVictim;
 	
 	Property FiringSound : fireSound, impactSound;
@@ -18,6 +19,13 @@ class MechLaser : MechLaserBeam
 		
 		MechLaser.FiringSound "Laser/Loop", "Laser/Impact";
 		MechLaserBeam.LaserColor "Red";
+	}
+	
+	// Returns damage of energy weapon based on joules.
+	// Only for use against non-mech enemies.
+	static clearscope double GetJoulesDamage(double kilojoules)
+	{
+		return ceil((kilojoules * MASS_SCALAR) / 32.0);
 	}
 	
 	void aimAtPos(vector3 aimPos)
@@ -129,8 +137,8 @@ class MechLaser : MechLaserBeam
 		{
 			if(!(hitActor is "DrivableObjectPart")) 
 			{
-				double monsterDmgMod = (MechHardpoint.DMGSCALE * DMG_DELT_MONSTER);
-				trueDamage *= monsterDmgMod;
+				double monsterDmg = GetJoulesDamage(energyOutputKJ);
+				trueDamage = monsterDmg;
 			}
 			
 			hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Fire");

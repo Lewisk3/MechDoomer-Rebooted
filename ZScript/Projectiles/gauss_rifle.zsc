@@ -17,20 +17,13 @@ class GaussCannon : MechProjectile
 		// MechProjectile.GlobalImpactSound true;
 		
 		MechProjectile.RipperCount 6;
+		Mass 80;
 	}
 
 	override void PostBeginPlay()
 	{
 		super.postBeginPlay();
 		FireRailgun();
-	}
-	
-	override double GetDamageModifier(Actor victim)
-	{
-		// Damage multiplier for non-mech targets.
-		// The damage should be, essentially, exactly 800 for non-mech targets.
-		double scalar = 800 / trueDamage;
-		return scalar;
 	}
 	
 	void LightningSparks()

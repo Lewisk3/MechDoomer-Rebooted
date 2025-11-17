@@ -11,6 +11,7 @@ class MechLaserWeapon : MechWeapon
 	Color laserColor;
 	double pulseSpeed;
 	Sound pulseSound;
+	double PowerKJ; // Determines damage when shooting non-mechs.
 	
 	override void Defaults()
 	{
@@ -25,8 +26,10 @@ class MechLaserWeapon : MechWeapon
 		statName.Push(" ");
 		statValue.Push(" ");
 		
+		double laserTime = maxLaserTime ? maxLaserTime : fireTime;
+		double dmgPerTic = MechLaser.GetJoulesDamage(PowerKJ);
 		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", (damage * fireTime * MechHardpoint.DMGSCALE) ));
+		statValue.Push(String.Format("%.2f", dmgPerTic * laserTime));
 		statName.Push("HEAT");
 		statValue.Push(String.Format("%.2f K", BHUToKelvin(laserHeat)));
 		statName.Push("COOLDOWN");
@@ -59,7 +62,7 @@ class MechLaserWeapon : MechWeapon
 		stats.Push("Range");
 		values.Push(String.Format("%dm", laserRange));
 		stats.Push("Raw Damage");
-		double dmgPerSec = damage * (TICRATE / double(fireTime));
+		double dmgPerSec = MechLaser.GetJoulesDamage(PowerKJ) * TICRATE;
 		values.Push(String.Format("%.2f/s", dmgPerSec));
 		stats.Push("Heat");
 		values.Push(String.Format("%.2f H/s", (laserHeat/6.5) * fireTime) );
@@ -104,6 +107,7 @@ class MechLaserWeapon : MechWeapon
 		WeapSound(fireSound);
 		laser = MechLaser.FireLaser(parent, firePos, damage, fireTime, range, laserRange, laserType);
 		laser.shade = laserColor;
+		laser.energyOutputKJ = PowerKJ;
 		
 		contLaserTime = fireTime;
 		return true;
@@ -172,7 +176,7 @@ class MechMissileWeapon : MechWeapon
 		
 		if(projDefs)
 		{
-			projDefs.trueDamage * projDefs.GetDamageModifier(null);
+			projRawDamage = projDefs.GetMonsterDamage(NULL);
 			
 			statName.Push("DAMAGE");
 			statValue.Push(String.Format("%.2f", (projRawDamage) * refireCount ));
@@ -243,7 +247,7 @@ class MechMissileWeapon : MechWeapon
 		{
 			minRange = projDefs.minRange;
 			maxRange = projDefs.maxRange;
-			double projRawDamage = projDefs.trueDamage * projDefs.GetDamageModifier(null);
+			double projRawDamage = projDefs.GetMonsterDamage(NULL);
 			dmg = (projRawDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE)) );
 		}
 		
@@ -354,10 +358,13 @@ class MechBallisticWeapon : MechWeapon
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
 		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
-		double projRawDamage = projDefs.trueDamage * projDefs.GetDamageModifier(null);
+		double projRawDamage = projDefs.GetMonsterDamage(NULL);
+	
+		string suffix = fireCount > 1 ? String.Format("x %d", fireCount) : "";
+		string DMGString = String.Format("%.2f %s", projRawDamage, suffix);
 	
 		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", projRawDamage));
+		statValue.Push(DMGString);
 		statName.Push("HEAT");
 		statValue.Push(String.Format("%.2f K", BHUTOKelvin(heat)));
 		statName.Push("FIRE RATE");
@@ -405,7 +412,7 @@ class MechBallisticWeapon : MechWeapon
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 		double minRange = projDefs.minRange;
 		double maxRange = projDefs.maxRange;
-		double projRawDamage = projDefs.trueDamage * projDefs.GetDamageModifier(null);
+		double projRawDamage = projDefs.GetMonsterDamage(NULL);
 		
 
 		stats.Push("Range");
