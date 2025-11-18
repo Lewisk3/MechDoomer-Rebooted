@@ -62,7 +62,7 @@ class MechControllerBase : Actor abstract
 		if(aimLeft) leftArm.AimAt(armAimPos);
 		if(aimRight) rightArm.AimAt(armAimPos);
 	}
-	vector2 GetMoveTowards(vector3 movePos)
+	vector3 GetMoveTowards(vector3 movePos)
 	{
 		vector3 walkingPos = Quat.FromAngles(mech.angle, 0, 0) * (1, 0, 0);
 		walkingPos = level.vec3offset(mech.pos, walkingPos);
@@ -73,11 +73,11 @@ class MechControllerBase : Actor abstract
 		
 		if(abs(coords.x) > 5)
 		{
-			if(coords.x < 0) return (1, dist);
-			if(coords.x > 0) return (-1, dist);
+			if(coords.x < 0) return ( 1, coords.x, dist);
+			if(coords.x > 0) return (-1, coords.x, dist);
 		}
 		
-		return (0, dist);
+		return (0, coords.x, dist);
 	}
 	
 	override void Tick()
@@ -87,12 +87,7 @@ class MechControllerBase : Actor abstract
 		
 		if(mech.getAge() < 2) return;
 		if(!mech.driver) mech.TakePilot(self);
-		
-		if(mech.shutdown)
-		{
-			mech.DoPowerup();
-		}
-		
+				
 		// Grab mech parts.
 		head = MechCockpit(mech.head);
 		leftArm = MechArm(mech.leftArm);
@@ -127,30 +122,149 @@ class AIMech_Demo : MechControllerBase
 		MechControllerBase.MechType "MechSummonerConfigA";
 	}
 
+	Array<MechWeapon> weapons;
+	Actor friend;
+
+	void DoJumpjet(bool onoff)
+	{
+		Array<MechItem> jets;
+		mech.FindAllItems("MechJumpJet", true, jets, skipDestroyed:true);
+		if(jets.Size())
+		{
+			foreach(jetItem : jets) 
+			{
+				let jet = MechJumpJet(jetItem);
+				if(jet) jet.SetJetState(onoff, checkFuel:true);
+			}
+		}
+	}
+	
+	void HandleWeapons(double targetDist, vector3 aimTarget)
+	{
+		if(target == friend) return;
+		double distMeters = DrivableMech.unitsToKM(targetDist) * 1000;
+		Array<MechWeapon> validWeapons;
+	
+		foreach(weap : weapons)
+		{
+			if(!weap) continue;
+			let laserWeap = MechLaserWeapon(weap);
+			let mislWeap = MechMissileWeapon(weap);
+			if(weap.CheckDestroyed() || weap.countAmmo() < weap.ammoUse) continue;
+			
+			let weapProj = laserWeap ? NULL : GetDefaultByType(weap.projType);
+			
+			double minRange = laserWeap ? 0 : weapProj.minRange;
+			double maxRange = laserWeap ? laserWeap.laserRange : weapProj.maxRange;
+			
+			if(distMeters < minRange || distMeters > maxRange) continue;
+			
+			// For all missile weapons, if they require lock and don't have it, discard them.
+			if(mislWeap && weapProj && weapProj.hasHoming && mech.targetProgress < 1.0) continue;
+			
+			validWeapons.push(weap);
+		}
+		
+		// Pick a weapon to fire
+		double inaccuracy = 20;
+		foreach(weap : validWeapons)
+		{
+			if(!weap) continue;
+			
+			let hardpoint = weap.mount.hardpoint;
+			vector3 aimFrom = hardpoint.lookingPos;
+			vector3 aimTo = level.sphericalCoords(aimFrom, aimTarget, (hardpoint.angle,hardpoint.pitch));
+			double aimDist = aimTo.z;
+			bool canHit = false;
+
+			double angTo = aimTo.x;
+			double pitTo = aimTo.y;
+			
+			if(abs(angTo) <= inaccuracy && abs(pitTo) <= (inaccuracy*2.5)) 
+				canHit = true;
+				
+			console.printf("Angle: %f, Pitch:%f, Dist:%f", angTo, pitTo, aimDist);
+			
+			if(canHit) weap.FireWeapon(weap);
+		}
+	}
+
+	bool toggleSight;
+
 	override void AIThink(bool poweredup)
 	{
-		if(!poweredup) return;
+		if(mech.CheckMechDestroyed()) return;
+		
+		if(weapons.Size() <= 0)
+		{
+			mech.GetAllWeapons(weapons, readDeadHardpoints:true);
+		}
+		
+		if(!poweredup)
+		{
+			if(mech.shutdown) mech.DoPowerup();
+			return;
+		}
 		
 		// Track target (test)
-		target = players[consoleplayer].mo; 
+		friend = players[consoleplayer].mo;
+		target = friend;
+		
+		if(DriverBtns.Get(BT_RELOAD, DriverBtns.BTS_PRESSED, friend))
+		{
+			toggleSight = !toggleSight;
+			if(toggleSight)
+			{
+				friend.player.camera = mech.cam;
+				torso.forceHideTorso = true;
+			}
+			else
+			{
+				friend.player.camera = friend;
+				torso.forceHideTorso = false;
+			}
+		}
+		
+		if(target == friend)
+		{
+			let actIt = BlockThingsIterator.Create(self, 2048);
+			while(actIt.Next())
+			{
+				let act = Actor(actIt.Thing);
+				if(!act || !act.bSOLID || !act.bSHOOTABLE) continue;
+				if(!IsVisible(act, true) || !act.target) continue;
+				
+				Actor hostileTarget = act.target;
+				if(hostileTarget is "MechHardpoint")
+					hostileTarget = MechHardpoint(hostileTarget).mech;
+				
+				if(hostileTarget == mech || hostileTarget == friend) target = act;
+			}
+		}
+		else if(!target || target.bCORPSE || !target.bSHOOTABLE)
+		{
+			target = friend;
+		}
 		
 		let moveData = GetMoveTowards(target.pos);
-		mech.throttle = DrivablesMath.fmap(clamp(moveData.y, 128, 512), 128, 512, 0, 1.0);
+		mech.throttle = DrivablesMath.fmap(clamp(moveData.z, 128, 512), 128, 512, 0, 1.0);
+		vector3 fw = (cos(angle), sin(angle), 0);
+		vector3 desired = (cos(angle - moveData.y), sin(angle - moveData.y), 0);
+		double diff = max(0, fw dot desired);
+		mech.throttle *= diff;
+		
 		mech.AI_Move(moveData.x);
 		
 		// Aim and Fire
 		vector3 firePos = (target.pos.xy, target.pos.z + (target.height * 0.5));
 		AimTowards(firePos, firePos);		
 		
-		// Get Weapon
-		int fireChance = 2;
-		Array<MechWeapon> armWeaps;
-		leftArm.getWeapons(armWeaps, 0, true);
+		// Weapon Logic
+		HandleWeapons(moveData.z, firePos);
 		
-		if(random[AIShoot](0,100) <= fireChance && armWeaps.Size() > 0)
-		{
-			armWeaps[0].FireWeapon(armWeaps[0], false);
-		}
+		// Jump Jets
+		bool jumpCondition = Distance3D(target) <= 512 && (target.pos.z-mech.pos.z) >= 32;
+		DoJumpjet(jumpCondition);
 	}
 }
 

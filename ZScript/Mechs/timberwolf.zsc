@@ -57,22 +57,22 @@ class MechTimberwolf : DrivableMech
 		
 		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
 		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
-		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
-		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
+		
+		rightTorso.AddWeapon("LRM15", GROUPFLG_THREE);
+		rightTorso.AddItem("LRMAmmo");
+		leftTorso.AddWeapon("LRM15", GROUPFLG_THREE);
+		leftTorso.AddItem("LRMAmmo");
+		
+		leftTorso.AddWeapon("MediumPulseLaser", GROUPFLG_FIVE);
 		
 		leftArm.AddItem("MechDoubleHeatsink");
 		rightArm.AddItem("MechDoubleHeatsink");
 		
 		rightTorso.AddWeapon("MachineGun", GROUPFLG_FOUR);
-		rightTorso.AddItem("MGAmmo");
 		torso.AddWeapon("MachineGun", GROUPFLG_FOUR);
-		
-		rightTorso.AddWeapon("LRM20", GROUPFLG_THREE);
-		rightTorso.AddItem("LRMAmmo");
-		leftTorso.AddWeapon("LRM20", GROUPFLG_THREE);
-		leftTorso.AddItem("LRMAmmo");
-		
-		leftTorso.AddWeapon("MediumPulseLaser", GROUPFLG_FOUR);
+		rightTorso.AddItem("MGAmmo");
 		
 		/*
 		torso.AddWeapon("MediumLaser", GROUPFLG_TWO);
@@ -90,13 +90,14 @@ class MechTimberwolf : DrivableMech
 }
 
 /*
-12 tons = 240pts Clan Ferro Armor
+12 tons = 300pts Clan Ferro Armor
+
 [HD] - 12
-[CT] - 48
-[LT] - 36
-[RT] - 36
-[LA] - 24
-[RA] - 24
+[CT] - 60
+[LT] - 46
+[RT] - 46
+[LA] - 38
+[RA] - 38
 [LL] - 30
 [RL] - 30
 */
@@ -136,8 +137,8 @@ class Timberwolf_CenterTorso : MechTorso
 		Radius 14;
 		Height 28;
 		
-		MechHardpoint.Vitals 48, 24;
-		MechHardpoint.SetupArmor 42, 6;
+		MechHardpoint.Vitals 60, 30;
+		MechHardpoint.SetupArmor 48, 12;
 		MechHardpoint.RearArmor true;
 	}	
 	
@@ -157,8 +158,8 @@ class Timberwolf_LeftArm : MechArm
 		MechHardpoint.HitBox 10,10, 23, -18,-32;
 		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
 		
-		MechHardpoint.Vitals 24, 12;
-		MechHardpoint.SetupArmor 24, 0;
+		MechHardpoint.Vitals 38, 19;
+		MechHardpoint.SetupArmor 38, 0;
 	}
 
 	override void SetupMounts()
@@ -175,8 +176,8 @@ class Timberwolf_RightArm : Timberwolf_LeftArm
 		MechHardpoint.HitBox 10,10, 23, 18,-32;
 		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
 
-		MechHardpoint.Vitals 24, 12;
-		MechHardpoint.SetupArmor 24, 0;
+		MechHardpoint.Vitals 38, 19;
+		MechHardpoint.SetupArmor 38, 0;
 	}
 	
 	override void SetupMounts()
@@ -195,8 +196,8 @@ class Timberwolf_LeftTorso : MechSideTorso
 		Height 20;
 		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
 		
-		MechHardpoint.Vitals 36, 18;
-		MechHardpoint.SetupArmor 32, 4;
+		MechHardpoint.Vitals 46, 23;
+		MechHardpoint.SetupArmor 36, 10;
 		MechHardpoint.RearArmor true;
 		MechHardpoint.CreatesDebris true;
 	}
@@ -218,8 +219,8 @@ class Timberwolf_RightTorso : MechSideTorso
 		Height 20;
 		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
 		
-		MechHardpoint.Vitals 36, 18;
-		MechHardpoint.SetupArmor 32, 4;
+		MechHardpoint.Vitals 46, 23;
+		MechHardpoint.SetupArmor 36, 10;
 		MechHardpoint.RearArmor true;
 		MechHardpoint.CreatesDebris true;
 	}	

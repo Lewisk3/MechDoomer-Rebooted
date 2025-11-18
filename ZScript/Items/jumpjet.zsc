@@ -10,6 +10,7 @@ class MechJumpJet : MechUtility
 	double rechargeRate;
 	double shakeIntensity;
 	bool throttled;
+	bool forceEnabled; // If true, jet is enabled regardless of BT_JUMP.
 
 	override void Defaults()
 	{
@@ -173,6 +174,17 @@ class MechJumpJet : MechUtility
 		if(exhaust) exhaust.Destroy();
 	}
 	
+	void SetJetState(bool onoff, bool checkFuel = false)
+	{
+		if(checkFuel && onoff && fuel < 30) 
+		{
+			forceEnabled = false;
+			return;
+		}
+		
+		forceEnabled = onoff;
+	}
+	
 	override void DoEffect()
 	{
 		super.DoEffect();
@@ -191,7 +203,7 @@ class MechJumpJet : MechUtility
 		vector3 basePos = parent.pos + (0,0,max(parent.height, parent.hitboxHeight)*0.5);
 		vector3 exhaustPos = level.vec3offset(basePos, jetDir * (-8,0,0)); 
 		
-		if( mech.getDriverBtn(BT_JUMP, DriverBtns.BTS_DOWN) && fuel > 0 && (jetTic || fuel >= 30) )
+		if( (forceEnabled || mech.getDriverBtn(BT_JUMP, DriverBtns.BTS_DOWN)) && fuel > 0 && (jetTic || fuel >= 30) )
 		{
 			double jumpDist = DrivableMech.unitsToKM(abs(mech.pos.z - prevZ)) * 1000.0;
 			PlayJetSound();

@@ -482,18 +482,18 @@ class MechHardpoint : MechPart
 		if(healthPoints <= 0) DestroyHardpoint(hpDmg);
 	
 		// Damage SFX
-		if(mech && mech.head && mech.driver)
+		if(mech && mech.head && mech.driver && mech.driver.player)
 		{
 			string dmgFlash = "FFFF0000";
 			if( (prevFrontArmor > 0 && frontArmor <= 0) || (prevRearArmor > 0 && rearArmor <= 0) )
 			{
-				mech.head.A_StartSound("Damage/NoArmor", CHAN_BODY, CHANF_OVERLAP);
+				mech.head.A_StartSound("Damage/NoArmor", CHAN_BODY, CHANF_OVERLAP|CHANF_LOCAL);
 				MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.5, 20);
 			}
 				
 			if(prevInternals > (maxHP * 0.3) && healthPoints <= (maxHP * 0.3))
 			{
-				mech.head.A_StartSound("Damage/CriticalInternals", CHAN_BODY, CHANF_OVERLAP);
+				mech.head.A_StartSound("Damage/CriticalInternals", CHAN_BODY, CHANF_OVERLAP|CHANF_LOCAL);
 				MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.7, 35);
 			}
 				
@@ -503,7 +503,7 @@ class MechHardpoint : MechPart
 				double threshold = mech.torso == self ? 0.5 : 0.35;
 				if( (healthPoints / maxHP <= threshold) && !mech.isCriticallyDamaged )
 				{
-					mech.head.A_StartSound("Damage/Critical", flags:CHANF_OVERLAP);
+					mech.head.A_StartSound("Damage/Critical", flags:CHANF_OVERLAP|CHANF_LOCAL);
 					mech.betty.Push("Betty/DamageCritical");
 					mech.isCriticallyDamaged = true;
 					MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.9, 35);
@@ -1151,6 +1151,7 @@ class MechTorso : MechHardpoint
 	double prevAngle, prevPitch;
 	double zAccel;
 	bool exploded; // True if torso went nuclear.
+	bool forceHideTorso; // If true, part will be invisible.
 	
 	bool infiniteTurnRange;
 	bool hideTorsoInCockpit;
@@ -1208,7 +1209,7 @@ class MechTorso : MechHardpoint
 		
 		let localPlayer = players[consoleplayer].mo;
 		bool localView = (mech.driver == localPlayer) && (mech.camActive == mech.cam);
-		bInvisible = (localView || exploded) && hideTorsoInCockpit;
+		bInvisible = forceHideTorso || ((localView || exploded) && hideTorsoInCockpit);
 		if(mech.legs) mech.legs.bInvisible = exploded;
 		
 		vector3 shake = (
