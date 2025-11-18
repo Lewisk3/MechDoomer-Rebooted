@@ -1439,6 +1439,10 @@ class MechArm : MechHardpoint
 	property PitchRange : pitchMin, pitchMax;
 	vector2 convergeAngles;
 	
+	// These are mostly used for AI.
+	bool manualAim; // If true, does not track driver angles automatically.
+	vector3 manualAimPos; // Used to specify the aiming pos of the arm, if manualAim is enabled.
+	
 	// If true, ignores the maximum actuation range, and will always fire towards the center of the driver's aim.
 	Property UnlimitedActuation : unlimitedActuation; 
 	
@@ -1466,6 +1470,17 @@ class MechArm : MechHardpoint
 		DrivablesMath.ClampAngles(a, torso.angle, aimMax);
 		p = clamp(p, -(pitchMin+torso.pitchMin), pitchMax+torso.pitchMax);
 	}
+	
+	void AimAt(vector3 aimPos)
+	{
+		manualAim = true;
+		manualAimPos = aimPos;
+	}
+	void StopAiming()
+	{
+		manualAim = false;
+		manualAimPos = (0,0,0);
+	}
 		
 	override void UpdateAngles()
 	{
@@ -1481,6 +1496,30 @@ class MechArm : MechHardpoint
 		
 		if( !mech.driver ) return;
 		
+		if(manualAim)
+		{
+			vector3 aimingPos = manualAimPos; 
+			vector2 aimAngles = (angle, pitch);
+			vector3 shootPos = mountPoints.Size() <= 0 ? torso.OffsetPos(30,0,0) : mountPoints[0].getPos(true);	
+			
+			shootPos += Quat.FromAngles(angle, pitch, roll) * (20,0,0);
+			
+			vector3 sphere = level.SphericalCoords(shootPos, aimingPos, (angle, pitch));
+		
+			vector3 convergeSphere = level.SphericalCoords(pos, aimingPos, (angle, pitch));
+			convergeAngles = convergeSphere.xy;
+		
+			aimAngles -= sphere.xy * 0.25;
+			if(!unlimitedActuation) ClampAngles(aimAngles.x, aimAngles.y);
+			
+			lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
+			
+			angle = aimAngles.x;
+			pitch = aimAngles.y;
+			return;
+		}
+		
+		// Automatic Aim
 		vector3 aimingPos = mech.aimingPos; 
 		if(mech.torsoLock) aimingPos = mech.head.lookingPos;
 		
@@ -1504,16 +1543,19 @@ class MechArm : MechHardpoint
 	{
 		let torso = MechTorso(mech.torso);
 		if(!torso) return;
-		
-		if(!mech.torsoLock)
+
+		if(!manualAim)
 		{
-			DrivablesMath.AngleSlerp(angle, driver.angle - (convergeAngles.x * 0.5), aimMax);
-			DrivablesMath.AngleSlerp(pitch, (driver.pitch + pitchOffs) - (convergeAngles.y * 0.5), 0.5 * (abs(pitchMin)+abs(pitchMax)) );
-		}
-		else
-		{
-			A_SetAngle(torso.angle, SPF_INTERPOLATE);
-			A_SetPitch(torso.pitch + pitchOffs, SPF_INTERPOLATE);
+			if(!mech.torsoLock)
+			{
+				DrivablesMath.AngleSlerp(angle, driver.angle - (convergeAngles.x * 0.5), aimMax);
+				DrivablesMath.AngleSlerp(pitch, (driver.pitch + pitchOffs) - (convergeAngles.y * 0.5), 0.5 * (abs(pitchMin)+abs(pitchMax)) );
+			}
+			else
+			{
+				A_SetAngle(torso.angle, SPF_INTERPOLATE);
+				A_SetPitch(torso.pitch + pitchOffs, SPF_INTERPOLATE);
+			}
 		}
 		
 		//A_SetAngle(angle - (convergeAngles.x * 0.25), SPF_INTERPOLATE);	

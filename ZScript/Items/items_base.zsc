@@ -1719,6 +1719,28 @@ class MechWeapon : MechItem
 		}
 	}
 	
+	play static bool FireWeapon(MechWeapon weap, bool instantFire = false)
+	{		
+		let hardpoint = weap.parent;
+		if(!hardpoint || !weap) return false;
+		if(weap.checkDestroyed()) return false; // Cannot fire destroyed weapons.	
+		
+		weap.preFire();
+		if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.getFirePos()))
+		{
+			// Alert monsters
+			if(weap.mech.driver)
+				weap.mech.driver.A_AlertMonsters(1024);
+		
+			weap.modifyHeat(weap.heat);
+			weap.modifyEnergy(weap.energyUse);
+			weap.cooldown += weap.getCooldownTime();
+			return true;
+		}
+		
+		return false;
+	}
+	
 	override void Defaults()
 	{
 		super.Defaults();

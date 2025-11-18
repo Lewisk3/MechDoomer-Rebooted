@@ -1,0 +1,156 @@
+class MechControllerBase : Actor abstract
+{
+	class<DrivableMech> mechType;
+	DrivableMech mech;
+	DrivableMech targetMech;
+	
+	MechCockpit head;
+	MechTorso torso;
+	MechArm leftArm, rightArm;
+	MechSideTorso leftTorso, rightTorso;
+	MechLeg leftLeg, rightLeg;
+	
+	Property MechType : mechType;
+
+	Default
+	{
+		+NOINTERACTION;
+		MechControllerBase.MechType "NONE";
+	}
+	
+	override void PostBeginPlay()
+	{
+		super.PostBeginPlay();
+		SetupMech(mechType);
+	}
+	
+	void SetupMech(class<DrivableMech> mechType)
+	{
+		if(!mechType) return;
+		let spMech = DrivableMech(Spawn(mechType, pos));
+		mech = spMech;
+		angle = mech.angle;
+	}
+	
+	virtual void SimpleTick()
+	{
+		if (isFrozen()) return;
+			
+		//animation:
+		if (tics != -1) 
+		{
+			if(tics > 0) tics--;
+			while (!tics) 
+				if(!SetState(CurState.NextState)) return;
+		}
+	}
+	
+	void AimTowards(vector3 aimPos, vector3 armAimPos, bool aimTorso = true, bool aimLeft = true, bool aimRight = true)
+	{		
+		vector3 lookingPos = Quat.FromAngles(angle, pitch, 0) * (mech.torso.radius, 0, 0);
+		lookingPos = level.vec3offset(mech.torso.pos, lookingPos);
+		
+		vector3 coords = level.SphericalCoords(lookingPos, aimPos, (angle, pitch));
+		if(aimTorso)
+		{
+			angle -= coords.x;
+			pitch -= coords.y;
+		}
+		
+		let leftArm = MechArm(mech.leftArm);
+		let rightArm = MechArm(mech.rightArm);
+		if(aimLeft) leftArm.AimAt(armAimPos);
+		if(aimRight) rightArm.AimAt(armAimPos);
+	}
+	vector2 GetMoveTowards(vector3 movePos)
+	{
+		vector3 walkingPos = Quat.FromAngles(mech.angle, 0, 0) * (1, 0, 0);
+		walkingPos = level.vec3offset(mech.pos, walkingPos);
+		
+		vector3 coords = level.SphericalCoords(walkingPos, movePos, (mech.angle, 0));
+		coords.x *= -1;
+		double dist = coords.z;
+		
+		if(abs(coords.x) > 5)
+		{
+			if(coords.x < 0) return (1, dist);
+			if(coords.x > 0) return (-1, dist);
+		}
+		
+		return (0, dist);
+	}
+	
+	override void Tick()
+	{
+		SimpleTick();
+		if(!mech) return;
+		
+		if(mech.getAge() < 2) return;
+		if(!mech.driver) mech.TakePilot(self);
+		
+		if(mech.shutdown)
+		{
+			mech.DoPowerup();
+		}
+		
+		// Grab mech parts.
+		head = MechCockpit(mech.head);
+		leftArm = MechArm(mech.leftArm);
+		rightArm = MechArm(mech.rightArm);
+		leftTorso = MechSideTorso(mech.leftTorso);
+		rightTorso = MechSideTorso(mech.rightTorso);
+		torso = MechTorso(mech.torso);
+		leftLeg = MechLeg(mech.leftLeg);
+		rightLeg = MechLeg(mech.rightLeg);
+		
+		AIThink(mech.checkPoweredUp());		
+	}
+	
+	virtual void AIThink(bool poweredup)
+	{
+		// Used for child classes, AI Logic.
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A -1;
+		stop;
+	}
+}
+
+// AI Controllers
+class AIMech_Demo : MechControllerBase
+{
+	Default
+	{
+		MechControllerBase.MechType "MechSummonerConfigA";
+	}
+
+	override void AIThink(bool poweredup)
+	{
+		if(!poweredup) return;
+		
+		// Track target (test)
+		target = players[consoleplayer].mo; 
+		
+		let moveData = GetMoveTowards(target.pos);
+		mech.throttle = DrivablesMath.fmap(clamp(moveData.y, 128, 512), 128, 512, 0, 1.0);
+		mech.AI_Move(moveData.x);
+		
+		// Aim and Fire
+		vector3 firePos = (target.pos.xy, target.pos.z + (target.height * 0.5));
+		AimTowards(firePos, firePos);		
+		
+		// Get Weapon
+		int fireChance = 2;
+		Array<MechWeapon> armWeaps;
+		leftArm.getWeapons(armWeaps, 0, true);
+		
+		if(random[AIShoot](0,100) <= fireChance && armWeaps.Size() > 0)
+		{
+			armWeaps[0].FireWeapon(armWeaps[0], false);
+		}
+	}
+}
+

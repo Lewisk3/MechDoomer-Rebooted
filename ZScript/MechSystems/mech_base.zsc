@@ -810,11 +810,6 @@ class DrivableMech : DrivableObject
 		double fm, sm;
 		[fm, sm] = GetMoveInputs();
 		
-		if(driver.player)
-		{
-			UserCmd cmd = driver.player.cmd;
-		}
-	
 		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
 		{
 			// Unused 
@@ -906,7 +901,7 @@ class DrivableMech : DrivableObject
 			// No turning
 			angVel = 0;
 		}
-		else
+		else if(driver.player)
 		{
 			if(sv_mdr_simplemechmovement)
 				DoSimpleMovement(fm, sm);
@@ -984,6 +979,35 @@ class DrivableMech : DrivableObject
 		if(cv_throttleDecay && cv_throttleDecay.getBool() && !fm)
 			throttle *= 0.94;
 		
+	}
+	
+	// Used for AI-Controlled mechs
+	virtual void AI_Move(double turnDir, bool turnDriver = true)
+	{
+		// Movement Math
+		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
+		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
+		
+		let mtorso = MechTorso(torso);
+		if(mtorso) mtorso.infiniteTurnRange = mtorso.default.infiniteTurnRange;	
+		
+		// Slow down while turning
+		if(vel.xy.length() && onground)
+		{
+			double dist = vel.xy.length();
+			double omega = abs(angVel);
+			double pushBack = (dist * (omega*0.04));
+			vector2 dir = AngleToVector(angle);
+			angVel -= DrivablesMath.sign(angVel)*(pushBack * 6.7); 
+			vel.xy -= dir * (pushBack * 0.33);
+		}
+		
+		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
+		
+		angVel -= legTurnSpeed * DrivablesMath.sign(turnDir);
+		angle += angVel;
+						
+		if(turnDriver) driver.angle += angVel;
 	}
 	
 	virtual void DoSimpleMovement(double fm, double sm, bool useTurnSpeed = true)
@@ -1067,6 +1091,11 @@ class DrivableMech : DrivableObject
 		
 		torso.oldAngleOffs.y = 0;
 		head.oldAngleOffs.y  = 0;
+	}
+	
+	virtual bool CheckPoweredUp()
+	{
+		return !shutdown && powerupCycleTics <= 0;
 	}
 	
 	override void OnDrive()
@@ -1235,7 +1264,7 @@ class DrivableMech : DrivableObject
 	{	
 		super.DoPhysics();
 		
-		if(!sv_mdr_simplemechmovement)
+		if( !sv_mdr_simplemechmovement || (driver && !driver.player) )
 			DoThrottleAcceleration();
 			
 		double airFriction = 0.997;
@@ -1699,7 +1728,7 @@ class I_SaveMechData : Inventory
 		mechData.mechbayID = getAvailableMechbay();
 	}
 	
-	play DrivableMech CreateMech(class<DrivableMech> mechClass)
+	play static DrivableMech CreateMech(class<DrivableMech> mechClass)
 	{
 		let mech = DrivableMech(Spawn(mechClass));
 		if(mech)
