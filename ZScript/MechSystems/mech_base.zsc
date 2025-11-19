@@ -337,9 +337,17 @@ class DrivableMech : DrivableObject
 		return sv_mdr_mechscale;
 	}
 	
-	virtual void AcquireTarget(bool requireSight = true)
+	// If toTarget is NULL, then we this will automatically choose the closest target.
+	virtual void AcquireTarget(Actor toTarget = NULL, bool requireSight = true)
 	{
 		if(!head) return;
+		
+		if(toTarget && (head.IsVisible(toTarget, true) || !requireSight) ) 
+		{
+			curTarget = toTarget;
+			return;
+		}
+		
 		let it = ThinkerIterator.Create();
 		Actor act;
 		double angleDist = double.infinity;
@@ -779,13 +787,7 @@ class DrivableMech : DrivableObject
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
 		{
-			Actor prevTarget = curTarget;
-			AcquireTarget();
-			if(curTarget != prevTarget)
-			{
-				betty.Push("Betty/Targetting");
-				DoCockpitSound("Mech/Target/New");
-			}
+			DoLockOnTarget();
 		}
 						
 		// Group customization
@@ -802,6 +804,17 @@ class DrivableMech : DrivableObject
 
 			if( getExtBtn(BT_GROUPCHF, DriverBtns.BTS_PRESSED) )
 				group.chainfire = !group.chainfire;
+		}
+	}
+	
+	virtual void DoLockOnTarget(Actor toTarget = NULL, bool requireSight = true)
+	{
+		Actor prevTarget = curTarget;
+		AcquireTarget(toTarget, requireSight);
+		if(curTarget != prevTarget)
+		{
+			betty.Push("Betty/Targetting");
+			DoCockpitSound("Mech/Target/New");
 		}
 	}
 	

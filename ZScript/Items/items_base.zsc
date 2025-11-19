@@ -1739,6 +1739,18 @@ class MechWeapon : MechItem
 		group = 1;
 	}
 	
+	virtual double getHeatGen()
+	{
+		return heat * max(1, refireCount) * fireTime;
+	}
+	
+	virtual double getDamageOutput()
+	{
+		let proj = projType ? GetDefaultByType(projType) : NULL;
+		double dmgOut = proj ? (proj.trueDamage * MechHardpoint.DMGSCALE * max(1, refireCount)) : damage;
+		return dmgOut;
+	}
+	
 	virtual bool DoRefire()
 	{
 		refire = refireCount;

@@ -1,0 +1,210 @@
+class MechAI_Standard : MechAIControllerBase
+{
+	double maxFireCost;
+	double fireTimer, fireWait;
+	
+	Property MaxFireCost : maxFireCost;
+	Property FireWait : fireWait;
+
+	Default
+	{
+		MechAIControllerBase.MechType "MechTimberwolf";
+		MechAI_Standard.MaxFireCost 100;
+		MechAI_Standard.FireWait 35;
+	}
+	
+	vector2 ranges;
+	int newTargetWait;
+	Array<MechWeapon> weapons;
+	Actor friend;
+	
+	void HandleWeapons(double targetDist, vector3 aimTarget)
+	{
+		fireTimer = max(0, fireTimer);
+		if(target == friend || !target || --fireTimer > 0) return;
+		
+		Array<MechWeapon> validWeapons;
+		ranges = GetValidWeapons(targetDist, aimTarget, 20, validWeapons);
+		
+		// Sort weapons by Damage Per Heat, 
+		// discard weapons that would cause an overheat, unless 
+		// we've got no weapons left.
+		// Weapons that have ammo are also prioritized less.
+		
+		Array<int> weapCosts;
+		weapCosts.Resize(validWeapons.Size());
+		
+		Array<MechWeapon> sortedWeapons;
+				
+		console.printf("--- START DEBUG ---");
+		foreach(weap : validWeapons)
+		{
+			double curHeat = mech.curHeat;
+			double weapHeat = weap.getHeatGen();
+			
+			// Calculate relative cost.
+			double curAmmoPerc = 1.0;
+			if(weap.ammoUse < 1)
+			{
+				curAmmoPerc = DrivablesMath.fmap(
+					min(weap.countAmmo(),1000), 
+					0, 1000, 0, 1.0
+				);
+			}
+			double DPH = weap.getDamageOutput() / max(1,weapHeat);
+			double rawCost = floor(DPH * curAmmoPerc);
+			
+			sortedWeapons.push(weap);
+			int weapIndex = sortedWeapons.Find(weap);
+			weapCosts[weapIndex] = rawCost;
+			
+			console.printf("[%d]: %s => Cost - %d", weapIndex, weap.getClassName(), rawCost);
+		}
+		
+		// Pick a weapon to fire
+		double combatPoints = maxFireCost;
+		while(combatPoints > 0 && sortedWeapons.Size() > 0)
+		{
+			double bestCost = -1;
+			MechWeapon desiredWeap = NULL;
+			
+			for(int i = 0; i < sortedWeapons.Size(); i++)
+			{
+				let weap = sortedWeapons[i];
+				if(!weap) continue;
+				
+				// Check Heat
+				double curHeat = mech.curHeat;
+				double weapHeat = weap.getHeatGen();
+				double avoidHeat = mech.kelvinToBHU(mech.maxKelvin * 0.7);
+				if( (curHeat + weapHeat >= avoidHeat) && sortedWeapons.Size() > 2 ) continue;
+				
+				// Find the best weapon for the cost.
+				double cost = weapCosts[i];
+				if(cost > combatPoints) continue;
+				
+				if(bestCost < 0 || cost > bestCost)
+				{
+					bestCost = cost;
+					desiredWeap = weap;
+				}
+			}
+			if(!desiredWeap) break;
+			
+			combatPoints -= bestCost;
+			MechWeapon.FireWeapon(desiredWeap);
+			sortedWeapons.Delete(sortedWeapons.Find(desiredWeap));
+			
+			console.printf("Fired: %s [Costed: %d, Remains: %d]", desiredWeap.getClassName(), bestCost, combatPoints);
+		}
+		console.printf("--- END DEBUG ---");
+		
+		fireTimer = fireWait;
+	}
+
+	bool toggleSight;
+	override void AIThink(bool poweredup)
+	{
+		if(mech.CheckMechDestroyed()) return;
+		
+		if(weapons.Size() <= 0)
+		{
+			mech.GetAllWeapons(weapons, readDeadHardpoints:true);
+		}
+		
+		if(!poweredup)
+		{
+			if(!mech.heatShutdown && mech.shutdown) 
+				mech.DoPowerup();
+			return;
+		}
+		
+		// Settings
+		friend = players[consoleplayer].mo;
+		
+		// Camera		
+		if(DriverBtns.Get(BT_RELOAD, DriverBtns.BTS_PRESSED, friend))
+		{
+			toggleSight = !toggleSight;
+			if(toggleSight)
+			{
+				friend.player.camera = mech.cam;
+				torso.forceHideTorso = true;
+			}
+			else
+			{
+				friend.player.camera = friend;
+				torso.forceHideTorso = false;
+			}
+		}
+		
+		// Find Target
+		if(--newTargetWait <= 0)
+		{
+			if(!target) target = friend;
+			if(target == friend)
+			{
+				let actIt = BlockThingsIterator.Create(self, 2048);
+				while(actIt.Next())
+				{
+					let act = Actor(actIt.Thing);
+					if(!act || !act.bSOLID || !act.bSHOOTABLE) continue;
+					if(!IsVisible(act, true) || !act.target) continue;
+					
+					Actor hostileTarget = act.target;
+					if(hostileTarget is "MechHardpoint")
+						hostileTarget = MechHardpoint(hostileTarget).mech;
+					
+					if(hostileTarget == mech || hostileTarget == friend) 
+					{
+						target = act;
+					}
+				}
+			}
+			else if(target.bCORPSE || !target.bSHOOTABLE)
+			{
+				target = NULL;
+				newTargetWait = TICRATE;
+			}
+		}
+		newTargetWait = max(0, newTargetWait);
+		if(!target) return;
+		
+		// Movement
+		if(target == friend) ranges *= 0;
+		
+		ranges.x = max(40, ranges.x);
+		if(ranges.y < ranges.x) ranges.y = 2 * ranges.x;
+		
+		let moveData = GetMoveTowards(target.pos);
+		double meterDist = getMeterDistance(moveData.z);
+		
+		if(meterDist < ranges.x)
+			mech.throttle = -0.5;
+		else
+		{
+			mech.throttle = DrivablesMath.fmap(
+				clamp(meterDist, ranges.x, ranges.y), ranges.x, ranges.y, 
+				0, 1.0
+			);
+		}
+			
+		vector3 fw = (cos(angle), sin(angle), 0);
+		vector3 desired = (cos(angle - moveData.y), sin(angle - moveData.y), 0);
+		double diff = max(0, fw dot desired);
+		mech.throttle *= diff;
+		
+		mech.AI_Move(moveData.x);
+		
+		// Aim and Fire
+		vector3 firePos = (target.pos.xy, target.pos.z + (target.height * 0.5));
+		AimTowards(firePos, firePos);		
+		
+		// Weapon Logic
+		HandleWeapons(moveData.z, firePos);
+		
+		// Jump Jets
+		bool jumpCondition = Distance3D(target) <= 512 && (target.pos.z-mech.pos.z) >= 32;
+		DoJumpjet(jumpCondition);
+	}
+}

@@ -18,6 +18,16 @@ class MechLaserWeapon : MechWeapon
 		template = true;
 	}
 	
+	override double getHeatGen()
+	{
+		return laserHeat * fireTime;
+	}
+	
+	override double getDamageOutput()
+	{
+		return damage * fireTime;
+	}
+	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue);
@@ -161,6 +171,11 @@ class MechMissileWeapon : MechWeapon
 	override void Defaults()
 	{	
 		template = true;
+	}
+	
+	override double getHeatGen()
+	{
+		return heat * max(1, refireCount);
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -346,6 +361,11 @@ class MechBallisticWeapon : MechWeapon
 	override void Defaults()
 	{	
 		template = true;
+	}
+	
+	override double getHeatGen()
+	{
+		return heat * max(1, refireCount);
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
