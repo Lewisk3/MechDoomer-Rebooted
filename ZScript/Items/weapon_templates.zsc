@@ -368,6 +368,11 @@ class MechBallisticWeapon : MechWeapon
 		return heat * max(1, refireCount);
 	}
 	
+	override double getDamageOutput()
+	{
+		return super.getDamageOutput() * max(1, fireCount);
+	}
+	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue);

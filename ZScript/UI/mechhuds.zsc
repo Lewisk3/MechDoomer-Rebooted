@@ -33,7 +33,7 @@ class MechHUD : VehicleHUD
 		*/
 				
 		// After the crimes and times have been paid, draw the rest of the HUD.
-		if(!mech.shutdown)
+		if(!mech.shutdown && !mech.hideHUD)
 		{
 			double FOV = viewer.player ? viewer.player.FOV : viewer.CameraFOV;
 			let viewproj = MWDrawer.GetRenderEventViewProj(e, FOV);

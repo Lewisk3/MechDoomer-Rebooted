@@ -29,7 +29,7 @@ class MechAIControllerBase : Actor abstract
 		if(!mechType) return;
 		let spMech = DrivableMech(Spawn(mechType, pos));
 		mech = spMech;
-		angle = mech.angle;
+		mech.angle = angle;
 	}
 	
 	virtual void SimpleTick()
@@ -50,22 +50,25 @@ class MechAIControllerBase : Actor abstract
 		return DrivableMech.unitsToKM(units) * 1000;
 	}
 	
-	void AimTowards(vector3 aimPos, vector3 armAimPos, bool aimTorso = true, bool aimLeft = true, bool aimRight = true)
+	// Returns aim difference.
+	double AimTowards(vector3 aimPos, vector3 armAimPos, double rate = 1.0, bool aimTorso = true, bool aimLeft = true, bool aimRight = true)
 	{		
-		vector3 lookingPos = Quat.FromAngles(angle, pitch, 0) * (mech.torso.radius, 0, 0);
+		vector3 lookingPos = Quat.FromAngles(mech.torso.angle, mech.torso.pitch, 0) * (mech.torso.radius, 0, 0);
 		lookingPos = level.vec3offset(mech.torso.pos, lookingPos);
 		
 		vector3 coords = level.SphericalCoords(lookingPos, aimPos, (angle, pitch));
 		if(aimTorso)
 		{
-			angle -= coords.x;
-			pitch -= coords.y;
+			angle -= (coords.x * rate);
+			pitch -= (coords.y * rate);
 		}
 		
 		let leftArm = MechArm(mech.leftArm);
 		let rightArm = MechArm(mech.rightArm);
 		if(aimLeft) leftArm.AimAt(armAimPos);
 		if(aimRight) rightArm.AimAt(armAimPos);
+		
+		return (abs(coords.x) + abs(coords.y));
 	}
 	vector3 GetMoveTowards(vector3 movePos)
 	{

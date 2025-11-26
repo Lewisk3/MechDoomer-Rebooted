@@ -1150,7 +1150,7 @@ class MechTorso : MechHardpoint
 	double turnDir;
 	double prevAngle, prevPitch;
 	double zAccel;
-	bool exploded; // True if torso went nuclear.
+	bool exploded, alwaysExplode; // True if torso went nuclear.
 	bool forceHideTorso; // If true, part will be invisible.
 	
 	bool infiniteTurnRange;
@@ -1190,7 +1190,7 @@ class MechTorso : MechHardpoint
 	
 	override void DestroyHardpoint(double hitDamage)
 	{
-		if(frandom[NukeChance](0,100) <= 25)
+		if(frandom[NukeChance](0,100) <= 25 && !alwaysExplode)
 		{
 			doSpawnDebris = false;	
 			// console.printf("Did not explode!");
@@ -1348,6 +1348,7 @@ class MechCockpit : MechHardpoint
 	double bobRollOffs;
 	double bobHeightOffs;
 	double TiltOsc, StepOsc;
+	bool forceVisible; // Always enable cockpit visuals if true.
 	
 	Default
 	{
@@ -1384,7 +1385,7 @@ class MechCockpit : MechHardpoint
 		
 		// Become invisible if we're not currently looking through the cockpit.
 		let localPlayer = players[consoleplayer].mo;
-		bInvisible = (mech.camActive is "ThirdpersonCamera") || localPlayer != mech.driver;
+		bInvisible = !forceVisible && ((mech.camActive is "ThirdpersonCamera") || localPlayer != mech.driver);
 
 		parentOffset.z = defz;// + bobHeightOffs; 
 		

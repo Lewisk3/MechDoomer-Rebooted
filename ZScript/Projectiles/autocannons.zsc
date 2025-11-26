@@ -109,7 +109,7 @@ class MechAutocannon : MechProjectile
 		}
 	}
 	
-	virtual void DoDebris()
+	override void DoDebris(Actor hitActor)
 	{
 		if(overlay || died) return; // Overlays do not have debris.
 
@@ -122,15 +122,6 @@ class MechAutocannon : MechProjectile
 		}
 		
 		died = true;
-	}
-	
-	States
-	{	
-		Crash:
-		Death:
-		XDeath:
-			TNT1 A 1 DoDebris();
-		stop;
 	}
 }
 
@@ -415,11 +406,44 @@ class MGBullet : MechAutocannon
 		super.HandleRanges();
 		if(curDist >= maxRange) Destroy();
 	}
+	
+	void DoSparks()
+	{
+		for(int i = 0; i < 3; i++)
+		{
+			vector3 spawnOffs = (
+				frandom[ImpactFX](-1,1),
+				frandom[ImpactFX](-1,1),
+				frandom[ImpactFX](-1,1)
+			) * 10;
+			
+			vector3 spawnPos = DrivablesMath.RelativeV3Offset(self, 0,0,0, spawnOffs.x, spawnOffs.y, spawnOffs.z);
+			FXLightning.DoLightning(
+				spawnPos,
+				(180 + angle + frandom[ImpactFX](-45,45), frandom[ImpactFX](-30,30)),
+				dist:15,
+				stepsize:0.2,
+				strength:3.0,
+				roughness:frandom[ImpactFX](10,20),
+				branchchance:75
+			);
+			// Ember
+			EffectsHelper.SpawnFX("MissileEmber", 8, spawnPos, (angle+180, -pitch, roll), 3, (4,4,0), (45,30,0), 3);
+		}
+	}
 
-	override void DoDebris()
+	override void DoDebris(Actor hitActor)
 	{
 		if(died) return;
 		SpawnEffect("AutocannonExplosion", pos);
+		
+		// Random chance to spawn spark effect.
+		bool hitMech = hitActor is "MechPart";
+		if(hitMech && random[ImpactFX](0,100) <= 5) 
+		{	
+			DoSparks();
+		}
+		
 		died = true;
 	}
 

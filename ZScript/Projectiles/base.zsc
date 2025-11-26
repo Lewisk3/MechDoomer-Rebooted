@@ -64,6 +64,9 @@ class MechProjectile : FastProjectile
 	{
 		if(impactSnd) // Play Impact sound effect.
 			playImpactSound();
+			
+		// Spawn Debris
+		DoDebris();
 						
 		died = true;
 	}
@@ -194,6 +197,8 @@ class MechProjectile : FastProjectile
 			}
 		}
 		
+		// Spawn Debris on actor.
+		DoDebris(victim);
 		return -1;
 	}
 	
@@ -206,6 +211,11 @@ class MechProjectile : FastProjectile
 		if(trail) trail.A_SetScale(trail.default.Scale.X * scale.X);
 		
 		return trail;
+	}
+	
+	virtual void DoDebris(Actor hitActor = NULL)
+	{
+		// Spawn Debris on impact.
 	}
 	
 	virtual void HandleRanges()

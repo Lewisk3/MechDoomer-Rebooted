@@ -20,6 +20,7 @@ class DrivableMech : DrivableObject
 	double mechvalue; // Mech cbill value;
 	string manufacturer; // Used for UI properties.
 	bool cannotPurchase; // If true, this mech is not purchasable via the shop.
+	bool hideHUD; // If true, HUD is not drawn.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -555,6 +556,18 @@ class DrivableMech : DrivableObject
 		return totalAmmo;
 	}
 	
+	clearscope virtual int countMaxAmmo(class<MechAmmo> type)
+	{
+		Array<MechItem> ammos;
+		FindAllItems(type, false, ammos, skipDestroyed:true);
+		
+		int totalAmmo = 0;
+		for(int i = 0; i < ammos.Size(); i++)
+			totalAmmo += MechAmmo(ammos[i]).maxAmmo;
+		
+		return totalAmmo;
+	}
+	
 	virtual void FireWeapons(uint grp = 0, bool instantFire = false)
 	{
 		Array<MechWeapon> weaps;
@@ -657,7 +670,7 @@ class DrivableMech : DrivableObject
 		AttachPart(camDrone, self);
 	}
 	
-	void DoCockpitSound(Sound snd, int channel = CHAN_BODY, int flags = CHANF_OVERLAP, double volume = 1.0)
+	void DoCockpitSound(Sound snd, int channel = CHAN_BODY, int flags = CHANF_OVERLAP | CHANF_LOCAL, double volume = 1.0)
 	{
 		if(!head) return;
 		head.A_StartSound(snd, channel, flags, volume);
@@ -1114,7 +1127,7 @@ class DrivableMech : DrivableObject
 	override void OnDrive()
 	{	
 		// Don't do anything if the driver is dead.
-		if(driver && driver.health <= 0 || driver.bCORPSE) return;
+		if( driver && (driver.health <= 0 || driver.bCORPSE) ) return;
 	
 		super.OnDrive();
 		
@@ -1128,7 +1141,10 @@ class DrivableMech : DrivableObject
 			if(!overrideShutdown) 
 				DoShutdown();
 			else
+			{
 				heatShutdown = false;
+				return;
+			}
 				
 			shutdownTimer = 0;
 			if(heatShutdown)
@@ -1160,8 +1176,11 @@ class DrivableMech : DrivableObject
 		
 		if(curHeat > kelvinToBHU(maxKelvin * 0.85) && !heatShutdown && !shutdown)
 		{
-			if(!overrideShutdown) betty.Push("Betty/Heat/CriticalShutdown");
-			shutdownTimer = 35*3; // Three seconds till shutdown.
+			if(!overrideShutdown) 
+			{
+				betty.Push("Betty/Heat/CriticalShutdown");
+				shutdownTimer = 35*3; // Three seconds till shutdown.
+			}
 			heatShutdown = true;
 		}
 		
@@ -1382,7 +1401,7 @@ class DrivableMech : DrivableObject
 		
 		if(!betty) 
 			betty = SoundQueue.Create(self);
-		else if(driver)
+		else if(!betty.local)
 			betty.local = driver;
 		
 		betty.active = (driver != NULL);

@@ -1,16 +1,16 @@
 class MechAI_Standard : MechAIControllerBase
 {
-	double maxFireCost;
+	double maxDamagePerTurn;
 	double fireTimer, fireWait;
 	
-	Property MaxFireCost : maxFireCost;
+	Property MaxTurnDamage : maxDamagePerTurn;
 	Property FireWait : fireWait;
 
 	Default
 	{
-		MechAIControllerBase.MechType "MechTimberwolf";
-		MechAI_Standard.MaxFireCost 100;
-		MechAI_Standard.FireWait 35;
+		MechAIControllerBase.MechType "MechSummonerPrime";
+		MechAI_Standard.MaxTurnDamage 30; // Cannot do more than this much damage per FireWait time.
+		MechAI_Standard.FireWait 1 * TICRATE; // Seconds
 	}
 	
 	vector2 ranges;
@@ -18,7 +18,7 @@ class MechAI_Standard : MechAIControllerBase
 	Array<MechWeapon> weapons;
 	Actor friend;
 	
-	void HandleWeapons(double targetDist, vector3 aimTarget)
+	void HandleWeapons(double targetDist, vector3 aimTarget, bool debug = false)
 	{
 		fireTimer = max(0, fireTimer);
 		if(target == friend || !target || --fireTimer > 0) return;
@@ -36,7 +36,7 @@ class MechAI_Standard : MechAIControllerBase
 		
 		Array<MechWeapon> sortedWeapons;
 				
-		console.printf("--- START DEBUG ---");
+		if(debug) console.printf("--- START DEBUG ---");
 		foreach(weap : validWeapons)
 		{
 			double curHeat = mech.curHeat;
@@ -51,18 +51,23 @@ class MechAI_Standard : MechAIControllerBase
 					0, 1000, 0, 1.0
 				);
 			}
-			double DPH = weap.getDamageOutput() / max(1,weapHeat);
-			double rawCost = floor(DPH * curAmmoPerc);
+			
+			// DPH based calculations, may or may-not work better.
+			// DPH = weap.getDamageOutput() * max(1,weapHeat);
+			// double rawCost = weapDmg * floor(DPH * curAmmoPerc);
+			
+			double weapDmg = weap.getDamageOutput(); 
+			double rawCost = weapDmg; 
 			
 			sortedWeapons.push(weap);
 			int weapIndex = sortedWeapons.Find(weap);
 			weapCosts[weapIndex] = rawCost;
 			
-			console.printf("[%d]: %s => Cost - %d", weapIndex, weap.getClassName(), rawCost);
+			if(debug) console.printf("[%d]: %s => Cost - %d", weapIndex, weap.getClassName(), rawCost);
 		}
 		
 		// Pick a weapon to fire
-		double combatPoints = maxFireCost;
+		double combatPoints = maxDamagePerTurn;
 		while(combatPoints > 0 && sortedWeapons.Size() > 0)
 		{
 			double bestCost = -1;
@@ -95,9 +100,9 @@ class MechAI_Standard : MechAIControllerBase
 			MechWeapon.FireWeapon(desiredWeap);
 			sortedWeapons.Delete(sortedWeapons.Find(desiredWeap));
 			
-			console.printf("Fired: %s [Costed: %d, Remains: %d]", desiredWeap.getClassName(), bestCost, combatPoints);
+			if(debug) console.printf("Fired: %s [Costed: %d, Remains: %d]", desiredWeap.getClassName(), bestCost, combatPoints);
 		}
-		console.printf("--- END DEBUG ---");
+		if(debug) console.printf("--- END DEBUG ---");
 		
 		fireTimer = fireWait;
 	}
@@ -193,7 +198,7 @@ class MechAI_Standard : MechAIControllerBase
 		vector3 desired = (cos(angle - moveData.y), sin(angle - moveData.y), 0);
 		double diff = max(0, fw dot desired);
 		mech.throttle *= diff;
-		
+		 
 		mech.AI_Move(moveData.x);
 		
 		// Aim and Fire
