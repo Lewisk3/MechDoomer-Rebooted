@@ -3,15 +3,23 @@
 
 ## **WIP**
 #### Currently Available Mechs
+* 
+
 * Commando
 * Jenner
-* Hunchback
+* Raven
 * Centurion
+* Hunchback
+* Nova
+* Cicada
 * Catapult
-* Rifleman
 * Hellbringer
+* Mad Dog
+* Rifleman
 * Timberwolf
-* Marauder IIC
+* Summoner
+* Marauder
+* Atlas
 
 ### CVars
 #### Server
@@ -30,3 +38,4 @@
 #### Client
 `cl_mdr_throttledecay`
 `cl_mdr_analogthrottle`
+
