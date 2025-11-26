@@ -3,7 +3,6 @@
 
 ## **WIP**
 #### Currently Available Mechs
-* 
 
 * Commando
 * Jenner
