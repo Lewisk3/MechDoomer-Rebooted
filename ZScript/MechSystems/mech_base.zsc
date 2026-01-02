@@ -163,6 +163,11 @@ class DrivableMech : DrivableObject
 		if(MechSerializer) MechSerializer.SaveMechData(self);
 	}
 	
+	bool MP_CheckPredicting()
+	{
+		return driver && driver.player && (driver.player.cheats & CF_PREDICTING);
+	}
+	
 	clearscope double getArmorDamage()
 	{
 		Array<MechHardpoint> hardpoints;
@@ -927,7 +932,7 @@ class DrivableMech : DrivableObject
 			// No turning
 			angVel = 0;
 		}
-		else if(driver.player)
+		else if( driver.player && !MP_CheckPredicting() )
 		{
 			if(sv_mdr_simplemechmovement)
 				DoSimpleMovement(fm, sm);
@@ -1039,7 +1044,6 @@ class DrivableMech : DrivableObject
 	virtual void DoSimpleMovement(double fm, double sm, bool useTurnSpeed = true)
 	{
 		// Normalize FM
-		bool running = cv_run && cv_run.getBool();
 		[fm, sm] = NormalizeMoveInputs(fm, sm);
 	
 		// Movement Math
@@ -1128,7 +1132,7 @@ class DrivableMech : DrivableObject
 	{	
 		// Don't do anything if the driver is dead.
 		if( driver && (driver.health <= 0 || driver.bCORPSE) ) return;
-	
+		if(MP_CheckPredicting()) return;
 		super.OnDrive();
 		
 		if(DriverBtns.Get(BT_RELOAD, DriverBtns.BTS_PRESSED, driver))
@@ -1294,6 +1298,7 @@ class DrivableMech : DrivableObject
 	
 	override void DoPhysics()
 	{	
+		if(MP_CheckPredicting()) return;
 		super.DoPhysics();
 		
 		if( !sv_mdr_simplemechmovement || (driver && !driver.player) )
@@ -1384,6 +1389,8 @@ class DrivableMech : DrivableObject
 	
 	override void Tick()
 	{
+		if(MP_CheckPredicting()) return;
+	
 		// Set camera to drone if driver has been killed and mech hasn't exploded.
 		bool driverDead = driver && (driver.health <= 0 || driver.bCORPSE);
 		if(driverDead && (torso && !MechTorso(torso).exploded))

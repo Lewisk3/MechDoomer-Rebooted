@@ -4,7 +4,7 @@ class SalvageHelper abstract
 
 	static double GetEnemyValue(Actor victim)
 	{
-		double cbillPerHP = 200.;
+		double cbillPerHP = 100.;
 		return victim.getSpawnHealth() * cbillPerHP;
 	}
 
@@ -16,12 +16,14 @@ class SalvageHelper abstract
 		{
 			let item = (class<MechItem>)(cls);
 			bool excludedItem = !excludedItems ? false : (excludedItems.Find(item) != excludedItems.Size());
-			if(!item || excludedItem || item == "MechChassisStructure" || item == "MechArmor") continue;
+			if(!item || excludedItem) continue;
 
 			// Instanciate item with randomized stats
 			let itemObj = MechItem.Init(item);
 			if(!itemObj) continue;
-			if(!itemObj.movable || itemObj.displayName == "") 
+			
+			// Skip non-equipable items.
+			if(!itemObj.movable || itemObj.displayName == "" || itemObj.hidden || itemObj.essential || itemObj.template) 
 			{
 				itemObj.Destroy();
 				continue;

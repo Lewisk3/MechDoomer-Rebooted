@@ -145,7 +145,7 @@ class MechProjectile : FastProjectile
 		double roundSpeed = (victim == NULL ? speedKPH : GetKPHFromSpeed()) * 0.28; // Meters Per Second
 
 		double kForce = 0.5 * (roundWeight * (roundSpeed*roundSpeed));
-		double dmg = ceil(kForce / 32);
+		double dmg = ceil(kForce / 20); // old: 32
 		
 		return dmg;
 	}
