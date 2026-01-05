@@ -932,7 +932,7 @@ class DrivableMech : DrivableObject
 			// No turning
 			angVel = 0;
 		}
-		else if( driver.player && !MP_CheckPredicting() )
+		else if(driver.player)
 		{
 			if(sv_mdr_simplemechmovement)
 				DoSimpleMovement(fm, sm);

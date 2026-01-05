@@ -219,3 +219,8 @@ HardwareShader PostProcess Screen
 	Uniform float amount
 	Uniform float pixelSize
 }
+
+material texture models/lasers/BEAM_detailed.png {
+	shader "shaders/lasernoise.fp"
+}
+

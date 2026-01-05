@@ -2,10 +2,11 @@
 Model MechLaser
 {
 	Path "models/lasers/"
-	Model 0 "beam_cyl.md3"
-	Skin 0 "beam_cyl.png"
+	Model 0 "beam_simple.md3"
+	Skin 0 "BEAM_detailed.png"
 	USEACTORPITCH
 	DONTCULLBACKFACES
+	Scale 2.0 2.0 2.0
 	
 	FrameIndex MODL A 0 0
 }
@@ -13,10 +14,11 @@ Model MechLaser
 Model MechPulseLaser
 {
 	Path "models/lasers/"
-	Model 0 "beam_cyl.md3"
-	Skin 0 "beam_cyl.png"
+	Model 0 "beam_simple.md3"
+	Skin 0 "BEAM_detailed.png"
 	USEACTORPITCH
 	DONTCULLBACKFACES
+	Scale 2.0 2.0 2.0
 	
 	FrameIndex MODL A 0 0
 }
@@ -24,8 +26,8 @@ Model MechPulseLaser
 Model MechLaserCore
 {
 	Path "models/lasers/"
-	Model 0 "beam_cyl.md3"
-	Skin 0 "beam_cyl.png"
+	Model 0 "beam_simple.md3"
+	Skin 0 "BEAM_detailed.png"
 	USEACTORPITCH
 	DONTCULLBACKFACES
 	
@@ -35,8 +37,8 @@ Model MechLaserCore
 Model RailgunBeam
 {
 	Path "models/lasers/"
-	Model 0 "beam_cyl.md3"
-	Skin 0 "beam_cyl.png"
+	Model 0 "beam_simple.md3"
+	Skin 0 "BEAM_detailed.png"
 	USEACTORPITCH
 	DONTCULLBACKFACES
 	
