@@ -1350,6 +1350,9 @@ class MechCockpit : MechHardpoint
 	double TiltOsc, StepOsc;
 	bool forceVisible; // Always enable cockpit visuals if true.
 	
+	class<MechCockpitModel> cockpitModel;
+	Property model : cockpitModel;
+	
 	Default
 	{
 		Radius 1;
@@ -1373,6 +1376,13 @@ class MechCockpit : MechHardpoint
 		AddItem("MechSensors");
 		AddItem("MechCockpitStructure");
 		defz = parentOffset.z;
+		
+		if(cockpitModel)
+		{
+			// TODO: In a future version of UZDoom replace Spawn with SpawnClientSide!
+			let model = MechCockpitModel(Spawn(cockpitModel, pos));
+			if(model) model.parent = self;
+		}
 	}
 
 	override void UpdateAngles()
@@ -1384,8 +1394,7 @@ class MechCockpit : MechHardpoint
 		lookingPos = DrivablesMath.getActorAim(self, true, torso.angle, torso.pitch);
 		
 		// Become invisible if we're not currently looking through the cockpit.
-		let localPlayer = players[consoleplayer].mo;
-		bInvisible = !forceVisible && ((mech.camActive is "ThirdpersonCamera") || localPlayer != mech.driver);
+		bInvisible = !forceVisible && (!mech.driver || (mech.camActive is "ThirdpersonCamera"));
 
 		parentOffset.z = defz;// + bobHeightOffs; 
 		
@@ -1428,6 +1437,41 @@ class MechCockpit : MechHardpoint
 		
 		bobRollOffs = -TiltOffset;
 		bobHeightOffs = StepOffset;
+	}
+}
+
+class MechCockpitModel : Actor
+{
+	MechCockpit parent;
+	
+	Default
+	{	
+		+INTERPOLATEANGLES;
+		+NOGRAVITY;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(!parent) 
+		{
+			Destroy();
+			return;
+		}
+		
+		bInvisible = parent.bInvisible;
+		A_SetAngle(parent.angle, SPF_INTERPOLATE);
+		A_SetPitch(parent.pitch, SPF_INTERPOLATE);
+		A_SetRoll(parent.roll, SPF_INTERPOLATE);
+		A_SetScale(parent.scale.x, parent.scale.y);
+		SetOrigin(parent.pos, true);
+	}
+
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
 	}
 }
 

@@ -111,8 +111,10 @@ class Rifleman_Cockpit : MechCockpit
 		Height 8;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "RiflemanCockpitModel";
 	}
 }
+class RiflemanCockpitModel : MechCockpitModel {}
 
 class Rifleman_LeftLeg : MechLeftLeg
 {

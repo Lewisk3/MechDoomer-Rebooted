@@ -94,12 +94,14 @@ class Cicada_Cockpit : MechCockpit
 		Height 2;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "CicadaCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class CicadaCockpitModel : MechCockpitModel {}
 
 class Cicada_Legs : MechLegs 
 {

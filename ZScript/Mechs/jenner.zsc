@@ -94,12 +94,14 @@ class Jenner_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "JennerCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class JennerCockpitModel : MechCockpitModel {}
 
 class Jenner_Legs : MechLegs 
 {

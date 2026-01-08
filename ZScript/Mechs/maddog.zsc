@@ -89,12 +89,14 @@ class MadDog_Cockpit : MechCockpit
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
 		//MechHardpoint.HitBox 2,2, -52, 0, 5;
+		MechCockpit.Model "MadDogCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class MadDogCockpitModel : MechCockpitModel {}
 
 class MadDog_Legs : MechLegs 
 {

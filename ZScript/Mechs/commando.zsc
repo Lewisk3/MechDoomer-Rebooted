@@ -96,6 +96,7 @@ class Commando_Cockpit : MechCockpit
       Height 3;
       MechHardpoint.Vitals 6, 3;
       MechHardpoint.SetupArmor 6, 0;
+	  MechCockpit.Model "CommandoCockpitModel";
    }
    
 	override void SetupMounts()
@@ -103,6 +104,7 @@ class Commando_Cockpit : MechCockpit
 		AddMountPoint("Energy", 3,6.6,5, scale:0.5);
 	}
 }
+class CommandoCockpitModel : MechCockpitModel {}
 
 class Commando_LeftLeg : MechLeftLeg
 {

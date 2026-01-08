@@ -121,12 +121,14 @@ class Catapult_Cockpit : MechCockpit
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
 		MechHardpoint.HitBox 4,4, 0, 0, -10;
+		MechCockpit.Model "CatapultCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class CatapultCockpitModel : MechCockpitModel {}
 
 class Catapult_Legs : MechLegs 
 {

@@ -101,12 +101,14 @@ class Raven_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "RavenCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class RavenCockpitModel : MechCockpitModel {}
 
 class Raven_Legs : MechLegs 
 {

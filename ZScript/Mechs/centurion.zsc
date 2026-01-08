@@ -87,12 +87,14 @@ class Centurion_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "CenturionCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class CenturionCockpitModel : MechCockpitModel {}
 
 class Centurion_Legs : MechLegs 
 {

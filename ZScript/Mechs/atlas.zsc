@@ -119,12 +119,14 @@ class Atlas_Cockpit : MechCockpit
       Height 3;
       MechHardpoint.Vitals 12, 6;
       MechHardpoint.SetupArmor 12, 0;
+	  MechCockpit.Model "AtlasCockpitModel";
    }
    
 	override void SetupMounts()
 	{
 	}
 }
+class AtlasCockpitModel : MechCockpitModel {}
 
 class Atlas_LeftLeg : MechLeftLeg
 {

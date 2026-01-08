@@ -98,6 +98,7 @@ class Hellbringer_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "HellbringerCockpitModel";
 	}
 	
 	override void SetupMounts()
@@ -106,6 +107,7 @@ class Hellbringer_Cockpit : MechCockpit
 		AddMountPoint("PDS", 0, 8, 5);
 	}
 }
+class HellbringerCockpitModel : MechCockpitModel {}
 
 class Hellbringer_LeftLeg : MechLeftLeg
 {

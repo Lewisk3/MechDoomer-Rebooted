@@ -108,12 +108,15 @@ class NovaPrime_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "NovaCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class NovaCockpitModel : MechCockpitModel {}
+
 
 class NovaPrime_Legs : MechLegs 
 {
@@ -376,6 +379,7 @@ class NovaS_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "NovaCockpitModel";
 	}
 	
 	override void SetupMounts()

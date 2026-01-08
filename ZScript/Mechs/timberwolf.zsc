@@ -113,12 +113,14 @@ class Timberwolf_Cockpit : MechCockpit
 		Height 4;
 		MechHardpoint.Vitals 12, 6;
 		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "TimberwolfCockpitModel";
 	}
 	
 	override void SetupMounts()
 	{
 	}
 }
+class TimberwolfCockpitModel : MechCockpitModel {}
 
 class Timberwolf_Legs : MechLegs 
 {
