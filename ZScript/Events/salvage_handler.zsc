@@ -22,6 +22,8 @@ class Salvage_Handler : EventHandler
 
 	override void WorldThingDied(WorldEvent e)
 	{
+		return; // Debug
+	
 		if(!e.Thing) return;
 		if(PlayerPawn(e.Thing))
 		{
