@@ -127,6 +127,6 @@ class CommonHUD_Handler : EventHandler
 			currentCBills = DrivablesMath.lerp(currentCBills, actualCBills, 0.15 * deltaTime);
 			
 		if( (currentCBills != actualCBills) && CBFX.Size() < 20 )
-			GFXMenuItem.AddEffect(CBFX, "GFX_CBills", cbillIconPos, random[CBFXSA](1,5));
+			GFXMenuItem.AddEffect(CBFX, "GFX_CBills", cbillIconPos, crandom[MenuGFX](1,5));
 	}
 }

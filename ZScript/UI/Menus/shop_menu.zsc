@@ -1423,14 +1423,14 @@ class GFX_CBills : GFXMenuItem
 		self.pos = pos;
 		alpha = 1.0;
 		scale = 0.1;
-		maxScale = frandom[MenuGFX](0.33, 1.0);
+		maxScale = crandom[MenuGFX](0.33, 1.0);
 		
 		vel = (
-			 frandom[MenuGFX](-1.0,1.0),
-			-frandom[MenuGFX](1.0,3.0)
-		) * frandom[MenuGFX](0.1,6.0);
-		rotation = frandom[MenuGFX](0,360);
-		rotVel = frandom[MenuGFX](-6,6);
+			 crandom[MenuGFX](-1.0,1.0),
+			-crandom[MenuGFX](1.0,3.0)
+		) * crandom[MenuGFX](0.1,6.0);
+		rotation = crandom[MenuGFX](0,360);
+		rotVel = crandom[MenuGFX](-6,6);
 		
 		self.pos += (vel.x * 10.0, vel.y);
 	}
