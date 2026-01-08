@@ -677,8 +677,13 @@ class DrivableMech : DrivableObject
 	
 	void DoCockpitSound(Sound snd, int channel = CHAN_BODY, int flags = CHANF_OVERLAP | CHANF_LOCAL, double volume = 1.0)
 	{
-		if(!head) return;
-		head.A_StartSound(snd, channel, flags, volume);
+		if(!driver) return;
+		driver.A_StartSound(snd, channel, flags, volume, attenuation:ATTN_NONE);
+	}
+	void StopCockpitSound(int channel = CHAN_BODY)
+	{
+		if(!driver) return;
+		driver.A_StopSound(channel);
 	}
 	
 	virtual void SetupItems()
@@ -766,8 +771,8 @@ class DrivableMech : DrivableObject
 		// Target lock tone
 		if(targetProgress >= 1.0)
 			DoCockpitSound("Mech/Target/HasLock", CHAN_TARGETLOCK, CHANF_LOOPING | CHANF_NOSTOP, 0.45);
-		else if(head)
-			head.A_StopSound(CHAN_TARGETLOCK);
+		else
+			StopCockpitSound(CHAN_TARGETLOCK);
 		
 		// Lose target if target is dead.
 		if(curTarget && (curTarget.bCORPSE || curTarget.health <= 0) )
@@ -800,7 +805,11 @@ class DrivableMech : DrivableObject
 			weap.ToggleState();
 			
 		if( getDriverBtn(BT_ZOOM, DriverBtns.BTS_PRESSED) )
+		{
 			inCombatZoom = !inCombatZoom;
+			string ZoomSound = String.Format("Mech/Zoom/%s", inCombatZoom ? "On" : "Off");
+			DoCockpitSound(ZoomSound);
+		}
 			
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
@@ -1194,8 +1203,8 @@ class DrivableMech : DrivableObject
 		
 		if(curHeat > kelvinToBHU(maxKelvin * 0.60))
 			DoCockpitSound("Mech/OverheatWarning", CHAN_ITEM, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
-		else if(head) 
-			head.A_StopSound(CHAN_ITEM);
+		else
+			StopCockpitSound(CHAN_ITEM);
 		
 		// Critical damage handling
 		if(isCriticallyDamaged)

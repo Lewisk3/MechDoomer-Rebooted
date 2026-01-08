@@ -273,6 +273,7 @@ class MechHardpointContainer : MenuElement
 						String.Format("mechlab.armor.rear.remove.%d.%d", partID, 1)
 					);
 				}
+				MenuSound("Menus/Armor/Changed");
 				btn.pressed = false;
 			}
 			
@@ -1618,6 +1619,7 @@ class MechlabUtilityButton : MenuButton
 		}
 		
 		EventHandler.SendNetworkEvent(String.Format("mechlab.utility.activate.%d", itemID));
+		MenuSound("Menus/MechStructure/Changed");
 	}
 }
 
@@ -1628,7 +1630,6 @@ class MechlabToolbox : MenuElement
 	double alpha;
 	MechMenu_Mechlab base;
 	MechToolButton stripArmor, maxArmor, stripItems, stripAll;
-	
 	
 	override void Init()
 	{
@@ -1846,6 +1847,11 @@ class MechMenu_Mechlab : MechMenu
 		EventHandler.SendInterfaceEvent(playerNumber, String.Format("item.error.%s", errorMessage));
 	}
 	
+	play static void SendItemConfirmMessage(int playerNumber, string opp)
+	{
+		EventHandler.SendInterfaceEvent(playerNumber, String.Format("item.success.%s", opp));
+	}
+	
 	play static void processMechlabEvents(ConsoleEvent e, DrivableMech mech)
 	{
 		// Menu events
@@ -2014,7 +2020,10 @@ class MechMenu_Mechlab : MechMenu
 
 					int success = item.TryAttach(toHardpoint);
 					if(success == MechItem.IAE_SUCCESS) 
+					{
 						inv.depleteItem(inv.items[itemID]);
+						SendItemConfirmMessage(e.Player, "equip");
+					}
 					else
 						SendItemErrorMessage(e.Player, item, success);
 						
@@ -2037,6 +2046,10 @@ class MechMenu_Mechlab : MechMenu
 							srcItem.TryAttach(srcHardpoint);
 							SendItemErrorMessage(e.Player, srcItem, success);
 						}
+						else
+						{
+							SendItemConfirmMessage(e.Player, "move");
+						}
 					}
 				}
 				if(menuArgs[2] ~== "dequip") 
@@ -2045,7 +2058,10 @@ class MechMenu_Mechlab : MechMenu
 					if(!srcItem) return;
 					
 					if(srcItem.TryDetach()) 
+					{
 						inv.AddItem(srcItem);
+						SendItemConfirmMessage(e.Player, "dequip");
+					}
 				}
 			}
 		}
@@ -2073,7 +2089,7 @@ class MechMenu_Mechlab : MechMenu
 			{
 				// We shouldn't need to save the mech when no changes have been made.
 				// OnMenuClose(); 
-				
+				MenuSound("Menus/Close");
 				Close();
 			}
 		}
@@ -2085,7 +2101,23 @@ class MechMenu_Mechlab : MechMenu
 				if(cmds[1] == "error")
 				{
 					MDRDialogMenu.Open(self, "ItemError", String.Format("\c[Brick]Failed to Equip Item\n\c[Gray]Reason: %s", cmds[2]), "Continue");
+					MenuSound("Menus/Error");
 					// console.printf("ERROR: %s", cmds[2]);
+				}
+				if(cmds[1] == "success")
+				{
+					if(cmds[2] == "equip")
+					{
+						MenuSound("Menus/Item/Equip");
+					}
+					else if(cmds[2] == "dequip")
+					{
+						MenuSound("Menus/Item/Dequip");
+					}
+					else if(cmds[2] == "move")
+					{
+						MenuSound("Menus/Item/Move");
+					}
 				}
 			}
 		}

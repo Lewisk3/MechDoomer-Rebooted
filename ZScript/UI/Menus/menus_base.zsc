@@ -11,6 +11,12 @@ class MenuElement : Object abstract ui
 	vector2 size;
 	vector2 initPos;
 	
+	void MenuSound(Name snd)
+	{
+		if(!parentMenu) return;
+		parentMenu.MenuSound(snd);
+	}
+	
 	static MenuElement Create(class<MenuElement> type, string tag, MechMenu parent, vector2 pos, vector2 size = (1,1), MenuElement parentElement = NULL, bool skipInit = false)
 	{
 		let element = MenuElement(new(type));
@@ -261,6 +267,9 @@ class MenuCursor : MenuElement
 		if( draggingElement || !obj.checkDraggable() ) 
 			return false;
 		
+		if(draggingElement != obj)
+			MenuSound("Menus/Drag/Start");
+			
 		draggingElement = obj;
 		obj.OnDrag(self);
 		return true;
@@ -271,6 +280,7 @@ class MenuCursor : MenuElement
 		if(!draggingElement) return false;
 		draggingElement.OnDrop(self);
 		draggingElement = NULL;
+		MenuSound("Menus/Drag/Stop");
 		return true;
 	}
 	
@@ -312,6 +322,13 @@ class MenuButton : MenuElement
 	bool pressed;
 	bool hovered;
 	double heldTime;
+	Name pressSound;
+	
+	override void Init() 
+	{
+		super.Init();
+		pressSound = "Menus/Button/Pressed";
+	}
 	
 	override void Update(double dT)
 	{
@@ -335,6 +352,7 @@ class MenuButton : MenuElement
 		{
 			pressed = true;
 			OnPressed();
+			MenuSound(pressSound);
 		}
 		btnDown = (cursor ? cursor.leftDown : false);
 	}
@@ -594,6 +612,7 @@ class DropDownMenu : MenuElement
 		{
 			active = false;
 			selectionCursor = NULL;
+			MenuSound("Menus/Dropdown/Close");
 		}
 		
 		// Check for item collisions
@@ -607,6 +626,7 @@ class DropDownMenu : MenuElement
 			
 			if(AABBCollision(cursor.pos, cursor.size, itemPos, itemSize) && cursor.leftPressed)
 			{
+				MenuSound("Menus/Dropdown/Selected");
 				SetSelection(i);
 				OnSelection();
 				active = false;
@@ -626,6 +646,10 @@ class DropDownMenu : MenuElement
 			selectionCursor = cursor;
 			active = !active;
 			cursor.leftPressed = false;
+			if(active) 
+				MenuSound("Menus/Dropdown/Open");
+			else
+				MenuSound("Menus/Dropdown/Close");
 		}
 	}
 	

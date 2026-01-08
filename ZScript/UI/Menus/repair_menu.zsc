@@ -248,23 +248,27 @@ class PaperDollContainer : MenuElement
 		{
 			paperDollType = PDM_ARMOR;
 			btnArmorMode.pressed = false;
+			MenuSound("Menus/Button/Pressed");
 		}
 		if(btnInternalMode.pressed)
 		{
 			paperDollType = PDM_INTERNAL;
 			btnInternalMode.pressed = false;
+			MenuSound("Menus/Button/Pressed");
 		}
 		if(btnArmorFront.pressed)
 		{
 			paperDollArmor = AM_FRONT;
 			btnArmorFront.pressed = false;
 			selectedHardpoint = NULL;
+			MenuSound("Menus/Button/Pressed");
 		}
 		if(btnArmorRear.pressed)
 		{
 			paperDollArmor = AM_REAR;
 			btnArmorRear.pressed = false;
 			selectedHardpoint = NULL;
+			MenuSound("Menus/Button/Pressed");
 		}
 		
 		if(btnDoRepair.pressed && selectedHardpoint)
@@ -280,6 +284,7 @@ class PaperDollContainer : MenuElement
 			);
 			EventHandler.SendNetworkEvent(repairString);
 			btnDoRepair.pressed = false;
+			MenuSound("Menus/Repair/Pressed");
 		}
 		
 		btnArmorMode.active = (paperDollType == PDM_ARMOR);
@@ -324,6 +329,7 @@ class HardpointButton : MenuElement
 				parent.selectedHardpoint = self;
 				
 			cursor.leftPressed = false;
+			MenuSound("Menus/Hardpoint/Selected");
 		}
 	}
 	

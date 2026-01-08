@@ -61,6 +61,10 @@ $limit Legs/Footstep 0
 Reactor/Powerup "Sounds/Reactor/powerup.wav"
 Reactor/Shutdown "Sounds/Reactor/shutdown.wav"
 
+// Misc Mech Sounds
+Mech/Zoom/On "Sounds/Mech/zoom_in.wav";
+Mech/Zoom/Off "Sounds/Mech/zoom_out.wav";
+
 // Weapons
 Laser/Loop "Sounds/Weapons/laser_loop.wav"
 Laser/Small "Sounds/Weapons/laser_small.wav"
@@ -119,6 +123,37 @@ JumpJet/Light   "Sounds/JumpJets/jet_light.wav"
 JumpJet/Medium  "Sounds/JumpJets/jet_mediuum.wav"
 JumpJet/Heavy   "Sounds/JumpJets/jet_heavy.wav"
 JumpJet/Assault "Sounds/JumpJets/jet_assault.wav"
+
+// Menus
+Menus/Text/InputOne   "Sounds/Menus/text_input_one.ogg"
+Menus/Text/InputTwo   "Sounds/Menus/text_input_two.ogg"
+Menus/Text/InputThree "Sounds/Menus/text_input_three.ogg"
+Menus/Text/InputFour  "Sounds/Menus/text_input_four.ogg"
+$random Menus/Text/Input	 { Menus/Text/InputOne Menus/Text/InputTwo Menus/Text/InputThree Menus/Text/InputFour }
+
+Menus/Button/Pressed		 "Sounds/Menus/button_pressed.wav"
+Menus/Item/Equip			 "Sounds/Menus/item_equip.wav"
+Menus/Item/Dequip			 "Sounds/Menus/item_dequip.wav"
+Menus/Item/Move				 "Sounds/Menus/item_move.wav"
+Menus/Armor/Changed			 "Sounds/Menus/armor_changed.wav"
+Menus/Addon/Equip			 "Sounds/Menus/addon_equip.wav"
+Menus/MechStructure/Changed  "Sounds/Menus/mechstructure_changed.wav"
+Menus/Repair/Pressed		 "Sounds/Menus/repair_pressed.wav"
+Menus/BuySell				 "Sounds/Menus/shop_buysell.ogg"
+Menus/Shop/Add				 "Sounds/Menus/shop_add.ogg"
+Menus/Shop/Remove			 "Sounds/Menus/shop_remove.ogg"
+Menus/MechBay/Populate		 "Sounds/Menus/mechbay_populate.wav"
+Menus/MechBay/Swap			 "Sounds/Menus/mechbay_swap.wav"
+Menus/MechBay/Clear			 "Sounds/Menus/mechbay_clear.wav"
+Menus/Dropdown/Close		 "Sounds/Menus/dropdown_close.ogg"
+Menus/Dropdown/Open			 "Sounds/Menus/dropdown_open.ogg"
+Menus/Dropdown/Selected		 "Sounds/Menus/dropdown_selected.ogg"
+Menus/Drag/Start			 "Sounds/Menus/drag_start.ogg"
+Menus/Drag/Stop				 "Sounds/Menus/drag_stop.ogg"
+Menus/Tab/Changed			 "Sounds/Menus/tab_changed.ogg"
+Menus/Hardpoint/Selected 	 "Sounds/Menus/hardpoint_selected.wav"
+Menus/Error					 "Sounds/Menus/menu_error.wav"
+
 
 // Volume
 $volume Laser/Loop 0.5

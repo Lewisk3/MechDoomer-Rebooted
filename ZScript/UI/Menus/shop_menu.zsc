@@ -248,6 +248,9 @@ class ShopItemsContainer : MenuElement
 	
 	void ChangeListing(int mode)
 	{
+		if(listingMode != mode) 
+			MenuSound("Menus/Tab/Changed");
+			
 		listingMode = mode;
 		populateChildren();
 	}
@@ -538,6 +541,8 @@ class CartContainer : MenuElement
 
 		if(base.shopCart.Size() <= 0)
 			base.shopMode = ShopMenu.SHOP_NEUTRAL;
+			
+		MenuSound("Menus/Shop/Remove");
 	}
 	
 	virtual void AddToCart(ShopItem shopItm)
@@ -575,6 +580,8 @@ class CartContainer : MenuElement
 		}
 		else cartItem.count++;
 		shopItm.count--;
+		
+		MenuSound("Menus/Shop/Add");
 	}
 	
 	override void Update(double dT)
@@ -658,6 +665,7 @@ class ShopBuySellButton : MenuButton
 	
 	override void OnPressed()
 	{
+		if(pressed) MenuSound("Menus/BuySell");
 		base.completeTransaction();
 		pressed = false;
 		

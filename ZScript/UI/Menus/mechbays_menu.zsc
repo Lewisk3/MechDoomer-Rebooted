@@ -372,6 +372,7 @@ class MechCard : MenuElement
 			// Mech should be moved from active mechbays to inactive.
 			string cmd = String.Format("mechbays:clearbay:%d", bayCardID);
 			ExecuteEvent(cmd, waitAfter:false);
+			MenuSound("Menus/MechBay/Clear");
 		}
 		// If card was dropped onto a mechbay
 		else if(mechData && CardCollision && CardCollision.bayCard)
@@ -382,6 +383,7 @@ class MechCard : MenuElement
 				// Move mech into desired mechbay, swap if needed.
 				cmd = String.Format("mechbays:swap:%d:%d", bayCardID, CardCollision.bayCardID);
 				ExecuteEvent(cmd);
+				MenuSound("Menus/MechBay/Swap");
 			}
 			else
 			{
@@ -391,6 +393,7 @@ class MechCard : MenuElement
 				int saveID = base.playerMechs.getSavedMechIndex(mechData);
 				cmd = String.Format("mechbays:equipbay:%d:%d", CardCollision.bayCardID, saveID);
 				ExecuteEvent(cmd, waitAfter: false);
+				MenuSound("Menus/MechBay/Populate");
 			}
 			
 			CardCollision.ClearCard();

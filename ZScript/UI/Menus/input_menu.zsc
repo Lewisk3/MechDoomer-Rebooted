@@ -20,7 +20,7 @@ class MDRTextInput : Menu
 		mEnterString = textbuffer;
 		self.maxlen = maxlen;
 		self.parent = parent;
-		self.inputSound = inputSound;
+		self.inputSound = (inputSound == "") ? "Menus/Text/Input" : inputSound;
 		numbersOnly = numberInput;
 		numberList = " 0123456789.";
 		seekpos = textbuffer.Length();
