@@ -62,19 +62,22 @@ class MechDropship_Handler : StaticEventHandler
 		// Load player's mech.
 		if(level.maptime >= 8 && reloadActiveMech)
 		{
-			// TODO: Maybe find a way to make all of this MP safe.
-			// Problem is that the dropship kind of inherently is not.
-			let plr = players[consoleplayer].mo;
-			let inv = I_MechItemStorage.Get(plr);
+			for(int i = 0; i < MAXPLAYERS; i++)
+			{
+				PlayerInfo plrInfo = players[i];
+				if(!plrInfo || !playerInGame[i]) continue;
+				let plr = players[i].mo;
+				let inv = I_MechItemStorage.Get(plr);
 		
-			// If there are active mechs, destroy them.
-			// This needs to be done because, if loaded from a save there will exist
-			// a kind of mech-voodoo situation.
-			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-			if(mechData) mechData.RecycleActiveMechs();
-			
-			RestoreActiveMechs();
-			reloadActiveMech = false;
+				// If there are active mechs, destroy them.
+				// This needs to be done because, if loaded from a save there will exist
+				// a kind of mech-voodoo situation.
+				let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+				if(mechData) mechData.RecycleActiveMechs();
+				
+				RestoreActiveMechs();
+				reloadActiveMech = false;
+			}
 		}
 	}
 	
@@ -200,9 +203,6 @@ class MechDropship_Handler : StaticEventHandler
 		string cmd = e.Name;
 		cmd.Split(args, ":");
 	
-		// TODO: Make this Multiplayer compatible via inventory item boolean per-player.
-		// 2023 and we still using inventory hacks, ZScript FTW.
-		
 		if(cmd ~== "mw_status_openedmechlab")
 			usingMechlab = true;
 		

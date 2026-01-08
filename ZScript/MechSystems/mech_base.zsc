@@ -1740,6 +1740,11 @@ class I_SaveMechData : Inventory
 		-INVENTORY.INVBAR;
 	}
 	
+	virtual void GiveStartingMechs()
+	{
+		GiveMech("MechCommando");
+	}
+	
 	virtual void GiveMech(class<DrivableMech> mechClass)
 	{
 		let mech = CreateMech(mechClass);
@@ -2030,8 +2035,7 @@ class I_SaveMechData : Inventory
 		}		
 		
 		// Starting Mech
-		// TODO: Move this somewhere where it can be more easily modified.
-		GiveMech("MechCommando");
+		GiveStartingMechs();
 	}
 
 	override void DoEffect()

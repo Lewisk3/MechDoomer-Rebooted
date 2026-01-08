@@ -1218,7 +1218,6 @@ class ShopMenu : MechMenu
 			}
 			else if(item.mechData)
 			{
-				// TODO: Mech transactions
 				int mechID = mechBox.Find(item.mechData);
 				itemStr.AppendFormat("#%d:", mechID);
 			}
