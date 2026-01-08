@@ -1298,7 +1298,6 @@ class DrivableMech : DrivableObject
 	
 	override void DoPhysics()
 	{	
-		if(MP_CheckPredicting()) return;
 		super.DoPhysics();
 		
 		if( !sv_mdr_simplemechmovement || (driver && !driver.player) )
@@ -1389,8 +1388,6 @@ class DrivableMech : DrivableObject
 	
 	override void Tick()
 	{
-		if(MP_CheckPredicting()) return;
-	
 		// Set camera to drone if driver has been killed and mech hasn't exploded.
 		bool driverDead = driver && (driver.health <= 0 || driver.bCORPSE);
 		if(driverDead && (torso && !MechTorso(torso).exploded))
