@@ -100,8 +100,8 @@ class MWLaserDecal : Actor
     
 	override void BeginPlay()
 	{
-		A_SetScale(frandom(0.3,1.5));
-		bSPRITEFLIP = random(0,1);
+		A_SetScale(frandom[LaserFX](0.3,1.5));
+		bSPRITEFLIP = random[LaserFX](0,1);
 	}
 	
 	override void Tick()
@@ -125,7 +125,7 @@ class MWLaserDecal : Actor
 			LASH A 1 Bright 
 			{
 				A_FadeOut(onactor ? 0.1 : 0.008);
-				if(random(1,60)==60) 
+				if(random[LaserFX](1,60)==60) 
 				{
 					EffectsHelper.SpawnFX("MWLaserSmoke", 5, pos, (angle+180, -pitch, roll), 3, (10,10,10));
 				}

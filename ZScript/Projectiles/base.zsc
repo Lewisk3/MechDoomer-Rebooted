@@ -95,7 +95,7 @@ class MechProjectile : FastProjectile
 	
 	virtual void playImpactSound(bool randomizedPitch = true)
 	{
-		double randomPitch = randomizedPitch ? 1.0 - frandom(-0.2, 0.6) : 0;
+		double randomPitch = randomizedPitch ? 1.0 - frandom[ProjectileFX](-0.2, 0.6) : 0;
 	
 		if(died) return;
 		if(fullVolumeImpact)

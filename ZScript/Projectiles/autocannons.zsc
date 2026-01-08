@@ -324,7 +324,7 @@ class AutocannonExplosion : EffectsActor
 	override void PostBeginPlay()
 	{
 		super.postBeginPlay();
-		A_SetRoll(frandom(0,360));
+		A_SetRoll(frandom[ProjectileFX](0,360));
 	}
 
 	States

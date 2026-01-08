@@ -115,13 +115,13 @@ class UnlimitedPower : Actor
 		let plr = players[consoleplayer].mo;
 		if(!plr) return;
 		
-		if(random(0,100) <= 50 || !(level.maptime%4))
+		if(random[LightningFX](0,100) <= 50 || !(level.maptime%4))
 		{	
 			let p = LightningParticle(Spawn("LightningParticle", pos));
 			if(p) 
 			{
 				p.follow = plr;
-				p.followOffs = (16,frandom(-3,3),frandom(-5,5) - 10);
+				p.followOffs = (16,frandom[LightningFX](-3,3),frandom[LightningFX](-5,5) - 10);
 			}
 		}
 	}
@@ -207,20 +207,20 @@ class LightningParticle : Actor
 				TexMan.CheckForTexture("Sprites/LTNGD0.png")
 			};
 
-			if( random(0,100) <= 5 )
+			if( random[LightningFX](0,100) <= 5 )
 			{
 				pset.color1 = fillcolor;
 				pset.style = STYLE_Add;
-				pset.pos = pos + (dir * (0, frandom(-3,3), frandom(-5,5)));
+				pset.pos = pos + (dir * (0, frandom[LightningFX](-3,3), frandom[LightningFX](-5,5)));
 				pset.lifetime = 8;
 				
 				for(int i = 0; i < 5; i++)
 				{
-					pset.texture = partTextures[random(0,3)];
-					pset.vel = dir * (frandom(0,3), frandom(-3,3), frandom(-3,3));
-					pset.size = frandom(0.2,1.0);
+					pset.texture = partTextures[random[LightningFX](0,3)];
+					pset.vel = dir * (frandom[LightningFX](0,3), frandom[LightningFX](-3,3), frandom[LightningFX](-3,3));
+					pset.size = frandom[LightningFX](0.2,1.0);
 					pset.startalpha = 3.0;
-					pset.startroll = frandom(-180,180);
+					pset.startroll = frandom[LightningFX](-180,180);
 					pset.vel += follow.vel;
 					
 					level.SpawnParticle(pset);

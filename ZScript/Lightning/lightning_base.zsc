@@ -3,7 +3,7 @@ class FXLightning : Actor abstract
 {
 	static void Sparks(Actor from)
 	{
-		vector3 pvel = GetDir(from.angle, from.pitch) * frandom(-2,2);
+		vector3 pvel = GetDir(from.angle, from.pitch) * frandom[LightningFX](-2,2);
 		from.A_SpawnParticle(
 			0xFFFFB8, SPF_FULLBRIGHT, 
 			35, 1, velx: pvel.x, pvel.y, pvel.z,
@@ -22,7 +22,7 @@ class FXLightning : Actor abstract
 		// Initialize
 		FXLightningBolt prev;
 		double str = strength;
-		double boltalpha = frandom(0.08, 1.0);
+		double boltalpha = frandom[LightningFX](0.08, 1.0);
 		double pitchmov;
 		
 		for(double len = 0; len < dist; len+=stepsize)
@@ -59,7 +59,7 @@ class FXLightning : Actor abstract
 				vector3 tobiri = level.SphericalCoords(biri.pos, prev.pos, (biri.angle, biri.pitch+90));
 				biri.angle -= tobiri.x;
 				biri.pitch -= tobiri.y;
-				prev.pitch += frandom(0, roughness);
+				prev.pitch += frandom[LightningFX](0, roughness);
 				
 				// Update Lightning direction.
 				double movedir = frandom[LightningPitch](-str,str);
@@ -76,9 +76,9 @@ class FXLightning : Actor abstract
 				biri.Scale.Y = newscale;
 				
 				// Random change to branch into smaller bolt
-				if( branchchance && (random(0,branchchance) == branchchance) )				
+				if( branchchance && (random[LightningFX](0,branchchance) == branchchance) )				
 				{
-					vector2 newangs = (biri.angle + frandom(-45,45), biri.pitch + frandom(-90,90));
+					vector2 newangs = (biri.angle + frandom[LightningFX](-45,45), biri.pitch + frandom[LightningFX](-90,90));
 					DoLightning(biri.pos, newangs, type, dist*0.25, stepsize, strength*2.0, roughness*1.5, variance*0.50, 0);
 				}
 				
@@ -95,7 +95,7 @@ class TestLightning : EffectsActor
 		Spawn:
 			PLSS A 1
 			{
-				vector2 angles = (frandom(0,360), frandom(-20,20));
+				vector2 angles = (frandom[LightningFX](0,360), frandom[LightningFX](-20,20));
 				FXLightning.DoLightning(pos, angles, dist:100, 0.5, 10.0, 0, 50, 180); 
 			}
 		loop;

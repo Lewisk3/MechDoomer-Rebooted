@@ -53,8 +53,9 @@ class Salvage_Handler : EventHandler
 		let itemInv = I_MechItemStorage.Get(killer, give:false);
 		if(itemInv) itemInv.cbills += deathValue;
 		
-		// Salvage does not drop if player rolled too low.
+		// Higher odds the more health an enemy had.
 		int odds = min(8, DrivablesMath.fmap(e.Thing.getSpawnHealth(), 0, 1000, 0, 8)); 
+		// Salvage does not drop if player rolled too low.
 		double roll = random[SalvageDropRNG](0,100);
 		if(roll > salvageRNG[odds]) return;
 				

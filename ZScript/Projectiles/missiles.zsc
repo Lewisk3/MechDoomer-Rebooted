@@ -110,7 +110,7 @@ class MissileExplosion : EffectsActor
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
-		A_SetRoll(frandom(0,360));
+		A_SetRoll(frandom[ProjectileFX](0,360));
 		
 		// I would use NoDelay, but it doesn't work...
 		if(!skipSound) A_StartSound("Missile/Explosion", flags:CHANF_OVERLAP, attenuation:0.7, pitch:frandom[ExplosionPitch](-0.8, 1.2) );
@@ -139,13 +139,13 @@ class MissileTrail : EffectsActor
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
-		roll = random(0,360);
+		roll = random[ProjectileFX](0,360);
 	}
 
 	States
 	{
 		Spawn:
-			TNT1 A 0 NoDelay A_Jump(255, random(1, 5));
+			TNT1 A 0 NoDelay A_Jump(255, random[ProjectileFX](1, 5));
 			MTRL ACEGIKMOQR 1;
 			MTRL S 1 A_FadeOut(0.1);
 		wait;
@@ -251,8 +251,8 @@ class MissileSmokeTrail : EffectsActor
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
-		alpha = frandom(0.5, 0.8);
-		roll = random(0, 360);
+		alpha = frandom[ProjectileFX](0.5, 0.8);
+		roll = random[ProjectileFX](0, 360);
 	}
 	
 	override void Tick()

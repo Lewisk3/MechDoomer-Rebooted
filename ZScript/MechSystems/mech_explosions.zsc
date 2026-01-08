@@ -105,8 +105,8 @@ class HardpointSmoke : EffectsActor
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
-		alpha = frandom(0.5, 0.8);
-		roll = random(0, 360);
+		alpha = frandom[HardpointFX](0.5, 0.8);
+		roll = random[HardpointFX](0, 360);
 	}
 	
 	override void Tick()

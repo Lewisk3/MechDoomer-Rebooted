@@ -159,9 +159,9 @@ class ThirdpersonCamera : DrivableObjectPart
 			}
 		
 			vector3 q = quake_desiredI * quakeperc;
-			vector3 quakeoffs = ( frandom(-q.y, q.y),
-								  frandom(-q.x, q.x),
-								  frandom(-q.z, q.z) );			
+			vector3 quakeoffs = ( frandom[VehFX](-q.y, q.y),
+								  frandom[VehFX](-q.x, q.x),
+								  frandom[VehFX](-q.z, q.z) );			
 			relposoffs += quakeoffs;
 		}
 	}
