@@ -74,7 +74,7 @@ class I_DrivingObject : Inventory
 		if(disableWeapons)
 		{
 			if(Owner.player)
-				Owner.player.SetPSprite(PSP_WEAPON, FindState("NoNothing"));
+				Owner.player.SetPSprite(PSP_WEAPON, FindState("DoNothing"));
 			else // Disable actor by other means
 				Owner.tics = -1;
 		}
