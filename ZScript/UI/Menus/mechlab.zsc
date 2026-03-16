@@ -364,16 +364,17 @@ class MechItemSlot : MenuElement
 		double wScale = (containerSize.x / (itemWidth * itemScale));
 		
 		[itemFontColor, slotColor] = GetItemColors(item);
-		if(greyed)
-		{
-			slotColor = 0xFF000000;
-			itemFontColor = Font.CR_White;
-		}
 		
 		if(destroyed)
 		{
 			slotColor = 0xFFFF0000;
 			itemFontColor = Font.CR_Black; 
+		}
+		
+		if(greyed)
+		{
+			slotColor = 0xFF000000;
+			itemFontColor = Font.CR_White;
 		}
 		
 		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, texoffs:(0,0));

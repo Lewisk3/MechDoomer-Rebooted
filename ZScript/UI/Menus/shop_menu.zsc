@@ -756,6 +756,8 @@ class ShopItem : MenuElement
 		
 		if(objItem)
 		{	
+			// Shading
+			MechItemSlot.DrawMechItem(objItem, initPos + posOffs - (2,-4), 0.65, itemScale, size + (4,8), greyed:true);
 			MechItemSlot.DrawMechItem(objItem, initPos + posOffs, itemAlpha, itemScale, size, disabled);  
 			DrawCount(initPos + posOffs);
 			MWDrawer.ClearClipRect();
@@ -767,6 +769,8 @@ class ShopItem : MenuElement
 		else if(mechData)
 		{
 			vector2 listPos = initPos + posOffs;
+			// Shading
+			DrawItemizedMech(mechData, listPos - (2,-4), 0.65, itemScale, size + (4,8), greyed:true);
 			DrawItemizedMech(mechData, listPos, itemAlpha, itemScale, size, disabled);  
 			DrawMechValue(listPos, itemAlpha);
 			if(inCart)

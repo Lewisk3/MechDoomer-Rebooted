@@ -73,7 +73,7 @@ class MechDropship_Handler : StaticEventHandler
 					if(inv.salvageItems.size() > 0)
 					{
 						let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
-					//	if(evh) evh.OpenSalvageMenu(i);
+						if(evh) evh.OpenSalvageMenu(i);
 					}
 				}
 			}

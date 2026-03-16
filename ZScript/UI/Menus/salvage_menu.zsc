@@ -1,18 +1,26 @@
-
-class SalvageItemsContainer : MenuElement
+// Template class for salvage containers
+class SalvageMenuContainer : MenuElement abstract
 {
-	readonly Array<MechItem> salvageList;
+	Array<MechItem> salvageList;
 	MechSalvageMenu base;
 	vector2 listPos, listSize;
 	double listStartY;
+	double listHeight;
+	double edgeSize, scrollBarWidth;
+	Font titleFont;
+	double curTons, maxTons;
+	
+	SalvageMenuScrollBar scrollBar;
+
+	virtual void Setup()
+	{
+	}
 
 	override void Init()
 	{
 		base = MechSalvageMenu(parentMenu);
-		salvageList.Copy(base.playerItems.salvageItems);
-		listStartY = 70;
-		
-		double edgeSize = 10;
+		Setup();
+				
 		listPos = (
 			pos.x + (edgeSize * 0.5),
 			pos.y + (edgeSize * 0.5) + listStartY
@@ -21,8 +29,14 @@ class SalvageItemsContainer : MenuElement
 			size.x - edgeSize,
 			size.y - edgeSize - listStartY
 		);
+				
+		vector2 scrollBarPos = pos + (size.x - edgeSize - scrollBarWidth, listStartY + edgeSize);
+		scrollBar = SalvageMenuScrollBar(AddChild(base, "SalvageMenuScrollBar","ScrollBar", scrollBarPos));
+		scrollBar.size.x = scrollBarWidth;
+		scrollBar.size.y = size.y - listStartY - (edgeSize * 2.0);
 		
-		UpdateChildren();
+		if(salvageList.Size() > 0)
+			InitializeChidren();
 	}
 	
 	override void Draw(double dT)
@@ -34,49 +48,233 @@ class SalvageItemsContainer : MenuElement
 		MWDrawer.Fill(0x7F7F7F, pos.x, pos.y, size.x, size.y, 1.0);
 		MWDrawer.Fill(0x3B3B3B, listPos.x, listPos.y, listSize.x, listSize.y, 1.0);
 		
-		MWDrawer.DrawString("hm_type", Tag, nameCenter, MWDrawer.SS_TEXT_CENTER, alpha:1.0, scale:(2,2));
+		
+		double fitX = size.x - 16;
+		double titleWidth = titleFont.StringWidth(Tag) * 4.0;
+		double fitScale = titleWidth > fitX ? fitX / titleWidth : 1.0;
+		
+		MWDrawer.DrawString("hm_type", Tag, nameCenter, MWDrawer.SS_TEXT_CENTER, alpha:1.0, scale:(2 * fitScale,2 * fitScale));
 	}
 	
 	override void Update(double dT)
 	{
-		
+		UpdateChildren();
 	}
 	
 	void UpdateChildren()
 	{
-		ClearChildren(base, "SalvageItem");
+		// Update Children positions
+		double curListHeight = 0;
+		vector2 itemPos = (listPos.x + 10, listPos.y + 10);
+		double padding = 30;
+		foreach(child : children)
+		{
+			let cItem = SalvageMenuItem(child);
+			if(!cItem || cItem.dragging) continue;
+			
+			double height = cItem.size.y + padding;
+			cItem.pos = itemPos;
+			cItem.pos.y -= ScrollBar.curScroll;
+			itemPos.y += height;
+			curListHeight += height;
+		}
+		listHeight = curListHeight - listSize.y;
+		if(listHeight < 0) listHeight = 0;
+		ScrollBar.UpdateListHeight(listHeight);
+	}
+	
+	virtual bool TryAddItem(MechItem item)
+	{
+		if(maxTons > 0 && item.weight + curTons > maxTons) return false;
+		
+		salvageList.Push(item);
+		if(maxTons > 0) curTons += item.weight;
+		
+		InitializeChidren();
+		return true;
+	}
+	
+	virtual void RemoveItem(MechItem itm)
+	{
+		// Find Item in list
+		if(maxTons > 0) curTons -= itm.weight;
+		for(int i = salvageList.Size()-1; i >= 0; i--)
+		{
+			let item = salvageList[i];
+			if(item == itm) salvageList.Delete(i);
+		}
+		InitializeChidren();
+	}
+	
+	void ScrollToBottom()
+	{
+		ScrollBar.scrollTo = listHeight;
+	}
+	
+	void InitializeChidren()
+	{
+		ClearChildren(base, "SalvageMenuItem");
 		int cnt = 0;
 		vector2 itemPos = (listPos.x + 10, listPos.y + 10);
 		double padding = 30;
 		foreach(itm : salvageList)
 		{
-			let childItem = SalvageItem(AddChild(base, "SalvageItem", String.Format("Item: %d", cnt), itemPos));  
+			let childItem = SalvageMenuItem(AddChild(base, "SalvageMenuItem", String.Format("Item: %d", cnt), itemPos));  
+			
 			childItem.container = self;
 			childItem.itm = itm;
 			childItem.size.y *= itm.size;
+			childItem.itemScale = listSize.x / 640.0;
+			childItem.ScaleItem();
 			itemPos.y += childItem.size.y + padding;
 			cnt++;
 		}
+		UpdateChildren();
 	}
 }
 
-class SalvageItem : MenuElement
+class SalvageMenuItem : MenuElement
 {
 	MechSalvageMenu base;
-	SalvageItemsContainer container;
+	SalvageMenuContainer container;
 	MechItem itm;
+	bool dragging;
+	double itemWidth, itemHeight, itemScale;
 	
 	override void Init()
 	{
-		let [itemWidth, itemHeight] = MechItemSlot.GetItemSlotSize();
+		[itemWidth, itemHeight] = MechItemSlot.GetItemSlotSize();
 		size = (itemWidth, itemHeight);
+		itemScale = 1.0;
 		base = MechSalvageMenu(parentMenu);
 	}
 	
+	override bool checkDraggable()
+	{
+		return (!base.cursor.draggingElement || base.cursor.draggingElement == self);
+	}
+		
+	override void updateDragPos(MenuCursor cursor) 
+	{
+		pos = cursor.pos - (size.x * 0.5, (size.y * 0.5));
+		
+		// Get container under cursor.
+		let hoveringContainer = cursor.getCollidingWithType("SalvageMenuContainer", base);
+		if(hoveringContainer)
+		{
+			// Shrink to fit container.
+			double diff = hoveringContainer.size.x / container.size.x;
+			ScaleItem(diff); 
+		}
+		else
+		{
+			ScaleItem();
+		}	
+	}
+	
+	void ScaleItem(double scaleFactor = 1.0)
+	{
+		size = (itemWidth * itemScale, itemHeight) * scaleFactor; 
+		size.y *= itm.size;
+	}
+	
+	override void OnDrag(MenuCursor cursor) 
+	{
+		dragging = true;
+	}
+	override void OnDrop(MenuCursor cursor) 
+	{
+		dragging = false;	
+		let hoveringContainer = SalvageMenuContainer(cursor.getCollidingWithType("SalvageMenuContainer", base));
+		if(!hoveringContainer || hoveringContainer == container) return;
+	
+		let success = hoveringContainer.TryAddItem(itm);
+		if(success)
+		{
+			// Show newly added item.
+			hoveringContainer.ScrollToBottom();
+			
+			// Remove from old parent.
+			// This will delete this child element, so it needs to be done with care.
+			container.RemoveItem(itm);
+			return;
+		}
+		else
+		{	
+			// Send Error Event to Menu.
+			ScaleItem(1);
+		}
+	}
+	
+	double timer;
 	override void Draw(double dT)
 	{
+		// Clip drawing if not being dragged.
+		if(!dragging)
+		{
+			MWDrawer.SetClipRect(container.listPos.x, container.listPos.y, container.listSize.x, container.listSize.y);
+			MechItemSlot.DrawMechItem(itm, pos - (2,-4), 0.65, 1.0, size + (4,8), greyed:true);
+		}
+		
 		// Draw Item
+		if(dragging) // Draw Shadow under item if being dragged. 
+			MechItemSlot.DrawMechItem(itm, pos + (6,4), 0.67, 1.1, size, greyed:true);
 		MechItemSlot.DrawMechItem(itm, pos, 1.0, 1.0, size, greyed:false);
+
+		MWDrawer.ClearClipRect();
+	}
+}
+
+class SalvageMenuScrollBar : MenuScrollBar
+{
+	override void DrawScrollbar(vector2 barPos, vector2 barSize, double barHeight, double containerHeight)
+	{
+		vector2 shadowPos = (2,2);
+	
+		// Background
+		MWDrawer.Fill(0x7F7F7F, pos.x - shadowPos.x, pos.y - shadowPos.y, size.x + (shadowPos.x*2), size.y + (shadowPos.y*2));	
+		MWDrawer.Fill(0x0F0F0F, pos.x, pos.y, size.x, size.y);	
+		
+		// Foreground
+		MWDrawer.Fill(0xAFAFAF, barPos.x, barPos.y, barSize.x, barSize.y); 
+		MWDrawer.Fill(0xFFFFFF, barPos.x + shadowPos.x, barPos.y + shadowPos.y, barSize.x - (shadowPos.x*2), barSize.y - (shadowPos.y*2)); 
+	}
+}
+
+class SalvageMenuItemsList : SalvageMenuContainer
+{
+	override void Setup()
+	{
+		titleFont = "hm_type";
+		salvageList.Copy(base.playerItems.salvageItems);
+		listStartY = 70;
+		
+		edgeSize = 10;
+		scrollBarWidth = 40;
+	}
+}
+
+class SalvageMenu_DropshipStorage : SalvageMenuContainer
+{
+	override void Setup()
+	{
+		titleFont = "hm_type";
+		listStartY = 50;
+		edgeSize = 10;
+		scrollBarWidth = 30;
+		
+		maxTons = 25;
+	}
+}
+
+class SalvageMenu_MechStorage : SalvageMenuContainer
+{
+	override void Setup()
+	{
+		titleFont = "hm_type";
+		listStartY = 50;
+		edgeSize = 10;
+		scrollBarWidth = 30;
 	}
 }
 
@@ -86,8 +284,9 @@ class MechSalvageMenu : MechMenu
 	PlayerPawn plr;
 	DrivableMech mech;
 	MenuCursor cursor;
+	MechItem tooltipItem;
 	
-	SalvageItemsContainer salvageContainer;
+	SalvageMenuItemsList salvageItemsContainer, salvageDropshipStorage, salvageMechStorage;
 	I_MechItemStorage playerItems;
 
 	override void InitElements() 
@@ -101,7 +300,34 @@ class MechSalvageMenu : MechMenu
 	void PopulateSalvageElements()
 	{
 		playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
-		salvageContainer = SalvageItemsContainer(AddElement("SalvageItemsContainer", "Salvage", (60,60), (650,900)));
+		salvageItemsContainer = SalvageMenuItemsList(AddElement("SalvageMenuItemsList", "Salvage Items", (60,60), (650,900)));
+		salvageDropshipStorage = SalvageMenuItemsList(AddElement("SalvageMenu_DropshipStorage", "Dropship Storage", (750,60), (650,800)));
+		salvageMechStorage = SalvageMenuItemsList(AddElement("SalvageMenu_MechStorage", "Mech Storage", (1450,60), (450,450)));
+	}
+	
+		
+	override void Drawer()
+	{
+		super.Drawer();
+		
+		// Quick hack to make dragging items always drop on-top.
+		let draggingItem = cursor.draggingElement;
+		if(draggingItem) draggingItem.Draw(deltaTime);
+	
+		// Tool-tips, again we must draw them here so they're filtered as on-top.
+		let hoveringItem = SalvageMenuItem(cursor.getCollidingWithType("SalvageMenuItem", self));
+		if(!draggingItem && hoveringItem && hoveringItem.itm)
+			DrawTooltip(hoveringItem.itm);
+	}
+	
+	void DrawTooltip(MechItem itm)
+	{
+		vector2 drawPos = cursor.pos + (24, 20);
+		vector2 tipSize = (320, 100);
+	
+		MWDrawer.Fill(0x202020, drawPos.x + 4, drawPos.y + 4, tipSize.x * 1.03, tipSize.y * 1.1, 0.7);
+		MWDrawer.Fill(0x646464, drawPos.x - 2, drawPos.y - 2, tipSize.x + 4, tipSize.y + 4);
+		MWDrawer.Fill(0xaeaeae, drawPos.x, drawPos.y, tipSize.x, tipSize.y);
 	}
 	
 	override void OnMenuClose()

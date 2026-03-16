@@ -27,20 +27,12 @@ class Salvage_Handler : EventHandler
 		let inv = I_MechItemStorage.Get(unsafePlr);
 		if(!inv || inv.salvageItems.Size() > 0) return;
 		
-		let itemObj = MechItem.Init("LRM20");
-		Array<MechItem> output;
-		output.Push(itemObj);
-		inv.AddSalvage(output);
-		console.printf("Adding LRM");
-		
-		/*
 		for(int i = 0; i < 20; i++)
 		{
 			Array<MechItem> output;
 			SalvageHelper.GenerateItems(4000 * 100., output);
 			inv.AddSalvage(output);
 		}
-		*/
 	}
 
 	override void WorldThingDied(WorldEvent e)
