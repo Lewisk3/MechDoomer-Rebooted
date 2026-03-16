@@ -85,7 +85,13 @@ class SalvageMenuContainer : MenuElement abstract
 	
 	virtual bool TryAddItem(MechItem item)
 	{
-		if(maxTons > 0 && item.weight + curTons > maxTons) return false;
+		if(maxTons > 0 && item.weight + curTons > maxTons) 
+		{
+			MDRDialogMenu.Open(base, "SalvageError", "\c[Brick]Failed to Store Item\n\c[Gray]Reason: Insufficient Free Tons.", "Continue");
+			MenuSound("Menus/Error");
+			
+			return false;
+		}
 		
 		salvageList.Push(item);
 		if(maxTons > 0) curTons += item.weight;
@@ -131,6 +137,39 @@ class SalvageMenuContainer : MenuElement abstract
 		}
 		UpdateChildren();
 	}
+	
+	void DrawInfoBox(string infoString, double height)
+	{
+		vector2 infoBoxPos = (pos.x, pos.y + size.y);
+		vector2 infoBoxSize = (size.x, height);
+		
+		// Information Box
+		MWDrawer.Fill(0x7F7F7F, infoBoxPos.x, infoBoxPos.y, infoBoxSize.x, infoBoxSize.y);
+		MWDrawer.DrawString("hm_thin", infoString, infoBoxPos + (20, 20)); 
+	
+		// Weight bar
+		double barWidth = infoBoxSize.x * 0.85;
+		double barHeight = 25;
+		vector2 barPos = (
+			infoBoxPos.x + (infoBoxSize.x * 0.5) - (barWidth * 0.5), 
+			infoBoxPos.y + infoBoxSize.y - barHeight - 15
+		);
+		MWDrawer.Fill(0, barPos.x, barPos.y, barWidth, barHeight);
+		
+		// Progress bar for weight
+		double percFree = DrivablesMath.fmap( (maxTons - curTons), 0, maxTons, 0, 1.0);
+		double hue = (130 * percFree);
+		Color fillColor = MWDrawerColor.hslToRgb(hue / 255.0, 0.7, 0.35);
+		MWDrawer.SetClipRect(barPos.x, barPos.y, barWidth - (barWidth * percFree), barHeight);
+		MWDrawer.Fill(fillColor, barPos.x, barPos.y, barWidth, barHeight);
+		MWDrawer.ClearClipRect();
+		MWDrawer.DrawString("hm_thin", 
+			String.Format("Tons Free: %.1f", maxTons - curTons), 
+			(barPos.x + (barWidth * 0.5), barPos.y),
+			flags:MWDrawer.SS_TEXT_CENTER,
+			scale:(1,1)
+		);
+	}
 }
 
 class SalvageMenuItem : MenuElement
@@ -138,7 +177,7 @@ class SalvageMenuItem : MenuElement
 	MechSalvageMenu base;
 	SalvageMenuContainer container;
 	MechItem itm;
-	bool dragging;
+	bool dragging, visible;
 	double itemWidth, itemHeight, itemScale;
 	
 	override void Init()
@@ -151,7 +190,7 @@ class SalvageMenuItem : MenuElement
 	
 	override bool checkDraggable()
 	{
-		return (!base.cursor.draggingElement || base.cursor.draggingElement == self);
+		return visible && (!base.cursor.draggingElement || base.cursor.draggingElement == self);
 	}
 		
 	override void updateDragPos(MenuCursor cursor) 
@@ -191,8 +230,8 @@ class SalvageMenuItem : MenuElement
 		let success = hoveringContainer.TryAddItem(itm);
 		if(success)
 		{
-			// Show newly added item.
-			hoveringContainer.ScrollToBottom();
+			// Show newly added item. (Might get annoying for the player, idk)
+			// hoveringContainer.ScrollToBottom();
 			
 			// Remove from old parent.
 			// This will delete this child element, so it needs to be done with care.
@@ -204,6 +243,15 @@ class SalvageMenuItem : MenuElement
 			// Send Error Event to Menu.
 			ScaleItem(1);
 		}
+	}
+	
+	override void Update(double dT)
+	{
+		// Considered not selectable if most of the item is outside the list.
+		if( pos.y + (size.y * 0.5) > (container.listPos.y + container.listSize.y) ) 
+			visible = false;
+		else
+			visible = AABBCollision(pos, size, container.listPos, container.listSize);
 	}
 	
 	double timer;
@@ -265,6 +313,12 @@ class SalvageMenu_DropshipStorage : SalvageMenuContainer
 		
 		maxTons = 25;
 	}
+	
+	override void Draw(double dT)
+	{
+		super.Draw(dT);
+		DrawInfoBox("Dropship Reserves", 100);
+	}
 }
 
 class SalvageMenu_MechStorage : SalvageMenuContainer
@@ -275,6 +329,77 @@ class SalvageMenu_MechStorage : SalvageMenuContainer
 		listStartY = 50;
 		edgeSize = 10;
 		scrollBarWidth = 30;
+		
+		if(!base.mech) 
+			disabled = true;
+		else
+		{
+			double freeWeight = (base.mech.maxWeight - base.mech.weight);
+			maxTons = freeWeight + floor(base.mech.maxWeight * 0.25);
+		}
+	}
+	
+	override void Draw(double dT)
+	{
+		super.Draw(dT);
+		if(!base.mech) return;
+		
+		let mech = base.mech;
+		
+		string mechName = mech.mechChassisName;
+		string mechVariant = mech.mechVariantName;	
+		string mechNameStr = String.Format("%s - %s", mechName, mechVariant);
+		DrawInfoBox(mechNameStr, 100);
+	}
+}
+
+class SalvageMenu_ContinueButton : MenuButton
+{	
+	override void Draw(double dT)
+	{
+		Font fnt = "hm_type";
+		double txtScale = 1.0;
+		vector2 txtPos = pos + (size * 0.5);
+		double textHeight = fnt.getHeight() * (1/txtScale);
+		
+		Color bgColor = hovered ? 0xA3092f9e : 0xFFa1a1a1;
+		if(!hovered) MWDrawer.Fill(0xFF1F1F1F, pos.x + 2, pos.y + 2, size.x + 2, size.y + 2);
+		MWDrawer.Fill(bgColor, pos.x, pos.y, size.x, size.y);
+		
+		MWDrawer.DrawString(fnt, Tag, txtPos - (0, textHeight), MWDrawer.SS_TEXT_CENTER, scale:(txtScale,txtScale));
+	}
+	
+	void AddItemList(out Array<MechItem> dest, out Array<MechItem> src)
+	{
+		foreach(itm : src)
+		{
+			dest.Push(itm);
+		}
+	}
+	
+	override void OnPressed() 
+	{
+		let base = MechSalvageMenu(parentMenu);
+		if(!base) return;
+		
+		let dialog = MDRDialogMenu.Open(parentMenu, "SalvageContinue", "Are you sure?\n\c[Brick]Salvage left behind cannot be recovered later.", "Yes", "No");
+		pressed = false;
+		
+		base.finalListIndices.Clear();
+		Array<MechItem> items;
+		
+		AddItemList(items, base.salvageDropshipStorage.salvageList);
+		AddItemList(items, base.salvageMechStorage.salvageList);
+		
+		Array<MechItem> searchList;
+		searchList.Copy(base.playerItems.salvageItems);
+		foreach(itm : items)
+		{
+			int index = searchList.Find(itm);
+			if(index == searchList.Size()) continue;
+			
+			base.finalListIndices.push(index);
+		}
 	}
 }
 
@@ -285,8 +410,13 @@ class MechSalvageMenu : MechMenu
 	DrivableMech mech;
 	MenuCursor cursor;
 	MechItem tooltipItem;
+	Array<int> finalListIndices; // Items here will go into the player's inventory.
 	
-	SalvageMenuItemsList salvageItemsContainer, salvageDropshipStorage, salvageMechStorage;
+	SalvageMenuItemsList salvageItemsContainer;
+	SalvageMenu_MechStorage salvageMechStorage;
+	SalvageMenu_DropshipStorage salvageDropshipStorage;
+	
+	MenuButton continueButton;
 	I_MechItemStorage playerItems;
 
 	override void InitElements() 
@@ -301,8 +431,10 @@ class MechSalvageMenu : MechMenu
 	{
 		playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
 		salvageItemsContainer = SalvageMenuItemsList(AddElement("SalvageMenuItemsList", "Salvage Items", (60,60), (650,900)));
-		salvageDropshipStorage = SalvageMenuItemsList(AddElement("SalvageMenu_DropshipStorage", "Dropship Storage", (750,60), (650,800)));
-		salvageMechStorage = SalvageMenuItemsList(AddElement("SalvageMenu_MechStorage", "Mech Storage", (1450,60), (450,450)));
+		salvageDropshipStorage = SalvageMenu_DropshipStorage(AddElement("SalvageMenu_DropshipStorage", "Dropship Storage", (750,60), (650,800)));
+		
+		salvageMechStorage = SalvageMenu_MechStorage(AddElement("SalvageMenu_MechStorage", "Mech Storage", (1450,60), (450,450)));
+		continueButton = MenuButton(AddElement("SalvageMenu_ContinueButton", "Continue", (1550, 850), (256,128)));
 	}
 	
 		
@@ -316,18 +448,36 @@ class MechSalvageMenu : MechMenu
 	
 		// Tool-tips, again we must draw them here so they're filtered as on-top.
 		let hoveringItem = SalvageMenuItem(cursor.getCollidingWithType("SalvageMenuItem", self));
-		if(!draggingItem && hoveringItem && hoveringItem.itm)
+		if(!draggingItem && hoveringItem && hoveringItem.itm && hoveringItem.visible)
 			DrawTooltip(hoveringItem.itm);
 	}
 	
 	void DrawTooltip(MechItem itm)
 	{
 		vector2 drawPos = cursor.pos + (24, 20);
-		vector2 tipSize = (320, 100);
+		vector2 tipSize = (320, 110);
 	
-		MWDrawer.Fill(0x202020, drawPos.x + 4, drawPos.y + 4, tipSize.x * 1.03, tipSize.y * 1.1, 0.7);
+		MWDrawer.Fill(0x202020, drawPos.x + 4, drawPos.y + 4, tipSize.x * 1.02, tipSize.y * 1.02, 0.7);
 		MWDrawer.Fill(0x646464, drawPos.x - 2, drawPos.y - 2, tipSize.x + 4, tipSize.y + 4);
 		MWDrawer.Fill(0xaeaeae, drawPos.x, drawPos.y, tipSize.x, tipSize.y);
+		
+		// Draw Item Information
+		double cbills = itm.GetValue();
+		string weight = String.Format("Weight: %.2f tons", itm.weight);
+		string value = String.Format("Value: %d CB", cbills);
+		string healthStr[5] = {
+			"Pristine",
+			"Good",
+			"Fair",
+			"Poor",
+			"Destroyed"
+		};
+		int healthIndex = 4 - DrivablesMath.fmap(itm.hp, 0, 10, 0, 4);
+		string status = String.Format("Quality: %s", healthStr[healthIndex]);
+		string eff = String.Format("V/W: %d", cbills / max(1, double(itm.weight)));
+		
+		string itemString = String.Format("%s\n%s\n%s\n%s", status, weight, value, eff);
+		MWDrawer.DrawString("hm_thin", itemString, drawPos + (8,6), scale:(1.0,1.0), linespacing:12);
 	}
 	
 	override void OnMenuClose()
@@ -346,11 +496,47 @@ class MechSalvageMenu : MechMenu
 		Array<String> menuArgs;
 		menuCmd.Split(menuArgs, ":");
 		
+		Array<String> dialogInfo;
+		menuCmd.Split(dialogInfo, ":");
+		
+		uint argc = menuArgs.Size();
+		if(!argc) return;
+		
+		if(dialogInfo[0] ~== "dialog")
+		{
+			if(dialogInfo[1] ~== "SalvageContinue")
+			{
+				if(dialogInfo[2] == "Yes")
+				{
+					EventHandler.SendInterfaceEvent(e.Player, "salvagemenu.continue");
+				}
+			}
+		}
+		
 		if(menuArgs[0] ~== "salvage")
 		{
 			// Salvage events from UI -> Play
 			if(menuArgs[1] ~== "close")
 			{
+				playerItems.salvageItems.Clear();
+			}
+			
+			if(menuArgs[1] ~== "process")
+			{
+				Array<int> indices;
+				for(int i = 2; i < menuArgs.Size(); i++)
+				{
+					indices.Push(menuArgs[i].toInt());
+				}
+				
+				// Give player selected items.
+				foreach(id : indices)
+				{
+					let item = playerItems.salvageItems[id];
+					playerItems.AddItem(item);
+				}
+				
+				// Clean up
 				playerItems.salvageItems.Clear();
 			}
 		}
@@ -371,7 +557,31 @@ class MechSalvageMenu : MechMenu
 				if(!mechEvents) return;
 			
 				self.plr = plr;
+				mech = mechEvents.mechlab_curmech[playerNumber];
 				PopulateSalvageElements();
+			}
+			
+			if(cmds[1] == "continue")
+			{
+				// Build list from indices and send it over.
+				string indexList = "";
+				foreach(index : finalListIndices)
+				{
+					string addStr = (indexList == "") ? String.Format("%d", index) : String.Format("%s:%d", indexList, index);
+					indexList = addStr;
+				}
+				
+				string eventStr = String.Format("salvage:process:%s", indexList);
+				EventHandler.SendNetworkEvent(eventStr);
+				
+				MenuSound("Menus/Close");
+				Close();
+			}
+			
+			if(cmds[1] == "close")
+			{
+				MenuSound("Menus/Close");
+				Close();
 			}
 		}
 	}

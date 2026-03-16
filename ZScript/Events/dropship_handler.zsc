@@ -68,12 +68,16 @@ class MechDropship_Handler : StaticEventHandler
 					PlayerInfo plrInfo = players[i];
 					if(!plrInfo || !playerInGame[i]) continue;
 					let plr = players[i].mo;
-					let inv = I_MechItemStorage.Get(plr);
 					
-					if(inv.salvageItems.size() > 0)
+					DrivableMech mech;
+					let inv = I_MechItemStorage.Get(plr);
+					let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+					if(mechData) mech = mechData.getMechbayMech(mechData.activeMechID);
+
+					if(inv.salvageItems.size() > 0 && mech)
 					{
 						let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
-						if(evh) evh.OpenSalvageMenu(i);
+						if(evh) evh.OpenSalvageMenu(i, mech);
 					}
 				}
 			}

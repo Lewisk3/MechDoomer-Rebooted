@@ -19,6 +19,7 @@ class Salvage_Handler : EventHandler
 		return NULL;
 	}	
 	
+	/*
 	override void WorldLoaded(WorldEvent e)
 	{
 		// DEBUG
@@ -34,6 +35,7 @@ class Salvage_Handler : EventHandler
 			inv.AddSalvage(output);
 		}
 	}
+	*/
 
 	override void WorldThingDied(WorldEvent e)
 	{	

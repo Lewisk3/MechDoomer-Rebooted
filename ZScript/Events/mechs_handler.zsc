@@ -51,9 +51,13 @@ class MechInteraction_Handler : EventHandler
 		SendInterfaceEvent(PID, "mechbays.update");
 	}
 	
-	play void OpenSalvageMenu(int PID)
+	play void OpenSalvageMenu(int PID, DrivableMech mech)
 	{
+		if(!mech) return;
+		
+		mechlab_curmech[PID] = mech;
 		if(PID != consoleplayer) return;
+		
 		Menu.SetMenu("MechSalvageMenu");
 		SendInterfaceEvent(PID, "salvagemenu.update");
 	}

@@ -1743,6 +1743,7 @@ class I_SaveMechData : Inventory
 	virtual void GiveStartingMechs()
 	{
 		GiveMech("MechCommando");
+		activeMechID = 1;
 	}
 	
 	virtual void GiveMech(class<DrivableMech> mechClass)
