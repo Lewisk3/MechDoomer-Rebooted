@@ -56,27 +56,58 @@ class MechDropship_Handler : StaticEventHandler
 			if(scrfade < 0.1) scrfade = 0;
 		}
 		
-		if(curMap == "DROPSHIP" && reloadActiveMech)
-			reloadActiveMech = false;
-		
-		// Load player's mech.
-		if(level.maptime >= 8 && reloadActiveMech)
+		if(curMap == "DROPSHIP")
 		{
-			for(int i = 0; i < MAXPLAYERS; i++)
+			if(reloadActiveMech) reloadActiveMech = false;
+			
+			// Check each player for salvage, open menu if so.
+			if(level.maptime == 4)
 			{
-				PlayerInfo plrInfo = players[i];
-				if(!plrInfo || !playerInGame[i]) continue;
-				let plr = players[i].mo;
-				let inv = I_MechItemStorage.Get(plr);
-		
-				// If there are active mechs, destroy them.
-				// This needs to be done because, if loaded from a save there will exist
-				// a kind of mech-voodoo situation.
-				let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-				if(mechData) mechData.RecycleActiveMechs();
-				
-				RestoreActiveMechs();
-				reloadActiveMech = false;
+				for(int i = 0; i < MAXPLAYERS; i++)
+				{
+					PlayerInfo plrInfo = players[i];
+					if(!plrInfo || !playerInGame[i]) continue;
+					let plr = players[i].mo;
+					let inv = I_MechItemStorage.Get(plr);
+					
+					if(inv.salvageItems.size() > 0)
+					{
+						let evh = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+					//	if(evh) evh.OpenSalvageMenu(i);
+					}
+				}
+			}
+		} 
+		else
+		{
+			// Load player's mech, if starting on a new map.
+			if(level.maptime >= 8 && reloadActiveMech)
+			{
+				for(int i = 0; i < MAXPLAYERS; i++)
+				{
+					PlayerInfo plrInfo = players[i];
+					if(!plrInfo || !playerInGame[i]) continue;
+					let plr = players[i].mo;
+					let inv = I_MechItemStorage.Get(plr);
+			
+					// If there are active mechs, destroy them.
+					// This needs to be done because, if loaded from a save there will exist
+					// a kind of mech-voodoo situation.
+					let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
+					if(mechData) mechData.RecycleActiveMechs();
+					
+					// Debug print salvage
+					console.printf("[SALVAGE LIST]");
+					int id = 0;
+					foreach(item : inv.salvageItems)
+					{
+						console.printf("[%d] %s: %d", ++id, item.displayName, item.amount);
+					}
+					console.printf("--------------");
+					
+					RestoreActiveMechs();
+					reloadActiveMech = false;
+				}
 			}
 		}
 	}

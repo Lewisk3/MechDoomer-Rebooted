@@ -230,7 +230,7 @@ class NovaPrime_RightTorso : MechSideTorso
 		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
 		MechHardpoint.HitBox 8,8, 0, 8,-4;
 		
-		MechHardpoint.Vitals 24, 14;
+		MechHardpoint.Vitals 28, 14;
 		MechHardpoint.SetupArmor 24, 4;
 		MechHardpoint.RearArmor true;
 	}	
@@ -499,7 +499,7 @@ class NovaS_RightTorso : MechSideTorso
 		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
 		MechHardpoint.HitBox 8,8, 0, 8,-4;
 		
-		MechHardpoint.Vitals 24, 14;
+		MechHardpoint.Vitals 28, 14;
 		MechHardpoint.SetupArmor 24, 4;
 		MechHardpoint.RearArmor true;
 	}	

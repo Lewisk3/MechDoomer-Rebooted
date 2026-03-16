@@ -69,18 +69,17 @@ vec4 Process(vec4 color)
     float interference2 = fract(sin(dot(fragCoord * 60 + timer * 1.2, vec2(90, 50))) * 67000);
     float interference3 = fract(sin(dot(fragCoord * 81 - timer * 0.5, vec2(35, 90))) * 25000);
     
-	float interferenceStr = 0.5;
+	float interferenceStr = 0.35;
     float interference = (interference1 + interference2 + interference3) / 3.0;
-	float grainInterference = smoothstep(0.25, 0.75, interference);  
-    grainInterference = ((grainInterference * 2.0) - 1.0) * interferenceStr;  
+	float grainInterference = smoothstep(0.25, 0.75, interference) * interferenceStr;  
     vec3 interColor = fragColor.rgb * (1.0 + grainInterference);
     
 	// Modulate alpha
     float alphaOrigin = fragColor.a;
-    float alphaNoise = fbm(uv * 3.0 + vec2(timer * 2.0, -timer));
+    float alphaNoise = fbm(uv * 1.0 + vec2(timer * 2.0, -timer));
 
 	// Combine color and alpha
-	float finalAlpha = alphaOrigin * mix(0.15, 1.0, mix(alphaNoise, grainInterference, 0.6));
+	float finalAlpha = alphaOrigin * mix(0.15, 1.0, mix(alphaNoise, grainInterference, 0.8));
 	vec3 finalColor = interColor + vec3(laserNoise) * 0.4;
     return vec4(finalColor, finalAlpha);
 }

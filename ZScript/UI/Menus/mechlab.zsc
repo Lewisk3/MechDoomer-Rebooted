@@ -318,7 +318,6 @@ class MechItemSlot : MenuElement
 	MechHardpointContainer container;
 	vector2 defaultPos;
 	MechItem slotItem;
-	double slotHeight;
 	double scale;
 	double alpha;
 	bool locked; // If true, disables dragging on this item.
@@ -328,7 +327,6 @@ class MechItemSlot : MenuElement
 		super.Init();
 		mechlab = MechMenu_MechLab(parentMenu);
 		defaultPos = pos;
-		slotHeight = size.y;
 		scale = 0.5;
 		alpha = 1.0;
 	}
@@ -343,16 +341,27 @@ class MechItemSlot : MenuElement
 		return itemFontColor, Color(slotColor);
 	}
 	
-	ui static void DrawMechItem(MechItem item, vector2 pos, double alpha, double itemScale, vector2 containerSize, double slotHeight, bool greyed = false)
+	ui static int, int GetItemSlotSize()
+	{
+		string itemTexture = "Graphics/Mechlab/itemBottom.png";
+		let tex = TexMan.CheckForTexture(itemTexture);
+		let [texWidth, texHeight] = TexMan.GetSize(tex);
+		
+		return texWidth, texHeight;
+	}
+	
+	ui static void DrawMechItem(MechItem item, vector2 pos, double alpha, double itemScale, vector2 containerSize, bool greyed = false)
 	{
 		if(!item) return;
+	
+		let [itemWidth, itemHeight] = GetItemSlotSize();
 	
 		Font itemFont = "hm_type"; 
 		bool destroyed = item.checkDestroyed();
 		
 		Color slotColor = 0;
 		uint itemFontColor = Font.CR_WHITE;
-		double wScale = containerSize.x / 256;
+		double wScale = (containerSize.x / (itemWidth * itemScale));
 		
 		[itemFontColor, slotColor] = GetItemColors(item);
 		if(greyed)
@@ -371,27 +380,32 @@ class MechItemSlot : MenuElement
 		
 		if(item)
 		{
+			string itemTexture = "Graphics/Mechlab/itemBottom.png";
+			double scaledSlotHeight = (itemHeight - 2) * itemScale;
 			int itemSize = max(1,item.size);
-			double scaledSlotHeight = slotHeight * itemScale;
 			for(int i = 0; i < itemSize-1; i++)
 			{
-				MWDrawer.DrawImage(
-					"Graphics/Mechlab/itemBottom.png", 
+				 MWDrawer.DrawImage(
+					itemTexture, 
 					pos + (0, scaledSlotHeight + (i * scaledSlotHeight)), 
 					alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, 
 					texoffs:(0,0)
 				);
 			}
+			double itemSizeY = (scaledSlotHeight * itemSize);
 			
 			// Draw item data
 			double fontScale = itemScale * 1.5;
+			vector2 trueSize = (itemWidth * itemScale * wScale, itemSizeY);
 			vector2 centerPos = pos + (
-				(containerSize.x / 2.0),
-				(containerSize.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 ) - 1
+				(trueSize.x / 2.0),
+				(trueSize.y / 2.0) - ( (itemFont.GetHeight() * (2.0*fontScale) ) / 2.0 ) - 1
 			);
+			
+			// MWDrawer.Fill(0xFF0000FF, pos.x, pos.y, trueSize.x, trueSize.y, 1.0);
 						
 			// Autofit 
-			double fitX = containerSize.x - 16;
+			double fitX = trueSize.x - 16;
 			double itemNameWidth = itemFont.StringWidth(item.displayName) * fontScale * 2.0;
 			double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
 			
@@ -405,7 +419,7 @@ class MechItemSlot : MenuElement
 	
 	override void Draw(double dT)
 	{
-		DrawMechItem(slotItem, pos, alpha, scale, size, slotHeight, disabled);
+		DrawMechItem(slotItem, pos, alpha, scale, size, disabled);
 	
 		// drawCollider();
 	}
@@ -460,7 +474,8 @@ class MechItemSlot : MenuElement
 	override void Update(double dT)
 	{
 		// Update size to item slot size.
-		double scaledSlotHeight = slotHeight * scale;
+		let [_, itemHeight] = GetItemSlotSize();
+		double scaledSlotHeight = itemHeight * scale;
 		size.y = slotItem ? scaledSlotHeight * max(1,slotItem.size) : scaledSlotHeight;
 		disabled = container ? container.disabled : false;
 		

@@ -705,6 +705,7 @@ class ShopItem : MenuElement
 	bool selected;
 	double dragAlpha;
 	double dragTics;
+	double itemScale;
 	
 	virtual bool IsSameItem(ShopItem other)
 	{
@@ -715,7 +716,9 @@ class ShopItem : MenuElement
 	
 	override void Init()
 	{
-		size = (256,128);
+		let [itemWidth, itemHeight] = MechItemSlot.getItemSlotSize();
+		size = (itemWidth * 0.5, itemHeight);
+		itemScale = 0.65;
 		base = ShopMenu(parentMenu);
 	}
 	
@@ -753,18 +756,18 @@ class ShopItem : MenuElement
 		
 		if(objItem)
 		{	
-			MechItemSlot.DrawMechItem(objItem, initPos + posOffs, itemAlpha, 0.5, size, 34, disabled);  
+			MechItemSlot.DrawMechItem(objItem, initPos + posOffs, itemAlpha, itemScale, size, disabled);  
 			DrawCount(initPos + posOffs);
 			MWDrawer.ClearClipRect();
 			
 			// Draw under cursor if being dragged.
 			if(dragging) 
-				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? dragAlpha : 1.0, 0.5, size, 34, disabled);  
+				MechItemSlot.DrawMechItem(objItem, drawPos, dragging ? dragAlpha : 1.0, itemScale, size, disabled);  
 		}
 		else if(mechData)
 		{
 			vector2 listPos = initPos + posOffs;
-			DrawItemizedMech(mechData, listPos, itemAlpha, 0.5, size, 34, disabled);  
+			DrawItemizedMech(mechData, listPos, itemAlpha, itemScale, size, disabled);  
 			DrawMechValue(listPos, itemAlpha);
 			if(inCart)
 			{
@@ -777,20 +780,22 @@ class ShopItem : MenuElement
 			// Draw under cursor if being dragged.
 			if(dragging) 
 			{
-				DrawItemizedMech(mechData, drawPos, dragging ? dragAlpha : 1.0, 0.5, size, 34, disabled);  
+				DrawItemizedMech(mechData, drawPos, dragging ? dragAlpha : 1.0, itemScale, size, disabled);  
 				DrawMechValue(drawPos, dragging ? dragAlpha : 1.0);
 			}
 		}
 	}
 	
-	static void DrawItemizedMech(MechSaveData mech, vector2 pos, double alpha, double itemScale, vector2 containerSize, double slotHeight, bool greyed = false)
+	static void DrawItemizedMech(MechSaveData mech, vector2 pos, double alpha, double itemScale, vector2 containerSize, bool greyed = false)
 	{
 		if(!mech) return;
 	
+		let [itemWidth, itemHeight] = MechItemSlot.getItemSlotSize();
+		
 		Font itemFont = "hm_type"; 		
 		Color slotColor = 0xFF994511;
 		uint itemFontColor = Font.CR_WHITE;		
-		double wScale = containerSize.x / 256;
+		double wScale = (containerSize.x / (itemWidth * itemScale));
 
 		if(greyed)
 		{
@@ -800,8 +805,8 @@ class ShopItem : MenuElement
 		
 		MWDrawer.DrawImage("Graphics/Mechlab/itemTop.png", pos, alpha:alpha, scale:(itemScale*wScale,itemScale), tint:slotColor, texoffs:(0,0));
 
-		int itemSize = 8;
-		double scaledSlotHeight = slotHeight * itemScale;
+		int itemSize = 7;
+		double scaledSlotHeight = (itemHeight - 2) * itemScale;
 		for(int i = 0; i < itemSize-1; i++)
 		{
 			MWDrawer.DrawImage(
@@ -811,6 +816,8 @@ class ShopItem : MenuElement
 				texoffs:(0,0)
 			);
 		}
+		
+		//MWDrawer.Fill(0xFF0000FF, pos.x, pos.y, containerSize.x, containerSize.y);
 		
 		// Draw mech box
 		let mechdefs = GetDefaultByType(mech.mechType);
@@ -875,7 +882,7 @@ class ShopItem : MenuElement
 		MWDrawer.DrawString(
 			itemFont, mounts,
 			namePos + (0,20), MWDrawer.SS_TEXT_RIGHT, translation:itemFontColor,
-			alpha, scale:(fontScale, fontScale)
+			alpha, scale:(fontScale * 0.75, fontScale * 0.75)
 		);
 	}
 	
@@ -983,10 +990,10 @@ class ShopItem : MenuElement
 	override void Update(double dT)
 	{
 		// Mechs have a fixed size.
-		if(mechData) size = (365, 140);
+		if(mechData) size = (365, 238 * itemScale);
 	
 		// Update size to item slot size.
-		if(objItem) size.y = 34 * max(1,objItem.size) * 0.5;
+		if(objItem) size.y = itemScale * (34 * max(1,objItem.size));
 
 		if(!dragging) pos = initPos + posOffs;
 		disabled = parentElement.disabled || (!infinite && count <= 0);
@@ -1422,12 +1429,12 @@ class GFX_CBills : GFXMenuItem
 		self.pos = pos;
 		alpha = 1.0;
 		scale = 0.1;
-		maxScale = crandom[MenuGFX](0.33, 1.0);
+		maxScale = frandom[MenuGFX](0.33, 1.0);
 		
 		vel = (
 			 crandom[MenuGFX](-1.0,1.0),
 			-crandom[MenuGFX](1.0,3.0)
-		) * crandom[MenuGFX](0.1,6.0);
+		) * frandom[MenuGFX](0.1,6.0);
 		rotation = crandom[MenuGFX](0,360);
 		rotVel = crandom[MenuGFX](-6,6);
 		

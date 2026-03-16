@@ -1537,7 +1537,7 @@ class HardpointSaveData : Object
 		healthPoints = src.healthPoints;
 		rearArmor = src.rearArmor;
 		maxRearArmor = src.maxRearArmor;
-		maxArmor = src.maxArmor;
+		maxArmor = src.default.maxArmor;
 		maxHP = src.maxHP;
 		frontArmorDamage = src.frontArmorDamage;
 		rearArmorDamage = src.rearArmorDamage;

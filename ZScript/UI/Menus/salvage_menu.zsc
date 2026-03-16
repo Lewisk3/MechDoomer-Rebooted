@@ -1,0 +1,152 @@
+
+class SalvageItemsContainer : MenuElement
+{
+	readonly Array<MechItem> salvageList;
+	MechSalvageMenu base;
+	vector2 listPos, listSize;
+	double listStartY;
+
+	override void Init()
+	{
+		base = MechSalvageMenu(parentMenu);
+		salvageList.Copy(base.playerItems.salvageItems);
+		listStartY = 70;
+		
+		double edgeSize = 10;
+		listPos = (
+			pos.x + (edgeSize * 0.5),
+			pos.y + (edgeSize * 0.5) + listStartY
+		);
+		listSize = (
+			size.x - edgeSize,
+			size.y - edgeSize - listStartY
+		);
+		
+		UpdateChildren();
+	}
+	
+	override void Draw(double dT)
+	{
+		vector2 nameCenter = ( 
+			pos.x + (size.x * 0.5), 
+			pos.y + (listStartY * 0.1)
+		);
+		MWDrawer.Fill(0x7F7F7F, pos.x, pos.y, size.x, size.y, 1.0);
+		MWDrawer.Fill(0x3B3B3B, listPos.x, listPos.y, listSize.x, listSize.y, 1.0);
+		
+		MWDrawer.DrawString("hm_type", Tag, nameCenter, MWDrawer.SS_TEXT_CENTER, alpha:1.0, scale:(2,2));
+	}
+	
+	override void Update(double dT)
+	{
+		
+	}
+	
+	void UpdateChildren()
+	{
+		ClearChildren(base, "SalvageItem");
+		int cnt = 0;
+		vector2 itemPos = (listPos.x + 10, listPos.y + 10);
+		double padding = 30;
+		foreach(itm : salvageList)
+		{
+			let childItem = SalvageItem(AddChild(base, "SalvageItem", String.Format("Item: %d", cnt), itemPos));  
+			childItem.container = self;
+			childItem.itm = itm;
+			childItem.size.y *= itm.size;
+			itemPos.y += childItem.size.y + padding;
+			cnt++;
+		}
+	}
+}
+
+class SalvageItem : MenuElement
+{
+	MechSalvageMenu base;
+	SalvageItemsContainer container;
+	MechItem itm;
+	
+	override void Init()
+	{
+		let [itemWidth, itemHeight] = MechItemSlot.GetItemSlotSize();
+		size = (itemWidth, itemHeight);
+		base = MechSalvageMenu(parentMenu);
+	}
+	
+	override void Draw(double dT)
+	{
+		// Draw Item
+		MechItemSlot.DrawMechItem(itm, pos, 1.0, 1.0, size, greyed:false);
+	}
+}
+
+// Mech salvage Menu
+class MechSalvageMenu : MechMenu 
+{
+	PlayerPawn plr;
+	DrivableMech mech;
+	MenuCursor cursor;
+	
+	SalvageItemsContainer salvageContainer;
+	I_MechItemStorage playerItems;
+
+	override void InitElements() 
+	{
+		elements.Clear(); // Repopulate elements
+			
+		// Cursor is added last, to keep always on-top.
+		cursor = MenuCursor(AddElement("MenuCursor", "Cursor", (0,0), (10,10))); 
+	}
+	
+	void PopulateSalvageElements()
+	{
+		playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
+		salvageContainer = SalvageItemsContainer(AddElement("SalvageItemsContainer", "Salvage", (60,60), (650,900)));
+	}
+	
+	override void OnMenuClose()
+	{
+		EventHandler.SendNetworkEvent("salvage:close");
+	}
+
+	play static void processSalvageMenuEvents(ConsoleEvent e)
+	{
+		// Menu events
+		let plr = players[e.Player].mo;
+		let playerItems = I_MechItemStorage(plr.FindInventory("I_MechItemStorage"));
+		if(!playerItems) return;
+		
+		string menuCmd = e.Name;
+		Array<String> menuArgs;
+		menuCmd.Split(menuArgs, ":");
+		
+		if(menuArgs[0] ~== "salvage")
+		{
+			// Salvage events from UI -> Play
+			if(menuArgs[1] ~== "close")
+			{
+				playerItems.salvageItems.Clear();
+			}
+		}
+	}
+	
+	override void processPlayEvent(int playerNumber, string event) 
+	{
+		Array<String> cmds;
+		event.Split(cmds, ".");
+		
+		let plr = players[playerNumber].mo;
+		if(cmds[0] == "salvagemenu")
+		{		
+			// Salvage menu events from play -> UI.
+			if(cmds[1] == 'update')
+			{
+				let mechEvents = MechInteraction_Handler(EventHandler.Find("MechInteraction_Handler"));
+				if(!mechEvents) return;
+			
+				self.plr = plr;
+				PopulateSalvageElements();
+			}
+		}
+	}
+}

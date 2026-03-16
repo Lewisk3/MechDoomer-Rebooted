@@ -132,8 +132,8 @@ Menus/Text/InputFour  "Sounds/Menus/text_input_four.ogg"
 $random Menus/Text/Input	 { Menus/Text/InputOne Menus/Text/InputTwo Menus/Text/InputThree Menus/Text/InputFour }
 
 Menus/Button/Pressed		 "Sounds/Menus/button_pressed.wav"
-Menus/Item/Equip			 "Sounds/Menus/item_equip.wav"
-Menus/Item/Dequip			 "Sounds/Menus/item_dequip.wav"
+Menus/Item/Equip			 "Sounds/Menus/item_equip.ogg"
+Menus/Item/Dequip			 "Sounds/Menus/item_dequip.ogg"
 Menus/Item/Move				 "Sounds/Menus/item_move.wav"
 Menus/Armor/Changed			 "Sounds/Menus/armor_changed.wav"
 Menus/Addon/Equip			 "Sounds/Menus/addon_equip.wav"

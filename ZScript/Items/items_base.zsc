@@ -1826,12 +1826,22 @@ class I_MechItemStorage : Inventory
 	double cbills; // Player's money
 	Array<MechItem> items;
 	Array<MechItem> shopItems;
+	Array<MechItem> salvageItems; // Temporary salvage list, added to items later.
 	string dropshipNextMap; // Map to return to after dropship.
 	
 	Default
 	{
 		Inventory.MaxAmount 1;
 		+INVENTORY.UNDROPPABLE;
+	}
+	
+	play void AddSalvage(out Array<MechItem> salvage)
+	{
+		foreach(item : salvage)
+			salvageItems.Push(item);
+			
+		// Clear list after taking new items.
+		salvage.Clear();
 	}
 	
 	clearscope void FindItems(class<MechItem> itemCls, Array<MechItem> result, bool subclass = false)

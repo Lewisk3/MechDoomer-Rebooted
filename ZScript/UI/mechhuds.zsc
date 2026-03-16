@@ -61,6 +61,7 @@ class MechHUD : VehicleHUD
 					DrawCombatZoom();
 					Screen.SetStencil(1, SOP_Keep, SF_AllOn);
 					
+					
 					// We need to make sure all of the HUD projection math fits with-in the zoom rect.
 					vector2 sRes = (Screen.getWidth(), Screen.getHeight());
 					vector2 winRes = (320,200) * 1.67;

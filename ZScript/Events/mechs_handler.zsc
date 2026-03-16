@@ -51,6 +51,13 @@ class MechInteraction_Handler : EventHandler
 		SendInterfaceEvent(PID, "mechbays.update");
 	}
 	
+	play void OpenSalvageMenu(int PID)
+	{
+		if(PID != consoleplayer) return;
+		Menu.SetMenu("MechSalvageMenu");
+		SendInterfaceEvent(PID, "salvagemenu.update");
+	}
+	
 	play void OpenMechRepairMenu(int PID, DrivableMech mech)
 	{
 		if(!mech) return;
@@ -146,6 +153,7 @@ class MechInteraction_Handler : EventHandler
 		ShopMenu.processShopMenuEvents(e);
 		MechbayMenu.processMechbayMenuEvents(e);
 		MechRepairMenu.processRepairMenuEvents(e);
+		MechSalvageMenu.processSalvageMenuEvents(e);
 
 		// Cheats and Debug
 		Array<string> args;
