@@ -1915,7 +1915,7 @@ class MechMenu_Mechlab : MechMenu
 			if(menuArgs[1] ~== "savemech" && playerMechs)
 			{
 				int mechIndex = menuArgs[2].ToInt();
-				console.printf("Saving mech: %d", mechIndex);
+				// console.printf("Saving mech: %d", mechIndex);
 				let mechlabMech = playerMechs.mechsData[mechIndex];
 				if(mechlabMech && mechlabMech.mechobj)
 				{

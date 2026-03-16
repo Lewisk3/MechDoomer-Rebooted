@@ -100,15 +100,6 @@ class MechDropship_Handler : StaticEventHandler
 					let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 					if(mechData) mechData.RecycleActiveMechs();
 					
-					// Debug print salvage
-					console.printf("[SALVAGE LIST]");
-					int id = 0;
-					foreach(item : inv.salvageItems)
-					{
-						console.printf("[%d] %s: %d", ++id, item.displayName, item.amount);
-					}
-					console.printf("--------------");
-					
 					RestoreActiveMechs();
 					reloadActiveMech = false;
 				}
@@ -335,7 +326,9 @@ class MechbayScripts abstract play
 	{
 		let mechData = I_SaveMechData(activator.FindInventory("I_SaveMechData"));
 		if(!mechData) return;
-		console.printf("Setting active mech to #%d", mechbayID);
+		
+		DrivableMech mech = mechData.getMechbayMech(mechbayID);
+		console.printf("\"%s\" selected as primary mech.", mech.mechChassisName);
 		mechData.activeMechID = mechbayID;
 	}
 }
