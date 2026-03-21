@@ -234,7 +234,8 @@ class MechProjectile : FastProjectile
 	{
 		if(!homingTarget || stopHoming) return;
 		
-		vector3 spreadPos = Quat.FromAngles(angle, pitch, roll) * ( spread.x, spread.y, (homingTarget.height) + ((spread.x + spread.y)*0.5) );
+		double targetHeightOffs = homingTarget.height * (firePitch > 1 ? 1 : 0.5);
+		vector3 spreadPos = Quat.FromAngles(angle, pitch, roll) * ( spread.x, spread.y, targetHeightOffs + ((spread.x + spread.y)*0.5) );
 		vector3 targetPos = level.vec3offset(homingTarget.pos, spreadPos);
 		double targetDist = DrivablesMath.Distance3D(pos, targetPos);
 		double mDist = DrivableMech.unitsToKM(targetDist)*1000.0;

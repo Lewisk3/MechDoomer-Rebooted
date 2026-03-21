@@ -35,13 +35,13 @@ class MechLaser : MechLaserBeam
 		angleOffsets.y -= aimAngles.y;
 	}
 
-	static MechLaser, MechLaser FireLaser(Actor shooter, vector3 pos, double dmg, double lifetime, double dropoff_range, double maxrange, class<MechLaser> type, double scale = 1.0, class<MechLaser> core = "MechLaserCore")
+	static MechLaser, MechLaser FireLaser(DrivableMech parentMech, Actor shooter, vector3 pos, double dmg, double lifetime, double dropoff_range, double maxrange, class<MechLaser> type, double scale = 1.0, class<MechLaser> core = "MechLaserCore")
 	{
 		// Get range in units.
 		maxrange = DrivableMech.MetersToUnits(maxrange);
 		dropoff_range = DrivableMech.MetersToUnits(dropoff_range);
 		
-		let laser = MechLaser(MechLaserBeam.Create(shooter, pos.x, pos.y, pos.z, maxDist:maxrange, type:type));
+		let laser = MechLaser(MechLaserBeam.Create(parentMech, shooter, pos.x, pos.y, pos.z, maxDist:maxrange, type:type));
 		MechLaser laserCore;
 		
 		if(laser) 
@@ -54,7 +54,7 @@ class MechLaser : MechLaserBeam
 		}
 		if(core && laser)
 		{
-			laserCore = MechLaser(MechLaserBeam.Create(shooter, pos.x, pos.y, pos.z, maxDist:maxrange, type:core));
+			laserCore = MechLaser(MechLaserBeam.Create(parentMech, shooter, pos.x, pos.y, pos.z, maxDist:maxrange, type:core));
 			if(laserCore)
 			{
 				laserCore.time = lifetime;

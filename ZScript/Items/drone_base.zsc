@@ -482,7 +482,7 @@ class DroneLaserGun : Actor
 		if(!laser) 
 		{
 			laserOffs = (10,0,0) * Scale.X;
-			laser = DroneLaserBeam(DroneLaserBeam.Create(
+			laser = DroneLaserBeam(DroneLaserBeam.Create(NULL,
 				self, 
 				laserOffs.x, laserOffs.y, laserOffs.z, 
 				0,0, 

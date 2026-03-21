@@ -1,0 +1,268 @@
+class MechStormcrow : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 50, 51;
+		DrivableMech.MaxWeight 55; // In Tons.
+		DrivableMech.ChassisName "Stormcrow";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Stormcrow_icon.png";
+		DrivableMech.CBillValue (14771113   * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Tokasha MechWorks";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Stormcrow is a widespread, second generation OmniMech fielded by many Clans. "
+			"Because of its versatility through its combination of mobility, armor, and firepower in "
+			"its various configurations, the Stormcrow is a feared opponent on the battlefield. "
+			"(Source: https://www.sarna.net/wiki/Stormcrow_(Ryoken))"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Stormcrow_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Stormcrow_Hips",  0,0,60, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Stormcrow_CenterTorso", 0,0,5, hips);
+		leftTorso  = AddHardpoint("Stormcrow_LeftTorso",  0,-14,6, torso);
+		rightTorso = AddHardpoint("Stormcrow_RightTorso", 0, 14,6, torso);
+		
+		leftLeg = AddHardpoint("Stormcrow_LeftLeg",  0,-30,0, legs);
+		rightLeg = AddHardpoint("Stormcrow_RightLeg", 0, 30,0, legs);
+			
+		leftArm  = AddHardpoint("Stormcrow_LeftArm",  0,0,18, leftTorso);
+		rightArm = AddHardpoint("Stormcrow_RightArm", 0,0,18, rightTorso);
+		
+		head = AddHardpoint("Stormcrow_Cockpit", 38,0,8, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL330");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
+		
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_TWO);
+		
+		head.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		leftArm.AddItem("MechDoubleHeatsink");
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+	}
+}
+
+/*
+9.5 tons = 237pts Ferro Armor
+[HD] - 12
+[CT] - 47
+[LT] - 34
+[RT] - 34
+[LA] - 25
+[RA] - 25
+[LL] - 30
+[RL] - 30
+Wildcard points 0
+*/
+
+class Stormcrow_Hips : MechHips {}
+
+class Stormcrow_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 4;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "StormcrowCockpitModel";
+	}
+	
+	override void SetupMounts()
+	{
+		// 1E
+		AddMountPoint("Energy", 4, 0,-5, 0.5);
+	}
+}
+class StormcrowCockpitModel : MechCockpitModel {}
+
+class Stormcrow_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 80; // degs second
+	}
+}
+class Stormcrow_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 131, 131; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 130;
+		MechTorso.PitchRange 30, 30;
+		Radius 9;
+		Height 32;
+		
+		MechHardpoint.Vitals 47, 24;
+		MechHardpoint.SetupArmor 35, 14;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(12,0,0, 9,32);
+		AddHitBox(25,0,0, 9,14);
+	}
+}
+
+class Stormcrow_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 35;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 8,6, 23,-28,-24;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 25, 13;
+		MechHardpoint.SetupArmor 25, 0;
+	}
+
+	override void SetupHitboxes()
+	{
+		super.SetupHitBoxes();
+		
+		AddHitBox(7, hitboxPos_LR, -24, 8,6);
+		AddHitBox(-8, hitboxPos_LR, -24, 8,6);
+		AddHitBox(-18, hitboxPos_LR, -24, 8,6);
+		
+		AddHitBox(-12, hitboxPos_LR, -20, 7,24);
+	}
+
+	override void SetupMounts()
+	{	
+		// 2E
+		AddMountPoint("Energy", 30,-25,-21, 0.5);
+		AddMountPoint("Energy", 30,-32.5,-21, 0.5);
+	}
+}
+class Stormcrow_RightArm : Stormcrow_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 8,6, 23, 28,-24;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 25, 13;
+		MechHardpoint.SetupArmor 25, 0;
+	}
+	
+	override void SetupMounts()
+	{	
+		// 2E
+		AddMountPoint("Energy", 30, 24.5,-21, 0.5);
+		AddMountPoint("Energy", 30, 32,-21, 0.5);
+	}
+}
+
+class Stormcrow_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 4;
+		Height 24;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 34, 17;
+		MechHardpoint.SetupArmor 25, 9;
+		MechHardpoint.RearArmor true;
+	}
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(-8,0,0, 4,24);
+		AddHitBox(8,0,0, 4,24);
+		AddHitBox(14,0,0, 4,24);
+	}
+		
+	override void SetupMounts()
+	{
+
+	}
+}
+class Stormcrow_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 4;
+		Height 24;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 34, 17;
+		MechHardpoint.SetupArmor 25, 9;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(-8,0,0, 4,24);
+		AddHitBox(8,0,0, 4,24);
+		AddHitBox(14,0,0, 4,24);
+	}
+	
+	override void SetupMounts()
+	{
+		// 1PDS
+		AddMountPoint("PDS", 0,-6,25);
+	}
+}
+
+class Stormcrow_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 60;
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+}
+class Stormcrow_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 60;
+		
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+}
