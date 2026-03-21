@@ -15,6 +15,33 @@ class MechRepairKit : MechItem
 		bgColor = 0xFF00C0C0;
 	}
 	
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]Repair Kits are designed to be used in the field, depending on the type "
+			"a repair kit can either repair a mech's armor, internal structure, or damaged items. "
+		);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{	
+		if(armorRepairAmount > 0)
+		{
+			stats.Push("ARMOR REPAIR");
+			values.Push(String.Format("\c[Green]+%d pts", armorRepairAmount));
+		}
+		if(internalRepairAmount > 0)
+		{
+			stats.Push("INTERNAL REPAIR");
+			values.Push(String.Format("\c[Green]+%d pts", internalRepairAmount));
+		}
+		if(itemRepairAmount > 0)
+		{
+			stats.Push("ITEM REPAIR");
+			values.Push(String.Format("\c[Green]+%d%% HP", ceil(itemRepairAmount / 0.1)));
+		}
+	}
+	
 	override void GetDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		flavorText = itemDescription;
@@ -36,40 +63,53 @@ class MechRepairKit : MechItem
 		}
 	}
 	
-	override int TryAttach(MechHardpoint part)
+	virtual int GetAttachResult(MechHardpoint part)
 	{
-		if(armorRepairAmount)
-		{
-			if(part.totalArmorDamage <= 0) 
-				return IAE_INVALID;
-		
+		int success = 0;
+		if(armorRepairAmount && part.totalArmorDamage > 0)
+		{		
 			let curArmor = part.mech.armorType;
 			if(!curArmor) return IAE_NOTFOUND;
 			
 			if(curArmor.armorTier > repairTier) 
 				return IAE_FAIL;
+			
+			success++;
 		}
 		
-		if(internalRepairAmount)
-		{
-			if(part.healthPoints >= part.maxHP) 
-				return IAE_INVALID;
-		
+		if(internalRepairAmount && part.healthPoints < part.maxHP)
+		{	
 			let curStructure = part.mech.chassisStructure;
 			if(!curStructure) return IAE_NOTFOUND;
 			
 			if(curStructure.structureTier > repairTier) 
 				return IAE_FAIL;
+				
+			success++;
 		}
 		
 		if(!armorRepairAmount && !internalRepairAmount)
 			return IAE_INVALID;
 		
-		parent = part;
-		OnAttach();
-		parent = NULL;
+		// If neither armor or internal repair attempt was successful.
+		if(success == 0) 
+			return IAE_INVALID;
 		
 		return IAE_SUCCESS;
+	}
+	
+	override int TryAttach(MechHardpoint part)
+	{
+		int status = GetAttachResult(part);
+		
+		if(status == IAE_SUCCESS)
+		{
+			parent = part;
+			OnAttach();
+			parent = NULL;
+			return status;
+		}
+		else return status;
 	}
 	
 	// Repair items
@@ -77,7 +117,7 @@ class MechRepairKit : MechItem
 	{
 		if(!itemRepairAmount) return;
 		
-		if(destItem.hp <= 10 && destItem.parent && destItem.parent.healthPoints > 0)
+		if(destItem.hp < 10 && destItem.movable && destItem.parent && destItem.parent.healthPoints > 0)
 		{
 			Deplete();
 			if(destItem.hp <= 0)
@@ -93,6 +133,18 @@ class MechRepairKit : MechItem
 	{
 		parent.Repair(armorRepairAmount, internalRepairAmount);	
 	}
+	
+	// Returns CBill cost of repair-kit based on attributes.
+	double CalculateCost(double weight = 2.0)
+	{
+		double tierCost = (5000 * max(1, 4 * repairTier));
+		double armorCost = (armorRepairAmount * 0.05) * tierCost;
+		double internalCost = (internalRepairAmount * 0.1) * tierCost;
+		double itemRepairCost = (itemRepairAmount * 0.25) * (tierCost * 2.0);
+		
+		double totalCost = (armorCost + internalCost + itemRepairCost) * weight;
+		return floor(totalCost);
+	}
 }
 
 class MechItemRepairKit : MechRepairKit
@@ -103,6 +155,8 @@ class MechItemRepairKit : MechRepairKit
 		itemRepairAmount = 5;
 		repairTier = 0;
 		addonCapable = true;
+		value = CalculateCost();
+		
 		itemDescription = (
 			"\c[Yellow]Repairs items. Drag and drop on a damaged item to activate.\n"
 			"If an item has been destroyed, using this item will repair it up to 1 HP."
@@ -128,6 +182,7 @@ class MechArmorRepairKit : MechRepairKit
 		displayName = "Basic Armor Repair Kit";		 
 		armorRepairAmount = 12; // 12 points of armor per kit.
 		repairTier = 0;
+		value = CalculateCost();
 		itemDescription = "\c[Yellow]Repairs Standard Armor. Drag and drop on a damaged hardpoint to activate.";
 	}
 
@@ -149,6 +204,7 @@ class AdvArmorRepairKit : MechArmorRepairKit
 		displayName = "Advanced Armor Repair Kit";		 
 		armorRepairAmount = 10; // 10 points of armor per kit.
 		repairTier = 3;
+		value = CalculateCost();
 		itemDescription = "\c[Yellow]Repairs Standard or Advanced Armor. Drag and drop on a damaged hardpoint to activate.";
 	}
 }
@@ -161,8 +217,9 @@ class MechInternalsRepairKit : MechRepairKit
 		displayName = "Basic Internal Repair Kit";		 
 		internalRepairAmount = 10;
 		repairTier = 0;
+		value = CalculateCost();
 		itemDescription = (
-			"\c[Yellow]Repairs standard internal structures." 
+			"\c[Yellow]Repairs standard internal structures. " 
 			"Drag and drop on a damaged hardpoint to activate.\n"
 			"If a hardpoint has been destroyed, using this item will repair it up to 1 internal HP."
 		);
@@ -197,10 +254,93 @@ class AdvInternalsRepairKit : MechInternalsRepairKit
 		displayName = "Advanced Internal Repair Kit";		 
 		internalRepairAmount = 8;
 		repairTier = 3;
+		value = CalculateCost();
 		itemDescription = (
-			"\c[Yellow]Repairs standard or advanced internal structures." 
+			"\c[Yellow]Repairs standard or advanced internal structures. " 
 			"Drag and drop on a damaged hardpoint to activate.\n"
 			"If a hardpoint has been destroyed, using this item will repair it up to 1 internal HP."
 		);
+	}
+}
+
+class ExoticRepairKit : MechRepairKit 
+{
+	override void Defaults()
+	{
+		displayName = "Exotic Repair Kit";		 
+		internalRepairAmount = 20;
+		armorRepairAmount = 20;
+		itemRepairAmount = 10;
+		
+		repairTier = 3;
+		value = CalculateCost();
+		itemDescription = (
+			"\c[Yellow]Repairs standard or advanced internal structures, armor and items. " 
+			"Drag and drop on a damaged hardpoint to activate.\n"
+		);
+	}
+	
+	override string GetItemErrorMessage(int ERR_TYPE)	
+	{
+		switch(ERR_TYPE)
+		{
+			case IAE_INVALID: return "No damage detected.";
+			case IAE_FAIL: return "Unknown technology.";
+			default: return super.GetItemErrorMessage(ERR_TYPE);
+		}
+	}
+	
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]The most advanced repair kit this side of the galaxy. Repairs armor damage, internal " 
+			"damage as well as all damaged items in a given hardpoint. The only downside is the price..."
+		);
+	}
+	
+	override int TryAttach(MechHardpoint part)
+	{
+		int status = GetAttachResult(part);
+		int success = 0;
+	
+		// Look for damaged items
+		Array<MechItem> hpItems;
+		hpItems.Copy(part.items);
+		
+		foreach(itm : part.items)
+		{
+			if(itm.hp < 10) 
+				success++;
+		}
+		
+		// If no repair attempt was successful.
+		if(success == 0 && status != IAE_SUCCESS) 
+			return IAE_INVALID;
+		else
+			status = IAE_SUCCESS;
+		
+		if(status == IAE_SUCCESS)
+		{
+			parent = part;
+			OnAttach();
+			parent = NULL;
+			return status;
+		}
+		else return status;
+	} 
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
+	
+		// Look for and repair damaged items
+		Array<MechItem> hpItems;
+		hpItems.Copy(parent.items);
+		
+		foreach(itm : parent.items)
+		{
+			bool validItem = (itm.hp < 10 && itm.movable && itm.parent && itm.parent.healthPoints > 0);
+			if(validItem) itm.Repair(itemRepairAmount);
+		}
 	}
 }

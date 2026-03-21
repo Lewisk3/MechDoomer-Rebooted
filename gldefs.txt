@@ -202,12 +202,12 @@ material texture models/mechs/summoner/summoner.png {
 	specularlevel 0.3
 	glossiness 10
 }
-material texture models/mechs/summoner/stormcrow.png {
+material texture models/mechs/stormcrow/stormcrow.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10
 }
-material texture models/mechs/summoner/stormcrow_head.png {
+material texture models/mechs/stormcrow/stormcrow_head.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10
