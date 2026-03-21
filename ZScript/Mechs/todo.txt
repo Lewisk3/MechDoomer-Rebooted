@@ -2,8 +2,8 @@
 Commando [x]
 Jenner   [x]
 Raven [x]
-Kitfox <6>
-Urbanmech <7>
+Kitfox <3>
+Urbanmech <4>
 Tarantula <???>
 
 [Medium]
@@ -11,7 +11,7 @@ Centurion [x]
 Hunchback [x]
 Nova [x]
 Cicada [x]
-Stormcrow <3>
+Stormcrow [x]
 Crab <5>
 
 [Heavy]
@@ -25,7 +25,7 @@ Summoner [x]
 [Assault]
 Marauder [x]
 Atlas [x]
-Warhammer <4>
-Warhawk <1>
-Direwolf <2>
-BattleMaster <8>
+Warhawk [x]
+Warhammer <2>
+Direwolf <1>
+BattleMaster <6>

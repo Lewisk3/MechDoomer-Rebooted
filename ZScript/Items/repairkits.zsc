@@ -18,8 +18,8 @@ class MechRepairKit : MechItem
 	override string GetShopDescription()
 	{
 		return (
-			"\c[White]Repair Kits are designed to be used in the field, depending on the type "
-			"a repair kit can either repair a mech's armor, internal structure, or damaged items. "
+			"\c[White]Repair Kits are designed to be used in the field. Depending on the type "
+			"of kit, it can either repair a mech's armor, internal structure, or damaged items. "
 		);
 	}
 	

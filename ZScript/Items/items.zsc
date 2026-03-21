@@ -174,9 +174,9 @@ class MechHeatBank : MechUtility
 	{
 		return (
 			"\c[White] Where standard heat sinks rely on coolants, heat banks do not. They collect and "
-			" expel heat automatically, though only in certain increments. "
-			" This item effectively raises a mech's maximum heat capacity for a limited period; once a heat bank is full it must "
-			" vent it's heat before it becomes useful again."
+			"expel heat automatically, though only in certain increments. "
+			"This item effectively raises a mech's maximum heat capacity for a limited period; once a heat bank is full it must "
+			"vent it's heat before it becomes useful again."
 			"(Source: https://www.bta3062.com/index.php?title=Cooling#Heat_Bank)"
 		);
 	}

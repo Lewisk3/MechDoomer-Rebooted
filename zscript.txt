@@ -96,6 +96,7 @@ version "4.10.0"
 #include "ZScript/Mechs/atlas.zsc"
 #include "ZScript/Mechs/summoner.zsc"
 #include "ZScript/Mechs/stormcrow.zsc"
+#include "ZScript/Mechs/warhawk.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

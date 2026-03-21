@@ -1,0 +1,263 @@
+class MechWarhawk : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 25, 22;
+		DrivableMech.MaxWeight 85; // In Tons.
+		DrivableMech.ChassisName "Warhawk";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Warhawk_icon.png";
+		DrivableMech.CBillValue (26355948  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Imperial BattleMechs";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White] Deployed extensively in the Jaguar frontline forces, and "
+			"often seen paired with the Dire Wolf, the design truly came into "
+			"prominence on the battlefields of the Jaguars' Invasion Corridor, "
+			"where it earned the code name of Masakari—a Japanese battle-axe "
+			"used on medieval Terra—from the DCMS warriors who faced it. "
+			"(Source: https://www.sarna.net/wiki/Warhawk_(Masakari))"
+		);
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Warhawk_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Warhawk_Hips",  0,0,55, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Warhawk_CenterTorso", 0,0,7, hips);
+		leftTorso  = AddHardpoint("Warhawk_LeftTorso",  0,-20,0, torso);
+		rightTorso = AddHardpoint("Warhawk_RightTorso", 0, 20,0, torso);
+
+		leftLeg = AddHardpoint("Warhawk_LeftLeg",  0, -20,0, legs);
+		rightLeg = AddHardpoint("Warhawk_RightLeg", 0, 20,0, legs);
+		 
+		leftArm  = AddHardpoint("Warhawk_LeftArm",  0,-12,30, leftTorso);
+		rightArm = AddHardpoint("Warhawk_RightArm", 0, 12,30, rightTorso);
+
+		head = AddHardpoint("Warhawk_Cockpit", 38,0,18, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL340");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+
+		
+		leftArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERPPC", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERPPC", GROUPFLG_TWO);
+		rightArm.AddWeapon("ERPPC", GROUPFLG_TWO);
+		leftArm.AddWeapon("LRM10", GROUPFLG_THREE);
+		leftArm.AddItem("LRMAmmo");
+		rightTorso.AddItem("AMS");
+		rightTorso.AddItem("AMSAmmo");
+		SetChainfire(1, true);
+		SetChainfire(2, true);
+		
+		rightArm.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("ImprovedHeatBank");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("ImprovedHeatBank");
+		leftTorso.AddItem("MechDoubleHeatsink");
+	}
+}
+
+// (13.5 tons) Armor PTS
+/*
+	337pts 
+	
+[HD] - 12
+[CT] - 71
+[LT] - 50
+[RT] - 50
+[LA] - 32
+[RA] - 32
+[LL] - 45
+[RL] - 45
+*/
+
+
+class Warhawk_Hips : MechHips {}
+class Warhawk_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 46;
+   }
+}
+
+class Warhawk_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+	  MechCockpit.Model "WarhawkCockpitModel";
+   }
+   
+	override void SetupMounts()
+	{
+	}
+}
+class WarhawkCockpitModel : MechCockpitModel {}
+
+class Warhawk_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 60;
+      MechHardpoint.Vitals 45, 23;
+      MechHardpoint.SetupArmor 45, 0;
+   }  
+}
+class Warhawk_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 60;
+      
+      MechHardpoint.Vitals 45, 23;
+      MechHardpoint.SetupArmor 45, 0;
+   }  
+}
+
+class Warhawk_CenterTorso : MechTorso 
+{
+	Default
+	{
+	  MechTorso.TurnSpeed 85, 85;
+	  MechTorso.TurnRange 90;
+	  MechTorso.PitchRange 30, 30;
+	  Radius 15;
+	  Height 40;
+	  
+	  MechHardpoint.Vitals 71, 46;
+	  MechHardpoint.SetupArmor 60, 11;
+	  MechHardpoint.RearArmor true;
+	}  
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBox(20,0,0, 15, 40);
+	}
+   
+	override void SetupMounts()
+	{
+	}
+}
+
+class Warhawk_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 10;
+      Height 40;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 50, 25;
+      MechHardpoint.SetupArmor 40, 10;
+      MechHardpoint.RearArmor true;
+   }
+      
+	override void SetupMounts()
+	{
+	}
+}
+class Warhawk_RightTorso : MechSideTorso
+{
+	Default
+	{
+	  Radius 10;
+	  Height 40;
+	  MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+	  
+	  MechHardpoint.Vitals 50, 25;
+	  MechHardpoint.SetupArmor 40, 10;
+	  MechHardpoint.RearArmor true;
+	}  
+
+	override void SetupMounts()
+	{
+		AddMountPoint("PDS", 0, -14, 36, 1.0);
+	}
+}
+
+class Warhawk_LeftArm : MechArm
+{
+   Default
+   {
+      MechArm.ActuationRange 20;
+      MechArm.PitchRange 30, 30;
+      MechHardpoint.HitBox 10,35, 35,-11,-50;
+      MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+      MechHardpoint.Vitals 32, 16;
+      MechHardpoint.SetupArmor 32, 0;
+   }
+
+	override void SetupHitboxes()
+	{
+		AddHitBox(35,-11,-50, 10, 35);
+		AddHitBox(-8,-11,-17, 10, 20);
+		AddHitBox(0,-11,-33, 10, 20);
+		AddHitBox(15,-11,-33, 10, 20);
+		AddHitBox(55,-11,-33, 10, 20);
+		AddHitBox(75,-11,-33, 10, 20);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 85, -17, -17, 0.5);
+		AddMountPoint("Energy", 85, -5.5, -28, 0.5);
+		
+		SetupMountArray("Missile", 38, -15, -44, 3,5, 4.5,2.4, scale:0.8);
+	}
+}
+
+class Warhawk_RightArm : Warhawk_LeftArm 
+{
+	Default
+	{
+	  MechHardpoint.HitBox 10,20, 35,11,-33;
+	  MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+	  MechHardpoint.Vitals 32, 16;
+	  MechHardpoint.SetupArmor 32, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		AddHitBox(35,11,-33, 10, 20);
+		AddHitBox(-8,11,-17, 10, 20);
+		AddHitBox(0,11,-33, 10, 20);
+		AddHitBox(15,11,-33, 10, 20);
+		AddHitBox(55,11,-33, 10, 20);
+		AddHitBox(75,11,-33, 10, 20);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 85, 17, -18, 0.5);
+		AddMountPoint("Energy", 85, 5.5, -29, 0.5);
+	}
+}
