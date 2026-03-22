@@ -267,6 +267,12 @@ class MechHardpoint : MechPart
 		
 	}
 	
+	void TraceAimTo(vector3 pos, double angle, double pitch, out FLineTraceData data)
+	{
+		let tracer = MechLaserTracer.DoTrace(mech, pos, (angle, pitch), (1024*1024));
+		tracer.GetData(tracer, data);
+	}
+	
 	clearscope double, double getRepairCosts(bool rearArmorCost = false)
 	{
 		if(!mech.chassisStructure || !mech.armorType) return 0,0;
@@ -1453,10 +1459,22 @@ class MechCockpitModel : Actor
 	override void Tick()
 	{
 		super.Tick();
+		
 		if(!parent) 
 		{
 			Destroy();
 			return;
+		}
+		
+		// Check if cockpits are disabled by driver.
+		if(parent.mech && parent.mech.driver && parent.mech.driver.player)
+		{
+			let cv_cockpit = CVar.GetCVar("cl_mdr_hidecockpitview", parent.mech.driver.player);
+			if(cv_cockpit && cv_cockpit.getBool())
+			{
+				bInvisible = true;
+				return;
+			}
 		}
 		
 		bInvisible = parent.bInvisible;
@@ -1558,7 +1576,9 @@ class MechArm : MechHardpoint
 			aimAngles -= sphere.xy * 0.25;
 			if(!unlimitedActuation) ClampAngles(aimAngles.x, aimAngles.y);
 			
-			lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
+			FLineTraceData aimData;
+			TraceAimTo(shootPos, aimAngles.x, aimAngles.y, aimData);
+			lookingPos = aimData.HitLocation;
 			
 			angle = aimAngles.x;
 			pitch = aimAngles.y;
@@ -1582,7 +1602,9 @@ class MechArm : MechHardpoint
 		aimAngles -= sphere.xy;
 		if(!unlimitedActuation) ClampAngles(aimAngles.x, aimAngles.y);
 		
-		lookingPos = DrivablesMath.aimFrom(self, shootPos, aimAngles.x, aimAngles.y);
+		FLineTraceData aimData;
+		TraceAimTo(shootPos, aimAngles.x, aimAngles.y, aimData);
+		lookingPos = aimData.HitLocation;
 	}
 	
 	override void DriverUpdate(Actor driver)

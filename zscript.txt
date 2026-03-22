@@ -97,6 +97,7 @@ version "4.10.0"
 #include "ZScript/Mechs/summoner.zsc"
 #include "ZScript/Mechs/stormcrow.zsc"
 #include "ZScript/Mechs/warhawk.zsc"
+#include "ZScript/Mechs/direwolf.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

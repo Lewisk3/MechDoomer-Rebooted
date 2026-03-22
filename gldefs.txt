@@ -207,17 +207,12 @@ material texture models/mechs/stormcrow/stormcrow.png {
 	specularlevel 0.3
 	glossiness 10
 }
-material texture models/mechs/stormcrow/stormcrow_head.png {
-	shader "shaders/simsun.fp"
-	specularlevel 0.3
-	glossiness 10
-}
 material texture models/mechs/warhawk/warhawk.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10
 }
-material texture models/mechs/stormcrow/warhawk_head.png {
+material texture models/mechs/direwolf/direwolf_prime.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10

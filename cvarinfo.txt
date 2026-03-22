@@ -13,6 +13,7 @@ server bool sv_mdr_disabledropship = false;
 
 user bool cl_mdr_throttledecay = true;
 user bool cl_mdr_analogthrottle = false;
+user bool cl_mdr_hidecockpitview = false;
 
 // Debug
 server bool sv_mdr_debug_nomechstart = false;

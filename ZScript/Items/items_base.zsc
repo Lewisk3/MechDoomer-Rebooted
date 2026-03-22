@@ -55,7 +55,7 @@ class MechItem : Object
 	// Returns cbill value of item
 	clearscope virtual double GetValue()
 	{
-		return value;
+		return value * max(0.1, hp/10.0);
 	}
 	
 	play virtual void RandomizeStats()
@@ -357,6 +357,7 @@ class MechAmmo : MechItem
 	
 	override void OnDestroyed()
 	{
+		super.OnDestroyed();
 		if(curAmmo <= 0 || !explosionDamage) return;
 		mech.betty.Push("Betty/AmmoExplosion");
 		parent.DoExplosionDamage(curAmmo * explosionDamage);
@@ -1762,6 +1763,15 @@ class MechWeapon : MechItem
 		refire = refireCount;
 		refireTimer = refireDelay;
 		return true;
+	}
+	
+	override void OnDestroyed()
+	{
+		super.OnDestroyed();
+		
+		// Explosions
+		if(mountDecoObject && parent) 
+			parent.Spawn("HardpointExplosion", mountDecoObject.pos);
 	}
 	
 	override void DoEffect()

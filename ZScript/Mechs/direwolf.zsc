@@ -1,0 +1,276 @@
+class MechDirewolf : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 11, 15;
+		DrivableMech.MaxWeight 100; // In Tons.
+		DrivableMech.ChassisName "Direwolf";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Direwolf_icon.png";
+		DrivableMech.CBillValue (29230000  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Wolf Clan Site #1";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White] The Dire Wolf is one of the OmniMechs that became "
+			"feared throughout the Inner Sphere during the initial Clan "
+			"Invasion, and rightly so. The Dire Wolf weighs in at an "
+			"impressive one hundred tons and has a relatively slow "
+			"cruising speed of 32.4 km/h. Its speed and armor protection "
+			"matches that of an Atlas, but it has superior potential "
+			"irepower with fifty and a half tons of free pod space for "
+			"weapons and equipment. "
+			"(Source: https://www.sarna.net/wiki/Dire_Wolf_(Daishi))"
+		);
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Direwolf_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Direwolf_Hips",  0,0,40, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Direwolf_CenterTorso", 0,0,7, hips);
+		leftTorso  = AddHardpoint("Direwolf_LeftTorso",  0,-20,0, torso);
+		rightTorso = AddHardpoint("Direwolf_RightTorso", 0, 20,0, torso);
+
+		leftLeg = AddHardpoint("Direwolf_LeftLeg",  0, -20,0, legs);
+		rightLeg = AddHardpoint("Direwolf_RightLeg", 0, 20,0, legs);
+		 
+		leftArm  = AddHardpoint("Direwolf_LeftArm",  0,-14,22, leftTorso);
+		rightArm = AddHardpoint("Direwolf_RightArm", 0, 14,22, rightTorso);
+
+		head = AddHardpoint("Direwolf_Cockpit", 40,0,24, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL300");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		leftArm.AddWeapon("AC5", GROUPFLG_THREE);
+		leftTorso.AddItem("AC5Ammo");
+		
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("AC5", GROUPFLG_THREE);
+		rightTorso.AddItem("AC5Ammo");
+		
+		SetChainFire(1, true);
+		
+		leftTorso.AddWeapon("LRM10", GROUPFLG_FOUR);
+		leftTorso.AddItem("LRMAmmo");
+		leftTorso.AddItem("LRMAmmoHalf");
+		
+		leftTorso.AddItem("BulkHeatBank");
+		rightTorso.AddItem("MechDoubleHeatsink");
+	}
+}
+
+// (19 tons) Armor PTS
+/*
+	380pts 
+	
+	[HD] - 12
+	[CT] - 78
+	[LT] - 55
+	[RT] - 55
+	[LA] - 40
+	[RA] - 40
+	[LL] - 50
+	[RL] - 50
+*/
+
+
+class Direwolf_Hips : MechHips {}
+class Direwolf_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 35;
+   }
+}
+
+class Direwolf_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+	  MechCockpit.Model "DirewolfCockpitModel";
+   }
+   
+	override void SetupMounts()
+	{
+	}
+}
+class DirewolfCockpitModel : MechCockpitModel {}
+
+class Direwolf_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 50;
+      MechHardpoint.Vitals 50, 25;
+      MechHardpoint.SetupArmor 50, 0;
+   }  
+}
+class Direwolf_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 50;
+      
+      MechHardpoint.Vitals 50, 25;
+      MechHardpoint.SetupArmor 50, 0;
+   }  
+}
+
+class Direwolf_CenterTorso : MechTorso 
+{
+	Default
+	{
+	  MechTorso.TurnSpeed 68, 68;
+	  MechTorso.TurnRange 90;
+	  MechTorso.PitchRange 30, 30;
+	  Radius 15;
+	  Height 40;
+	  
+	  MechHardpoint.Vitals 78, 39;
+	  MechHardpoint.SetupArmor 65, 13;
+	  MechHardpoint.RearArmor true;
+	}  
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBox(20,0,0, 15, 40);
+	}
+   
+	override void SetupMounts()
+	{
+	}
+}
+
+class Direwolf_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 10;
+      Height 40;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 55, 28;
+      MechHardpoint.SetupArmor 45, 10;
+      MechHardpoint.RearArmor true;
+   }
+      
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 7.25,-1,38.5, 4,2, 4.5,4, 7, 0.9);
+	}
+}
+class Direwolf_RightTorso : MechSideTorso
+{
+	Default
+	{
+	  Radius 10;
+	  Height 40;
+	  MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+	  
+	  MechHardpoint.Vitals 55, 28;
+	  MechHardpoint.SetupArmor 45, 10;
+	  MechHardpoint.RearArmor true;
+	}  
+
+	override void SetupMounts()
+	{
+	}
+}
+
+class Direwolf_LeftArm : MechArm
+{
+   Default
+   {
+      MechArm.ActuationRange 0;
+      MechArm.PitchRange 30, 30;
+      MechHardpoint.HitBox 10,20, 35,-11,-50;
+      MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+      MechHardpoint.Vitals 40, 20;
+      MechHardpoint.SetupArmor 40, 0;
+   }
+
+	override void SetupHitboxes()
+	{
+		double yshift = 2;
+		AddHitBox(35,-11,-33 + yshift, 10, 20);
+		AddHitBox(-8,-11,-12 + yshift, 12, 24);
+		AddHitBox(0,-11,-33 + yshift, 10, 20);
+		AddHitBox(15,-11,-33 + yshift, 10, 20);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 37,-8,-16.25, 0.85);
+		AddMountPoint("Energy", 37,-7.5,-24.5, 0.85);
+		
+		AddMountPoint("Energy", 37,-8 - 13.5,-16.25, 0.85);
+		AddMountPoint("Energy", 37,-7.5 - 13.5,-24.5, 0.85);
+		
+		AddMountPoint("Ballistic", 42, -14.5, -21, 1.0);
+	}
+}
+
+class Direwolf_RightArm : Direwolf_LeftArm 
+{
+	Default
+	{
+	  MechHardpoint.HitBox 10,20, 35,11,-33;
+	  MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+	  MechHardpoint.Vitals 40, 20;
+	  MechHardpoint.SetupArmor 40, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		double yshift = 2;
+		AddHitBox(35,11,-33 + yshift, 10, 20);
+		AddHitBox(-8,11,-12 + yshift, 12, 24);
+		AddHitBox(0,11,-33 + yshift, 10, 20);
+		AddHitBox(15,11,-33 + yshift, 10, 20);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 37,8,-16.25, 0.85);
+		AddMountPoint("Energy", 37,7.5,-24.5, 0.85);
+		
+		AddMountPoint("Energy", 37,8 + 13.5,-16.25, 0.85);
+		AddMountPoint("Energy", 37,7.5 + 13.5,-24.5, 0.85);
+		
+		AddMountPoint("Ballistic", 42, 14.5, -21, 1.0);
+	}
+}
