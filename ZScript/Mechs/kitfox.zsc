@@ -1,0 +1,261 @@
+class MechKitfox : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 73, 102;
+		DrivableMech.MaxWeight 30; // In Tons.
+		DrivableMech.ChassisName "Kitfox";
+		DrivableMech.VariantName "P";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/kitfox_icon.png";
+		DrivableMech.CBillValue (7202050   * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Babylon MechWorks V";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]the Kit Fox has a surprising amount of firepower thanks "
+			"to its sixteen tons of pod space, with the ten built-in double heat "
+			"sinks sometimes barely able to fully cool the 'Mech down. However, "
+			"the Kit Fox is somewhat slow for its weight class, only capable of "
+			"a top speed of 97.2 km/h, provided by a lightweight 180-rated "
+			"extralight fusion engine. Available tonnage is further increased "
+			"by the use of a lightweight endo steel chassis, while four tons of "
+			"ferro-fibrous armor provide the Kit Fox with ample protection."
+			"(Source: https://www.sarna.net/wiki/Kit_Fox_(Uller))"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Kitfox_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Kitfox_Hips",  0,0,45, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Kitfox_CenterTorso", 0,0,0, hips);
+		leftTorso  = AddHardpoint("Kitfox_LeftTorso",  0,-10,0, torso);
+		rightTorso = AddHardpoint("Kitfox_RightTorso", 0, 10,0, torso);
+		
+		leftLeg = AddHardpoint("Kitfox_LeftLeg",  0, -25,0, legs);
+		rightLeg = AddHardpoint("Kitfox_RightLeg", 0, 25,0, legs);
+			
+		leftArm  = AddHardpoint("Kitfox_LeftArm",  2,-15,12, leftTorso);
+		rightArm = AddHardpoint("Kitfox_RightArm", 2, 15,12, rightTorso);
+		
+		head = AddHardpoint("Kitfox_Cockpit", 17,0,13, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XXL180");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		leftArm.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("SRM4", GROUPFLG_THREE);
+		rightTorso.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
+		rightTorso.AddWeapon("MachineGun", GROUPFLG_FOUR);
+		rightTorso.AddItem("MGAmmo");
+		rightTorso.AddItem("SRMAmmo");
+		leftTorso.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
+		leftTorso.AddWeapon("MachineGun", GROUPFLG_FOUR);
+		rightArm.AddWeapon("SRM2", GROUPFLG_THREE);
+		rightArm.AddWeapon("UltraAC5", GROUPFLG_TWO);
+		rightArm.AddItem("UAC5Ammo");
+		
+		// Laser-AMS on rightArm
+		//leftArm.AddWeapon("AMS");
+	}
+}
+
+/*
+4 tons = 100 pts Clan-Ferro Armor
+[HD] - 12
+[CT] - 20
+[LT] - 12
+[RT] - 12
+[LA] - 10
+[RA] - 10
+[LL] - 12
+[RL] - 12
+*/
+
+class Kitfox_Hips : MechHips {}
+
+class Kitfox_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 5;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "KitfoxCockpitModel";
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class KitfoxCockpitModel : MechCockpitModel {}
+
+
+class Kitfox_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 100; // degs second
+	}
+}
+class Kitfox_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 360, 185; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 0;
+		MechTorso.PitchRange 30, 30;
+		Height 8;
+		
+		MechHardpoint.HitBox 12,25, 0,0,0;
+		
+		MechHardpoint.Vitals 20, 10;
+		MechHardpoint.SetupArmor 14, 6;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(17,0,-4, 12,15);
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Kitfox_LeftArm : MechArm
+{
+	Default
+	{	
+		MechArm.ActuationRange 15;
+		MechArm.PitchRange 35, 35;
+		MechHardpoint.HitBox 6,14, 0, -20,-22;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 12;
+		AddHitBox(0,-20,-22, 6,14);
+		AddHitBox(fw,-20,-22, 6,14);
+		AddHitBox(2*fw,-20,-22, 6,14);
+		AddHitBox(3*fw,-20,-22, 6,14);
+		AddHitBox(4*fw,-20,-22, 6,14);
+	}
+
+	override void SetupMounts()
+	{		
+		AddMountPoint("Energy", 52,-21.25,-13.5, 0.5);
+		AddMountPoint("PDS", 15,-20,-7.5, 1.0);
+		SetupMountArray("Missile", 22,-21.25,-19.5, 2,2, 3.25,2, scale:0.8);
+	}
+}
+class Kitfox_RightArm : Kitfox_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 12,15, 30, 12,-28;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 12;
+		AddHitBox(0,20,-22, 6,14);
+		AddHitBox(fw,20,-22, 6,14);
+		AddHitBox(2*fw,20,-22, 6,14);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 30,20,-10, 0.75);
+		SetupMountArray("Missile", 22.15,18,-19.75, 2,2, 3.25,2, scale:0.8);
+	}
+}
+
+class Kitfox_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.HitBox 8,20, 0,-8,-4;
+		
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 8, 4;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 22,3,5, 0.75);
+		AddMountPoint("Ballistic", 10,4,22, 1.0);
+	}
+}
+class Kitfox_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.HitBox 8,20, 0, 8,-4;
+		
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 8, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 22,-3,5, 0.75);
+		AddMountPoint("Ballistic", 10,-4,22, 1.0);
+	}
+}
+
+class Kitfox_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}	
+}
+class Kitfox_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}	
+}

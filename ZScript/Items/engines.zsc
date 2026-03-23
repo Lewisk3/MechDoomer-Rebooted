@@ -106,6 +106,7 @@ class MechEngine_LIGHT395 : MechEngine {}
 class MechEngine_LIGHT400 : MechEngine {}
 
 // Extra Light
+class MechEngine_XL180 : MechEngine {}
 class MechEngine_XL200 : MechEngine {}
 class MechEngine_XL205 : MechEngine {}
 class MechEngine_XL210 : MechEngine {}
@@ -149,6 +150,7 @@ class MechEngine_XL395 : MechEngine {}
 class MechEngine_XL400 : MechEngine {}
 
 // Ultra Light
+class MechEngine_XXL180 : MechEngine {}
 class MechEngine_XXL200 : MechEngine {}
 class MechEngine_XXL205 : MechEngine {}
 class MechEngine_XXL210 : MechEngine {}

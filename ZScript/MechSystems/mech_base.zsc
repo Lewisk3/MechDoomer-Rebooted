@@ -1305,6 +1305,35 @@ class DrivableMech : DrivableObject
 		return kelvinToBHU(273.15 + 20.0);
 	}
 	
+	clearscope int, double GetHeatsinkStatistics(bool skipDestroyed = false)
+	{
+		double heatDissipation = 0;
+		int heatsinkCount;
+		Array<MechItem> heatSinks;
+		FindAllItems("MechHeatsink", true, heatSinks, skipDestroyed);
+		
+		for(int i = 0; i < heatSinks.Size(); i++)
+		{
+			let hs = MechHeatsink(heatSinks[i]);
+			if(!hs) continue;
+			
+			heatDissipation += (hs.heatEff * TICRATE);
+			heatsinkCount++;
+		}
+		
+		if(engine)
+		{
+			for(int i = 0; i < engine.heatsinks.Size(); i++)
+			{
+				heatDissipation += (engine.heatsinks[i].heatEff * TICRATE);
+				heatsinkCount++;
+			}
+		}
+		
+		return heatsinkCount, heatDissipation;
+	}
+	
+	
 	override void DoPhysics()
 	{	
 		super.DoPhysics();

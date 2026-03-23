@@ -33,6 +33,9 @@ class MechLaserWeapon : MechWeapon
 		super.getDescription(flavorText, statName, statValue);
 		double laserHeat = (laserHeat * fireTime);
 		
+		let [hs, dissipation] = mechInfo.GetHeatsinkStatistics(skipDestroyed:true);
+		double ehps = max(0, (laserHeat*TICRATE) - dissipation);
+		
 		statName.Push(" ");
 		statValue.Push(" ");
 		
@@ -56,8 +59,8 @@ class MechLaserWeapon : MechWeapon
 		statValue.Push(" ");
 		statName.Push("DPS");
 		statValue.Push(String.Format("%.2f", damage*TICRATE));
-		statName.Push("HPS");
-		statValue.Push(String.Format("%.2f", laserHeat*TICRATE));
+		statName.Push("EHPS");
+		statValue.Push(String.Format("%.2f", ehps));
 		statName.Push("DPH");
 		statValue.Push(String.Format("%d", damage / laserHeat));
 	}
@@ -202,9 +205,8 @@ class MechMissileWeapon : MechWeapon
 			statValue.Push(" ");
 		}
 		
-		double missileHeat = heat * refireCount;
 		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f K", BHUToKelvin(missileHeat)));
+		statValue.Push(String.Format("%.2f K", BHUToKelvin(heat)));
 		statName.Push("FIRE RATE");
 		statValue.Push(String.Format("%.1f/s", 1.0 / (refireDelay / double(TICRATE))));
 		statName.Push("COOLDOWN");
@@ -233,8 +235,11 @@ class MechMissileWeapon : MechWeapon
 			);
 		}
 		
-		statName.Push("HPS");
-		statValue.Push(String.Format("%.2f", (heat*refireCount) / cooldownSeconds) );
+		let [hs, dissipation] = mechInfo.GetHeatsinkStatistics(skipDestroyed:true);
+		double ehps = max(0, ((heat*refireCount) / cooldownSeconds) - dissipation);
+		
+		statName.Push("EHPS");
+		statValue.Push(String.Format("%.2f", ehps));
 		
 		if(projDefs)
 		{
@@ -418,8 +423,11 @@ class MechBallisticWeapon : MechWeapon
 		
 		if(heat > 0)
 		{
-			statName.Push("HPS");
-			statValue.Push(String.Format("%.2f", heat / cooldownSeconds));
+			let [hs, dissipation] = mechInfo.GetHeatsinkStatistics(skipDestroyed:true);
+			double ehps = max(0, (heat / cooldownSeconds) - dissipation);
+
+			statName.Push("EHPS");
+			statValue.Push(String.Format("%.2f", ehps));
 			statName.Push("DPH");
 			statValue.Push(String.Format("%d", projRawDamage / heat));
 		}

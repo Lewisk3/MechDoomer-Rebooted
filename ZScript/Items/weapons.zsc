@@ -1901,7 +1901,7 @@ class AMS : MechWeapon
 		
 		fireTime = 2;
 		cooldownTime = 16;
-		range = 90;
+		range = 120;
 		ammoUse = 1;
 		
 		refireCount = 8;

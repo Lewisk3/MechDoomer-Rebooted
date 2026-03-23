@@ -1380,27 +1380,8 @@ class MechInfoContainer : MenuElement
 		
 		textPos.y += 50;
 		double heatDissipation = 0;
-		uint heatsinkCount;
-		Array<MechItem> heatSinks;
-		mech.FindAllItems("MechHeatsink", true, heatSinks);
-		
-		for(int i = 0; i < heatSinks.Size(); i++)
-		{
-			let hs = MechHeatsink(heatSinks[i]);
-			if(!hs) continue;
-			
-			heatDissipation += (hs.heatEff * TICRATE);
-			heatsinkCount++;
-		}
-		
-		if(mech.engine)
-		{
-			for(int i = 0; i < mech.engine.heatsinks.Size(); i++)
-			{
-				heatDissipation += (mech.engine.heatsinks[i].heatEff * TICRATE);
-				heatsinkCount++;
-			}
-		}
+		int heatsinkCount;
+		[heatsinkCount, heatDissipation] = mech.GetHeatsinkStatistics();
 			
 		MWDrawer.DrawString(textFont, 
 			String.Format("\c[Teal]HEATSINKS"), 

@@ -1845,6 +1845,12 @@ class I_MechItemStorage : Inventory
 		+INVENTORY.UNDROPPABLE;
 	}
 	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		cbills = clamp(cbills, 0, 2e9);
+	}
+	
 	play void AddSalvage(out Array<MechItem> salvage)
 	{
 		foreach(item : salvage)
