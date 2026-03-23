@@ -770,7 +770,7 @@ class ShopItem : MenuElement
 		{
 			vector2 listPos = initPos + posOffs;
 			// Shading
-			DrawItemizedMech(mechData, listPos - (2,-4), 0.65, itemScale, size + (4,8), greyed:true);
+			DrawItemizedMech(mechData, listPos - (2,-4), 0.65, itemScale, size + (4,8), greyed:true, true);
 			DrawItemizedMech(mechData, listPos, itemAlpha, itemScale, size, disabled);  
 			DrawMechValue(listPos, itemAlpha);
 			if(inCart)
@@ -790,7 +790,7 @@ class ShopItem : MenuElement
 		}
 	}
 	
-	static void DrawItemizedMech(MechSaveData mech, vector2 pos, double alpha, double itemScale, vector2 containerSize, bool greyed = false)
+	static void DrawItemizedMech(MechSaveData mech, vector2 pos, double alpha, double itemScale, vector2 containerSize, bool greyed = false, bool skipMechPicture = false)
 	{
 		if(!mech) return;
 	
@@ -834,7 +834,7 @@ class ShopItem : MenuElement
 		vector2 frameSize = (84, containerSize.y - 30); 
 		vector2 mechIconPos = pos + mechBoxPos + (8,6);
 		
-		if(mechicon)
+		if(mechicon && !skipMechPicture)
 		{
 			let imgSize = MWDrawer.GetImageSize(mechicon);
 			vector2 iconScale = (

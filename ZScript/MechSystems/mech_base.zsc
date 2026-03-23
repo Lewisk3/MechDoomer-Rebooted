@@ -1742,7 +1742,17 @@ class I_SaveMechData : Inventory
 	
 	virtual void GiveStartingMechs()
 	{
-		GiveMech("MechCommando");
+		if(!Owner || !Owner.player) return;
+		string plrName = Owner.player.GetUserName();
+		if(plrName == "Velocity")
+		{
+			GiveMech("MechNovaV");
+		}
+		else
+		{
+			GiveMech("MechCommando");
+		}
+			
 		if(!sv_mdr_debug_nomechstart) activeMechID = 1;
 	}
 	

@@ -445,9 +445,9 @@ class NovaS_LeftArm : MechArm
 	override void SetupMounts()
 	{		
 		// 3E
-		AddMountPoint("Energy", 35, -15, -20.5); // TOP
-		AddMountPoint("Energy", 35, -20, -24.3); // RIGHT
-		AddMountPoint("Energy", 35, -10, -24.3); // LEFT
+		AddMountPoint("Energy", 40, -15, -20.5); // TOP
+		AddMountPoint("Energy", 40, -20, -24.3); // RIGHT
+		AddMountPoint("Energy", 40, -10, -24.3); // LEFT
 	}
 }
 class NovaS_RightArm : NovaS_LeftArm 
@@ -464,9 +464,9 @@ class NovaS_RightArm : NovaS_LeftArm
 	override void SetupMounts()
 	{
 		// 3E
-		AddMountPoint("Energy", 35, 14, -20.5); // TOP
-		AddMountPoint("Energy", 35, 19, -24.3); // RIGHT
-		AddMountPoint("Energy", 35,  9, -24.3); // LEFT
+		AddMountPoint("Energy", 40, 14, -20.5); // TOP
+		AddMountPoint("Energy", 40, 19, -24.3); // RIGHT
+		AddMountPoint("Energy", 40,  9, -24.3); // LEFT
 	}
 }
 
@@ -547,5 +547,117 @@ class NovaS_RightLeg : MechRightLeg
 		super.SetupHitBoxes();
 		AddHitBox(-15,0,25, 8, 16);
 		AddHitBox(-30,0,40, 4, 20);
+	}
+}
+
+// Nova - V
+class MechNovaV : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 35, 45;
+		DrivableMech.MaxWeight 50; // In Tons.
+		DrivableMech.ChassisName "Nova";
+		DrivableMech.VariantName "V";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/nova_s_icon.png";
+		DrivableMech.CBillValue (11203750 * MECHPRICESCALAR);
+		DrivableMech.CannotPurchaseMech true;
+		
+		DrivableMech.Manufacturer "Olivetti Weaponry";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]Unique variant of the Nova, for those who remember the good old days of early Mechwarrior Jank."
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("NovaS_Legs",  0,0,0,  self);
+		hips  = AddMechPart("NovaS_Hips",  -15,0,60, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("NovaS_CenterTorso", 0,0,0, hips);
+		leftTorso  = AddHardpoint("NovaV_LeftTorso",  0,-14,0, torso);
+		rightTorso = AddHardpoint("NovaV_RightTorso", 0, 14,0, torso);
+		
+		leftLeg = AddHardpoint("NovaS_LeftLeg",  0, -32,0, legs);
+		rightLeg = AddHardpoint("NovaS_RightLeg", 0, 32,0, legs);
+			
+		leftArm  = AddHardpoint("NovaS_LeftArm",  0,-22,0, leftTorso);
+		rightArm = AddHardpoint("NovaS_RightArm", 0, 22,0, rightTorso);
+		
+		head = AddHardpoint("NovaS_Cockpit", 28,0,-2, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL250");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftArm.AddWeapon("Flamer", GROUPFLG_ONE);
+		leftArm.AddWeapon("Flamer", GROUPFLG_ONE);
+		leftArm.AddWeapon("Flamer", GROUPFLG_ONE);
+		rightArm.AddWeapon("Flamer", GROUPFLG_TWO);
+		rightArm.AddWeapon("Flamer", GROUPFLG_TWO);
+		rightArm.AddWeapon("Flamer", GROUPFLG_TWO);
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		
+		torso.AddWeapon("AMS");
+		head.AddItem("AMSAmmo");
+		
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_THREE);
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_THREE);
+		leftTorso.AddWeapon("Machinegun", GROUPFLG_THREE);
+		leftTorso.AddItem("MGAmmo");
+		leftTorso.AddItem("MGAmmo");
+		leftTorso.AddItem("MGAmmo");
+		leftTorso.AddItem("MechCASE");
+
+		rightTorso.AddWeapon("Machinegun", GROUPFLG_THREE);
+		rightTorso.AddWeapon("Machinegun", GROUPFLG_THREE);
+		rightTorso.AddWeapon("Machinegun", GROUPFLG_THREE);
+		rightTorso.AddItem("MGAmmo");
+		rightTorso.AddItem("MGAmmo");
+		rightTorso.AddItem("MGAmmo");
+		rightTorso.AddItem("MechCASE");
+
+		torso.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+	}
+}
+
+class NovaV_LeftTorso : NovaS_LeftTorso
+{
+	override void SetupMounts()
+	{
+		// 2B
+		AddMountPoint("Ballistic", 32, 7.5, -18, scale:1.0);
+		AddMountPoint("Ballistic", 32, 1.25, -12.25, scale:1.0);
+		AddMountPoint("Ballistic", 40, 10, -11, scale:1.0);
+	}
+}
+class NovaV_RightTorso : NovaS_RightTorso
+{
+	override void SetupMounts()
+	{
+		// 2B
+		AddMountPoint("Ballistic", 32, -7.5, -18, scale:1.0);
+		AddMountPoint("Ballistic", 32, -2.5, -12.25, scale:1.0);
+		AddMountPoint("Ballistic", 40, -10, -11, scale:1.0);
 	}
 }

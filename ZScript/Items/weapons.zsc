@@ -1812,7 +1812,7 @@ class Flamer : MechWeapon
 		weight = 1;
 		size = 1;
 		heat = 3 / TURNTICS;
-		energyUse = 0.02;
+		energyUse = 0.015;
 		
 		fireTime = 1;
 		cooldownTime = 1;

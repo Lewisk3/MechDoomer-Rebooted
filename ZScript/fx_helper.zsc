@@ -1,15 +1,19 @@
 // For various effects to use for best performance.
 class EffectsActor : Actor
 {
+	bool lowAlphaRemove;
+	Property RemoveOnAlpha : lowAlphaRemove;
+	
 	Default
 	{
 		Radius 1;
 		+NOINTERACTION;
+		EffectsActor.RemoveOnAlpha true;
 	}
 	
 	override void Tick()
 	{			
-		if (alpha <= 0)
+		if (alpha <= 0 && lowAlphaRemove)
 		{
 			destroy();
 			return;

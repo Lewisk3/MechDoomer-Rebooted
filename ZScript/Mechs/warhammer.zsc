@@ -1,0 +1,271 @@
+class MechWarhammer : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 27, 26;
+		DrivableMech.MaxWeight 70; // In Tons.
+		DrivableMech.ChassisName "Warhammer";
+		DrivableMech.VariantName "6R";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Warhammer_icon.png";
+		DrivableMech.CBillValue (6023383  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "StarCorps Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White] The Warhammer BattleMech was introduced by StarCorps Industries in 2515 to "
+			"be 'a mobile 'Mech with enough firepower to destroy or severely damage any "
+			" 'Mech of the same weight class or lower.' In the mission it was designed for, "
+			"the Warhammer proved to be a very capable 'Mech, and for centuries practically "
+			"defined the entire class of heavy 'Mechs. Boasting incredible firepower and "
+			"respectable armoring, the Warhammer served prominently in the Star League "
+			"Defense Force and was one of the premier 'Mechs in the Gunslinger Program. "
+			"(Source: https://www.sarna.net/wiki/Warhammer)"
+		);
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Warhammer_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Warhammer_Hips",  0,0,42, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Warhammer_CenterTorso", 0,0,8, hips);
+		leftTorso  = AddHardpoint("Warhammer_LeftTorso",  0,-20,0, torso);
+		rightTorso = AddHardpoint("Warhammer_RightTorso", 0, 20,0, torso);
+
+		leftLeg = AddHardpoint("Warhammer_LeftLeg",  0, -20,0, legs);
+		rightLeg = AddHardpoint("Warhammer_RightLeg", 0, 20,0, legs);
+		 
+		leftArm  = AddHardpoint("Warhammer_LeftArm",  0,-10,20, leftTorso);
+		rightArm = AddHardpoint("Warhammer_RightArm", 0, 10,20, rightTorso);
+
+		head = AddHardpoint("Warhammer_Cockpit", 0,0,28, torso);
+		cam  = AddPart("CockpitCamera", 15,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL340");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+
+		rightTorso.AddWeapon("MachineGun", GROUPFLG_THREE);
+		rightTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		rightTorso.AddWeapon("SRM6", GROUPFLG_FOUR);
+		rightTorso.AddWeapon("SmallLaser", GROUPFLG_TWO);
+		leftTorso.AddWeapon("MachineGun", GROUPFLG_THREE);
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		leftTorso.AddWeapon("SmallLaser", GROUPFLG_TWO);
+		rightArm.AddWeapon("PPC", GROUPFLG_ONE);
+		leftArm.AddWeapon("PPC", GROUPFLG_ONE);
+		SetChainFire(1, true);
+		
+		torso.AddItem("MGAmmo");
+		torso.AddItem("MGAmmo");
+		rightTorso.AddItem("SRMAmmo", GROUPFLG_ONE);
+		leftArm.AddItem("MechHeatsink");
+		rightArm.AddItem("MechHeatsink");
+		leftTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		head.AddItem("MechHeatsink");
+	}
+}
+
+// (10 tons) Armor PTS
+/*
+	200pts 
+	
+	[HD] - 12
+	[CT] - 40
+	[LT] - 28
+	[RT] - 28
+	[LA] - 20
+	[RA] - 20
+	[LL] - 26
+	[RL] - 26
+*/
+
+
+class Warhammer_Hips : MechHips {}
+class Warhammer_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 55;
+   }
+}
+
+class Warhammer_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+	  MechCockpit.Model "WarhammerCockpitModel";
+   }
+   
+	override void SetupMounts()
+	{
+	}
+}
+class WarhammerCockpitModel : MechCockpitModel {}
+
+class Warhammer_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 12;
+      Height 47;
+      MechHardpoint.Vitals 26, 13;
+      MechHardpoint.SetupArmor 26, 0;
+   }  
+}
+class Warhammer_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 12;
+      Height 47;
+      
+      MechHardpoint.Vitals 26, 13;
+      MechHardpoint.SetupArmor 26, 0;
+   }  
+}
+
+class Warhammer_CenterTorso : MechTorso 
+{
+	Default
+	{
+	  MechTorso.TurnSpeed 99, 99;
+	  MechTorso.TurnRange 110;
+	  MechTorso.PitchRange 30, 30;
+	  MechHardpoint.HitBox 12,47, 0,0,-19;
+	  
+	  MechHardpoint.Vitals 40, 20;
+	  MechHardpoint.SetupArmor 32, 8;
+	  MechHardpoint.RearArmor true;
+	}  
+   
+	override void SetupMounts()
+	{
+	}
+}
+
+class Warhammer_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 10;
+      Height 30;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 28, 14;
+      MechHardpoint.SetupArmor 22, 6;
+      MechHardpoint.RearArmor true;
+   }
+      
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 20,1,22.5, 1.0);
+		AddMountPoint("Energy", 20, -2, 14, 0.65);
+		AddMountPoint("Energy", 20,  4, 14, 0.65);
+	}
+}
+class Warhammer_RightTorso : MechSideTorso
+{
+	Default
+	{
+	  Radius 10;
+	  Height 50;
+	  MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+	  
+	  MechHardpoint.Vitals 28, 14;
+	  MechHardpoint.SetupArmor 22, 6;
+	  MechHardpoint.RearArmor true;
+	}  
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 20,-1,22.5, 1.0);
+		AddMountPoint("Energy", 20,  2, 14, 0.65);
+		AddMountPoint("Energy", 20, -4, 14, 0.65);
+		SetupMountArray("Missile", -4,0.5,39, 2,3, 4.5,4, 0, 0.85);
+	}
+}
+
+class Warhammer_LeftArm : MechArm
+{
+   Default
+   {
+      MechArm.ActuationRange 25;
+      MechArm.PitchRange 25, 25;
+      MechHardpoint.HitBox 10,35, 35,-11,-50;
+      MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+      MechHardpoint.Vitals 20, 10;
+      MechHardpoint.SetupArmor 20, 0;
+   }
+
+	override void SetupHitboxes()
+	{
+		double lr = -18;
+		double ud = -28;
+		double h = 20;
+		AddHitBox(0, lr + 7,ud + 16, 10, h);
+		AddHitBox(0, lr,ud, 10, h);
+		AddHitBox(15,lr,ud + 1, 10, h * 0.90);
+		AddHitBox(35,lr,ud + 2, 10, h * 0.80);
+		AddHitBox(55,lr,ud + 3, 10, h * 0.70);
+		AddHitBox(70,lr,ud + 4, 6, h * 0.60);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 72, -20, -17, 0.45);
+	}
+}
+
+class Warhammer_RightArm : Warhammer_LeftArm 
+{
+	Default
+	{
+	  MechHardpoint.HitBox 10,20, 35,11,-33;
+	  MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+	  MechHardpoint.Vitals 20, 10;
+	  MechHardpoint.SetupArmor 20, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		double lr = 18;
+		double ud = -28;
+		double h = 20;
+		AddHitBox(0, lr - 7,ud + 16, 10, h);
+		AddHitBox(0, lr,ud, 10, h);
+		AddHitBox(15,lr,ud + 1, 10, h * 0.90);
+		AddHitBox(35,lr,ud + 2, 10, h * 0.80);
+		AddHitBox(55,lr,ud + 3, 10, h * 0.70);
+		AddHitBox(70,lr,ud + 4, 6, h * 0.60);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 72, 20, -17, 0.45);
+	}
+}
