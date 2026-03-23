@@ -596,4 +596,28 @@ Model DropshipSkyCage
 	FrameIndex MODL A 0 0
 }
 
+Model Sign_Marketplace
+{
+	Model 0 "models/vfx/hologram_sign.md3"
+	Skin 0 "Graphics/Signs/MarketplaceSign.png"
+	DONTCULLBACKFACES
+	CORRECTPIXELSTRETCH
+	NOPERPIXELLIGHTING
+	Scale 1.0 1.0 1.0
+	
+	FrameIndex MODL A 0 0
+}
+
+Model Sign_MechbaysMenu
+{	
+	Model 0 "models/vfx/hologram_sign.md3"
+	Skin 0 "Graphics/Signs/MechStorageSign.png"
+	DONTCULLBACKFACES
+	CORRECTPIXELSTRETCH
+	NOPERPIXELLIGHTING
+	Scale 1.0 1.0 1.0
+	
+	FrameIndex MODL A 0 0
+}
+
 #include "mechs_modeldef.txt"

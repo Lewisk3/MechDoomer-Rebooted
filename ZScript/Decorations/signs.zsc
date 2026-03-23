@@ -1,0 +1,26 @@
+class Sign_Marketplace : EffectsActor
+{	
+	Default
+	{
+		Scale 4.0;
+		RenderStyle "Add";
+		+BRIGHT;
+	}
+
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}
+
+class Sign_MechbaysMenu : Sign_Marketplace
+{		
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}

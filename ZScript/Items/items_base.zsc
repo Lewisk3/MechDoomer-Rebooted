@@ -1226,7 +1226,7 @@ class MechEngine : MechItem
 			case   'XXL': type = Type_XXL;   break;
 			case 'LIGHT': type = Type_Light; break;
 		}
-		rating = clamp(engineRating, 100, 500);
+		rating = clamp(engineRating, 10, 500);
 	}
 	
 	clearscope static string, int GetEngineName(class<MechEngine> engineClass)
@@ -1381,9 +1381,9 @@ class MechEngine : MechItem
 	override void DoEffect()
 	{
 		super.DoEffect();
-		
 		double power = abs(mech.throttle);
-		modifyHeat(0.08 * power);
+		double heatPerTurn = (power > 0) ? (power > 0.5 ? 2 : 1) : 0;
+		modifyHeat(heatPerTurn / double(TURNTICS));
 		
 		// Energy generation
 		energy += getPowerGeneration() / double(TICRATE * 0.33);

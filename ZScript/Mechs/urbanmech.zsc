@@ -1,0 +1,240 @@
+class MechUrbanmech : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 66, 97;
+		DrivableMech.MaxWeight 30; // In Tons.
+		DrivableMech.ChassisName "Urbanmech";
+		DrivableMech.VariantName "IIC";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Urbanmech_icon.png";
+		DrivableMech.CBillValue (1830725  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Beta Plant 2W";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The UrbanMech IIC is a Clan IIC-style upgrade of the original "
+			"UrbanMech. Clan Coyote technicians studied battle data from as far back "
+			"as the Amaris Civil War and used this research as the basis for their "
+			"upgrades. They apparently decided that the UrbanMech, known as the Urbie "
+			"to its fans and detractors alike, did not need much reworking, as simply "
+			"upgrading much of the equipment and technology to Clan standards was sufficient. "
+			"(Source:https://www.sarna.net/wiki/UrbanMech_IIC)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Urbanmech_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Urbanmech_Hips",  0,0,32, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Urbanmech_CenterTorso", 0,0,4, hips);
+		leftTorso  = AddHardpoint("Urbanmech_LeftTorso",  0,-16,4, torso);
+		rightTorso = AddHardpoint("Urbanmech_RightTorso", 0, 16,4, torso);
+		
+		leftLeg = AddHardpoint("Urbanmech_LeftLeg",  0,-14,0, legs);
+		rightLeg = AddHardpoint("Urbanmech_RightLeg", 0, 14,0, legs);
+			
+		leftArm  = AddHardpoint("Urbanmech_LeftArm",  0,-4,8, leftTorso);
+		rightArm = AddHardpoint("Urbanmech_RightArm", 0,4,8, rightTorso);
+		
+		head = AddHardpoint("Urbanmech_Cockpit", 18,0,20, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD90");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftArm.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
+		rightArm.AddItem("MechHeatBank");
+		rightArm.AddWeapon("UltraAC10", GROUPFLG_TWO);
+		torso.AddItem("MechJumpJet");
+		leftTorso.AddItem("MechJumpJet");
+		rightTorso.AddItem("MechJumpJet");
+		rightTorso.AddItem("UAC10Ammo");
+		rightTorso.AddItem("UAC10Ammo");
+	}
+}
+
+/*
+6 tons = 120pts STD Armor
+	[HD] - 12
+	[CT] - 24
+	[LT] - 16
+	[RT] - 16
+	[LA] - 12
+	[RA] - 12
+	[LL] - 14
+	[RL] - 14
+*/
+
+class Urbanmech_Hips : MechHips {}
+
+class Urbanmech_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 4;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "UrbanmechCockpitModel";
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class UrbanmechCockpitModel : MechCockpitModel {}
+
+class Urbanmech_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 100; // degs second
+	}
+}
+class Urbanmech_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 175, 175; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 360;
+		MechTorso.InfiniteTurnRange true;
+		MechTorso.PitchRange 30, 30;
+		MechHardpoint.HitBox 10,35, 0,0,-10;
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 18, 6;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Urbanmech_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 0;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 6,15, 20,-10,-8;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+
+	override void SetupHitBoxes()
+	{
+		AddHitBox(20,-10,-8, 6,15);
+		AddHitBox(8,-10,-8, 6,15);
+		AddHitBox(-4,-10,-8, 6,15);
+		AddHitBox(-16,-10,-8, 6,15);
+	}
+
+	override void SetupMounts()
+	{	
+		AddMountPoint("Energy", 20,-6.75,0, 0.8);
+		AddMountPoint("Energy", 20,-13.75,4.5, 0.8);
+		AddMountPoint("Energy", 20,-13.75,-3.75, 0.8);
+	}
+}
+class Urbanmech_RightArm : Urbanmech_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 6,15, 20,-10,-8;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double lr = 5;
+		double ud = -4;
+		AddHitBox(20,lr,ud, 4,18);
+		AddHitBox(12,lr,ud, 4,18);
+		AddHitBox(4,lr,ud, 4,18);
+		AddHitBox(-4,lr,ud, 4,18);
+	}
+	
+	override void SetupMounts()
+	{
+		double ud = -0.85;
+		AddMountPoint("Ballistic", 25,3.75,ud, 0.7);
+		AddMountPoint("Ballistic", 27,3.75,ud + 6, 0.5);
+		AddMountPoint("Ballistic", 25,3.75,ud + 11, 0.35);
+	}
+}
+
+class Urbanmech_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.HitBox 7,23, 0,0,-4;
+		
+		MechHardpoint.Vitals 16, 8;
+		MechHardpoint.SetupArmor 12, 4;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+	}
+}
+class Urbanmech_RightTorso : MechSideTorso
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.HitBox 7,23, 0,0,-4;
+		
+		MechHardpoint.Vitals 16, 8;
+		MechHardpoint.SetupArmor 12, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Urbanmech_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 8;
+		Height 35;
+		MechHardpoint.Vitals 14, 7;
+		MechHardpoint.SetupArmor 14, 0;
+	}	
+}
+class Urbanmech_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 8;
+		Height 35;
+		
+		MechHardpoint.Vitals 14, 7;
+		MechHardpoint.SetupArmor 14, 0;
+	}	
+}

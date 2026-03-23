@@ -14,6 +14,8 @@ DoomEdNums
 	15470 = "MechBay"
 	15500 = "DropshipSkyCage"
 	15501 = "MechOffMapCell"
+	15502 = "Sign_Marketplace"
+	15503 = "Sign_MechBaysMenu"
 }
 
 // Prevent cluster text from appearing when the dropship map is loaded.
