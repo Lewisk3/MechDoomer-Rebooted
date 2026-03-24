@@ -40,8 +40,7 @@
 `sv_mdr_startondropship`
 `sv_mdr_skipmaploading`
 `sv_mdr_disabledropship`
-`sv_mdr_debug_nomechstart`<img width="1920" height="1080" alt="mechdoomer_screeny" src="https://github.com/user-attachments/assets/011326ca-99d6-402f-bbe9-d71c70462c83" />
-
+`sv_mdr_debug_nomechstart`
 `sv_mdr_simplemechmovement`
 `sv_mdr_mechscale`
 `sv_mdr_cheats_alwaysfullmechlab`
