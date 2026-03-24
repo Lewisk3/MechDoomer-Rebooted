@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="1920" height="1080" alt="mechdoomer_screeny" src="https://github.com/user-attachments/assets/94c536bd-657b-4de5-8faf-1d648e4be4be" />
+  <img width="1280" height="720" alt="mechdoomer_screeny_alt" src="https://github.com/user-attachments/assets/12d81531-4dc1-4add-b014-b7e33dcbc004" />
 </div>
 
 ## **Status: Version 1.0 coming soon!**
