@@ -1926,10 +1926,11 @@ class MechMenu_Mechlab : MechMenu
 			if(menuArgs[1] ~== "maxarmor")
 			{
 				let mechID = menuArgs[2].ToInt();
-				let mech = playerMechs.mechsData[mechID-1].mechobj;
+				let mechObj = playerMechs.mechsData[mechID-1].mechobj;
+				if(!mechObj) mechObj = mech; // fallback
 				
 				Array<MechHardpoint> hardpoints;
-				mech.getHardpoints(hardpoints, skipDestroyed:false);	
+				mechObj.getHardpoints(hardpoints, skipDestroyed:false);	
 				foreach(hp : hardpoints)
 				{
 					double maxFrontArmor = hp.maxArmor - hp.maxRearArmor;
@@ -1940,10 +1941,11 @@ class MechMenu_Mechlab : MechMenu
 			if(menuArgs[1] ~== "striparmor" || menuArgs[1] ~== "stripall")
 			{
 				let mechID = menuArgs[2].ToInt();
-				let mech = playerMechs.mechsData[mechID-1].mechobj;
+				let mechObj = playerMechs.mechsData[mechID-1].mechobj;
+				if(!mechObj) mechObj = mech; // fallback
 				
 				Array<MechHardpoint> hardpoints;
-				mech.getHardpoints(hardpoints, skipDestroyed:false);	
+				mechObj.getHardpoints(hardpoints, skipDestroyed:false);	
 				foreach(hp : hardpoints)
 				{
 					hp.frontArmor = 0;
@@ -1953,10 +1955,11 @@ class MechMenu_Mechlab : MechMenu
 			if(menuArgs[1] ~== "stripitems" || menuArgs[1] ~== "stripall")
 			{
 				let mechID = menuArgs[2].ToInt();
-				let mech = playerMechs.mechsData[mechID-1].mechobj;
+				let mechObj = playerMechs.mechsData[mechID-1].mechobj;
+				if(!mechObj) mechObj = mech; // fallback
 				
 				Array<MechHardpoint> hardpoints;
-				mech.getHardpoints(hardpoints, skipDestroyed:false);	
+				mechObj.getHardpoints(hardpoints, skipDestroyed:false);	
 				foreach(hp : hardpoints)
 				{
 					for(int itemID = hp.items.Size()-1; itemID >= 0; itemID--)

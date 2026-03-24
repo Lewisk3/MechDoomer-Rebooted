@@ -242,6 +242,11 @@ material texture models/mechs/crab/crab.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/battlemaster/battlemaster.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

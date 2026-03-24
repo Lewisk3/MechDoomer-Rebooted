@@ -4,7 +4,7 @@ Jenner   [x]
 Raven [x]
 Urbanmech <x>
 Kitfox <x>
-FireMoth <1>
+FireMoth <2>
 Tarantula <???>
 
 [Medium]
@@ -29,4 +29,4 @@ Marauder [x]
 Atlas [x]
 Warhawk [x]
 Direwolf [x]
-BattleMaster <2>
+BattleMaster <1>

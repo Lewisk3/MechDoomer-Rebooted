@@ -192,6 +192,3 @@ class MechEngine_XXL385 : MechEngine {}
 class MechEngine_XXL390 : MechEngine {}
 class MechEngine_XXL395 : MechEngine {}
 class MechEngine_XXL400 : MechEngine {}
-
-
-class MechEngine_Clan_XXL400 : MechEngine {}
