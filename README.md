@@ -1,7 +1,8 @@
-# MechDoomer-Rebooted
-![Screenshot_Doom_20231122_172848](https://github.com/Lewisk3/MechDoomer-Rebooted/assets/19745830/a3d57a11-93b6-4635-b985-ab88c975b677)
+<div align="center">
+  <img width="1920" height="1080" alt="mechdoomer_screeny" src="https://github.com/user-attachments/assets/94c536bd-657b-4de5-8faf-1d648e4be4be" />
+</div>
 
-## **WIP**
+## **Status: Version 1.0 coming soon!**
 #### Currently Available Mechs
 
 * Commando
@@ -39,7 +40,8 @@
 `sv_mdr_startondropship`
 `sv_mdr_skipmaploading`
 `sv_mdr_disabledropship`
-`sv_mdr_debug_nomechstart`
+`sv_mdr_debug_nomechstart`<img width="1920" height="1080" alt="mechdoomer_screeny" src="https://github.com/user-attachments/assets/011326ca-99d6-402f-bbe9-d71c70462c83" />
+
 `sv_mdr_simplemechmovement`
 `sv_mdr_mechscale`
 `sv_mdr_cheats_alwaysfullmechlab`
