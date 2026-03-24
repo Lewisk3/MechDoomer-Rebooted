@@ -237,6 +237,11 @@ material texture models/mechs/kitfox/kitfox.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/crab/crab.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

@@ -428,7 +428,7 @@ class MechItemSlot : MenuElement
 	
 	override bool checkDraggable()
 	{	
-		return slotItem && slotItem.movable;
+		return !locked && slotItem && slotItem.movable;
 	}
 	
 	override void updateDragPos(MenuCursor cursor)
@@ -481,7 +481,7 @@ class MechItemSlot : MenuElement
 		disabled = container ? container.disabled : false;
 		
 		// Disable hard-pointed items such as weapons, from being moved while the mech is being piloted.
-		locked = (mechlab.mech.driver && !(slotItem is "MechAmmo"));
+		locked = !sv_mdr_cheats_alwaysfullmechlab && (mechlab.mech.driver && !(slotItem is "MechAmmo"));
 	}
 }
 
@@ -1106,11 +1106,14 @@ class MechInvItem : MenuElement
 		
 		// Keep repair kits enabled.
 		if( (item is "MechRepairKit") && locked) locked = false;
+		
+		// Disable lock if cheat is enabled.
+		if(sv_mdr_cheats_alwaysfullmechlab) locked = false;
 	}
 	
 	override bool checkDraggable()
 	{
-		return !outOfBounds;
+		return !locked && !outOfBounds;
 	}	
 	override void updateDragPos(MenuCursor cursor)
 	{
@@ -1599,7 +1602,7 @@ class MechlabUtilityButton : MenuButton
 		pressed = false;
 		if(!mechlab) return;
 		
-		if(mechlab.mech.driver)
+		if(mechlab.mech.driver && !sv_mdr_cheats_alwaysfullmechlab)
 		{
 			MDRDialogMenu.Open(mechlab, "Util.NoAccess", "Structure cannot be modified while mech is active.", "Continue");
 			return;
@@ -1651,7 +1654,7 @@ class MechlabToolbox : MenuElement
 	{
 		let mech = base.mech;
 		string cmd = "";
-		bool mechIsActive = base.mech.driver;
+		bool mechIsActive = base.mech.driver && !sv_mdr_cheats_alwaysfullmechlab;
 			
 		if(stripArmor.pressed)
 		{

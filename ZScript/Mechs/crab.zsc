@@ -1,0 +1,262 @@
+class MechCrab : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 34, 42;
+		DrivableMech.MaxWeight 50; // In Tons.
+		DrivableMech.ChassisName "Crab";
+		DrivableMech.VariantName "27";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Crab_icon.png";
+		DrivableMech.CBillValue (4056875   * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Cosara Weaponries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]Designed in 2719 during the last days of the Star League, "
+			"the Crab was built as a medium-weight raider and guerrilla fighter for "
+			"the Star League Defense Force. Although lacking jump jets, it possessed "
+			"good overland speed and its all-energy weapons payload was suitable for "
+			"long-range missions without the prospect for resupply. The Crab also "
+			"boasted a highly advanced communications system, the Dalban Series K, "
+			"and was built mostly with proven parts that were easy to maintain. "
+			"(Source: https://www.sarna.net/wiki/Crab)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Crab_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Crab_Hips",  0,0,38, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Crab_CenterTorso", 0,0,9, hips);
+		leftTorso  = AddHardpoint("Crab_LeftTorso",  0,-10,0, torso);
+		rightTorso = AddHardpoint("Crab_RightTorso", 0, 10,0, torso);
+		
+		leftLeg = AddHardpoint("Crab_LeftLeg",  0, -25,0, legs);
+		rightLeg = AddHardpoint("Crab_RightLeg", 0, 25,0, legs);
+			
+		leftArm  = AddHardpoint("Crab_LeftArm",  5,-17,10, leftTorso);
+		rightArm = AddHardpoint("Crab_RightArm", 5, 17,10, rightTorso);
+		
+		head = AddHardpoint("Crab_Cockpit", 5,7,22, torso);
+		cam  = AddPart("CockpitCamera", 4,0,2, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD250");
+		MechArmor.addToMech(self, "MechArmor_Ferro");
+		
+		leftArm.AddWeapon("LargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("LargeLaser", GROUPFLG_ONE);
+		torso.AddWeapon("MediumLaser", GROUPFLG_TWO);
+		head.AddWeapon("SmallLaser", GROUPFLG_THREE);
+		leftTorso.AddItem("MechHeatsink");
+		rightTorso.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+		leftLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+		rightLeg.AddItem("MechHeatsink");
+	}
+}
+
+/*
+9 tons = 225 pts Ferro Armor
+[HD] - 12
+[CT] - 45
+[LT] - 32
+[RT] - 32
+[LA] - 28
+[RA] - 28
+[LL] - 24
+[RL] - 24
+*/
+
+class Crab_Hips : MechHips {}
+
+class Crab_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 5;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "CrabCockpitModel";
+		MechCockpit.StrictlyFollowTorso true;
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 10, -12, 1.5, 0.35);
+	}
+}
+class CrabCockpitModel : MechCockpitModel {}
+
+
+class Crab_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 65; // degs second
+	}
+}
+class Crab_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 108, 108; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 125;
+		MechTorso.PitchRange 30, 30;
+		Height 8;
+		
+		MechHardpoint.HitBox 12,37, 0,0,-16;
+		
+		MechHardpoint.Vitals 45, 23;
+		MechHardpoint.SetupArmor 35, 10;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		AddHitBox(17,0,0, 12,20);
+		AddHitBox(34,0,0, 12,20);
+		AddHitBox(50,0,0, 12,20);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 84.5,0,10.15, 0.35);
+		AddMountPoint("Energy", 75,4.0,9.75, 0.30);
+	}
+}
+
+class Crab_LeftArm : MechArm
+{
+	Default
+	{	
+		MechArm.ActuationRange 35;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 28, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 12;
+		double ud = -16;
+		double lr = -22;
+		AddHitBox(0,lr + 13,ud + 4, 10,15);
+		AddHitBox(0,lr,ud, 6,14);
+		AddHitBox(fw,lr,ud, 6,14);
+		AddHitBox(2*fw,lr,ud, 6,14);
+		AddHitBox(3*fw,lr,ud, 6,14);
+		AddHitBox(4*fw,lr,ud, 6,14);
+	}
+
+	override void SetupMounts()
+	{		
+		AddMountPoint("Energy", 47, -23.5, -8.4, 0.35);
+	}
+}
+class Crab_RightArm : Crab_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 28, 14;
+		MechHardpoint.SetupArmor 28, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 12;
+		double ud = -13;
+		double lr = 22;
+		AddHitBox(0,lr - 13,ud + 4, 10,15);
+		AddHitBox(0,lr,ud, 6,14);
+		AddHitBox(fw,lr,ud, 6,14);
+		AddHitBox(2*fw,lr,ud, 6,14);
+		AddHitBox(3*fw,lr,ud, 6,14);
+		AddHitBox(4*fw,lr,ud, 6,14);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 41, 20, -4.5, 0.8);
+	}
+}
+
+class Crab_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.HitBox 8,25, 0,-8,-3;
+		
+		MechHardpoint.Vitals 32, 16;
+		MechHardpoint.SetupArmor 24, 8;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("PDS", 0,-2,22, 1.0);
+	}
+}
+class Crab_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.HitBox 8,25, 0, 8,-3;
+		
+		MechHardpoint.Vitals 32, 16;
+		MechHardpoint.SetupArmor 24, 8;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("PDS", -4,2,22, 1.0);
+	}
+}
+
+class Crab_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}	
+}
+class Crab_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 40;
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 24, 0;
+	}	
+}

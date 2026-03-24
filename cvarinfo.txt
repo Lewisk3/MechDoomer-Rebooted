@@ -1,19 +1,28 @@
-server float sv_mdr_mechscale = 0.7; // Fixed at 0.35 for campaign mode.
+// Internal
 server float sv_mdr_distancescale = 0.4; // This ideally, should not be touched by the player, but it's here as an option.
 server float sv_mdr_mechspeedscale = 1.0; // The player should use this over distancescale if they wish to modify the speed of mechs.
 server bool sv_mdr_campaignmode = false; // If true, adjusts scale parameters for campaign mode.
+
+// Visuals
 server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;
 server bool sv_mdr_drawhitboxes = false;
-server bool sv_mdr_exitanytime = false;
-server bool sv_mdr_simplemechmovement = true;
+
+// Debug
 server bool sv_mdr_startondropship = true;
 server bool sv_mdr_skipmaploading = false;
 server bool sv_mdr_disabledropship = false;
+server bool sv_mdr_debug_nomechstart = false;
 
+// Utility
+server bool sv_mdr_simplemechmovement = true;
+server float sv_mdr_mechscale = 0.7; // Fixed at 0.35 for campaign mode.
+
+// Cheats
+server bool sv_mdr_cheats_alwaysfullmechlab = false; // If enabled, mech can be modified freely outside of the dropship.
+server bool sv_mdr_exitanytime = false;
+
+// Pilot (Client) Vars
 user bool cl_mdr_throttledecay = true;
 user bool cl_mdr_analogthrottle = false;
 user bool cl_mdr_hidecockpitview = false;
-
-// Debug
-server bool sv_mdr_debug_nomechstart = false;

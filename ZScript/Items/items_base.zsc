@@ -934,6 +934,9 @@ class MechEngineBlock : MechItem
 	{
 		fontColor = Font.CR_WHITE;
 		bgColor = 0xFF670000;
+		
+		if(mech && mech.engine && !mech.engine.movable)
+			bgColor = 0xFF505050;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -976,7 +979,7 @@ class MechEngine : MechItem
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
-		bgColor = 0xFF870202;
+		bgColor = movable ? 0xFF870202 : 0xFF505050;
 	}
 	
 	double roundTons(double value)
@@ -1210,8 +1213,9 @@ class MechEngine : MechItem
 	{
 		// Find rating and type based on classname.
 		// Naming convention -> MechEngine_ -> STD###, XL###, XXL###, LIGHT###
-		Name engineType; int engineRating;
-		[engineType, engineRating] = GetEngineName(getClassName());
+		Name engineType; int engineRating; bool isClan;
+		[engineType, engineRating, isClan] = GetEngineName(getClassName());
+		
 		if(engineType == 'UNKNOWN ENGINE') 
 		{
 			console.printf("\c[Red]MechEngine Error: failed to autodetect engine parameters for %s.\c[White]", getClassName());
@@ -1227,18 +1231,29 @@ class MechEngine : MechItem
 			case 'LIGHT': type = Type_Light; break;
 		}
 		rating = clamp(engineRating, 10, 500);
+		isClanEngine = isClan;
 	}
 	
-	clearscope static string, int GetEngineName(class<MechEngine> engineClass)
+	// TODO TODAY: Fix this function failing to resolve clan engine types!
+	clearscope static string, int, bool GetEngineName(class<MechEngine> engineClass)
 	{
 		string clsName = engineClass.getClassName();
-		int engineToken = clsName.IndexOf("_");
 		
+		Array<String> tokens;
+		clsName.Split(tokens, "_");
+				
+		if(tokens.Size() <= 0) 
+			return "UNKNOWN ENGINE", 0, false; 
+		
+		bool isClan = (tokens[1] ~== "Clan");
+		string engineTypeStr = tokens[isClan ? 2 : 1];
+		int engineToken = 0;
+				
 		string nums = "0123456789";
 		int ratingIndex = -1;
-		for(uint i = 0; i <= clsName.Length(); i++)
+		for(uint i = 0; i <= engineTypeStr.Length(); i++)
 		{
-			string ch = String.Format("%c", clsName.ByteAt(i));
+			string ch = String.Format("%c", engineTypeStr.ByteAt(i));
 			if(nums.IndexOf(ch) != -1)
 			{
 				ratingIndex = i;
@@ -1247,10 +1262,20 @@ class MechEngine : MechItem
 		}
 		
 		// Unrecognized naming convention.
-		if(engineToken == -1 || ratingIndex == -1) 
-			return "UNKNOWN ENGINE", 0; 
-				
-		return clsName.Mid(engineToken+1, ratingIndex-engineToken-1), clsName.Mid(ratingIndex).ToInt();
+		if(ratingIndex == -1) 
+			return "UNKNOWN ENGINE", 0, false; 
+		
+		string engineType = engineTypeStr.Mid(0, ratingIndex);
+		int engineRating = engineTypeStr.Mid(ratingIndex).ToInt();
+		
+		// Debug output
+		/*
+			console.printf("[%s]\n", clsName);
+			foreach(tk : tokens) console.printf("%s\n", tk);
+			console.printf("Resolved to: %s -> %d [Is Clan: %d]\n", engineType, engineRating, isClan);
+		*/
+		
+		return engineType, engineRating, isClan;
 	}
 	
 	override void Defaults()
@@ -1291,10 +1316,17 @@ class MechEngine : MechItem
 			break;
 		}
 		
+		string prefix = "";
+		if(isClanEngine)
+		{
+			// Setup prefix
+			prefix = "[CLAN] ";
+		}
+		
 		size = 6;
 		nosave = true;
 		weight = GetTonnage();
-		displayName = String.Format("%s ENGINE %d", getTypeStr(), rating);
+		displayName = String.Format("%s%s ENGINE %d", prefix, getTypeStr(), rating);
 	}
 	
 	override void OnAttach()
@@ -1328,6 +1360,9 @@ class MechEngine : MechItem
 			heatsink.OnAttach();
 			heatSinks.Push(heatsink);
 		}
+		
+		// Check if mech requires that we're not movable: has a locked engine.
+		if(mech.hasLockedEngine) movable = false;
 	}
 	
 	override void OnDetach()

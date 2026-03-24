@@ -4,6 +4,7 @@ Jenner   [x]
 Raven [x]
 Urbanmech <x>
 Kitfox <x>
+FireMoth <1>
 Tarantula <???>
 
 [Medium]
@@ -12,7 +13,7 @@ Hunchback [x]
 Nova [x]
 Cicada [x]
 Stormcrow [x]
-Crab <1>
+Crab <x>
 
 [Heavy]
 Catapult [x]

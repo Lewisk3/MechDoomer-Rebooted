@@ -21,6 +21,7 @@ class DrivableMech : DrivableObject
 	string manufacturer; // Used for UI properties.
 	bool cannotPurchase; // If true, this mech is not purchasable via the shop.
 	bool hideHUD; // If true, HUD is not drawn.
+	bool hasLockedEngine; // If true, engine cannot be removed once initially equipped.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -93,6 +94,7 @@ class DrivableMech : DrivableObject
 	Property Manufacturer : manufacturer;
 	Property BaseRepairCost : baseArmorRepairCost, baseInternalRepairCost;
 	Property CannotPurchaseMech : cannotPurchase;
+	Property EngineLocked : hasLockedEngine;
 	
 	enum MechBtns
 	{
@@ -153,6 +155,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.Manufacturer "Unknown";
 		DrivableMech.BaseRepairCost 2500, 5000;
 		DrivableMech.CannotPurchaseMech false;
+		DrivableMech.EngineLocked false;
 	}
 	
 	override void PreTravelled()
@@ -1123,6 +1126,13 @@ class DrivableMech : DrivableObject
 	
 	virtual void DoPowerup()
 	{
+		// We cannot powerup without an engine...
+		if(!engine) 
+		{
+			DoCockpitSound("Menus/Error");
+			return;
+		}
+		
 		DoCockpitSound("Reactor/Powerup");
 		betty.Push("Betty/Powerup");
 		powerupCycleTics = 35*2;
@@ -1221,6 +1231,7 @@ class DrivableMech : DrivableObject
 		// System buttons (Active regardless of power-state)
 		if(getExtBtn(BT_POWERCYCLE, DriverBtns.BTS_PRESSED))
 		{
+			DoCockpitSound("Menus/Text/Input");
 			if(shutdown) 
 				DoPowerup();
 			else
@@ -1230,6 +1241,7 @@ class DrivableMech : DrivableObject
 		// Override shutdown
 		if ( getExtBtn(BT_OVRSHUTDWN, DriverBtns.BTS_PRESSED) && !shutdown )
 		{
+			DoCockpitSound("Menus/Text/Input");
 			overrideShutdown = !overrideShutdown;
 			if(overrideShutdown) betty.Push("Betty/Shutdown/Override");
 		}
