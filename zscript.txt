@@ -104,6 +104,7 @@ version "4.10.0"
 #include "ZScript/Mechs/kitfox.zsc"
 #include "ZScript/Mechs/crab.zsc"
 #include "ZScript/Mechs/battlemaster.zsc"
+#include "ZScript/Mechs/firemoth.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

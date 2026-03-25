@@ -69,8 +69,8 @@ class MechKitfox : DrivableMech
 		rightArm.AddWeapon("UltraAC5", GROUPFLG_TWO);
 		rightArm.AddItem("UAC5Ammo");
 		
-		// Laser-AMS on rightArm
-		//leftArm.AddWeapon("AMS");
+		// TODO: Laser-AMS on rightArm
+		//leftArm.AddWeapon("LaserAMS");
 	}
 }
 

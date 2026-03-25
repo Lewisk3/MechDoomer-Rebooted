@@ -1,0 +1,283 @@
+class MechFiremoth : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 87, 134;
+		DrivableMech.MaxWeight 20; // In Tons.
+		DrivableMech.ChassisName "Firemoth";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Firemoth_icon.png";
+		DrivableMech.CBillValue (4127800 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Dominion Facility Kappa";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Fire Moth is a light Clan OmniMech intended for "
+			"scouting and infantry support and transport, often deployed by "
+			"Clan Ghost Bear. With a running speed of 162.0 km/h, "
+			"accelerating up to 216.0 km/h with the MASC system installed "
+			"on the 'Mech's chassis, the Fire Moth is easily one of the "
+			"fastest designs ever created, the reason the Inner Sphere gave "
+			"it the codename of Dasher. "
+			"(Source: https://www.sarna.net/wiki/Fire_Moth_(Dasher))"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Firemoth_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Firemoth_Hips",  -3,0,47, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Firemoth_CenterTorso", 0,0,2, hips);
+		leftTorso  = AddHardpoint("Firemoth_LeftTorso",  0,-15,5, torso);
+		rightTorso = AddHardpoint("Firemoth_RightTorso", 0, 15,5, torso);
+		
+		leftLeg = AddHardpoint("Firemoth_LeftLeg",  0,-7,0, legs);
+		rightLeg = AddHardpoint("Firemoth_RightLeg", 0, 7,0, legs);
+			
+		leftArm  = AddHardpoint("Firemoth_LeftArm",  0, -2.5,10, leftTorso);
+		rightArm = AddHardpoint("Firemoth_RightArm", 0,  2.5,10, rightTorso);
+		
+		head = AddHardpoint("Firemoth_Cockpit", 24,0,12, torso);
+		cam  = AddPart("CockpitCamera", 0,0,4, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Engine, Structure and Armor 
+		torso.AddItem("MechEngine_XL200");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		// TODO: MASC
+		// torso.AddItem("MASC");
+		rightTorso.AddWeapon("SRM2", GROUPFLG_THREE);
+		rightTorso.AddItem("SRMAmmoHalf");
+		rightArm.AddWeapon("SRM4", GROUPFLG_TWO);
+		rightArm.AddItem("SRMAmmo");
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+	}
+}
+
+/*
+2 tons = 50pts of Clan Ferro Armor
+[HD] - 12
+[CT] - 8
+[LT] - 6
+[RT] - 6
+[LA] - 4
+[RA] - 4
+[LL] - 5
+[RL] - 5
+*/
+
+class Firemoth_Hips : MechHips {}
+
+class Firemoth_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 0;
+		Height 0;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechHardpoint.HitBox 4,4, 0, 0, -10;
+		MechCockpit.Model "FiremothCockpitModel";
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class FiremothCockpitModel : MechCockpitModel {}
+
+class Firemoth_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 111; // degs second
+	}
+}
+class Firemoth_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 198, 198; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 130;
+		MechTorso.PitchRange 30, 30;
+		Radius 0; Height 0;
+		MechHardpoint.HitBox 7,20, 37, 0, 0;
+		
+		MechHardpoint.Vitals 8, 4;
+		MechHardpoint.SetupArmor 5, 3;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 10;
+		double ud = -6;
+		AddHitBox(-fw * 2,0,ud, 8,20);
+		AddHitBox(-fw,0,ud, 8,20);
+		AddHitBox(0,0,ud, 8,20);
+		AddHitBox(fw,0,ud, 8,20);
+		AddHitBox(fw * 1,0,ud, 6,20);
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class Firemoth_LeftArm : MechArm
+{
+	Default
+	{
+		MechArm.ActuationRange 20;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.HitBox 7,14, 30, -10, 4;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 4, 2;
+		MechHardpoint.SetupArmor 4, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double r = 6;
+		double fw = 30;
+		double ud = 4;
+		double lr = -10;
+		AddHitBox(fw, lr, ud, r,14);
+		AddHitBox(fw - 10, lr, ud, r,14);
+		AddHitBox(fw - 20, lr, ud, r,14);
+		AddHitBox(fw - 20, lr + 3, ud - 10, r,14);
+		AddHitBox(fw - 30, lr + 3, ud - 10, r,14);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 32, -12.8, 15.4, 0.4);
+		AddMountPoint("Energy", 32, -6.6, 15.5, 0.4);
+	}
+}
+class Firemoth_RightArm : Firemoth_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.HitBox 7,14, 30, 10, 4;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 4, 2;
+		MechHardpoint.SetupArmor 4, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double r = 6;
+		double fw = 30;
+		double ud = 4;
+		double lr = 10;
+		AddHitBox(fw, lr, ud, r,14);
+		AddHitBox(fw - 10, lr, ud, r,14);
+		AddHitBox(fw - 20, lr, ud, r,14);
+		AddHitBox(fw - 20, lr - 3, ud - 10, r,14);
+		AddHitBox(fw - 30, lr - 3, ud - 10, r,14);
+	}
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 28,7,16, 3,1, 3,0, 0, 0.75);
+	}
+}
+
+class Firemoth_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.HitBox 6,16, 0, 0, -5;
+		
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		
+		MechHardpoint.Vitals 6, 3;
+		MechHardpoint.SetupArmor 4, 2;
+		MechHardpoint.RearArmor true;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 10;
+		AddHitBox(-fw * 2,0,-5, 6,16);
+		AddHitBox(-fw,0,-5, 6,16);
+		AddHitBox(0,0,-5, 6,16);
+		AddHitBox(fw,0,-5, 6,16);
+		AddHitBox(fw * 1,0,-5, 6,16);
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class Firemoth_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.HitBox 6,16, 0, 0, -5;
+		
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		
+		MechHardpoint.Vitals 6, 3;
+		MechHardpoint.SetupArmor 4, 2;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 10;
+		AddHitBox(-fw * 2,0,-5, 6,16);
+		AddHitBox(-fw,0,-5, 6,16);
+		AddHitBox(0,0,-5, 6,16);
+		AddHitBox(fw,0,-5, 6,16);
+		AddHitBox(fw * 1,0,-5, 6,16);
+	}
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 2.15,-13.25,11.75, 3,1, 2.75,0, 0, 0.6);
+	}
+}
+
+class Firemoth_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		MechHardpoint.Vitals 5, 3;
+		MechHardpoint.SetupArmor 5, 0;
+	}	
+}
+class Firemoth_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 5;
+		Height 45;
+		
+		MechHardpoint.Vitals 5, 3;
+		MechHardpoint.SetupArmor 5, 0;
+	}	
+}
