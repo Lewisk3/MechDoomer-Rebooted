@@ -12,7 +12,7 @@ class MechFlamer : MechProjectile abstract
 	{
 		MechProjectile.Dmg 0.02 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 90;
-		MechProjectile.SpeedKPH 100;
+		MechProjectile.SpeedKPH 400;
 		MechProjectile.ImpactSound "";
 		DamageType 'Fire';
 		
@@ -66,6 +66,7 @@ class MechFlamerEffect : EffectsActor
 	double maxRangeUnits;
 	double defScale;
 	int lifeTime;
+	int startFrame, curFrame;
 	
 	Default
 	{
@@ -161,6 +162,13 @@ class MechFlamerEffect : EffectsActor
 		*/
 		
 		// Process actor collisions
+		if(getAge() >= lifeTime) 
+		{
+			alpha *= 0.9;
+			if(alpha <= 0.01) Destroy();
+			return;
+		}
+		
 		let blockingIt = BlockThingsIterator.Create(self, 16);
 		Actor victim;
 
@@ -207,25 +215,23 @@ class MechFlamerEffect : EffectsActor
 	States
 	{
 		Spawn:
-			TNT1 A 0 NoDelay A_Jump(255, random[WeapFX](0,10));
-			MXP1 ABCDEFGHIJKLMNOPQRSTUVWXYZ 2;
-			MXP1 ABCDEFGH 1;
-		WaitLoop:
-			MXP1 H 1;
-			MXP1 H 0 A_JumpIf(GetAge() < lifeTime, "WaitLoop");
-			MXP1 IJKLMNOP 1
+			TNT1 A 0;
+			TNT1 A 0 
 			{
-				A_FadeOut(0.01);
-				if( !(level.maptime%4) && !isFrozen() )
-				{
-					let smoke = Spawn("MechFlamerSmoke", pos);
-					smoke.A_SetScale(Scale.X * 0.5, Scale.Y * 0.5);
-					smoke.vel = vel * 0.35;
-				}
+				startFrame += random[FlamerFX](0,10);
 			}
-		Flame.Die:
-			MXP1 QRSTU 1;
-			MXP1 V 1;
+		WaitLoop:
+			"####" "#" 1
+			{
+				int maxFrames = 47;
+				curFrame = DrivablesMath.fmap(getAge(), 0, lifeTime, startFrame, maxFrames);
+				
+				let sOne = GetSpriteIndex("MXP1");
+				let sTwo = GetSpriteIndex("MXP2");
+				Sprite = curFrame > 25 ? sTwo : sOne;
+				Frame = (curFrame % 26);
+			}
+			MXP1 H 0 A_JumpIf(GetAge() < lifeTime, "WaitLoop");
 		stop;
 	}
 }

@@ -63,7 +63,7 @@ class MechJumpJet : MechUtility
 		if(mech.maxWeight > 85)
 			snd = "JumpJet/Assault";
 		
-		parent.A_StartSound(snd, CHAN_ITEM, CHANF_LOOPING|CHANF_NOSTOP);
+		parent.A_StartSound(snd, CHAN_ITEM, CHANF_LOOPING|CHANF_NOSTOP, attenuation:ATTN_IDLE);
 	}
 	
 	virtual void updateThrust(DrivableMech mech)

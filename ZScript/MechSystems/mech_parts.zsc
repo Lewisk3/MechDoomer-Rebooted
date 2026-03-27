@@ -361,16 +361,13 @@ class MechHardpoint : MechPart
 	
 	void processHeatDamage()
 	{
+		double internalHeatPerc = min(1.0, localHeat / (mech.maxHeat / 2.0));
 		double heatperc = mech.getHeatPerc();
-		if(heatperc < 0.9) return;
+		if(heatperc < 0.9 && internalHeatPerc < 0.9) return;
 		
 		// Take 10% structural damage every second, multiplied by local heat ratio.
-		
 		double heatDmg = (0.1 * maxHP) / double(TICRATE);		
-		double internalHeatPerc = min(1.0, localHeat / (mech.maxHeat / 2.0));
-		
 		heatDmg *= max(0.35, internalHeatPerc);
-		
 		DamageHardpoint('MechHeat', heatDmg, skipArmor:true);
 	}
 	
@@ -397,7 +394,7 @@ class MechHardpoint : MechPart
 		totalArmorDamage = min(maxArmor, frontArmorDamage + rearArmorDamage);
 	}
 	
-	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false)
+	virtual void DamageHardpoint(Name type, double damage, bool isRearDamage = false, bool skipArmor = false, bool CanCrit = true)
 	{
 		if(healthPoints <= 0) return; // Don't damage an already destroyed hardpoint.
 		double prevFrontArmor = frontArmor;
@@ -458,7 +455,7 @@ class MechHardpoint : MechPart
 		
 		if(noArmor && items.Size() > 0 && heatDamageTics++ >= 8 && toHit)
 		{
-			bool criticalHit = random[HardpointCrit](0,100) <= 10; // 10 percent chance of crit, if heat damage then 1% chance.
+			bool criticalHit = CanCrit && random[HardpointCrit](0,100) <= 10; // 10 percent chance of crit, if heat damage then 1% chance.
 			if(heatDamage) hpDmg *= 5.0;
 			
 			double itemDmg = (criticalHit ? 100 : (hpDmg*20.0));
@@ -596,14 +593,14 @@ class MechHardpoint : MechPart
 		}
 	}
 	
-	virtual void doDamageRecoil(double amt, vector3 angles, bool behind)
+	virtual void doDamageRecoil(double amt, vector3 angles, bool behind, bool forced = false)
 	{
 		let torso = MechTorso(mech.torso);
 		if(!torso || !mech.hips) return;
 		
 		// Hits to legs shouldn't move torso.
 		bool abovePivot = pos.z >= mech.hips.pos.z;
-		if(!abovePivot) return;
+		if(!abovePivot && !forced) return;
 		
 		if(behind) angles.xy *= -1;
 		torso.recoilAngles = angles * (amt / 10.0);
@@ -802,6 +799,11 @@ class MechHardpoint : MechPart
 	virtual void fullRepairInternals()
 	{
 		healthPoints = maxHP;
+		
+		// Repair any damaged structures
+		Array<MechItem> structures;
+		FindAllItems("MechStructure", true, structures);
+		foreach(part : structures) part.hp = 10;
 	}
 	
 	virtual void Repair(double armorAmt, double healthAmt)
@@ -820,6 +822,13 @@ class MechHardpoint : MechPart
 		
 		healthPoints += healthAmt;
 		healthPoints = min(maxHP, healthPoints);
+		if(healthAmt > 0)
+		{
+			// Repair any damaged structures
+			Array<MechItem> structures;
+			FindAllItems("MechStructure", true, structures);
+			foreach(part : structures) part.hp = 10;
+		}
 		
 		frontArmorDamage = max(0, frontArmorDamage);
 		rearArmorDamage = max(0, rearArmorDamage);		
@@ -1006,6 +1015,23 @@ class MechLeg : MechHardpoint
 	{
 		MechHardpoint.Slots 6;
 		MechHardpoint.CreatesDebris false;
+	}
+	
+	clearscope double GetMovePenalty()
+	{
+		if(healthPoints <= 0) return 0.5;
+	
+		Array<MechItem> actuators;
+		self.FindAllItems("MechLegActuators", true, actuators);
+		
+		double totalPenalty;
+		foreach(part : actuators)
+		{
+			let actuator = MechLegActuators(part);
+			totalPenalty += actuator.GetMovePenalty();
+		}
+			
+		return min(0.5, totalPenalty);
 	}
 	
 	override void Tick()
@@ -1357,6 +1383,10 @@ class MechCockpit : MechHardpoint
 	bool forceVisible; // Always enable cockpit visuals if true.
 	bool strictFollowTorso; // If true, no extra bob is applied.
 	
+	// For shaking effects
+	vector3 quakeAngles, quakeOffs;
+	int quakeTics, maxQuakeTics;
+	
 	class<MechCockpitModel> cockpitModel;
 	Property model : cockpitModel;
 	Property StrictlyFollowTorso : strictFollowTorso;
@@ -1392,11 +1422,32 @@ class MechCockpit : MechHardpoint
 			if(model) model.parent = self;
 		}
 	}
+	
+	void DoCockpitQuake(double qx, double qy, double qz, double dur)
+	{
+		quakeAngles = (qx, qy, qz);
+		quakeTics = maxQuakeTics = dur;
+	}
 
 	override void UpdateAngles()
 	{	
 		if(!mech) return;
 		DoCockpitBob();
+	
+		if(quakeTics > 0) 
+		{
+			quakeOffs += (
+				frandom[CockpitQuakeFX](-1.0, 1.0) * quakeAngles.x,
+				frandom[CockpitQuakeFX](-1.0, 1.0) * quakeAngles.y,
+				frandom[CockpitQuakeFX](-1.0, 1.0) * quakeAngles.z
+			);
+			quakeOffs.x = clamp(quakeOffs.x, -5, 5);
+			quakeOffs.y = clamp(quakeOffs.y, -5, 5);
+			quakeOffs.z = clamp(quakeOffs.z, -5, 5);
+			quakeTics--;
+			if(quakeTics <= 0) maxQuakeTics = 0;
+		}
+		quakeOffs *= 0.95;
 		
 		let torso = MechTorso(mech.torso);
 		lookingPos = DrivablesMath.getActorAim(self, true, torso.angle, torso.pitch);
@@ -1406,17 +1457,23 @@ class MechCockpit : MechHardpoint
 
 		parentOffset.z = defz;// + bobHeightOffs; 
 		
+		vector3 baseAngles = (
+			torso.angle + quakeOffs.x,
+			torso.pitch + quakeOffs.y,
+			torso.roll + quakeOffs.z
+		);
+		
 		if(!strictFollowTorso)
 		{
-			A_SetAngle(torso.angle, SPF_INTERPOLATE);
-			A_SetPitch(torso.pitch + (torso.pitchBob * 5.0), SPF_INTERPOLATE);
-			A_SetRoll(torso.roll + (torso.rollBob * 0.5) + bobRollOffs, SPF_INTERPOLATE);
+			A_SetAngle(baseAngles.x, SPF_INTERPOLATE);
+			A_SetPitch(baseAngles.y + (torso.pitchBob * 5.0), SPF_INTERPOLATE);
+			A_SetRoll(baseAngles.z + (torso.rollBob * 0.5) + bobRollOffs, SPF_INTERPOLATE);
 		}
 		else
 		{
-			A_SetAngle(torso.angle, SPF_INTERPOLATE);
-			A_SetPitch(torso.pitch, SPF_INTERPOLATE);
-			A_SetRoll(torso.roll, SPF_INTERPOLATE);
+			A_SetAngle(baseAngles.x, SPF_INTERPOLATE);
+			A_SetPitch(baseAngles.y, SPF_INTERPOLATE);
+			A_SetRoll(baseAngles.z, SPF_INTERPOLATE);
 		}
 	}
 	

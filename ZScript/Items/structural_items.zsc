@@ -1,0 +1,252 @@
+// Armor types
+class MechArmor_Standard : MechArmor
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 0;
+		armorWeight = 0.05;
+		damageMod = 1.0;
+		displayName = "Standard";
+		armorTier = 0;
+	}
+}
+
+class MechFerroStructure : MechDynamicStructure
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Armor";
+	}
+} 
+
+class MechArmor_Ferro : MechArmor
+{
+	double efficiency;
+
+	override void Defaults()
+	{
+		super.Defaults();
+		structType = "MechFerroStructure";
+		structureSlots = 14;
+		efficiency = 0.20; // 20% more effective than Standard Armor.
+		
+		armorWeight = 0.05 * (1.0 - efficiency);
+		damageMod = 1.0;
+		displayName = "Ferro-fibrous";
+		armorTier = 1; // Advanced armor tier
+		costPerTon = 20000;
+		
+		// Wasn't able to find a source for this price, so I have to make it the fuck up.
+		// Maybe one day search engines will work properly again, but that isn't today.
+		value = 350000; 
+	}
+}
+
+class MechArmor_ClanFerro : MechArmor_Ferro
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Clan-Ferro-fibrous";
+		structureSlots = 7;
+		armorTier = 3;
+		costPerTon = 40000;
+		
+		value = 700000;
+	}
+}
+
+// Chassis structures
+class MechChassis_Standard : MechChassisStructure
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 0;
+		displayName = "Standard";
+		chassisWeightPercent = 1.0;
+		structureTier = 0;
+	}
+}
+
+class MechChassis_EndoSteel : MechChassisStructure
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 14;
+		displayName = "Endosteel";
+		chassisWeightPercent = 0.5;
+		structureTier = 1; // Advanced structure tier
+		costPerTon = 40000; // Per-ton of structural materials.
+		
+		value = 150000;
+	}
+}
+
+class MechChassis_ClanEndoSteel : MechChassis_EndoSteel
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		structureSlots = 7;
+		displayName = "Clan-Endosteel";
+		structureTier = 3;
+		costPerTon = 80000;
+		
+		value = 300000;
+	}
+}
+
+// Arm structures
+class MechStructure : MechItem 
+{
+	override void Defaults()
+	{
+		template = true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+
+		if(hp <= 0 && parent.healthPoints > 0) hp = 10;
+	}
+}
+
+class MechShoulder : MechStructure
+{
+	override void Defaults()
+	{
+		Movable = false;	
+		Damagable = false;
+		size = 1;
+		weight = 0;
+		displayName = "Shoulder";
+		itemDescription = "\c[Red]Critical Structure Item. \nCannot be moved. \c[White]"; 
+	}
+		
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		if(damagable)
+		{
+			statName.Push("HEALTH: ");
+			statValue.Push(String.Format("%d / 10", hp));
+		}
+		
+		flavorText = itemDescription; 
+	}
+}
+class MechUpperArmActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Upper Arm";
+	}
+}
+class MechLowerArmActuator : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Lower Arm";
+	}
+}
+
+// Leg structures
+class MechHipStructure : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Hip";
+	}
+}
+class MechLegActuators : MechShoulder
+{
+	double damagePenalty;
+
+	virtual double GetMovePenalty()
+	{
+		// 25% max move penalty when damaged below 50%
+		return hp <= 5 ? damagePenalty : 0;
+	}
+
+	override void Defaults()
+	{
+		super.Defaults();
+		damagePenalty = 0.25;
+		damagable = true;
+		displayName = "Generic Leg Actuator";
+	}
+}
+
+class MechUpperLegActuator : MechLegActuators
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		damagePenalty = 0.25;
+		displayName = "Upper Leg";
+	}
+}
+class MechLowerLegActuator : MechLegActuators
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		damagePenalty = 0.1;
+		displayName = "Lower Leg";
+	}
+}
+class MechFootActuator : MechLegActuators
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		damagePenalty = 0.25;
+		displayName = "Foot";
+	}
+}
+
+// Torso structure(s)
+class MechGyro : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		size = 4;
+		displayName = "Gyro";
+	}
+}
+
+// Cockpit structures
+class MechLifeSupport : MechShoulder
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		size = 2;
+		displayName = "Life Support";
+	}
+}
+class MechSensors : MechLifeSupport
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		displayName = "Sensors";
+	}
+}
+class MechCockpitStructure : MechLifeSupport
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		size = 1;
+		displayName = "Cockpit";
+	}
+}

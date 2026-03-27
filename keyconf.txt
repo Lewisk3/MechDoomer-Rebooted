@@ -51,6 +51,9 @@ Alias -mw_itemmagnet "netevent -mw_itemmagnet"
 Alias +mw_repairdrone "netevent +mw_repairdrone"
 Alias -mw_repairdrone "netevent -mw_repairdrone"
 
+Alias +mw_togglemasc "netevent +mw_togglemasc"
+Alias -mw_togglemasc "netevent -mw_togglemasc"
+
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK
 addmenukey "Fire Group 2" +ALTATTACK
@@ -79,3 +82,4 @@ addmenukey "Open Mechlab" "netevent +mw_openmechlab";
 addmenukey "Item Magnet" +mw_itemmagnet
 addmenukey "Combat Zoom" +zoom
 addmenukey "Repair Drone" +mw_repairdrone
+addmenukey "Toggle Masc" +mw_togglemasc

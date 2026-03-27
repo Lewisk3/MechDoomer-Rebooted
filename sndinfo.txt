@@ -27,6 +27,7 @@ Betty/Item/SRM "Sounds/Betty/Items/srm.wav"
 Betty/Item/LRM "Sounds/Betty/Items/lrm.wav"
 Betty/Item/Heatsink "Sounds/Betty/Items/heatsink.wav"
 Betty/Item/AMS "Sounds/Betty/Items/AMS.wav"
+Betty/Item/MASC "Sounds/Betty/Items/MASC.wav"
 Betty/Powerup "Sounds/Betty/powercycle.wav"
 
 // Mech explosions
@@ -46,6 +47,10 @@ Damage/NoArmor "Sounds/Mech/damage_alarm1.wav"
 Damage/CriticalInternals "Sounds/Mech/damage_alarm2.wav"
 Damage/Critical	"Sounds/Mech/damage_critical.wav"
 Damage/CriticalAlarm "Sounds/Mech/critical_alarm.wav"
+Item/Alarm "Sounds/Mech/remind_alarm.wav"
+Item/CriticalWarning "Sounds/Mech/notif_warning.wav"
+Item/MASC/Enable "Sounds/Mech/masc_start.wav"
+Item/MASC/Loop "Sounds/Mech/masc_loop.wav"
 
 // Ambient mech sounds
 Torso/Twist     "Sounds/Ambient/torso_twist.wav"
@@ -181,6 +186,8 @@ $limit Energy/PPC 			  0
 $limit Energy/PPC/Impact	  0
 $limit Laser/Pulse/Impact 0
 $limit Energy/PPC/Thunder  0
+$limit Energy/Flamer/Start 0
+$limit Energy/Flamer/Loop 0
 
 $limit Generic/Impact 0
 

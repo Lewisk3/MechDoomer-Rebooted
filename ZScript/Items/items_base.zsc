@@ -78,6 +78,11 @@ class MechItem : Object
 		}
 	}
 	
+	ui virtual void DrawOverlay(double deltaTime)
+	{
+		// Used for adding HUD elements when specific items are equipped.
+	}
+	
 	virtual string GetItemErrorMessage(int ERR_TYPE)	
 	{
 		switch(ERR_TYPE)
@@ -479,7 +484,7 @@ class MechDynamicStructure : MechItem
 		return (maxSlots-curSlots);
 	}
 	
-	clearscope static int getTotalFreeslots(DrivableMech mech, bool skipDestroyed = true)
+	clearscope static int getTotalFreeslots(DrivableMech mech, bool skipDestroyed = false)
 	{
 		int maxSlots;
 		int curSlots;
@@ -504,7 +509,7 @@ class MechDynamicStructure : MechItem
 		return (maxSlots-curSlots);
 	}
 	
-	clearscope static MechHardpoint findFreeslots(DrivableMech mech, bool skipDestroyed = true)
+	clearscope static MechHardpoint findFreeslots(DrivableMech mech, bool skipDestroyed = false)
 	{
 		Array<MechHardpoint> hardpoints;
 		mech.getHardPoints(hardpoints, skipDestroyed);
@@ -540,7 +545,7 @@ class MechDynamicStructure : MechItem
 	
 	play virtual void ReAttach()
 	{
-		let freeHardpoint = findFreeslots(mech, skipDestroyed:false);
+		let freeHardpoint = findFreeslots(mech);
 		if(freeHardpoint)
 		{
 			TryDetach(true);
@@ -557,7 +562,7 @@ class MechDynamicStructure : MechItem
 	{
 		super.DoEffect();
 		int curFreeslots = getFreeslots();
-		MechHardpoint freeHardpoint = findFreeslots(mech, skipDestroyed:false);
+		MechHardpoint freeHardpoint = findFreeslots(mech);
 
 		// Scale HP to internals health.
 		hp = floor((parent.healthPoints / parent.maxHP) * 10);
@@ -869,8 +874,8 @@ class MechChassisStructure : MechUtility
 		if( (mech.weight + weight) > mech.maxWeight ) fail = IAE_OVERWEIGHT; 
 		if(structureSlots > 0 && MechDynamicStructure.getTotalFreeslots(mech) < structureSlots)
 			fail = IAE_NOSLOTS;
-			
-		if(fail != IAE_SUCCESS)
+
+		if( (fail != IAE_SUCCESS) && prevStructure )
 		{
 			prevStructure.TryAttach(part);
 		}
@@ -923,6 +928,7 @@ class MechEngineBlock : MechItem
 {
 	override void Defaults()
 	{
+		damagable = false;
 		movable = false;
 		weight = 0;
 		size = 2;
@@ -955,6 +961,7 @@ class MechEngine : MechItem
 	Array<MechHeatsink> heatSinks;
 	double energy; // Reactor available energy
 	double gyroWeight, cockpitWeight;
+	double moveSpeedModifier; // Applied after MP calculations.
 	bool isClanEngine;
 	
 	enum EngineType 
@@ -1175,9 +1182,18 @@ class MechEngine : MechItem
 	
 	clearscope double getKPH(DrivableMech mech)
 	{
-		let [runMP, walkMP] = getRunWalkMP(mech);
+		let leftLeg = MechLeg(mech.leftLeg);
+		let rightLeg = MechLeg(mech.rightLeg);
+		double LL = leftLeg ? leftLeg.GetMovePenalty() : 0.5;
+		double RL = rightLeg ? rightLeg.GetMovePenalty() : 0.5;
 	
+		let [runMP, walkMP] = getRunWalkMP(mech);
 		double runMP_KPH = runMP * 10.8;
+		
+		double movePenalty = LL + RL;
+		runMP_KPH -= (runMP_KPH * movePenalty);
+		runMP_KPH *= moveSpeedModifier;
+		
 		return runMP_KPH;
 	}
 		
@@ -1326,6 +1342,7 @@ class MechEngine : MechItem
 		size = 6;
 		nosave = true;
 		weight = GetTonnage();
+		moveSpeedModifier = 1.0;
 		displayName = String.Format("%s%s ENGINE %d", prefix, getTypeStr(), rating);
 	}
 	
@@ -1334,6 +1351,10 @@ class MechEngine : MechItem
 		super.OnAttach();
 		
 		// Add engine blocks.
+		// Important: Engine Blocks are attached with forced = true, so we 
+		// must make sure there's enough room before this method is called.
+		// The reason they're attached as forced is due to the fact that a mech's side torsos can be destroyed, 
+		// which would prevent this item from being re-equipped when the player gets back to the dropship.
 		let lt = parent.mech.leftTorso;
 		let rt = parent.mech.rightTorso;  
 		for(uint i = 0; i < blocks; i++) 
@@ -1341,12 +1362,12 @@ class MechEngine : MechItem
 			let lt_block = MechItem.Init("MechEngineBlock");
 			lt_block.displayName = displayName;
 			lt_block.size = blockSize ? blockSize : lt_block.size;
-			if(lt_block.TryAttach(lt)) engineBlocks.push(lt_block);
+			if(lt_block.TryAttach(lt, true)) engineBlocks.push(lt_block);
 			
 			let rt_block = MechItem.Init("MechEngineBlock");
 			rt_block.displayName = displayName;
 			rt_block.size = blockSize ? blockSize : rt_block.size;
-			if(rt_block.TryAttach(rt)) engineBlocks.push(rt_block);
+			if(rt_block.TryAttach(rt, true)) engineBlocks.push(rt_block);
 		}
 		
 		// Add heatsinks to Engine

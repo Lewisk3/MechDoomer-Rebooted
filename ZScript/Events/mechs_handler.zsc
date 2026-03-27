@@ -127,6 +127,7 @@ class MechInteraction_Handler : EventHandler
 			if(cmd ~== "mw_toggleweaponstate") drvObj.source.setExtBtn(DrivableMech.BT_WEAPONSTATE, btnState);
 			if(cmd ~== "mw_itemmagnet") drvObj.source.setExtBtn(DrivableMech.BT_ITEMMAGNET, btnState);
 			if(cmd ~== "mw_repairdrone") drvObj.source.setExtBtn(DrivableMech.BT_DRONEREPAIR, btnState);
+			if(cmd ~== "mw_togglemasc") drvObj.source.setExtBtn(DrivableMech.BT_MASC, btnState);
 					
 			if(cmd ~== "mw_openmechlab")
 				OpenMechlab(e.Player, DrivableMech(drvObj.source));

@@ -395,7 +395,7 @@ class MWDrawer Abstract ui
 		y *= sc_yres;
 		w *= sc_xres;
 		h *= sc_yres;
-		if(visualize) Fill(Color(255,0,255,0), x,y,w,h );	
+		if(visualize) Fill(Color(255,0,255,0), x,y,w,h, alpha:0.5);	
 		Screen.SetClipRect(x,y,w,h);
 	}
 	

@@ -257,228 +257,237 @@ class MechCASE : MechUtility
 	override void GetShopProperties(out Array<String> stats, out Array<string> values) {}	
 }
 
-// Armor types
-class MechArmor_Standard : MechArmor
+// MASC 
+class MechMASC : MechUtility
 {
-	override void Defaults()
-	{
-		super.Defaults();
-		structureSlots = 0;
-		armorWeight = 0.05;
-		damageMod = 1.0;
-		displayName = "Standard";
-		armorTier = 0;
-	}
-}
-
-class MechFerroStructure : MechDynamicStructure
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Armor";
-	}
-} 
-
-class MechArmor_Ferro : MechArmor
-{
-	double efficiency;
+	// Increases every turn of use.
+	int activeTics;
+	double failureChance;
+	double actuatorStrain;
+	double legStrain;
+	ui double legStrainCounter;
+	ui double uiAlpha;
+	bool active;
+	const SCHAN_MASCLOOP = 24;
+	
+	Array<MechLegActuators> actuators;
 
 	override void Defaults()
-	{
-		super.Defaults();
-		structType = "MechFerroStructure";
-		structureSlots = 14;
-		efficiency = 0.20; // 20% more effective than Standard Armor.
+	{	
+		damagable = true;
+		weight = 1;
+		size = 1;
+		displayName = "MASC";
+		sndItemName = "Betty/Item/MASC";
+		ItemDescription = "Doubles movement speed when active. Cannot be equipped on a mechs' arms. \n\n\c[Yellow]WARNING: Prolonged use can cause damage to leg actuators.";
 		
-		armorWeight = 0.05 * (1.0 - efficiency);
-		damageMod = 1.0;
-		displayName = "Ferro-fibrous";
-		armorTier = 1; // Advanced armor tier
-		costPerTon = 20000;
+		value = 250000;
+	}
+	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		fontColor = Font.CR_WHITE;
+		bgColor = 0xFF292ec5;
+	}
+	
+	override void OnAttach()
+	{
+		super.OnAttach();
 		
-		// Wasn't able to find a source for this price, so I have to make it the fuck up.
-		// Maybe one day search engines will work properly again, but that isn't today.
-		value = 350000; 
-	}
-}
-
-class MechArmor_ClanFerro : MechArmor_Ferro
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Clan-Ferro-fibrous";
-		structureSlots = 7;
-		armorTier = 3;
-		costPerTon = 40000;
+		if(!mech) return;
 		
-		value = 700000;
-	}
-}
-
-// Chassis structures
-class MechChassis_Standard : MechChassisStructure
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		structureSlots = 0;
-		displayName = "Standard";
-		chassisWeightPercent = 1.0;
-		structureTier = 0;
-	}
-}
-
-class MechChassis_EndoSteel : MechChassisStructure
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		structureSlots = 14;
-		displayName = "Endosteel";
-		chassisWeightPercent = 0.5;
-		structureTier = 1; // Advanced structure tier
-		costPerTon = 40000; // Per-ton of structural materials.
+		// Get leg actuators.
+		Array<MechItem> items;
+		mech.FindAllItems("MechLegActuators", true, items);
 		
-		value = 150000;
+		foreach(part : items)
+			actuators.Push(MechLegActuators(part));
 	}
-}
 
-class MechChassis_ClanEndoSteel : MechChassis_EndoSteel
-{
-	override void Defaults()
+	// TODO: Fix bobbing code... again.
+	override void DrawOverlay(double dT)
 	{
-		super.Defaults();
-		structureSlots = 7;
-		displayName = "Clan-Endosteel";
-		structureTier = 3;
-		costPerTon = 80000;
+		if(active)
+			uiAlpha = DrivablesMath.lerp(uiAlpha, 1.0, 0.1 * dT);
+		else if(legStrain <= 0.01 || hp <= 0)
+			uiAlpha = DrivablesMath.lerp(uiAlpha, 0, 0.1 * dT);
+	
+		vector2 shake = (
+			frandom[UI_MASCShake](-1.0,1.0),
+			frandom[UI_MASCShake](-1.0,1.0)
+		) * 1.5;
+		double size = 0.4;
+		double alpha = uiAlpha;
+		vector2 pos = (875,548);
+		if(legStrain >= 0.7 && active) pos += shake;
 		
-		value = 300000;
+		int flags = MWDrawer.SS_NOASPECTCORRECTION;
+		string meterBG = "Graphics/HUD/MASC_MeterBG.png";
+		string meterTicks = "Graphics/HUD/MASC_MeterTicks.png";
+		
+		MWDrawer.DrawImage(meterBG, pos, flags, alpha, scale:(size,size));
+		MWDrawer.DrawImage(meterTicks, pos, flags, alpha * 0.25, scale:(size,size), tint:0xFF7F7F7F);
+		
+		legStrainCounter = min(1.0, DrivablesMath.lerp(legStrainCounter, legStrain * 1.15, 0.5 * dT));
+		vector2 clipSize = (128,260) * size;
+		vector2 clipPos = (pos.x, pos.y) - (clipSize.x * 0.5, -clipSize.y * 0.5);
+		double clipScalar = (clipSize.y * legStrainCounter);
+		// MWDrawer.Fill(0xFF00A000, clipPos.x, clipPos.y - clipScalar, clipSize.x, clipScalar, 0.5, flags);
+		MWDrawer.SetClipRect(clipPos.x, clipPos.y - clipScalar, clipSize.x, clipScalar);
+		MWDrawer.DrawImage(meterTicks, pos, flags, alpha * 0.9, scale:(size,size));
+		MWDrawer.ClearClipRect();
+		
+		// Text readout
+		Font fnt = "hm_thin";
+		vector2 textPos = (clipPos.x + 5, clipPos.y - clipScalar);
+		MWDrawer.DrawString(fnt, String.Format("%d", legStrain * 100), textPos, flags:MWDrawer.SS_TEXT_RIGHT, alpha:uiAlpha, scale:(0.6, 0.6));
 	}
-}
-
-// Arm structures
-class MechStructure : MechItem 
-{
-	override void Defaults()
+	
+	play void DoMASC()
 	{
-		template = true;
+		// MoveSpeed Boost
+		if(active && abs(mech.throttle) > 0.01)
+		{
+			mech.engine.moveSpeedModifier = min(2.0, DrivablesMath.fmap(
+				min(60, activeTics), 0, 60, 1.0, 2.0 
+			));
+		
+			activeTics++;
+			double curTurn = activeTics / double(TURNTICS);
+			failureChance = floor(4*curTurn*curTurn);
+			
+			// Accumulate leg strain.
+			legStrain += 1.0 / (TURNTICS * 2.0);
+			
+			if(legStrain >= 0.65 && !(activeTics % 35))
+			{
+				double shakeStr = 2;
+				if(legStrain >= 0.85)
+				{
+					shakeStr = 4;
+					mech.DoCockpitSound("Item/CriticalWarning", flags:CHANF_NOSTOP|CHANF_LOCAL);
+				}
+				else
+				{
+					mech.DoCockpitSound("Item/Alarm");
+				}
+				mech.cockpit.DoCockpitQuake(shakeStr,shakeStr,shakeStr, 35);
+			}
+
+			if(legStrain >= 0.75)
+			{
+				// Do leg damage
+				double dmg = (mech.leftLeg.maxHP * 0.1) / double(TICRATE); 
+				mech.leftLeg.DamageHardpoint("MASC_Damage", dmg, false, skipArmor:true, CanCrit:false);
+				mech.rightLeg.DamageHardpoint("MASC_Damage", dmg, false, skipArmor:true, CanCrit:false);
+					
+				// Roll for failure (damage to actuator)
+				// For some reason, maybe because it's pseudo-RNG, this rolls successfully way too often.
+				// So, instead the failureChance is scaled down.
+				bool crit = (random[MASC_Crit](0, 100) <= (failureChance * 0.25));
+				if(crit && legStrain > 1.0)
+				{
+					// Damage random actuator
+					int i = random[MASC_Crit](0,actuators.Size()-1);
+					actuators[i].hp -= random[MASC_DMG](5,10);
+					mech.DoCockpitSound("Mech/Explosion/Hardpoint");
+					mech.DoCockpitSound("Damage/CriticalAlarm");
+					mech.betty.Push("Betty/CriticalHit");
+					mech.betty.Push(sndItemName);
+					mech.betty.Push("Betty/Item/Destroyed");
+					hp = legStrain = 0;
+					mech.engine.moveSpeedModifier = 1.0;
+				}
+			}
+		}
+		else
+		{
+			// Slowly decrease leg strain
+			legStrain -= (1.0 / (TURNTICS * 2.0));
+			mech.engine.moveSpeedModifier = 1.0;
+		}
+		
+		// Sound Effects
+		// Note: for some unknown, bizarre reason CHANF_LOCAL sounds cannot be stopped???
+		if(active && activeTics >= 20)
+			mech.DoCockpitSound("Item/MASC/Loop", SCHAN_MASCLOOP, flags:CHANF_LOOPING);
+		else
+			mech.StopCockpitSound(SCHAN_MASCLOOP);
 	}
 	
 	override void DoEffect()
 	{
 		super.DoEffect();
+		if(!mech) 
+		{
+			mech = parent.GetMech();
+			return;
+		}
+		if(!mech.engine) return;
 
-		if(hp <= 0 && parent.healthPoints > 0) hp = 10;
+		if(mech.driver) DoMASC();
+		legStrain = clamp(legStrain, 0, 1.0);
+		
+		bool destroyed = hp <= 0;
+		if(destroyed) 
+		{
+			active = false;	
+			return;
+		}
+		
+		bool doEnable = mech.getExtBtn(mech.BT_MASC, DriverBtns.BTS_DOWN);
+		if(doEnable)
+		{
+			if(!active)
+			{
+				mech.DoCockpitSound("Item/MASC/Enable");
+				active = true;
+			}
+		}
+		else if(active)
+		{
+			mech.DoCockpitSound("Legs/Decel");
+			active = false;
+		}
 	}
-}
-
-class MechShoulder : MechStructure
-{
-	override void Defaults()
+	
+	clearscope virtual int GetSize(DrivableMech mech)
 	{
-		Movable = false;	
-		Damagable = false;
-		size = 1;
-		weight = 0;
-		displayName = "Shoulder";
-		itemDescription = "\c[Red]Critical Structure Item. \nCannot be moved. \c[White]"; 
+		return ceil(0.04 * mech.maxWeight);
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
-		// Stats are skipped.
-		flavorText = itemDescription; 
+		flavorText = itemDescription;
+		
+		statName.Push("Criticals: ");
+		statValue.Push(String.Format("%d", GetSize(mechInfo)));
+		statName.Push(" "); // Padding
+		statValue.Push(" ");
 	}
-}
-class MechUpperArmActuator : MechShoulder
-{
-	override void Defaults()
+	
+	override int TryAttach(MechHardpoint part, bool forced)
 	{
-		super.Defaults();
-		displayName = "Upper Arm";
+		size = GetSize(part.mech);
+		if(!forced && part is "MechArm")
+			return IAE_INVALID;
+			
+		// Only one MASC may be equipped per mech.
+		if(!forced && part.mech.FindItem("MechMASC", true))
+			return IAE_EXCLUSIVE;
+		
+		return super.TryAttach(part, forced);
 	}
-}
-class MechLowerArmActuator : MechShoulder
-{
-	override void Defaults()
+	
+	override string GetShopDescription()
 	{
-		super.Defaults();
-		displayName = "Lower Arm";
-	}
-}
-
-// Leg structures
-class MechHipStructure : MechShoulder
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Hip";
-	}
-}
-class MechUpperLegActuator : MechShoulder
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Upper Leg";
-	}
-}
-class MechLowerLegActuator : MechShoulder
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Lower Leg";
-	}
-}
-class MechFootActuator : MechShoulder
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Foot";
-	}
-}
-
-// Torso structure(s)
-class MechGyro : MechShoulder
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		size = 4;
-		displayName = "Gyro";
-	}
-}
-
-// Cockpit structures
-class MechLifeSupport : MechShoulder
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		size = 2;
-		displayName = "Life Support";
-	}
-}
-class MechSensors : MechLifeSupport
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		displayName = "Sensors";
-	}
-}
-class MechCockpitStructure : MechLifeSupport
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		size = 1;
-		displayName = "Cockpit";
+		return (
+			"\c[White]Introduced in 2740 by the Terran Hegemony, the Myomer "
+			"Accelerator Signal Circuitry (MASC) is a piece of equipment that "
+			"allows a BattleMech to move at twice its walking speed. However, "
+			"actuators were not built for this kind of stress, and prolonged usage "
+			"of MASC systems can damage the leg actuators of a BattleMech."
+			"\n (Source: https://www.sarna.net/wiki/Myomer_Accelerator_Signal_Circuitry"
+		);
 	}
 }

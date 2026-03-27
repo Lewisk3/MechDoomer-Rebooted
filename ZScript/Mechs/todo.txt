@@ -4,8 +4,8 @@ Jenner   [x]
 Raven [x]
 Urbanmech <x>
 Kitfox <x>
-FireMoth <1>
-Tarantula <???>
+FireMoth <x>
+Tarantula <1>
 
 [Medium]
 Centurion [x]

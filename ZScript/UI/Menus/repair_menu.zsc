@@ -298,8 +298,7 @@ class HardpointButton : MenuElement
 {
 	MechHardpoint hp;
 	MechRepairMenu base;
-	PaperDollContainer parent;
-	
+	PaperDollContainer parent;	
 
 	override void Init()
 	{
@@ -316,13 +315,13 @@ class HardpointButton : MenuElement
 	override void OnCollision(MenuElement element)
 	{
 		let cursor = MenuCursor(element);
-		if(!cursor) return;
+		if(!cursor || disabled) return;
 		
 		bool rearArmor = parent.paperDollArmor == parent.AM_REAR;
 		if(rearArmor && !hp.hasRearArmor) return;
 		
 		if(cursor && cursor.leftPressed)
-		{
+		{					
 			if(parent.selectedHardpoint == self)
 				parent.selectedHardpoint = NULL;
 			else
@@ -355,6 +354,14 @@ class HardpointButton : MenuElement
 		
 		Color armorCol = hp.getHealthyColor(max(0.01, curArmor));
 		Color internalCol = hp.getHealthyColor(max(0.01, curInternals));
+		
+		// Cannot select arms if side torsos are destroyed.
+		disabled = (
+			(hp == base.mech.rightArm && base.mech.rightTorso.healthpoints <= 0) ||
+			(hp == base.mech.leftArm && base.mech.leftTorso.healthpoints <= 0)
+		);
+		
+		if(disabled) armorCol = internalCol = 0xFF070707;
 		
 		MWDrawer.DrawImage(
 			hpArmor, 

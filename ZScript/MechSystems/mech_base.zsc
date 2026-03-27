@@ -57,6 +57,7 @@ class DrivableMech : DrivableObject
 	
 	MechPart legs, hips; // Non-hardpoint parts.
 	MechHardpoint torso, leftTorso, rightTorso, leftArm, rightArm, head, leftLeg, rightLeg;
+	MechCockpit cockpit;
 	MechEngine engine;
 	
 	// Points to whatever drone is currently opperating on this mech.
@@ -115,7 +116,8 @@ class DrivableMech : DrivableObject
 		BT_OVRSHUTDWN = 1 << 14,
 		BT_WEAPONSTATE = 1 << 15, // Toggles state of weapon; might be used to switch ammo-types for example.
 		BT_ITEMMAGNET  = 1 << 16,
-		BT_DRONEREPAIR = 1 << 17
+		BT_DRONEREPAIR = 1 << 17,
+		BT_MASC 	   = 1 << 18 // Toggles MASC status
 	};
 	
 	enum GroupBits
@@ -795,17 +797,31 @@ class DrivableMech : DrivableObject
 			weap = selectNextWeapon(weaps);
 
 		if( getExtBtn(BT_WEAPPREV, DriverBtns.BTS_PRESSED) )
+		{
+			DoCockpitSound("Menus/Text/InputTwo", volume:0.5);
 			weap = selectPrevWeapon(weaps);
+		}
 		if( getExtBtn(BT_WEAPNEXT, DriverBtns.BTS_PRESSED) )
+		{
+			DoCockpitSound("Menus/Text/InputTwo", volume:0.5);
 			weap = selectNextWeapon(weaps);
+		}
 			
 		if( getExtBtn(BT_GROUPPREV, DriverBtns.BTS_PRESSED) )
+		{
+			DoCockpitSound("Menus/Text/InputTwo", volume:0.5);
 			selectedGroup--;
+		}
 		if( getExtBtn(BT_GROUPNEXT, DriverBtns.BTS_PRESSED) )
+		{
+			DoCockpitSound("Menus/Text/InputTwo", volume:0.5);
 			selectedGroup++;	
-			
+		}
 		if( getExtBtn(BT_WEAPONSTATE, DriverBtns.BTS_PRESSED) && weap )
+		{
+			DoCockpitSound("Menus/Text/InputFour", volume:0.5);
 			weap.ToggleState();
+		}
 			
 		if( getDriverBtn(BT_ZOOM, DriverBtns.BTS_PRESSED) )
 		{
@@ -830,10 +846,16 @@ class DrivableMech : DrivableObject
 		if(weap && group && weap.isGroupable()) 
 		{
 			if( getExtBtn(BT_GROUPSET, DriverBtns.BTS_PRESSED) )
+			{
+				DoCockpitSound("Menus/Text/InputThree", volume:0.5);
 				weap.group ^= gBit;  
+			}
 
 			if( getExtBtn(BT_GROUPCHF, DriverBtns.BTS_PRESSED) )
+			{
+				DoCockpitSound("Menus/Text/InputThree", volume:0.5);
 				group.chainfire = !group.chainfire;
+			}
 		}
 	}
 	
@@ -974,25 +996,28 @@ class DrivableMech : DrivableObject
 		bool analogThrottle = abs(normFM) < 1.0 && (cv_analogthrottle && cv_analogthrottle.getBool());
 	
 		throttle = analogThrottle ? normFM : throttle + throttleMove;
-	
-		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
-		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
+		throttle = clamp(throttle, -0.5, 1.0);
 		
 		let mtorso = MechTorso(torso);
 		if(mtorso) mtorso.infiniteTurnRange = mtorso.default.infiniteTurnRange;	
 		
 		// Slow down while turning
-		if(vel.xy.length() && onground)
+		double turnSpeedScale = 1.0;
+		double curVel = vel.xy.length();
+		if(curVel > 0 && onground && engine)
 		{
-			double dist = vel.xy.length();
+			// 180kph at max fall-off.
+			double maxTurnKPH = 180;
+			double curKPH = engine.mechSpeedToKPH(curVel);
+		
 			double omega = abs(angVel);
-			double pushBack = (dist * (omega*0.04));
+			double pushBack = (curVel * (omega*0.04));
 			vector2 dir = AngleToVector(angle);
-			angVel -= DrivablesMath.sign(angVel)*(pushBack * 6.7); 
 			vel.xy -= dir * (pushBack * 0.33);
+			turnSpeedScale = max(0.2, 1.0 - clamp(curKPH / maxTurnKPH, 0, 1.0));
 		}
 		
-		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
+		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed) * turnSpeedScale;
 		
 		angVel -= legTurnSpeed * DrivablesMath.sign(sm);
 		angle += angVel;
@@ -1028,24 +1053,28 @@ class DrivableMech : DrivableObject
 	virtual void AI_Move(double turnDir, bool turnDriver = true)
 	{
 		// Movement Math
-		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
-		throttle = clamp(throttle, -0.5 * maxSpdMod, 1.0 * maxSpdMod);
+		throttle = clamp(throttle, -0.5, 1.0);
 		
 		let mtorso = MechTorso(torso);
 		if(mtorso) mtorso.infiniteTurnRange = mtorso.default.infiniteTurnRange;	
 		
 		// Slow down while turning
-		if(vel.xy.length() && onground)
+		double turnSpeedScale = 1.0;
+		double curVel = vel.xy.length();
+		if(curVel > 0 && onground && engine)
 		{
-			double dist = vel.xy.length();
+			// 180kph at max fall-off.
+			double maxTurnKPH = 180;
+			double curKPH = engine.mechSpeedToKPH(curVel);
+		
 			double omega = abs(angVel);
-			double pushBack = (dist * (omega*0.04));
+			double pushBack = (curVel * (omega*0.04));
 			vector2 dir = AngleToVector(angle);
-			angVel -= DrivablesMath.sign(angVel)*(pushBack * 6.7); 
 			vel.xy -= dir * (pushBack * 0.33);
+			turnSpeedScale = max(0.2, 1.0 - clamp(curKPH / maxTurnKPH, 0, 1.0));
 		}
 		
-		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed);
+		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed) * turnSpeedScale;
 		
 		angVel -= legTurnSpeed * DrivablesMath.sign(turnDir);
 		angle += angVel;
@@ -1060,7 +1089,6 @@ class DrivableMech : DrivableObject
 	
 		// Movement Math
 		double legTurnDegs = (MechLegs(legs).turnSpeed / double(TICRATE)) * 2.0;
-		double maxSpdMod = (leftLeg.healthPoints <= 0 || rightLeg.healthPoints <= 0) ? 0.5 : 1.0;
 		
 		let mtorso = MechTorso(torso);
 		bool noTorsoTwist = (mtorso.turnMax <= 1);
@@ -1074,7 +1102,7 @@ class DrivableMech : DrivableObject
 			double accelDirModifier = (cos(angle), sin(angle)) dot (cos(moveAngle), sin(moveAngle));
 			double lerpAmt = useTurnSpeed ? clamp(1 / (abs(angle - moveAngle) / legTurnDegs), 0.05, 0.35) : 0.1;
 			
-			throttle = maxSpdMod * (fm ? abs(clamp(fm, -0.5, 1.0)) : abs(sm));
+			throttle = fm ? abs(clamp(fm, -0.5, 1.0)) : abs(sm);
 			if(accelDirModifier < 0) accelDirModifier = 0;
 			
 			if(!noTorsoTwist)
@@ -1254,6 +1282,9 @@ class DrivableMech : DrivableObject
 			legVel *= 0.75;
 			return;
 		}
+		
+		// Ease of access pointer to cockpit.
+		cockpit = MechCockpit(head);
 		
 		// Movement code.
 		

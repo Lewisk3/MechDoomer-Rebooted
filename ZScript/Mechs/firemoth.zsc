@@ -55,9 +55,8 @@ class MechFiremoth : DrivableMech
 		torso.AddItem("MechEngine_XL200");
 		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
 		MechArmor.addToMech(self, "MechArmor_ClanFerro");
-		
-		// TODO: MASC
-		// torso.AddItem("MASC");
+	
+		torso.AddItem("MechMASC");
 		rightTorso.AddWeapon("SRM2", GROUPFLG_THREE);
 		rightTorso.AddItem("SRMAmmoHalf");
 		rightArm.AddWeapon("SRM4", GROUPFLG_TWO);
