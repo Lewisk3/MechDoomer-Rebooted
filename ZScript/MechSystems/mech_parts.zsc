@@ -1070,11 +1070,19 @@ class MechLegs : MechPart
 {	
 	uint gear, prevSpd;
 	double turnSpeed;		
+	double turnSpeedMod;
 	Property TurnSpeed : turnSpeed; // Degrees per second
+	Property _TurnSpeedMod : turnSpeedMod; // Internal initializer for speed modifier.
 	
 	Default
 	{
 		MechLegs.TurnSpeed 60.0;
+		MechLegs._TurnSpeedMod 1.0;
+	}
+	
+	virtual double getTurnSpeed()
+	{
+		return turnSpeed * turnSpeedMod;
 	}
 
 	State DoIdle(double walkSpeed = 0.08)

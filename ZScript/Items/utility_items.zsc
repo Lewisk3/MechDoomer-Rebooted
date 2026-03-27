@@ -288,8 +288,12 @@ class MechMASC : MechUtility
 	{
 		flavorText = itemDescription;
 		
+		let [itemSize, itemWeight] = GetStats(mechInfo);
+		
 		statName.Push("Criticals: ");
-		statValue.Push(String.Format("%d", GetSize(mechInfo)));
+		statValue.Push(String.Format("%d", itemSize));
+		statName.Push("Weight: ");
+		statValue.Push(String.Format("%d ton(s)", itemWeight));
 		statName.Push(" "); // Padding
 		statValue.Push(" ");
 	}
@@ -306,9 +310,9 @@ class MechMASC : MechUtility
 		);
 	}
 	
-	clearscope virtual int GetSize(DrivableMech mech)
+	clearscope virtual int, int GetStats(DrivableMech mech)
 	{
-		return ceil(0.04 * mech.maxWeight);
+		return ceil(0.04 * mech.maxWeight), ceil(0.05 * mech.maxWeight);
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
@@ -319,15 +323,34 @@ class MechMASC : MechUtility
 	
 	override int TryAttach(MechHardpoint part, bool forced)
 	{
-		size = GetSize(part.mech);
+		let [curSize, curWeight] = GetStats(part.mech);
+		size = curSize;
+		weight = curWeight;
+		int attachStatus = IAE_SUCCESS;
+		
 		if(!forced && part is "MechArm")
-			return IAE_INVALID;
+			attachStatus = IAE_INVALID;
 			
 		// Only one MASC may be equipped per mech.
 		if(!forced && part.mech.FindItem("MechMASC", true))
-			return IAE_EXCLUSIVE;
+			attachStatus = IAE_EXCLUSIVE;
 		
-		return super.TryAttach(part, forced);
+		// Checks passed here, refer to parent method for the rest.
+		if(attachStatus == IAE_SUCCESS)
+			attachStatus = super.TryAttach(part, forced);
+		
+		// If we failed to equip then reset size.
+		if(attachStatus != IAE_SUCCESS) size = 1;
+		
+		return attachStatus;
+	}
+	
+	override void OnInventoryAdd(I_MechItemStorage destInv)
+	{
+		super.OnInventoryAdd(destInv);
+	
+		// Reset size
+		size = 1;
 	}
 	
 	override void OnAttach()
@@ -427,6 +450,7 @@ class MechMASC : MechUtility
 			mech.engine.moveSpeedModifier = min(2.0, DrivablesMath.fmap(
 				min(60, activeTics), 0, 60, 1.0, 2.0 
 			));
+			MechLegs(mech.legs).turnSpeedMod = mech.engine.moveSpeedModifier;
 		
 			activeTics++;
 			double curTurn = activeTics / double(TURNTICS);
@@ -473,6 +497,7 @@ class MechMASC : MechUtility
 					mech.betty.Push("Betty/Item/Destroyed");
 					hp = legStrain = 0;
 					mech.engine.moveSpeedModifier = 1.0;
+					MechLegs(mech.legs).turnSpeedMod = 1.0;
 				}
 			}
 		}
@@ -481,6 +506,7 @@ class MechMASC : MechUtility
 			// Slowly decrease leg strain
 			legStrain -= (1.0 / (TURNTICS * 2.0));
 			mech.engine.moveSpeedModifier = 1.0;
+			MechLegs(mech.legs).turnSpeedMod = 1.0;
 		}
 		
 		// Sound Effects

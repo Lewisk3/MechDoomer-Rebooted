@@ -1017,7 +1017,7 @@ class DrivableMech : DrivableObject
 			turnSpeedScale = max(0.2, 1.0 - clamp(curKPH / maxTurnKPH, 0, 1.0));
 		}
 		
-		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed) * turnSpeedScale;
+		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).getTurnSpeed()) * turnSpeedScale;
 		
 		angVel -= legTurnSpeed * DrivablesMath.sign(sm);
 		angle += angVel;
@@ -1074,7 +1074,7 @@ class DrivableMech : DrivableObject
 			turnSpeedScale = max(0.2, 1.0 - clamp(curKPH / maxTurnKPH, 0, 1.0));
 		}
 		
-		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).turnSpeed) * turnSpeedScale;
+		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).getTurnSpeed()) * turnSpeedScale;
 		
 		angVel -= legTurnSpeed * DrivablesMath.sign(turnDir);
 		angle += angVel;
@@ -1088,7 +1088,7 @@ class DrivableMech : DrivableObject
 		[fm, sm] = NormalizeMoveInputs(fm, sm);
 	
 		// Movement Math
-		double legTurnDegs = (MechLegs(legs).turnSpeed / double(TICRATE)) * 2.0;
+		double legTurnDegs = (MechLegs(legs).getTurnSpeed() / double(TICRATE)) * 2.0;
 		
 		let mtorso = MechTorso(torso);
 		bool noTorsoTwist = (mtorso.turnMax <= 1);
