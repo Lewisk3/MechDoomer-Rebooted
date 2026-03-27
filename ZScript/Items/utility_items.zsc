@@ -284,10 +284,50 @@ class MechMASC : MechUtility
 		value = 250000;
 	}
 	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		flavorText = itemDescription;
+		
+		statName.Push("Criticals: ");
+		statValue.Push(String.Format("%d", GetSize(mechInfo)));
+		statName.Push(" "); // Padding
+		statValue.Push(" ");
+	}
+		
+	override string GetShopDescription()
+	{
+		return (
+			"\c[White]Introduced in 2740 by the Terran Hegemony, the Myomer "
+			"Accelerator Signal Circuitry (MASC) is a piece of equipment that "
+			"allows a BattleMech to move at twice its walking speed. However, "
+			"actuators were not built for this kind of stress, and prolonged usage "
+			"of MASC systems can damage the leg actuators of a BattleMech."
+			"\n (Source: https://www.sarna.net/wiki/Myomer_Accelerator_Signal_Circuitry"
+		);
+	}
+	
+	clearscope virtual int GetSize(DrivableMech mech)
+	{
+		return ceil(0.04 * mech.maxWeight);
+	}
+	
 	override void GetUIColors(out int fontColor, out int bgColor)
 	{
 		fontColor = Font.CR_WHITE;
 		bgColor = 0xFF292ec5;
+	}
+	
+	override int TryAttach(MechHardpoint part, bool forced)
+	{
+		size = GetSize(part.mech);
+		if(!forced && part is "MechArm")
+			return IAE_INVALID;
+			
+		// Only one MASC may be equipped per mech.
+		if(!forced && part.mech.FindItem("MechMASC", true))
+			return IAE_EXCLUSIVE;
+		
+		return super.TryAttach(part, forced);
 	}
 	
 	override void OnAttach()
@@ -304,7 +344,6 @@ class MechMASC : MechUtility
 			actuators.Push(MechLegActuators(part));
 	}
 
-	// TODO: Fix bobbing code... again.
 	override void DrawOverlay(double dT)
 	{
 		if(active)
@@ -343,6 +382,43 @@ class MechMASC : MechUtility
 		MWDrawer.DrawString(fnt, String.Format("%d", legStrain * 100), textPos, flags:MWDrawer.SS_TEXT_RIGHT, alpha:uiAlpha, scale:(0.6, 0.6));
 	}
 	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(!mech) 
+		{
+			mech = parent.GetMech();
+			return;
+		}
+		if(!mech.engine) return;
+
+		if(mech.driver) DoMASC();
+		legStrain = clamp(legStrain, 0, 1.0);
+		
+		bool destroyed = hp <= 0;
+		if(destroyed) 
+		{
+			active = false;	
+			return;
+		}
+		
+		bool doEnable = mech.getExtBtn(mech.BT_MASC, DriverBtns.BTS_DOWN);
+		if(doEnable)
+		{
+			if(!active)
+			{
+				mech.DoCockpitSound("Item/MASC/Enable");
+				active = true;
+			}
+		}
+		else if(active)
+		{
+			mech.DoCockpitSound("Legs/Decel");
+			active = false;
+		}
+	}
+	
+	// TODO: Fix bobbing code... again.
 	play void DoMASC()
 	{
 		// MoveSpeed Boost
@@ -408,86 +484,9 @@ class MechMASC : MechUtility
 		}
 		
 		// Sound Effects
-		// Note: for some unknown, bizarre reason CHANF_LOCAL sounds cannot be stopped???
 		if(active && activeTics >= 20)
 			mech.DoCockpitSound("Item/MASC/Loop", SCHAN_MASCLOOP, flags:CHANF_LOOPING);
 		else
 			mech.StopCockpitSound(SCHAN_MASCLOOP);
-	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		if(!mech) 
-		{
-			mech = parent.GetMech();
-			return;
-		}
-		if(!mech.engine) return;
-
-		if(mech.driver) DoMASC();
-		legStrain = clamp(legStrain, 0, 1.0);
-		
-		bool destroyed = hp <= 0;
-		if(destroyed) 
-		{
-			active = false;	
-			return;
-		}
-		
-		bool doEnable = mech.getExtBtn(mech.BT_MASC, DriverBtns.BTS_DOWN);
-		if(doEnable)
-		{
-			if(!active)
-			{
-				mech.DoCockpitSound("Item/MASC/Enable");
-				active = true;
-			}
-		}
-		else if(active)
-		{
-			mech.DoCockpitSound("Legs/Decel");
-			active = false;
-		}
-	}
-	
-	clearscope virtual int GetSize(DrivableMech mech)
-	{
-		return ceil(0.04 * mech.maxWeight);
-	}
-	
-	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
-	{
-		flavorText = itemDescription;
-		
-		statName.Push("Criticals: ");
-		statValue.Push(String.Format("%d", GetSize(mechInfo)));
-		statName.Push(" "); // Padding
-		statValue.Push(" ");
-	}
-	
-	override int TryAttach(MechHardpoint part, bool forced)
-	{
-		size = GetSize(part.mech);
-		if(!forced && part is "MechArm")
-			return IAE_INVALID;
-			
-		// Only one MASC may be equipped per mech.
-		if(!forced && part.mech.FindItem("MechMASC", true))
-			return IAE_EXCLUSIVE;
-		
-		return super.TryAttach(part, forced);
-	}
-	
-	override string GetShopDescription()
-	{
-		return (
-			"\c[White]Introduced in 2740 by the Terran Hegemony, the Myomer "
-			"Accelerator Signal Circuitry (MASC) is a piece of equipment that "
-			"allows a BattleMech to move at twice its walking speed. However, "
-			"actuators were not built for this kind of stress, and prolonged usage "
-			"of MASC systems can damage the leg actuators of a BattleMech."
-			"\n (Source: https://www.sarna.net/wiki/Myomer_Accelerator_Signal_Circuitry"
-		);
 	}
 }
