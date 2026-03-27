@@ -265,6 +265,7 @@ class MechMASC : MechUtility
 	double failureChance;
 	double actuatorStrain;
 	double legStrain;
+	double scalingFactor;
 	ui double legStrainCounter;
 	ui double uiAlpha;
 	bool active;
@@ -274,13 +275,14 @@ class MechMASC : MechUtility
 
 	override void Defaults()
 	{	
-		damagable = true;
-		weight = 1;
-		size = 1;
 		displayName = "MASC";
 		sndItemName = "Betty/Item/MASC";
 		ItemDescription = "Doubles movement speed when active. Cannot be equipped on a mechs' arms. \n\n\c[Yellow]WARNING: Prolonged use can cause damage to leg actuators.";
 		
+		damagable = true;
+		weight = 1;
+		size = 1;
+		scalingFactor = 0.05;
 		value = 250000;
 	}
 	
@@ -312,7 +314,7 @@ class MechMASC : MechUtility
 	
 	clearscope virtual int, int GetStats(DrivableMech mech)
 	{
-		return ceil(0.04 * mech.maxWeight), ceil(0.05 * mech.maxWeight);
+		return ceil(scalingFactor * mech.maxWeight), ceil(scalingFactor * mech.maxWeight);
 	}
 	
 	override void GetUIColors(out int fontColor, out int bgColor)
@@ -447,10 +449,10 @@ class MechMASC : MechUtility
 		// MoveSpeed Boost
 		if(active && abs(mech.throttle) > 0.01)
 		{
-			mech.engine.moveSpeedModifier = min(2.0, DrivablesMath.fmap(
+			mech.engine.walkSpeedModifier = min(2.0, DrivablesMath.fmap(
 				min(60, activeTics), 0, 60, 1.0, 2.0 
 			));
-			MechLegs(mech.legs).turnSpeedMod = mech.engine.moveSpeedModifier;
+			MechLegs(mech.legs).turnSpeedMod = mech.engine.walkSpeedModifier;
 		
 			activeTics++;
 			double curTurn = activeTics / double(TURNTICS);
@@ -496,7 +498,7 @@ class MechMASC : MechUtility
 					mech.betty.Push(sndItemName);
 					mech.betty.Push("Betty/Item/Destroyed");
 					hp = legStrain = 0;
-					mech.engine.moveSpeedModifier = 1.0;
+					mech.engine.walkSpeedModifier = 1.0;
 					MechLegs(mech.legs).turnSpeedMod = 1.0;
 				}
 			}
@@ -505,7 +507,7 @@ class MechMASC : MechUtility
 		{
 			// Slowly decrease leg strain
 			legStrain -= (1.0 / (TURNTICS * 2.0));
-			mech.engine.moveSpeedModifier = 1.0;
+			mech.engine.walkSpeedModifier = 1.0;
 			MechLegs(mech.legs).turnSpeedMod = 1.0;
 		}
 		

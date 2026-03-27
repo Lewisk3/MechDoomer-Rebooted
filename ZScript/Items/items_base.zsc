@@ -961,7 +961,7 @@ class MechEngine : MechItem
 	Array<MechHeatsink> heatSinks;
 	double energy; // Reactor available energy
 	double gyroWeight, cockpitWeight;
-	double moveSpeedModifier; // Applied after MP calculations.
+	double walkSpeedModifier; // Applied after MP calculations.
 	bool isClanEngine;
 	
 	enum EngineType 
@@ -1188,12 +1188,11 @@ class MechEngine : MechItem
 		double RL = rightLeg ? rightLeg.GetMovePenalty() : 0.5;
 	
 		let [runMP, walkMP] = getRunWalkMP(mech);
+		if(walkSpeedModifier > 1.0) runMP = (walkMP * walkSpeedModifier);
 		double runMP_KPH = runMP * 10.8;
 		
 		double movePenalty = LL + RL;
-		runMP_KPH -= (runMP_KPH * movePenalty);
-		runMP_KPH *= moveSpeedModifier;
-		
+		runMP_KPH -= (runMP_KPH * movePenalty);		
 		return runMP_KPH;
 	}
 		
@@ -1342,7 +1341,7 @@ class MechEngine : MechItem
 		size = 6;
 		nosave = true;
 		weight = GetTonnage();
-		moveSpeedModifier = 1.0;
+		walkSpeedModifier = 1.0;
 		displayName = String.Format("%s%s ENGINE %d", prefix, getTypeStr(), rating);
 	}
 	
