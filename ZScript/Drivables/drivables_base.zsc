@@ -122,11 +122,11 @@ class DriverBtns abstract
 		BTS_PRESSED
 	};
 	
-	clearscope static bool Get(int btn, int bstate, Actor src, uint btnsrc = -1, uint oldbtnsrc = -1)
+	clearscope static bool Get(int btn, int bstate, Actor src, int btnsrc = -1, int oldbtnsrc = -1)
 	{
 		if(!src) return 0;
 		
-		uint btns, oldbtns;
+		int btns, oldbtns;
 		bool btnstatus;
 		
 		if(src.player)
@@ -221,9 +221,9 @@ class DrivableObject : DrivableComponent
 	DrivableComponent cam;
 	bool onground;
 	bool driverShouldExit; // If true and holding `Use`, the driver exits the vehicle.
-	uint extbtns; // More buttons.
-	uint extbtns_old;
-	uint useholdtics; // Tics driver has been holding `Use` key.
+	int extbtns; // More buttons.
+	int extbtns_old;
+	int useholdtics; // Tics driver has been holding `Use` key.
 
 	Default
 	{
@@ -294,7 +294,7 @@ class DrivableObject : DrivableComponent
 		return part;
 	}
 	
-	virtual void setExtBtn(uint btn, bool onOff)
+	virtual void setExtBtn(int btn, bool onOff)
 	{
 		if(onOff)
 			extbtns |= btn;

@@ -91,7 +91,7 @@ class MechLaser : MechLaserBeam
 		if(!enabled) A_StopSound(CHAN_BODY);
 					
 		let hardpoint = MechHardpoint(source);
-		if(hardpoint)
+		if(hardpoint && !trackingPos)
 		{	
 			aimAtPos(hardpoint.lookingPos);
 		}
@@ -116,7 +116,6 @@ class MechLaser : MechLaserBeam
 		if(!hardpoint) return;
 		
 		// Don't shoot yourself!
-		// TODO: Custom linetracer for this shit.
 		let part = MechPart(hitActor);
 		let hitbox = MechHitbox(hitActor);
 		if( 

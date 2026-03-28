@@ -69,8 +69,8 @@ class MechKitfox : DrivableMech
 		rightArm.AddWeapon("UltraAC5", GROUPFLG_TWO);
 		rightArm.AddItem("UAC5Ammo");
 		
-		// TODO: Laser-AMS on rightArm
-		//leftArm.AddWeapon("LaserAMS");
+		// Apparently this doesn't fit, due to lack of clan-specific weapons...
+		// leftArm.AddWeapon("LaserAMS");
 	}
 }
 

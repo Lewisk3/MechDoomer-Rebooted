@@ -1891,6 +1891,7 @@ class Flamer : MechWeapon
 class AMS : MechWeapon
 {
 	Actor curTarget;
+	double hitChance; // Only used if projectile is NULL.
 
 	override void Defaults()
 	{
@@ -2000,17 +2001,28 @@ class AMS : MechWeapon
 	
 	override void GetShopProperties(out Array<String> stats, out Array<string> values)
 	{
-		let projAAM = (class<MechAAM> )(projType);
-		let projDefs = GetDefaultByType(projAAM);
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 	
 		stats.Push("Range");
 		values.Push(String.Format("%dm", range));
 		
+		double toHit = hitChance;
+		
+		if(projType)
+		{
+			let projAAM = (class<MechAAM> )(projType);
+			let projDefs = GetDefaultByType(projAAM);
+			toHit = projDefs.toHit;
+		}
+					
 		stats.Push("Accuracy");
-		values.Push(String.Format("%d\%%", projDefs.toHit));
-		stats.Push("Heat");
-		values.Push(String.Format("%.2f H/s", heat));
+		values.Push(String.Format("%d\%%", toHit));
+		
+		if(heat > 0)
+		{
+			stats.Push("Heat");
+			values.Push(String.Format("%.2f H/s", heat));
+		}
 		
 		stats.Push("Cooldown");
 		values.Push(String.Format("%0.2f s", cooldownSeconds));
@@ -2024,6 +2036,93 @@ class AMS : MechWeapon
 			"Because missiles are fired in salvos of up to forty at a time, anti-missile systems are rarely capable of "
 			"destroying all incoming missiles."
 			"\n(Source: https://www.sarna.net/wiki/Anti-missile_system)"
+		);
+	}
+}
+
+class LaserAMS : AMS
+{
+	string defName;
+	Color laserColor;
+	bool active;
+	
+	override void Defaults()
+	{
+		displayName = "L-AMS";
+		defName = displayName;
+		ammoType = "";
+		mountType = "PDS";
+		weight = 1.5;
+		size = 2;
+		
+		fireTime = 5;
+		cooldownTime = 12 - fireTime;
+		range = 110;
+		heat = 1.0;
+		ammoUse = 0;
+		hitChance = 50;
+		
+		refireCount = 0;
+		
+		projType = "";
+		sndItemName = "Betty/Item/AMS";
+		fireSound = "Missile/AMS";
+		mountDeco = "AMSMountDeco";
+		fireOffs = (0,0,3);
+		itemDescription = "\c[Orange]Fires lasers to destroy missiles before they hit you. Generates heat, but doesn't consume ammo.";
+		laserColor = "Red";
+		
+		damagable = true;
+		
+		value = 225000;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		string status = active ? "\c[Green][ON]" : "\c[Orange][OFF]";
+		displayName = String.Format("%s %s", defName, status);
+	}
+	
+	override void GetUIColors(out int fontColor, out int bgColor)
+	{
+		fontColor = Font.CR_White;
+		bgColor = 0xA0dfd11d;
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		if(!refire && refireCount > 0) DoRefire();
+		if(!curTarget || !active) return false;
+		
+		vector3 globalFirePos = parent.OffsetPos(firePos.x, firePos.y, firePos.z);
+		vector3 aimTarget = (curTarget.pos.xy, curTarget.pos.z + (curTarget.height * 0.5));
+		vector3 aimAngles = level.SphericalCoords(globalFirePos, aimTarget, (0,0));
+		
+		bool hit = random[LAMS_toHit](0,100) <= hitChance;
+		double laserRange = hit ? aimAngles.z : range;
+		
+		let [laser, laserCore] = MechLaser.FireLaser(mech, parent, firePos, 0, fireTime, laserRange, laserRange, "MechLaser");
+		laser.StartTracking(aimTarget);
+		laserCore.StartTracking(aimTarget);
+		laser.shade = laserColor;
+		if(hit) curTarget.ExplodeMissile(null, laser);
+		
+		modifyHeat(heat);
+		cooldown = fireTime + cooldownTime;
+		return true;
+	}
+		
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The laser anti-missile system (LAMS) is an advanced "
+			"variation of the standard anti-missile systems fielded by both "
+			"Inner Sphere and Clan militaries. While the standard system utilizes "
+			"a machine gun linked to specialized tracking systems, the LAMS uses "
+			"a small pulse laser, ensuring that the system never runs out of ammunition."
+			"\n(Source: https://www.sarna.net/wiki/Laser_Anti-Missile_System)"
 		);
 	}
 }

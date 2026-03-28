@@ -1249,7 +1249,6 @@ class MechEngine : MechItem
 		isClanEngine = isClan;
 	}
 	
-	// TODO TODAY: Fix this function failing to resolve clan engine types!
 	clearscope static string, int, bool GetEngineName(class<MechEngine> engineClass)
 	{
 		string clsName = engineClass.getClassName();

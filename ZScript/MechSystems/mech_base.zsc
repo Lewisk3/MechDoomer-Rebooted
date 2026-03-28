@@ -27,7 +27,7 @@ class DrivableMech : DrivableObject
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
 	double baseArmorRepairCost, baseInternalRepairCost;
 
-	double EMI; // TODO: Electro-Magnetic interferrence, affects the HUD and targetting computer depending on how much interference is present.
+	double EMI; // Electro-Magnetic interferrence, affects the HUD and targetting computer depending on how much interference is present.
 
 	MechWeapon prevWeapFired;
 	MechArmor armorType;
@@ -117,7 +117,8 @@ class DrivableMech : DrivableObject
 		BT_WEAPONSTATE = 1 << 15, // Toggles state of weapon; might be used to switch ammo-types for example.
 		BT_ITEMMAGNET  = 1 << 16,
 		BT_DRONEREPAIR = 1 << 17,
-		BT_MASC 	   = 1 << 18 // Toggles MASC status
+		BT_MASC 	   = 1 << 18, // Toggles MASC status
+		BT_TOGGLE_LAMS = 1 << 19 // Toggle Laser AMS
 	};
 	
 	enum GroupBits
@@ -829,7 +830,22 @@ class DrivableMech : DrivableObject
 			string ZoomSound = String.Format("Mech/Zoom/%s", inCombatZoom ? "On" : "Off");
 			DoCockpitSound(ZoomSound);
 		}
+		
+		// Toggle L-AMS
+		// Note: This really, really shouldn't need to be here but some sort of bug is preventing
+		// this from returning properly when called from the LaserAMS class.
+		if(getExtBtn(BT_TOGGLE_LAMS, DriverBtns.BTS_PRESSED))
+		{
+			Array<MechItem> itemLAMS;
+			FindAllItems("LaserAMS", true, itemLAMS);
 			
+			foreach(part : itemLAMS)
+			{
+				let lam = LaserAMS(part);
+				lam.active = !lam.active;
+			}
+		}
+		
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
 		{
