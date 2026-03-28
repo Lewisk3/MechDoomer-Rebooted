@@ -272,6 +272,7 @@ class MechMASC : MechUtility
 	const SCHAN_MASCLOOP = 24;
 	
 	Array<MechLegActuators> actuators;
+	Array<MechLeg> legs;
 
 	override void Defaults()
 	{	
@@ -361,12 +362,25 @@ class MechMASC : MechUtility
 		
 		if(!mech) return;
 		
+		actuators.Clear();
+		legs.Clear();
+		
 		// Get leg actuators.
 		Array<MechItem> items;
 		mech.FindAllItems("MechLegActuators", true, items);
 		
 		foreach(part : items)
 			actuators.Push(MechLegActuators(part));
+			
+		// Get leg hardpoints
+		Array<MechHardpoint> hpList;
+		mech.getHardpoints(hpList, false);
+		
+		foreach(h : hpList)
+		{	
+			let leg = MechLeg(h);
+			if(leg) legs.Push(leg);
+		}
 	}
 
 	override void DrawOverlay(double dT)
@@ -480,8 +494,8 @@ class MechMASC : MechUtility
 			{
 				// Do leg damage
 				double dmg = (mech.leftLeg.maxHP * 0.1) / double(TICRATE); 
-				mech.leftLeg.DamageHardpoint("MASC_Damage", dmg, false, skipArmor:true, CanCrit:false);
-				mech.rightLeg.DamageHardpoint("MASC_Damage", dmg, false, skipArmor:true, CanCrit:false);
+				foreach(leg : legs)
+					leg.DamageHardpoint("MASC_Damage", dmg, false, skipArmor:true, CanCrit:false);
 					
 				// Roll for failure (damage to actuator)
 				// For some reason, maybe because it's pseudo-RNG, this rolls successfully way too often.

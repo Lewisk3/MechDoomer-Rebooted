@@ -1758,7 +1758,9 @@ class MechMenu_Mechlab : MechMenu
 	
 		vector2 hpSlotsPos = (840,325);
 		double slotsWidth = 196;
+		double slotsHeight = 34;
 		double spacing = 205;
+		
 		
 		// Mech info screen
 		AddElement("MechInfoContainer", "MechInfoScreen", (15,25), (380,850));
@@ -1767,45 +1769,45 @@ class MechMenu_Mechlab : MechMenu
 		let headSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_HD", hpSlotsPos - (0,25), (slotsWidth,256))
 		);
-		headSlots.Setup("Head", mech.head, slotsWidth, 34);
+		SetupHardpointContainer(headSlots, mech.head, slotsWidth, slotsHeight);
 	
 		// Arms
 		let leftArmSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
 		);
-		leftArmSlots.Setup("Left Arm", mech.leftArm, slotsWidth, 34);
+		SetupHardpointContainer(leftArmSlots, mech.leftArm, slotsWidth, slotsHeight);
 		
 		let rightArmSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos + (spacing*2, 50), (slotsWidth,256))
 		);
-		rightArmSlots.Setup("Right Arm", mech.rightArm, slotsWidth, 34);
+		SetupHardpointContainer(rightArmSlots, mech.rightArm, slotsWidth, slotsHeight);
 		
 		// Torso(s)
 		let leftTorsoSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_LT", hpSlotsPos - (spacing,0), (slotsWidth,256))
 		);
-		leftTorsoSlots.Setup("Left Torso", mech.leftTorso, slotsWidth, 34);
+		SetupHardpointContainer(leftTorsoSlots, mech.leftTorso, slotsWidth, slotsHeight);
 		
 		let centerTorsoSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_CT", hpSlotsPos + (0,230), (slotsWidth,256))
 		);
-		centerTorsoSlots.Setup("Center Torso", mech.torso, slotsWidth, 34);
+		SetupHardpointContainer(centerTorsoSlots, mech.torso, slotsWidth, slotsHeight);
 		
 		let rightTorsoSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_RT", hpSlotsPos + (spacing,0), (slotsWidth,256))
 		);
-		rightTorsoSlots.Setup("Right Torso", mech.rightTorso, slotsWidth, 34);
+		SetupHardpointContainer(rightTorsoSlots, mech.rightTorso, slotsWidth, slotsHeight);
 		
 		// Legs
 		let leftLegSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_LL", hpSlotsPos + (-spacing, 355), (slotsWidth,256))
 		);
-		leftLegSlots.Setup("Left Leg", mech.leftLeg, slotsWidth, 34);
+		SetupHardpointContainer(leftLegSlots, mech.leftLeg, slotsWidth, slotsHeight);
 		
 		let rightLegSlots = MechHardpointContainer(
 			AddElement("MechHardpointContainer", "Hardpoint_RL", hpSlotsPos + (spacing,355), (slotsWidth,256))
 		);
-		rightLegSlots.Setup("Right Leg", mech.rightLeg, slotsWidth, 34);
+		SetupHardpointContainer(rightLegSlots, mech.rightLeg, slotsWidth, slotsHeight);
 		
 		// Items inventory
 		AddElement("MenuItemsInvContainer", "InventoryContainer", (1480,250), (400,600));
@@ -1816,6 +1818,11 @@ class MechMenu_Mechlab : MechMenu
 		// Cursor is added last, to keep always on-top.
 		cursor = MechLabCursor(AddElement("MechLabCursor", "Cursor", (0,0), (10,10))); 
 		
+	}
+	
+	void SetupHardpointContainer(MechHardpointContainer container, MechHardpoint hp, double slotsWidth, double slotsHeight)
+	{
+		container.Setup(hp.getHardpointName(), hp, slotsWidth, slotsHeight);
 	}
 	
 	override void Drawer()

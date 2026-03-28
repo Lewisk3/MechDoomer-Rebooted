@@ -1,0 +1,315 @@
+class MechTarantula : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 100, 100;
+		DrivableMech.MaxWeight 25; // In Tons.
+		DrivableMech.ChassisName "Tarantula";
+		DrivableMech.VariantName "ZPH-1";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Tarantula_icon.png";
+		DrivableMech.CBillValue (3560417   * MECHPRICESCALAR);
+		DrivableMech.isQuadMech true;
+		DrivableMech.DropshipScale 2.0;
+		
+		DrivableMech.Manufacturer "Corean Enterprises";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The recent success of the GOL-3M Goliath has prompted Corean Enterprises to take another "
+			"look at four-legged 'Mech designs. In an effort to avoid the kind of problems shown by the "
+			"poorly regarded Scorpion, the designers decided on an entirely new purpose for the quad "
+			"chassis. Intended to serve as a light recon 'Mech, the Tarantula is the first four-legged "
+			"design to mount jump jets. "
+			"(Source: mordel.net)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Tarantula_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Tarantula_Hips",  0,0,50, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Tarantula_CenterTorso", 0,0,7, hips);
+		leftTorso  = AddHardpoint("Tarantula_LeftTorso",  0,-10,0, torso);
+		rightTorso = AddHardpoint("Tarantula_RightTorso", 0, 10,0, torso);
+		
+		leftLeg = AddHardpoint("Tarantula_LeftLeg",  0, -15,12, legs);
+		rightLeg = AddHardpoint("Tarantula_RightLeg", 0, 15,12, legs);
+			
+		leftArm  = AddHardpoint("Tarantula_LeftFrontLeg",  2,-15,12, legs);
+		rightArm = AddHardpoint("Tarantula_RightFrontLeg", 2, 15,12, legs);
+		
+		head = AddHardpoint("Tarantula_Cockpit", 5,0,28, torso);
+		cam  = AddPart("CockpitCamera", 2,0,2, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL200");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		leftTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		rightTorso.AddWeapon("MediumLaser", GROUPFLG_ONE);
+		torso.AddWeapon("SRM2", GROUPFLG_FOUR);
+		torso.AddItem("SRMAmmo");
+		
+		leftArm.AddItem("MechJumpJet");
+		leftArm.AddItem("MechJumpJet");
+		rightArm.AddItem("MechJumpJet");
+		rightArm.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+	}
+}
+
+/*
+4.5 tons = 90 pts Standard Armor
+[HD] - 12
+[CT] - 14
+[LT] - 12
+[RT] - 12
+[LA] - 10
+[RA] - 10
+[LL] - 10
+[RL] - 10 
+*/
+
+class Tarantula_Hips : MechHips {}
+
+class Tarantula_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 5;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "TarantulaCockpitModel";
+		MechCockpit.StrictlyFollowTorso true;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class TarantulaCockpitModel : MechCockpitModel {}
+
+
+class Tarantula_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 130; // degs second
+	}
+}
+class Tarantula_CenterTorso : MechTorso 
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechTorso.TurnSpeed 360, 100; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 0;
+		MechTorso.PitchRange 30, 30;
+		
+		MechHardpoint.HitBox 14,42, 0,0,-15;
+		
+		MechHardpoint.Vitals 14, 7;
+		MechHardpoint.SetupArmor 10, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		super.SetupHitBoxes();
+		double fw = 14;
+		AddHitBox(fw + 12,0,5, 14,20);
+		AddHitBox(fw + 40,0,8, 14,14);
+		AddHitBox(fw - 30,0,5, 14,20);
+	}
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 60.5,-3.25,9.7, 2,2, 6.25,3, scale:0.85);
+	}
+}
+
+class Tarantula_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 8, 4;
+		MechHardpoint.RearArmor true;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 10;
+		double lr = -11;
+		AddHitBox(6 - fw*3,lr,3, 6,25);
+		AddHitBox(6 - fw*2,lr,3, 6,25);
+		AddHitBox(6 - fw,lr,3, 6,25);
+		AddHitBox(6,lr,3, 6,25);
+		AddHitBox(6 + fw,lr,3, 6,25);
+		AddHitBox(6 + fw*2,lr,5, 4,20);
+		AddHitBox(4 + fw*3,lr,7, 4,15);
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 75,-1.9,14.7, 0.5);
+	}
+}
+class Tarantula_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 8, 4;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 10;
+		double lr = 11;
+		AddHitBox(6 - fw*3,lr,3, 6,25);
+		AddHitBox(6 - fw*2,lr,3, 6,25);
+		AddHitBox(6 - fw,lr,3, 6,25);
+		AddHitBox(6,lr,3, 6,25);
+		AddHitBox(6 + fw,lr,3, 6,25);
+		AddHitBox(6 + fw*2,lr,5, 4,20);
+		AddHitBox(4 + fw*3,lr,7, 4,15);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 75,0.9,14.7, 0.5);
+	}
+}
+
+class Tarantula_LeftFrontLeg : MechLeg
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		MechHardpoint.UI_Name "Left Leg [F]";
+	}	
+	
+	// Jank, but placing these hitboxes is monumentally tedious.
+	void SetupLegHitboxes(double fw, double lr, double ud, double cnt, double ang, double zoffs, double stepSize, double stepSizeUD)
+	{
+		for(int i = 0; i < cnt; i++)
+		{
+			double step = -(i*stepSize);
+			double stepUD = -(i*stepSizeUD);
+			AddHitBox(
+				fw+(step * cos(ang)), 
+				lr+(step * sin(ang)), 
+				(ud-stepUD)+zoffs, 
+				4, 10
+			); 
+		}
+	}
+	
+	void PopulateHitBoxes(double fw, double lr, double ang, double dir = 1)
+	{
+		double fw = fw;
+		double ud = -10;
+		double angOffs = ang;
+		AddHitBox(fw,lr,ud, 6,36);
+		SetupLegHitboxes(fw,lr,ud, 5, angOffs,30,7*dir,7*dir);
+		SetupLegHitboxes(fw * 0.6,lr * 0.6,ud, 7, angOffs+180,60,7*-dir,4*-dir);
+	}
+	
+	override void SetupHitBoxes()
+	{
+		PopulateHitBoxes(70, -60, -45);
+	}
+}
+class Tarantula_RightFrontLeg : Tarantula_LeftFrontLeg 
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+		MechHardpoint.UI_Name "Right Leg [F]";
+	}
+	
+	override void SetupHitBoxes()
+	{
+		PopulateHitBoxes(70, 60, 45);
+	}
+}
+class Tarantula_LeftLeg : Tarantula_LeftFrontLeg
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+		MechHardpoint.UI_Name "Left Leg [R]";
+		MechHardpoint.UIGraphics "paperdoll_LL.png", "paperdoll_SK_LL.png";
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		PopulateHitBoxes(-70, -60, 225);
+	}
+	
+	override double GetMovePenalty()
+	{
+		double cur = super.getMovePenalty();
+	
+		let frontLeg = MechLeg(mech.leftArm);
+		if(frontLeg) cur += frontLeg.getMovePenalty();
+		return cur * 0.5;
+	}
+}
+class Tarantula_RightLeg : Tarantula_LeftFrontLeg
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.Vitals 10, 5;
+		MechHardpoint.SetupArmor 10, 0;
+		MechHardpoint.UI_Name "Right Leg [R]";
+		MechHardpoint.UIGraphics "paperdoll_RL.png", "paperdoll_SK_RL.png";
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		PopulateHitBoxes(-70, 60, 135);
+	}
+	
+	override double GetMovePenalty()
+	{
+		double cur = super.getMovePenalty();
+	
+		let frontLeg = MechLeg(mech.rightArm);
+		if(frontLeg) cur += frontLeg.getMovePenalty();
+		return cur * 0.5;
+	}
+}

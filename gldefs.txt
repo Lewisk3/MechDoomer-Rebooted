@@ -252,6 +252,16 @@ material texture models/mechs/firemoth/firemoth.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/tarantula/taranula.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/tarantula/taranula_head.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

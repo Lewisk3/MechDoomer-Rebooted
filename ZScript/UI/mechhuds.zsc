@@ -129,7 +129,7 @@ class MechHUD : VehicleHUD
 				if(infront) MWDrawer.DrawImage("Graphics/HUD/TorsoRet.png", torsoAimPos, alpha:crosshairAlpha, scale:aimScale, absolute:true);
 				
 				[infront, leftArmAimPos] = MWDrawer.ProjectToHUD(viewproj, leftArmAim, (0,0,0));
-				if(infront && mech.leftArm.healthPoints > 0)
+				if(infront && mech.leftArm.healthPoints > 0 && MechArm(mech.leftArm))
 				{
 					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, leftArmAimPos.x, leftArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
 					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", leftArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);
@@ -146,7 +146,7 @@ class MechHUD : VehicleHUD
 				}
 				
 				[infront, rightArmAimPos] = MWDrawer.ProjectToHUD(viewproj, rightArmAim, (0,0,0));
-				if(infront && mech.rightArm.healthPoints > 0) 
+				if(infront && mech.rightArm.healthPoints > 0 && MechArm(mech.rightArm)) 
 				{
 					Screen.DrawThickLine(torsoAimPos.x, torsoAimPos.y, rightArmAimPos.x, rightArmAimPos.y, 4, 0xFF0000DD, crosshairAlpha*0.5*255.);
 					MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", rightArmAimPos, alpha:crosshairAlpha, scale:aimScale*2.0, absolute:true);

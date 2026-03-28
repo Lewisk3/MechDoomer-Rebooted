@@ -15,6 +15,7 @@ class DrivableMech : DrivableObject
 	bool inCombatZoom; // If true, combat zoom is active.
 	bool isCriticallyDamaged; // If true, mech has sustained critical damage.
 	double combatZoomScale; // Multiplied by desiredFOV.
+	double dropshipScale; // Fixed-scale for mech when in the dropship.
 	MechChassisStructure chassisStructure;
 	string MechItemGraphic; // UI Graphic for mech.
 	double mechvalue; // Mech cbill value;
@@ -22,6 +23,7 @@ class DrivableMech : DrivableObject
 	bool cannotPurchase; // If true, this mech is not purchasable via the shop.
 	bool hideHUD; // If true, HUD is not drawn.
 	bool hasLockedEngine; // If true, engine cannot be removed once initially equipped.
+	bool isQuadMech; // If true, this mech will always use the mech-assault styled movement.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -96,6 +98,8 @@ class DrivableMech : DrivableObject
 	Property BaseRepairCost : baseArmorRepairCost, baseInternalRepairCost;
 	Property CannotPurchaseMech : cannotPurchase;
 	Property EngineLocked : hasLockedEngine;
+	Property IsQuadMech : isQuadMech;
+	Property DropshipScale : dropshipScale;
 	
 	enum MechBtns
 	{
@@ -159,6 +163,7 @@ class DrivableMech : DrivableObject
 		DrivableMech.BaseRepairCost 2500, 5000;
 		DrivableMech.CannotPurchaseMech false;
 		DrivableMech.EngineLocked false;
+		DrivableMech.DropshipScale 3.0;
 	}
 	
 	override void PreTravelled()
@@ -343,7 +348,7 @@ class DrivableMech : DrivableObject
 	{
 		// Dropship map has a fixed mechscale.
 		Name mapname = level.mapname;
-		if(mapname == 'DROPSHIP') return 3.0;
+		if(mapname == 'DROPSHIP') return dropshipScale;
 		if(sv_mdr_campaignmode) return 0.35;
 		
 		return sv_mdr_mechscale;
@@ -984,7 +989,7 @@ class DrivableMech : DrivableObject
 		}
 		else if(driver.player)
 		{
-			if(sv_mdr_simplemechmovement)
+			if(sv_mdr_simplemechmovement || isQuadMech)
 				DoSimpleMovement(fm, sm);
 			else
 				DoTankMovement(fm, sm);
@@ -1022,8 +1027,8 @@ class DrivableMech : DrivableObject
 		double curVel = vel.xy.length();
 		if(curVel > 0 && onground && engine)
 		{
-			// 180kph at max fall-off.
-			double maxTurnKPH = 180;
+			// 120kph at max fall-off.
+			double maxTurnKPH = 120;
 			double curKPH = engine.mechSpeedToKPH(curVel);
 		
 			double omega = abs(angVel);
@@ -1080,7 +1085,7 @@ class DrivableMech : DrivableObject
 		if(curVel > 0 && onground && engine)
 		{
 			// 180kph at max fall-off.
-			double maxTurnKPH = 180;
+			double maxTurnKPH = 120;
 			double curKPH = engine.mechSpeedToKPH(curVel);
 		
 			double omega = abs(angVel);
@@ -1397,7 +1402,7 @@ class DrivableMech : DrivableObject
 	{	
 		super.DoPhysics();
 		
-		if( !sv_mdr_simplemechmovement || (driver && !driver.player) )
+		if( (!sv_mdr_simplemechmovement && !isQuadMech) || (driver && !driver.player) )
 			DoThrottleAcceleration();
 			
 		double airFriction = 0.997;

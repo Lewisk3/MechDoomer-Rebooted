@@ -211,6 +211,7 @@ class MechHardpoint : MechPart
 	double frontArmor, rearArmor, maxArmor, maxRearArmor, maxFrontArmor;
 	string paperdoll_ArmorGraphic, paperdoll_InternalGraphic;
 	int heatDamageTics; // Timer for heat damage on items
+	string hpDisplayName; // Display Name for UI
 	
 	double frontArmorDamage, rearArmorDamage, totalArmorDamage;
 	
@@ -241,6 +242,7 @@ class MechHardpoint : MechPart
 	Property ExplosionType : explosionType;
 	Property ImmuneToExplosions : immuneToExplosions;
 	Property CreatesDebris : doSpawnDebris;
+	Property UI_Name : hpDisplayName;
 	
 	// Hardpoint damage scalar.
 	const DMGSCALE = DMG_SCALAR_RECIEVED_MONSTER;
@@ -848,6 +850,43 @@ class MechHardpoint : MechPart
 		bInvisible = true;
 	}
 	
+	clearscope virtual string getHardpointName()
+	{
+		string finalName = hpDisplayName;
+		
+		// If name isn't set, try and automatically generate it.
+		// This method should also be pretty fast, because it'll be called in UI.
+		if(finalName == "")
+		{
+			string clsName = getClassName();
+			int tokenPos = clsName.IndexOf("_");
+			if(tokenPos != -1) 
+			{
+				finalName = clsName.Mid(tokenPos+1);
+				if(finalName ~== "Cockpit") finalName = "Head";
+				
+				string lowerStr = finalName.MakeLower();
+				int splitPos = 0;
+				for(int i = 1; i < finalName.Length(); i++)
+				{
+					if(finalName.CharAt(i) != lowerStr.CharAt(i))
+					{
+						splitPos = i;
+						break;
+					}
+				}
+				
+				if(splitPos > 0) 
+					finalName = String.Format("%s %s", finalName.Mid(0, splitPos), finalName.Mid(splitPos));
+			}
+			else
+			{
+				finalName = clsName;
+			}
+		}
+		return finalName;
+	}
+	
 	override void Tick()
 	{
 		super.Tick();
@@ -1017,7 +1056,7 @@ class MechLeg : MechHardpoint
 		MechHardpoint.CreatesDebris false;
 	}
 	
-	clearscope double GetMovePenalty()
+	clearscope virtual double GetMovePenalty()
 	{
 		if(healthPoints <= 0) return 0.5;
 	
