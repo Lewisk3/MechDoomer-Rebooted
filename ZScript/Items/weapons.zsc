@@ -1900,8 +1900,8 @@ class AMS : MechWeapon
 		mountType = "PDS";
 		weight = 0.5;
 		
-		fireTime = 2;
-		cooldownTime = 16;
+		fireTime = 1;
+		cooldownTime = 2;
 		range = 120;
 		ammoUse = 1;
 		
@@ -1979,6 +1979,9 @@ class AMS : MechWeapon
 		Actor act;
 		while(act = Actor(it.Next()))
 		{
+			// Stop processing actors if under cooldown.
+			if(!canFire() || cooldown > 0) break;
+			
 			// Find a valid projectile.			
 			// Don't fire at our own projectiles stoopid
 			let hardpointSource = MechHardpoint(act.target);
@@ -2021,7 +2024,7 @@ class AMS : MechWeapon
 		if(heat > 0)
 		{
 			stats.Push("Heat");
-			values.Push(String.Format("%.2f H/s", heat));
+			values.Push(String.Format("%.2f H/s", heat * TICRATE));
 		}
 		
 		stats.Push("Cooldown");
@@ -2055,12 +2058,13 @@ class LaserAMS : AMS
 		weight = 1.5;
 		size = 2;
 		
-		fireTime = 5;
-		cooldownTime = 12 - fireTime;
-		range = 110;
-		heat = 1.0;
+		fireTime = 2;
+		cooldownTime = 4;
+		range = 200;
+		heat = 7.0 * ((fireTime + cooldownTime) / double(TICRATE)); // Around 7 heat per second.  
 		ammoUse = 0;
-		hitChance = 50;
+		hitChance = 80;
+		energyUse = 0.1;
 		
 		refireCount = 0;
 		
@@ -2109,7 +2113,9 @@ class LaserAMS : AMS
 		laser.shade = laserColor;
 		if(hit) curTarget.ExplodeMissile(null, laser);
 		
-		modifyHeat(heat);
+		modifyHeat(heat); 
+		modifyEnergy(energyUse);
+		depleteAmmo(ammouse);
 		cooldown = fireTime + cooldownTime;
 		return true;
 	}
