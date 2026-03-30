@@ -1,0 +1,136 @@
+ListMenu "MainMenu" 
+{
+   	class "MDRTitleMenu"	
+	TextItem "$MNU_NEWGAME", "n", "PlayerclassMenu"
+	TextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
+	TextItem "$MNU_SAVEGAME", "s", "SaveGameMenu"
+	TextItem "Mod Options", "o", "MDROptionsMenu"
+	TextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+	TextItem "$MNU_QUITGAME", "q", "QuitMenu"	
+}
+
+ListMenu "MainMenuTextOnly"
+{
+	class "MDRTitleMenu"
+	TextItem "$MNU_NEWGAME", "n", "PlayerclassMenu"
+	TextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
+	TextItem "$MNU_SAVEGAME", "s", "SaveGameMenu"
+	TextItem "Mod Options", "o", "MDROptionsMenu"
+	TextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+	TextItem "$MNU_QUITGAME", "q", "QuitMenu"	
+}
+
+AddOptionMenu "CustomizeControls"
+{
+	Submenu    "MechDoomer Controls"      , "MDRControlsMenu"
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText " "
+	StaticText "↓ More Controls ↓"
+}
+
+OptionMenu "MDROptionsMenu"
+{
+	Title "MechDoomer Options"
+	StaticText "Pilot Variables", "Orange"
+	SubMenu "Pilot Keybinds", "MDRControlsMenu"
+	Option "Enable Throttle Decay", "cl_mdr_throttledecay", "YesNo"
+	Option "Hide Cockpit Model", "cl_mdr_hidecockpitview", "YesNo"
+	StaticText " "
+	StaticText "Simulation Variables", "Orange"
+	Option "Use Tank Controls", "sv_mdr_simplemechmovement", "NoYes"
+	Slider "Mech Scale", "sv_mdr_mechscale",  0.1, 5, 0.1, 1
+	StaticText " "
+	StaticText "Cheats", "Orange"
+	Option "Enable full mechlab outside of dropship", "sv_mdr_cheats_alwaysfullmechlab", "YesNo"
+	Option "Exit Anytime", "sv_mdr_exitanytime", "YesNo"
+	Option "Show mech hitboxes", "sv_mdr_drawmechhitboxes", "YesNo"
+}
+
+OptionMenu "MDRControlsMenu"
+{
+	Title "MechDoomer Controls"
+	ScrollTop 2
+	StaticTextSwitchable "$CNTRLMNU_SWITCHTEXT1", "$CNTRLMNU_SWITCHTEXT2", "ControlMessage"	
+	StaticText " "
+	StaticText "Movement", "Orange"
+	Control	   "Accelerate [W]"		, "+forward"
+	Control	   "Decelerate [S]"		, "+back"
+	Control	   "Turn Left [A]"		, "+moveleft"
+	Control	   "Turn Right [D]"		, "+moveright"
+	Control    "Jump Jets [SPACE]"		, "+JUMP"
+	StaticText " "
+	Control    "Set Throttle to 0 [X]", "+mw_stopmech"
+	Control    "Align Legs to Torso [C]", "+mw_alignlegs"
+	Control    "Align Torso to Legs", "+mw_aligntorso"
+	StaticText " "
+	Control    "Arm Lock [Q]", "+mw_armlock"
+	Control    "Torso Lock", "+mw_torsolock"
+	StaticText " "
+	StaticText " "
+	StaticText "Weapons", "Orange"
+	Control    "Fire Group 1 [M1]", "+ATTACK"
+	Control    "Fire Group 2 [M2]", "+ALTATTACK"
+	Control    "Fire Group 3 [M3]", "+USER1"
+	Control    "Fire Group 4 [M4]", "+USER2"
+	Control    "Fire Group 5 [M5]", "+USER3"
+	StaticText " "
+	Control    "Next Weapon [DOWN]", "+mw_weapnext"
+	Control    "Previous Weapon [UP]", "+mw_weapprev"
+	Control    "Next Group [LEFT]", "+mw_groupnext"
+	Control    "Previous Group [RIGHT]", "+mw_groupprev"
+	StaticText " "
+	Control    "Toggle Group [CTRL]", "+mw_grouptoggle"
+	Control    "Toggle Chainfire [BACKSPACE]", "+mw_groupchainfire"
+	Control    "Weapon State [;]", "+mw_toggleweaponstate"
+	StaticText " "
+	Control    "Combat Zoom [Z]", "+zoom"
+	Control    "Toggle Masc [ALT]", "+mw_togglemasc"
+	Control    "Toggle L-AMS [,]", "+mw_togglelams"
+	StaticText " "
+	StaticText " "
+	StaticText "Interactions", "Orange"
+	Control    "Target Nearest [R]", "+mw_gettarget"
+	Control    "Power Cycle [P]", "+mw_powercycle"
+	Control    "Override Shutdown [O]", "+mw_overrideshutdown"
+	Control    "Toggle Camera [F]", "+RELOAD"
+	Control    "Item Magnet [G]", "+mw_itemmagnet"
+	Control    "View Mech Inventory", "+mw_peekinventory"
+	Control    "Open Mechlab [L]", "netevent +mw_openmechlab"
+	Control    "Repair Drone [V]", "+mw_repairdrone"
+	
+}
+
+OptionValue "YesNo"
+{
+	0, "No" 
+	1, "Yes" 
+}
+OptionValue "NoYes"
+{
+	0, "Yes" 
+	1, "No" 
+}
+OptionValue "OnOff"
+{
+	0, "Off" 
+	1, "On" 
+}
+OptionValue "OffOn"
+{
+	0, "On" 
+	1, "Off" 
+}

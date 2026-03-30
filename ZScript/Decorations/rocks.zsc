@@ -1,0 +1,23 @@
+class Rock_01 : Actor
+{
+	Default
+	{
+		+NOINTERACTION;
+	}
+	
+	States
+	{
+		Spawn:
+			MODL A -1;
+		stop;
+	}
+}
+
+class Rock_02 : Rock_01 {}
+class Rock_03 : Rock_01 {}
+class Rock_04 : Rock_01 {}
+class Rock_05 : Rock_01 {}
+class Rock_06 : Rock_01 {}
+class Rock_07 : Rock_01 {}
+class Rock_08 : Rock_01 {}
+class Rock_09 : Rock_01 {}

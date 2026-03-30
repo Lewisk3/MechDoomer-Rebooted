@@ -82,7 +82,7 @@ class MechDropship_Handler : StaticEventHandler
 				}
 			}
 		} 
-		else
+		else if(curMap != "TITLEMAP")
 		{
 			// Load player's mech, if starting on a new map.
 			if(level.maptime >= 8 && reloadActiveMech)
@@ -143,7 +143,7 @@ class MechDropship_Handler : StaticEventHandler
 	
 	override void RenderOverlay(RenderEvent e)
 	{	
-		if(scrfade > 0.01)
+		if(scrfade > 0.01 && level.mapname != "TITLEMAP")
 		{
 			Screen.Dim(0xFF000000, scrfade, 0,0, Screen.getWidth(), Screen.getHeight());
 			

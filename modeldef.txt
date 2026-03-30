@@ -620,4 +620,123 @@ Model Sign_MechbaysMenu
 	FrameIndex MODL A 0 0
 }
 
+// Titlemap Rocks
+Model Rock_01
+{
+	Path "models/rocks"
+	Model 0 "rock01.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_02
+{
+	Path "models/rocks"
+	Model 0 "rock02.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_03
+{
+	Path "models/rocks"
+	Model 0 "rock03.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_04
+{
+	Path "models/rocks"
+	Model 0 "rock04.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_05
+{
+	Path "models/rocks"
+	Model 0 "rock05.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_06
+{
+	Path "models/rocks"
+	Model 0 "rock06.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_07
+{
+	Path "models/rocks"
+	Model 0 "rock07.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_08
+{
+	Path "models/rocks"
+	Model 0 "rock08.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+Model Rock_09
+{
+	Path "models/rocks"
+	Model 0 "rock09.obj"
+	Skin 0 "rock_tex.png"
+	Scale 20.0 20.0 20.0
+	
+	USEACTORPITCH
+	USEACTORROLL
+	CORRECTPIXELSTRETCH
+
+	FrameIndex MODL A 0 0
+}
+
 #include "mechs_modeldef.txt"

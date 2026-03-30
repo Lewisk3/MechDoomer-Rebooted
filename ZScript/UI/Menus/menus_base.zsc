@@ -1,4 +1,3 @@
-
 class MenuElement : Object abstract ui
 {
 	string Tag; // Unique Element Tag

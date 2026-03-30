@@ -5,7 +5,7 @@ Raven [x]
 Urbanmech <x>
 Kitfox <x>
 FireMoth <x>
-Tarantula <1>
+Tarantula <x>
 
 [Medium]
 Centurion [x]

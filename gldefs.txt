@@ -252,12 +252,12 @@ material texture models/mechs/firemoth/firemoth.png {
 	specularlevel 0.3
 	glossiness 10
 }
-material texture models/mechs/tarantula/taranula.png {
+material texture models/mechs/tarantula/tarantula.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10
 }
-material texture models/mechs/tarantula/taranula_head.png {
+material texture models/mechs/tarantula/tarantula_head.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10
@@ -289,3 +289,9 @@ material texture models/lasers/BEAM_detailed.png {
 	shader "shaders/lasernoise.fp"
 }
 
+// Titlemap
+material texture models/rocks/rock_tex.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}

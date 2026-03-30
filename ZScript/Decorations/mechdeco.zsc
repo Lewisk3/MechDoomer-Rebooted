@@ -1,0 +1,49 @@
+class TitleMechTimberwolf : MechTimberWolf
+{
+	override double GetMechScale()
+	{
+		return 3.0;
+	}
+}
+
+class TitleMechAI_Timberwolf : MechAIControllerBase
+{
+	bool finishpowerup;
+
+	Default
+	{
+		MechAIControllerBase.MechType "TitleMechTimberwolf";
+		+INTERPOLATEANGLES;
+	}
+	
+	override void AIThink(bool poweredup)
+	{
+		mech.hideHUD = true;
+		if(!poweredup && !mech.CheckMechDestroyed() && !mech.heatShutdown && mech.shutdown)
+		{
+			mech.DoPowerup();
+		}
+		else
+		{
+			finishpowerup = true;
+		}
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A 1;
+			TNT1 A 0 A_JumpIf(!finishpowerup, "Spawn");
+			TNT1 A 0 { angle = -80; mech.angle = -80; }
+		Start.Loop:
+			TNT1 A 1
+			{
+				// Plot angle to log based on time.
+				double speed = 2.0;
+				double clock = sin(getAge() / speed);
+				A_SetAngle(-80 + (30*clock), SPF_INTERPOLATE);  
+				// console.printf("A: %f", 30*clock);
+			}
+		goto Start.Loop;
+	}
+}

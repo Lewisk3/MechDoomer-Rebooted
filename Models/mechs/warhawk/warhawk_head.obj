@@ -930,7 +930,7 @@ vn -0.900895 -0.434038 0.000459
 
 # main, 132 grouped triangles
 
-usemtl a
+ a
 o main
 g main
 

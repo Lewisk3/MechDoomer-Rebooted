@@ -160,6 +160,12 @@ Menus/Hardpoint/Selected 	 "Sounds/Menus/hardpoint_selected.wav"
 Menus/Error					 "Sounds/Menus/menu_error.wav"
 
 
+TitleMap/ThunderOne "Sounds/Title/thunder1.mp3"
+TitleMap/ThunderTwo "Sounds/Title/thunder2.mp3"
+TitleMap/ThunderThree "Sounds/Title/thunder3.mp3"
+TitleMap/ThunderFour "Sounds/Title/thunder4.mp3"
+$random Titlemap/Thunder { TitleMap/ThunderTwo TitleMap/ThunderThree TitleMap/ThunderFour }
+
 // Volume
 $volume Laser/Loop 0.5
 $volume Missile/Explosion 0.5

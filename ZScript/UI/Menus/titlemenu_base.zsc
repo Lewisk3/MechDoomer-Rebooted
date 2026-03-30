@@ -1,0 +1,348 @@
+class MDRTitleMenuElement : Object ui
+{
+	MDRTitleMenuBase parent;
+	string elementName;
+	vector2 pos;
+	vector2 size;
+	bool hidden;
+	bool disabled;
+	
+	virtual void processUIEvent(UIEvent ev, InputEvent inputEv) {}
+	virtual void Init() {}
+	
+	static MDRTitleMenuElement Create(MDRTitleMenuBase parent, class<MDRTitleMenuElement> elementClass, String elementName, vector2 pos, vector2 size)
+	{
+		let element = MDRTitleMenuElement(new(elementClass));
+		if(element)
+		{
+			element.parent = parent;
+			element.elementName = elementName;
+			element.pos = pos;
+			element.size = size;
+			element.hidden = false;
+			element.Init();
+		}
+		return element;
+	}
+	
+	bool CheckCollision(MDRTitleMenuElement other)
+	{
+		return MenuElement.AABBCollision(pos, size, other.pos, other.size);
+	}
+	
+	virtual void Draw(double dT)
+	{
+	}
+	
+	virtual void Update(double dT)
+	{
+	}
+}
+
+class MDRTitleMenu_Cursor : MDRTitleMenuElement
+{
+	vector2 mouseCoords;
+	bool leftDown, rightDown;
+	bool leftPressed, rightPressed;
+	int scrollDir;
+	double tmpScrollTimer;
+	double tmpBtnTimer;
+
+	override void processUIEvent(UIEvent ev, InputEvent inputEv)
+	{
+		if(ev) // Handle UIEvent events.
+		{
+			if(ev.type == UIEvent.Type_MouseMove)
+				mouseCoords = (ev.MouseX, ev.MouseY);
+				
+			// Left button
+			if(ev.type == UIEvent.Type_LButtonDown)
+			{
+				leftDown = true;
+				leftPressed = false;
+			}
+			if(ev.type == UIEvent.Type_LButtonUp) 
+			{
+				if(leftDown) leftPressed = true;
+				leftDown = false;
+			}
+
+			// Right button
+			if(ev.type == UIEvent.Type_RButtonDown)
+			{
+				rightDown = true;
+				rightPressed = false;
+			}
+			if(ev.type == UIEvent.Type_RButtonUp) 
+			{
+				if(rightDown) rightPressed = true;
+				rightDown = false;
+			}
+			
+			// Scroll
+			if(ev.type == UIEvent.Type_WheelUp  ) 
+			{
+				scrollDir = -1;
+				tmpScrollTimer = 0;
+			}
+			if(ev.type == UIEvent.Type_WheelDown) 
+			{
+				scrollDir =  1;
+				tmpScrollTimer = 0;
+			}
+		}
+	}
+	
+	override void Update(double dT)
+	{
+		// Convert mouse coords from absolute to relative.
+		double xRel = Screen.GetWidth() / MWDrawer.getBaseWidth();
+		double yRel = Screen.GetHeight() / MWDrawer.getBaseHeight();
+		
+		vector2 toPos = (mouseCoords.x / xRel, mouseCoords.y / yRel);
+		
+		if(pos != toPos) parent.selectedItem = -1;
+		pos = toPos;
+		
+		// Update temp-state buttons
+		if(leftPressed || rightPressed) tmpBtnTimer += dT;
+		tmpScrollTimer += dT;
+		if(tmpBtnTimer    >  5) 
+		{
+			leftPressed = rightPressed = false;
+			tmpBtnTimer = 0;
+		}
+		if(tmpScrollTimer > 10) 
+		{
+			scrollDir = 0;
+			tmpScrollTimer = 0;
+		}
+	}
+	
+	override void Draw(double dT)
+	{
+		// MWDrawer.DrawRect(pos, size);
+	}
+}
+
+class MDRTitleMenu_Button : MDRTitleMenuElement
+{
+	bool btnDown;
+	bool pressed;
+	bool hovered;
+	Name pressSound;
+	
+	override void Init() 
+	{
+		pressSound = "Menus/Button/Pressed";
+	}
+	
+	virtual bool CheckSelected()
+	{
+		let cursor = parent.cursor;	
+		bool mouseOver = CheckCollision(cursor);
+		return mouseOver;
+	}
+	
+	vector2 getTextCenter(Font fnt, double textScale = 1.0)
+	{
+		double fontHeight = MWDrawer.getTextHeight(fnt, " ", scale:(textScale,textScale));
+		vector2 centerPos = (
+			pos.x + (size.x * 0.5),
+			pos.y + (size.y * 0.5) - (fontHeight * 0.5)
+		);
+		return centerPos;
+	}
+	
+	override void Update(double dT)
+	{
+		let cursor = parent.cursor;	
+		hovered = CheckSelected();
+		
+		if(!hovered) 
+			btnDown = false;
+		
+		if(hovered)
+		{
+			if(btnDown && !cursor.leftDown) 
+			{
+				btnDown = false;
+				pressed = true;
+				OnPressed();
+				parent.MenuSound(pressSound);
+			}
+			
+			if(!btnDown && cursor.leftDown)
+				btnDown = true;
+		}
+	}
+	
+	virtual void OnPressed() {}
+}
+
+class MDRTitleMenuBase : ListMenu
+{
+	double prevMS;
+	double deltaTime;
+	Array<MDRTitleMenuElement> elements;
+	Array<ListMenuItemTextItem> menuOptions;
+	MDRTitleMenu_Cursor cursor;
+	int selectedItem;
+
+	override void Init(Menu parent, ListMenuDescriptor desc)
+	{
+		Super.Init(parent, desc);
+		menuactive = OnNoPause;
+		DontDim = true;
+		
+		// Populate items with only TextItem entries.
+		foreach(item : mDesc.mItems)
+		{
+			let textItem = ListMenuItemTextItem(item);
+			if(textItem) 
+			{
+				if(!CanSave() && textItem.getAction() == "SaveGameMenu")
+					continue;
+					
+				menuOptions.Push(textItem);
+			}
+			textItem.Enable(false);
+		}
+		
+		// Add menu elements
+		InitElements();
+	}
+	
+	virtual void InitElements() 
+	{
+		cursor = MDRTitleMenu_Cursor(AddElement("MDRTitleMenu_Cursor", "TitleCursor", (0,0), (8,8)));
+	}
+	
+	virtual MDRTitleMenuElement AddElement(class<MDRTitleMenuElement> elementClass, String elementName, vector2 pos, vector2 size)
+	{
+		let element = MDRTitleMenuElement.Create(self, elementClass, elementName, pos, size);
+		if(element) elements.Push(element);
+		return element;
+	}
+	
+	virtual void updateDeltaTime(double fps = 60.0)
+	{
+		double curMS = MSTimeF();
+		double diff = curMS - prevMS;
+		deltaTime = diff / (1000 / fps);
+		prevMS = curMS;
+	}
+	
+	override void Drawer()
+	{
+		updateDeltaTime();
+
+		// Draw Elements	
+		foreach(element : elements)
+		{
+			if(element.hidden) continue;
+			element.Draw(deltaTime);	
+		}
+		
+		UpdateElements(deltaTime);
+	}	
+	
+	void UpdateElements(double deltaTime)
+	{
+		// Update Elements	
+		foreach(element : elements)
+			if(element) element.Update(deltaTime);
+	}
+	
+	override bool OnUIEvent(UIEvent ev)
+	{					
+		foreach(element : elements)
+			element.processUIEvent(ev, null);
+	
+		if(ev.Type == UIEvent.Type_KeyDown)
+		{
+			string menuKeyStr = ev.KeyString;
+			Array<int> consoleKeys; 
+			Bindings.GetAllKeysForCommand(consoleKeys, "toggleconsole");
+			
+			for(int i = 0; i < consoleKeys.Size(); i++)
+			{
+				int keyScan = consoleKeys[i];
+				string keyStr = Bindings.NameKeys(keyScan,0);
+				if(menuKeyStr ~== keyStr)
+				{
+					Close();
+					return false;
+				}
+			}
+		}
+		
+		return super.OnUIEvent(ev);
+	}
+
+	override bool OnInputEvent(InputEvent ev)
+	{
+		foreach(element : elements)
+			element.processUIEvent(null, ev);
+			
+		return false;
+	}
+	
+	virtual void OnMenuClose()
+	{
+		// Do stuff right before the menu is closed.
+	}
+	
+	virtual void OnItemSelected(bool shouldActivate = false)
+	{
+		if(shouldActivate) menuOptions[selectedItem].Activate();
+	}
+	
+	override bool MenuEvent(int mkey, bool fromcontroller)
+	{
+		int itemCount = menuOptions.Size()-1;
+	
+		switch (mkey)
+		{
+		case MKEY_Up:
+			selectedItem--;
+			if(selectedItem < 0) selectedItem = itemCount;
+			OnItemSelected();
+			return true;
+		case MKEY_Down:
+			selectedItem++;
+			if(selectedItem > itemCount) selectedItem = 0;
+			OnItemSelected();
+			return true;
+		case MKEY_Enter:
+			if(selectedItem >= 0 && selectedItem <= itemCount) 
+				OnItemSelected(true);
+			return true;
+		case MKEY_Back:
+			// Titlemenu cannot be closed, if on titlescreen.
+			if(gamestate != GS_TITLELEVEL)
+			{
+				OnMenuClose();
+				Close();
+			}
+			return true;
+		}
+		
+		return false;
+	}
+
+	bool CanSave()
+	{
+		bool canSave = true;
+		if (gamestate != GS_LEVEL)
+			canSave = false;
+		else if (consoleplayer < 0)
+			canSave = false;
+		else if (!players[consoleplayer].mo)
+			canSave = false;
+		else if (players[consoleplayer].mo.health <= 0)
+			canSave = false;
+		
+		return canSave;
+	}
+}

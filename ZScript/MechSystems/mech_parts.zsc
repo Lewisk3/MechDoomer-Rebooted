@@ -867,7 +867,7 @@ class MechHardpoint : MechPart
 				
 				string lowerStr = finalName.MakeLower();
 				int splitPos = 0;
-				for(int i = 1; i < finalName.Length(); i++)
+				for(uint i = 1; i < finalName.Length(); i++)
 				{
 					if(finalName.CharAt(i) != lowerStr.CharAt(i))
 					{
@@ -1500,7 +1500,8 @@ class MechCockpit : MechHardpoint
 		lookingPos = DrivablesMath.getActorAim(self, true, torso.angle, torso.pitch);
 		
 		// Become invisible if we're not currently looking through the cockpit.
-		bInvisible = !forceVisible && (!mech.driver || (mech.camActive is "ThirdpersonCamera"));
+		bInvisible = (!mech.driver || !mech.driver.player || (mech.camActive is "ThirdpersonCamera"));
+		if(forceVisible) bInvisible = false;
 
 		parentOffset.z = defz;// + bobHeightOffs; 
 		

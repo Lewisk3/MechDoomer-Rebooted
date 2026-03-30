@@ -1,4 +1,5 @@
 version "4.10.0"
+const MDR_VERSION = "0.8rc";
 
 // Internal Settings
 #include "skill_const.cfg"
@@ -23,6 +24,7 @@ version "4.10.0"
 #include "ZScript/Events/salvage_handler.zsc"
 
 #include "ZScript/UI/Menus/menus_base.zsc"
+#include "ZScript/UI/Menus/titlemenu_base.zsc"
 #include "ZScript/UI/Menus/mechlab.zsc"
 #include "ZScript/UI/Menus/shop_menu.zsc"
 #include "ZScript/UI/Menus/input_menu.zsc"
@@ -30,6 +32,7 @@ version "4.10.0"
 #include "ZScript/UI/Menus/dialogue_menu.zsc"
 #include "ZScript/UI/Menus/repair_menu.zsc"
 #include "ZScript/UI/Menus/salvage_menu.zsc"
+#include "ZScript/UI/Menus/title_menu.zsc"
 
 // Vehicle System
 #include "ZScript/drivables/drivables_math.zsc"
@@ -80,6 +83,8 @@ version "4.10.0"
 #include "ZScript/Decorations/trees.zsc"
 #include "ZScript/Decorations/skyboxes.zsc"
 #include "ZScript/Decorations/signs.zsc"
+#include "ZScript/Decorations/rocks.zsc"
+#include "ZScript/Decorations/mechdeco.zsc"
 
 // Drivable Mechs
 #include "ZScript/Mechs/hellbringer.zsc"

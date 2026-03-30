@@ -765,7 +765,7 @@ vn 0.000003 -0.780278 0.625433
 
 # main, 64 grouped triangles
 
-usemtl cockpit
+ cockpit
 o main
 g main
 
@@ -835,7 +835,7 @@ f 29/187/187 30/188/188 28/189/189
 f 29/190/190 28/191/191 14/192/192
 # 0000_default, 40 grouped triangles
 
-usemtl body
+ body
 o 0000_default
 g 0000_default
 

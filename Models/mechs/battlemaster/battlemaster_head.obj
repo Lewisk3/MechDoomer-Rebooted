@@ -806,7 +806,7 @@ vn 0.0 -1.0 0.0
 
 # main, 117 grouped triangles
 
-usemtl a
+ a
 o main
 g main
 
