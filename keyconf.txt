@@ -57,6 +57,9 @@ Alias -mw_togglemasc "netevent -mw_togglemasc"
 Alias +mw_togglelams "netevent +mw_togglelams"
 Alias -mw_togglelams "netevent -mw_togglelams"
 
+Alias +mw_togglelamp "netevent +mw_togglelamp"
+Alias -mw_togglelamp "netevent -mw_togglelamp"
+
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK
 addmenukey "Fire Group 2" +ALTATTACK
@@ -87,3 +90,4 @@ addmenukey "Combat Zoom" +zoom
 addmenukey "Repair Drone" +mw_repairdrone
 addmenukey "Toggle Masc" +mw_togglemasc
 addmenukey "Toggle L-AMS" +mw_togglelams
+addmenukey "Toggle Headlights" +mw_togglelamp

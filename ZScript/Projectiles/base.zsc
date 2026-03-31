@@ -77,7 +77,7 @@ class MechProjectile : FastProjectile
 		return default.Speed;
 	}
 	
-	static double GetSpeedFromKPH(double KPH)
+	clearscope static double GetSpeedFromKPH(double KPH)
 	{
 		double kmPerSecond = KPH / 3600.0;
 		double cmPerTick = (kmPerSecond / TICRATE) * 100000.0;
@@ -85,7 +85,15 @@ class MechProjectile : FastProjectile
 		return cmPerTick / DrivableMech.GetUTOCM();
 	}
 	
-	clearscope double GetKPHFromSpeed()
+	clearscope static double GetKPHFromSpeed(double spd)
+	{
+		double curSpeed = spd; 
+		double cmPerTic = curSpeed * DrivableMech.GetUTOCM();
+		double cmPerHr = (cmPerTic * TICRATE) * 3600.0;
+		return cmPerHr / 100000.0;
+	}
+	
+	clearscope double GetKPHSpeed()
 	{
 		double curSpeed = vel.Length();
 		double cmPerTic = curSpeed * DrivableMech.GetUTOCM();
@@ -142,10 +150,10 @@ class MechProjectile : FastProjectile
 	
 		// Calculate real-world damage value using projectile speed and mass.
 		double roundWeight = mass * MASS_SCALAR; // KG per Round
-		double roundSpeed = (victim == NULL ? speedKPH : GetKPHFromSpeed()) * 0.28; // Meters Per Second
+		double roundSpeed = (victim == NULL ? speedKPH : GetKPHSpeed()) * 0.28; // Meters Per Second
 
 		double kForce = 0.5 * (roundWeight * (roundSpeed*roundSpeed));
-		double dmg = ceil(kForce / 20); // old: 32
+		double dmg = ceil(kForce / 28); // old: 32
 		
 		return dmg;
 	}

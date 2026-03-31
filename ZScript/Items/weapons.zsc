@@ -2064,7 +2064,7 @@ class LaserAMS : AMS
 		heat = 7.0 * ((fireTime + cooldownTime) / double(TICRATE)); // Around 7 heat per second.  
 		ammoUse = 0;
 		hitChance = 80;
-		energyUse = 0.1;
+		energyUse = 0.2;
 		
 		refireCount = 0;
 		

@@ -59,7 +59,7 @@ class MechLaser : MechLaserBeam
 			{
 				laserCore.time = lifetime;
 				laserCore.master = laser;
-				laserCore.A_SetScale(laser.scale.X * 0.5, laser.scale.Y * 0.5);
+				laserCore.A_SetScale(laser.scale.X * 0.35, laser.scale.Y);
 				laserCore.SetEnabled(true);
 				laser.core = laserCore;
 			}

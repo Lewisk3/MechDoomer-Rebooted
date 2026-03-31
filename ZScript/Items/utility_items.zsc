@@ -7,7 +7,7 @@ class MechHeatsink : MechUtility
 	{	
 		damagable = true;
 		weight = 1;
-		heatEff = 3.0 / double(TURNTICS);
+		heatEff = 2.0 / double(TURNTICS);
 		buffer = 0;
 		displayName = "Heatsink";
 		sndItemName = "Betty/Item/Heatsink";
@@ -79,7 +79,7 @@ class MechDoubleHeatsink : MechHeatsink
 		damagable = true;
 		size = 2;
 		weight = 1;
-		heatEff = 6.0 / TURNTICS;
+		heatEff = 4.0 / double(TURNTICS);
 		buffer = 0;
 		displayName = "Double Heatsink";
 		

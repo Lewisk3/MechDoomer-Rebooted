@@ -107,9 +107,10 @@ OptionMenu "MDRControlsMenu"
 	Control    "Power Cycle [P]", "+mw_powercycle"
 	Control    "Override Shutdown [O]", "+mw_overrideshutdown"
 	Control    "Toggle Camera [F]", "+RELOAD"
+	Control    "Toggle Headlights [L]", "+mw_togglelamp"
 	Control    "Item Magnet [G]", "+mw_itemmagnet"
 	Control    "View Mech Inventory", "+mw_peekinventory"
-	Control    "Open Mechlab [L]", "netevent +mw_openmechlab"
+	Control    "Open Mechlab [M]", "netevent +mw_openmechlab"
 	Control    "Repair Drone [V]", "+mw_repairdrone"
 	
 }

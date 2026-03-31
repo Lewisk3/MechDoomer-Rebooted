@@ -42,6 +42,7 @@ Mech/Target/Locking "Sounds/Mech/lockingtarget.wav"
 Mech/Target/Locked "Sounds/Mech/newtarget.wav"
 Mech/Target/HasLock "Sounds/Mech/targetlocked.mp3"
 Mech/OverheatWarning "Sounds/Mech/overheating.wav"
+Mech/Headlamp/Toggle "Sounds/Mech/togglelamp.wav"
 
 Damage/NoArmor "Sounds/Mech/damage_alarm1.wav"
 Damage/CriticalInternals "Sounds/Mech/damage_alarm2.wav"

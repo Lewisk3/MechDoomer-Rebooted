@@ -62,6 +62,7 @@ class DrivableMech : DrivableObject
 	MechHardpoint torso, leftTorso, rightTorso, leftArm, rightArm, head, leftLeg, rightLeg;
 	MechCockpit cockpit;
 	MechEngine engine;
+	MechHeadlamp headlamp;
 	
 	// Points to whatever drone is currently opperating on this mech.
 	// Usually a repair drone.
@@ -123,7 +124,8 @@ class DrivableMech : DrivableObject
 		BT_ITEMMAGNET  = 1 << 16,
 		BT_DRONEREPAIR = 1 << 17,
 		BT_MASC 	   = 1 << 18, // Toggles MASC status
-		BT_TOGGLE_LAMS = 1 << 19 // Toggle Laser AMS
+		BT_TOGGLE_LAMS = 1 << 19, // Toggle Laser AMS
+		BT_TOGGLELAMP  = 1 << 20  // Toggle headlight
 	};
 	
 	enum GroupBits
@@ -855,6 +857,13 @@ class DrivableMech : DrivableObject
 			}
 		}
 		
+		// Headlamp
+		if(getExtBtn(BT_TOGGLELAMP, DriverBtns.BTS_PRESSED) && headlamp)
+		{
+			headlamp.enabled = !headlamp.enabled;
+			DoCockpitSound("Mech/Headlamp/Toggle");
+		}
+		
 		// Targeting
 		if( getExtBtn(BT_GETTARGET, DriverBtns.BTS_PRESSED) )
 		{
@@ -899,6 +908,13 @@ class DrivableMech : DrivableObject
 	{
 		double fm, sm;
 		[fm, sm] = GetMoveInputs();
+		
+		// Create headlamp if we do not have one
+		if(head && !headlamp) 
+		{
+			headlamp = MechHeadLamp(MechHeadLamp.Create(40,0,10, "MechHeadLamp"));
+			AttachPart(headlamp, head);
+		}
 		
 		if(getDriverBtn(BT_CROUCH, DriverBtns.BTS_PRESSED))
 		{
@@ -1444,7 +1460,11 @@ class DrivableMech : DrivableObject
 		
 	clearscope virtual double GetSpd()
 	{
-		return !onground ? 0 : vel.xy.length() + abs((angVel+legVel) * 0.5);
+		double angularSpeed = abs(angVel + (sv_mdr_simplemechmovement ? 0 : legVel));
+		double curSpd = vel.xy.length();
+		angularSpeed = clamp(angularSpeed, 0, 2); 
+		
+		return !onground ? 0 : curSpd + (angularSpeed * 0.5);
 	}
 	
 	clearscope static double GetUTOCM()

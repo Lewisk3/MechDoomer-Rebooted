@@ -34,7 +34,7 @@ class MechHUD_Handler : EventHandler
 	override void RenderUnderlay(RenderEvent e)
 	{
 		let mech = getPilotingMech(e);
-		if(mech && mech.HUDType) 
+		if(mech && mech.HUDType && !automapactive) 
 			HideHUD();
 		else
 			ShowHUD();
@@ -464,6 +464,64 @@ class VehicleHUD : Object ui
 				invOffs.y += spacing;
 			}
 		}
+	}
+	
+	// Keys
+	virtual void DrawKeys(PlayerPawn plr, vector2 pos, double keySize = 32, double alpha = 1.0, double spacing = 20)
+	{
+		Key inv;
+		vector2 drawPos = pos;
+		drawPos.x += spacing;
+
+		int count = Key.GetKeyTypeCount();
+		int curKeyCount = 0;
+		for(int i = count-1; i >= 0; i--)
+		{
+			let curKey = Key(plr.FindInventory(Key.GetKeyType(i)));
+			if(!curKey) continue;
+			curKeyCount++;
+		}
+		
+		// Determine how to auto-center keys
+		double keysWidth = (keySize * curKeyCount) + (spacing * max(0, curKeyCount - 1));
+		drawPos.x -= (keysWidth * 0.5);
+
+		// Go through the key in reverse order of definition, because we start at the right.
+		for(int i = count-1; i >= 0; i--)
+		{
+			let curKey = Key(plr.FindInventory(Key.GetKeyType(i)));
+			if(!curKey) continue;
+			
+			let icon = getKeyIcon(curKey);
+			if (icon.isValid())
+			{
+				let [width, height] = TexMan.GetSize(icon);
+				double iconScale = keySize / double(width);
+				vector2 scaledSize = (width, height) * iconScale;
+				console.printf("Sc: %f", scaledSize.x);
+				MWDrawer.DrawTexture(icon, drawPos + (scaledSize.x * 0.5, scaledSize.y * 0.5), flags:0, alpha, scale:(iconScale, iconScale));
+				drawPos.x += spacing + (width * iconScale);
+			}
+		}
+	}
+	
+	TextureID getKeyIcon(Key k)
+	{
+		TextureID icon;
+		TextureID AltIcon = k.AltHUDIcon;
+		
+		if (AltIcon.isValid()) 
+		{
+			icon = AltIcon;
+		}
+		else if (k.SpawnState && k.SpawnState.sprite != 0)
+		{
+			let state = k.SpawnState;
+			if (state != null) icon = state.GetSpriteTexture(0);
+			else icon.SetNull();
+		}
+		
+		return icon;
 	}
 	
 	// Draw HUD

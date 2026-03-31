@@ -590,7 +590,7 @@ class MechHardpoint : MechPart
 			
 			bool spawnSmoke = !(level.maptime%35) || frandom[FXRNG](0,20) >= 15;
 			bool spawnSparks = !(level.maptime%100) || frandom[FXRNG](0,100) > 90;
-			if(spawnSmoke) EffectsHelper.SpawnFX("HardpointSmoke", 5, pos, spAngles, 1, (8,8,8), rngAngles, 2);
+			if(spawnSmoke) EffectsHelper.SpawnFX("HardpointSmoke", 2, pos, spAngles, 1, (3,3,3), rngAngles, 2);
 			//if(spawnSparks) EffectsHelper.SpawnFX("HardpointSparks", 3, pos, spAngles, 3, (20,20,20), rngAngles, 6);
 		}
 	}
@@ -1138,7 +1138,13 @@ class MechLegs : MechPart
 			if(mech.head && mech.torso) 
 			{
 				// mech.head.animOffsets.z -= 5;
-				MechTorso(mech.torso).pitchBobVel += 0.1;
+				MechTorso(mech.torso).pitchBobVel -= 0.5;
+				
+				double pBob = MechTorso(mech.torso).pitchBobTimer;
+				double pBobDir = sin(pBob * 2.0) < 0 ? -1 : 1; 
+				
+				MechTorso(mech.torso).pitchBobTimer += 10 * pBobDir;
+				if(mech.cockpit) mech.cockpit.DoCockpitQuake(0.2,0.2,0.2, 5, keepOld:true);
 				// mech.vel *= 0.96;
 			}
 		}
@@ -1224,7 +1230,7 @@ class MechTorso : MechHardpoint
 {
 	vector3 recoilAngles, recoilShake;
 	double turnMax, pitchMin, pitchMax, turnSpeed, pitchSpeed;
-	double pitchBob, pitchBobVel;
+	double pitchBob, pitchBobVel, pitchBobTimer;
 	double rollBob, rollBobTimer;
 	double turnDir;
 	double prevAngle, prevPitch;
@@ -1327,17 +1333,19 @@ class MechTorso : MechHardpoint
 		if(!mech || !mech.engine) return;
 		
 		// Calculate Bob	
-		double curSpeed = MechEngine.mechSpeedToKPH(mech.GetSpd());
-		double bobmax = 2.0;
+		double curSpeedTics = mech.GetSpd();
+		double curSpeed = MechEngine.mechSpeedToKPH(curSpeedTics);
+		double bobmax = 8.0;
 		
 		if(curSpeed >= 1 && mech.onground)
 		{
 			double strMod = curSpeed*0.020;
 			double str = clamp(0.05 * strMod, -(bobmax/2.), bobmax/2.); 			
-			pitchBobVel += mech.legs.frame >= 11 ? (str*1.50) : -str;
+			pitchBobVel = sin(pitchBobTimer * 2.0) * (4 * str);
 			
 			rollBob += cos(rollBobTimer * 2.5) * str;
-			rollBobTimer += mech.getSpd();
+			rollBobTimer += curSpeedTics * 0.7;
+			pitchBobTimer += curSpeedTics * 1.5;
 		}
 		
 		// We hit the ground, apply recoil based on falling speed.
@@ -1350,6 +1358,18 @@ class MechTorso : MechHardpoint
 			// Hit the ground sound.
 			if(mech.legs && fallFriction <= 0.8) 
 				mech.legs.A_StartSound("Mech/Land", flags:CHANF_OVERLAP);
+				
+			// Shake cockpit
+			if(mech.cockpit) 
+				mech.cockpit.DoCockpitQuake(1,1,1, 15);
+				
+			// Shockwave - get kinetic energy
+			double kgWeight = mech.maxWeight * TON_KG * MASS_SCALAR; // KG weight of mech.
+			double accelMS = MechProjectile.GetKPHFromSpeed(abs(zAccel)) * 0.28; // Meters Per Second
+
+			double kForce = 0.05 * (kgWeight * (accelMS*accelMS));
+			double shockwaveDmg = ceil(kForce / 28); // old: 32
+			EffectsHelper.ExplodeEx(mech.legs, shockwaveDmg, 128 * mech.GetMechScale(), thrustMod:0.25);
 		}
 		
 		pitchBob = clamp(pitchBobVel, -bobmax, bobmax);
@@ -1470,8 +1490,9 @@ class MechCockpit : MechHardpoint
 		}
 	}
 	
-	void DoCockpitQuake(double qx, double qy, double qz, double dur)
+	void DoCockpitQuake(double qx, double qy, double qz, double dur, bool keepOld = false)
 	{
+		if(quakeTics > 0 && keepOld) return;
 		quakeAngles = (qx, qy, qz);
 		quakeTics = maxQuakeTics = dur;
 	}
@@ -1606,6 +1627,60 @@ class MechCockpitModel : Actor
 		Spawn:
 			MODL A -1;
 		stop;
+	}
+}
+
+// Headlamp
+class MechHeadLamp : MechPart
+{
+	bool enabled;
+	SpotLight light;
+	
+	void SetupLight(bool create = true)
+	{
+		if(!light)
+		{
+			if(create)
+				light = SpotLight(Actor.Spawn("SpotLight"));
+			else
+				return;
+		}
+		
+		double mScale = mech.GetMechScale();
+		light.args[0] = 255; // red
+		light.args[1] = 255; // green
+		light.args[2] = 255; // blue
+		light.args[3] = 400 * mScale; // length of the spotllight
+		light.SpotInnerAngle = 20 * mScale; // inner angle (brightest area)
+		light.SpotOuterAngle = 60 * mScale; // outerangle (dimmer area)
+		light.bINTERPOLATEANGLES = true;
+		//light.bATTENUATE = true;
+	}
+	
+	override void UpdateAngles()
+	{
+		super.UpdateAngles();
+		
+		if(enabled && !light)
+		{
+			SetupLight();
+		}
+		else if(light && !enabled)
+		{
+			light.Destroy();
+			light = NULL;
+		}
+		
+		if(light && enabled)
+		{
+			SetupLight();
+			
+			// Light follows part
+			light.SetOrigin(pos, false);
+			light.A_SetAngle(angle, SPF_INTERPOLATE);
+			light.A_SetPitch(pitch, SPF_INTERPOLATE);
+			light.A_SetRoll(roll, SPF_INTERPOLATE);
+		}
 	}
 }
 

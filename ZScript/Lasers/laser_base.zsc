@@ -202,7 +202,7 @@ class MechLaserBeam : Actor
 		// Scale to Distance.
 		double dist = min(hitData.Distance, maxDist);
 		double dirPitch = pitch - 90;
-		scale.y = dist;// * level.pixelstretch;
+		scale.y = dist; // * level.pixelstretch;
 		
 		if(ontics == 2)
 		{

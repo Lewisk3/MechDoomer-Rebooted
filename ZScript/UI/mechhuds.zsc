@@ -185,6 +185,7 @@ class MechHUD : VehicleHUD
 			DrawLockonRet(crosshairAlpha);
 			DrawDamageEffects(mech);
 			DrawItemOverlays(mech);
+			if(mech.driver.player) DrawKeys(PlayerPawn(mech.driver), (960,30), 36, spacing:10);
 			
 			if(mech.EMI >= 5)
 				interferenceDuration = 80;

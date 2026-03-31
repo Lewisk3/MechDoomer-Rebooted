@@ -106,10 +106,8 @@ class MDRTitleLogo : MDRTitleMenuElement
 
 	void DrawMDoom(double dT, vector2 pos, double texScale = 1.0)
 	{
-		console.printf("Got path: %s", mDoomPath); 
 		if(!mDoomTex || mDoomPath == "") return;
 		MWDrawer.DrawImage(mDoomPath, pos, scale:(texScale,texScale));
-		console.printf("Drawing at: (%f, %f)", pos.x, pos.y);
 	}
 
 	override void Draw(double dT)

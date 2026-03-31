@@ -58,11 +58,11 @@ class MechLaserWeapon : MechWeapon
 		statName.Push(" ");
 		statValue.Push(" ");
 		statName.Push("DPS");
-		statValue.Push(String.Format("%.2f", damage*TICRATE));
+		statValue.Push(String.Format("%.2f", dmgPerTic*TICRATE));
 		statName.Push("EHPS");
 		statValue.Push(String.Format("%.2f", ehps));
 		statName.Push("DPH");
-		statValue.Push(String.Format("%d", damage / laserHeat));
+		statValue.Push(String.Format("%d", (dmgPerTic * laserTime) / laserHeat));
 	}
 	
 	override string GetShopDescription()

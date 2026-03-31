@@ -30,6 +30,7 @@ Model MechLaserCore
 	Skin 0 "BEAM_detailed.png"
 	USEACTORPITCH
 	DONTCULLBACKFACES
+	Scale 2.0 2.0 2.0
 	
 	FrameIndex MODL A 0 0
 }

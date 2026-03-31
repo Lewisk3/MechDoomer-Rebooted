@@ -17,7 +17,7 @@ class ParticleCannon : MechProjectile
 		MechProjectile.Ranges 90, 1080;
 		MechProjectile.SpeedKPH 1400;
 		MechProjectile.ImpactSound "Energy/PPC/Impact";
-		ParticleCannon.PowerKJ 2500000;
+		ParticleCannon.PowerKJ 3500000;
 		Mass 0;
 	}
 
