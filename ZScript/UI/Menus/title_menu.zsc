@@ -104,7 +104,7 @@ class MDRTitleLogo : MDRTitleMenuElement
 		if(gamestate == GS_TITLELEVEL)
 		{
 			Font creditsFont = "hm_thin";
-			double yOffs = height - 80;
+			double yOffs = (height * 0.5);
 			String creditsText = "Music by: Timothy Seals";
 			vector2 textPos = (
 				pos.x + (size.x * 0.5),
@@ -129,7 +129,7 @@ class MDRTitleMenu : MDRTitleMenuBase
 			VerticalButtons();
 			
 		// Add Title Icon
-		double logoWidth = 650 * (isTitlemap ? 1.15 : 0.8);
+		double logoWidth = 650 * (isTitlemap ? 0.8 : 0.8);
 		
 		AddElement("MDRTitleLogo", "TitleIcon", (960 - (logoWidth * 0.5), -(logoWidth * 0.25)), (logoWidth,logoWidth));
 		
