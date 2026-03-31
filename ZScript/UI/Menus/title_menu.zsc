@@ -1,33 +1,72 @@
 class MDRTitleButton : MDRTitleMenu_Button
 {
 	int itemID;
-
+	double waitTimer;
+	double scaleTimer;
+	double curScale;
+	
+	override void Init()
+	{
+		super.Init();
+		scaleTimer = 0.2;
+		curScale = 0;
+	}
+	
 	override void Draw(double dT)
 	{
+		if(waitTimer > 0)
+		{
+			waitTimer--;
+			return;
+		}
+		
+		curScale = DrivablesMath.lerp(curScale, 1.0, scaleTimer * min(1.0, dT));
+		curScale = clamp(curScale, 0, 1.0);
+		vector2 scaleSize = size * curScale;
+
 		Font fnt = "bt_classic";
-		double fontScale = 2.0;
+		double fontScale = 1.25;
 		
 		Color btnColor = 0xFF7F7F7F;
 		if(btnDown) btnColor = 0xFFFF0000;
 		if(pressed) btnColor = 0xFF00FF00;
 		
-		MWDrawer.DrawRect(pos, size, btnColor);
+		// Programmer Art, literally.
+		Color outerColor = 0x5F5F5F;
+		Color innerColor = 0x8F8F8F;
 		
+		if(hovered) innerColor = 0x3F3F3F;
+		if(btnDown)
+		{
+			outerColor = 0x3F3F3F;
+			innerColor = 0x0F0F0F;
+		}
+	
+		if(!btnDown)
+		{
+			// Shadow
+			MWDrawer.Fill(0x000000, pos.x + 2, pos.y + 4, scaleSize.x + 6, scaleSize.y + 6, 0.8);
+		}
+	
+		MWDrawer.Fill(outerColor, pos.x - 4, pos.y - 4, scaleSize.x + 8, scaleSize.y + 8, 1.0);
+		MWDrawer.Fill(innerColor, pos.x, pos.y, scaleSize.x, scaleSize.y, 1.0);
+	
 		// Autofit 
-		double fitX = size.x - 20;
+		double fitX = scaleSize.x - 20;
 		double itemNameWidth = fnt.StringWidth(elementName) * fontScale * 2.0;
 		double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : 1.0;
 		fontScale *= fitScale;
 		
 		vector2 btnCenter = getTextCenter(fnt, fontScale);
 		
-		MWDrawer.DrawString(fnt, String.Format("%s", elementName), btnCenter, MWDrawer.SS_TEXT_CENTER, scale:(fontScale, fontScale));
+		// Text
+		MWDrawer.DrawString(fnt, String.Format("%s", elementName), btnCenter, MWDrawer.SS_TEXT_CENTER, Font.CR_GRAY, scale:(fontScale * curScale, fontScale * curScale));
 	}
 	
 	override void Update(double dT)
 	{
 		if(parent.selectedItem == itemID)
-			btnDown = true;
+			hovered = true;
 		else
 			super.Update(dT);
 	}
@@ -62,14 +101,17 @@ class MDRTitleLogo : MDRTitleMenuElement
 		
 		MWDrawer.DrawImage(graphic, imgPos, flags:0, scale:(toScale, toScale));
 		
-		Font creditsFont = "hm_thin";
-		double yOffs = height - 80;
-		String creditsText = "Music by: Timothy Seals";
-		vector2 textPos = (
-			pos.x + (size.x * 0.5),
-			pos.y + (size.y * 0.5) + yOffs
-		);
-		MWDrawer.DrawString(creditsFont, creditsText, textPos, flags:MWDrawer.SS_TEXT_CENTER, Font.CR_GRAY, alpha:0.8);
+		if(gamestate == GS_TITLELEVEL)
+		{
+			Font creditsFont = "hm_thin";
+			double yOffs = height - 80;
+			String creditsText = "Music by: Timothy Seals";
+			vector2 textPos = (
+				pos.x + (size.x * 0.5),
+				pos.y + (size.y * 0.5) + yOffs
+			);
+			MWDrawer.DrawString(creditsFont, creditsText, textPos, flags:MWDrawer.SS_TEXT_CENTER, Font.CR_GRAY, alpha:0.8);
+		}
 	}
 }
 
@@ -80,36 +122,15 @@ class MDRTitleMenu : MDRTitleMenuBase
 	
 	override void InitElements() 
 	{
-		// Add buttons based on text elements.
-		vector2 buttonPos = (960,540 + 150);
-		vector2 buttonSize = (180,64);
-		buttonPos = (
-			buttonPos.x - (buttonSize.x * 0.5),
-			buttonPos.y - (buttonSize.y * 0.5)
-		);
-				
-		// Fit options menu
-		double buttonSpacing = buttonSize.y + 30;
-		double bottomSpacing = 50;
-		
-		double scrBottom = (1080 - buttonSize.y) - bottomSpacing;
-		double listHeight = buttonPos.y + ((menuOptions.Size()-1) * buttonSpacing);
-		double heightDiff = (scrBottom - listHeight);
-		double yOffs = heightDiff < 0 ? abs(heightDiff) : 0; 
-		buttonPos.y -= yOffs;           
-		
-		// Create Buttons
-		for(int i = 0; i < menuOptions.Size(); i++)
-		{
-			let opt = menuOptions[i];
-			string buttonText = StringTable.Localize(opt.mText);
-			let button = MDRTitleButton(AddElement("MDRTitleButton", buttonText, buttonPos, buttonSize));
-			button.itemID = i;
-			buttonPos.y += buttonSpacing;
-		}
+		double isTitlemap = (gamestate == GS_TITLELEVEL);
+		if(isTitlemap)
+			HorizontalButtons();
+		else
+			VerticalButtons();
 			
 		// Add Title Icon
-		double logoWidth = 650;
+		double logoWidth = 650 * (isTitlemap ? 1.15 : 0.8);
+		
 		AddElement("MDRTitleLogo", "TitleIcon", (960 - (logoWidth * 0.5), -(logoWidth * 0.25)), (logoWidth,logoWidth));
 		
 		// Debug Mode
@@ -119,6 +140,74 @@ class MDRTitleMenu : MDRTitleMenuBase
 		
 		// Cursor added last
 		super.InitElements();
+	}
+	
+	void HorizontalButtons()
+	{
+		// Add buttons based on text elements.
+		vector2 buttonSize = (200,64) * 1.5;
+		double bottomSpacing = 120;
+		
+		vector2 buttonPos = (1920 / 2.0, 1080 - bottomSpacing);
+		
+		// Fit options menu
+		int btnCount = menuOptions.Size();
+		double buttonSpacing = buttonSize.x + 30;
+		double buttonsWidth = (buttonSpacing * btnCount);
+		console.printf("W: %f", buttonsWidth);
+		
+		buttonPos = (
+			buttonPos.x - (buttonsWidth * 0.5),
+			buttonPos.y - (buttonSize.y * 0.5)
+		);
+		
+		// Create Buttons
+		for(int i = 0; i < btnCount; i++)
+		{
+			let opt = menuOptions[i];
+			string buttonText = StringTable.Localize(opt.mText);
+			let button = MDRTitleButton(AddElement("MDRTitleButton", buttonText, buttonPos, buttonSize));
+			button.itemID = i;
+			buttonPos.x += buttonSpacing;
+			button.waitTimer = 20 * i;
+		}
+	}
+	
+	void VerticalButtons()
+	{
+		// Add buttons based on text elements.
+		vector2 buttonPos = (960,540 + 150);
+		vector2 buttonSize = (200,48) * 1.5;
+		buttonPos = (
+			buttonPos.x - (buttonSize.x * 0.5),
+			buttonPos.y - (buttonSize.y * 0.5)
+		);
+				
+		// Fit options menu
+		double buttonSpacing = buttonSize.y + 20;
+		double bottomSpacing = 50;
+		
+		double scrBottom = (1080 - buttonSize.y) - bottomSpacing;
+		double listHeight = buttonPos.y + ((menuOptions.Size()-1) * buttonSpacing);
+		double heightDiff = (scrBottom - listHeight);
+		double yOffs = heightDiff < 0 ? abs(heightDiff) : 0; 
+		buttonPos.y -= yOffs;   
+		
+		// Create Buttons
+		for(int i = 0; i < menuOptions.Size(); i++)
+		{
+			let opt = menuOptions[i];
+			string buttonText = StringTable.Localize(opt.mText);
+			let button = MDRTitleButton(AddElement("MDRTitleButton", buttonText, buttonPos, buttonSize));
+			button.itemID = i;
+			buttonPos.y += buttonSpacing;
+			button.waitTimer = 20 * i;
+		}
+	}
+	override void OnItemSelected(bool shouldActivate)
+	{
+		super.OnItemSelected(shouldActivate);
+		if(shouldActivate) MenuSound("Menus/Button/Pressed");
 	}
 	
 	override void Drawer()

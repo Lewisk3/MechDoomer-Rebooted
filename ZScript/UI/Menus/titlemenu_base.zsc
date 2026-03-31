@@ -305,11 +305,13 @@ class MDRTitleMenuBase : ListMenu
 		switch (mkey)
 		{
 		case MKEY_Up:
+		case MKEY_Left:
 			selectedItem--;
 			if(selectedItem < 0) selectedItem = itemCount;
 			OnItemSelected();
 			return true;
 		case MKEY_Down:
+		case MKEY_Right:
 			selectedItem++;
 			if(selectedItem > itemCount) selectedItem = 0;
 			OnItemSelected();
