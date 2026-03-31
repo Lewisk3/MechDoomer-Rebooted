@@ -22,6 +22,9 @@ class MDRTitleButton : MDRTitleMenu_Button
 		
 		curScale = DrivablesMath.lerp(curScale, 1.0, scaleTimer * min(1.0, dT));
 		curScale = clamp(curScale, 0, 1.0);
+		
+		if(hovered) curScale *= 1.02;
+		
 		vector2 scaleSize = size * curScale;
 
 		Font fnt = "bt_classic";
@@ -47,9 +50,12 @@ class MDRTitleButton : MDRTitleMenu_Button
 			// Shadow
 			MWDrawer.Fill(0x000000, pos.x + 2, pos.y + 4, scaleSize.x + 6, scaleSize.y + 6, 0.8);
 		}
+		vector2 offs = (0,0);
+		if(btnDown) offs = (2,2);
+		vector2 drawPos = pos + offs;
 	
-		MWDrawer.Fill(outerColor, pos.x - 4, pos.y - 4, scaleSize.x + 8, scaleSize.y + 8, 1.0);
-		MWDrawer.Fill(innerColor, pos.x, pos.y, scaleSize.x, scaleSize.y, 1.0);
+		MWDrawer.Fill(outerColor, drawPos.x - 4, drawPos.y - 4, scaleSize.x + 8, scaleSize.y + 8, 1.0);
+		MWDrawer.Fill(innerColor, drawPos.x, drawPos.y, scaleSize.x, scaleSize.y, 1.0);
 	
 		// Autofit 
 		double fitX = scaleSize.x - 20;
@@ -60,7 +66,7 @@ class MDRTitleButton : MDRTitleMenu_Button
 		vector2 btnCenter = getTextCenter(fnt, fontScale);
 		
 		// Text
-		MWDrawer.DrawString(fnt, String.Format("%s", elementName), btnCenter, MWDrawer.SS_TEXT_CENTER, Font.CR_GRAY, scale:(fontScale * curScale, fontScale * curScale));
+		MWDrawer.DrawString(fnt, String.Format("%s", elementName), btnCenter + offs, MWDrawer.SS_TEXT_CENTER, Font.CR_GRAY, scale:(fontScale * curScale, fontScale * curScale));
 	}
 	
 	override void Update(double dT)
