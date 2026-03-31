@@ -18,10 +18,15 @@ class MechAIControllerBase : Actor abstract
 		MechAIControllerBase.MechType "NONE";
 	}
 	
+	virtual class<DrivableMech> PickMechType()
+	{
+		return mechType;
+	}
+	
 	override void PostBeginPlay()
 	{
 		super.PostBeginPlay();
-		SetupMech(mechType);
+		SetupMech(PickMechType());
 	}
 	
 	void SetupMech(class<DrivableMech> mechType)

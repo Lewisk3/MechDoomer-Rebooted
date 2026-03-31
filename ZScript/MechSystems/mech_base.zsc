@@ -24,6 +24,7 @@ class DrivableMech : DrivableObject
 	bool hideHUD; // If true, HUD is not drawn.
 	bool hasLockedEngine; // If true, engine cannot be removed once initially equipped.
 	bool isQuadMech; // If true, this mech will always use the mech-assault styled movement.
+	double fixedScale; // If non-zero, mech will always be scaled by this amount.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -346,6 +347,9 @@ class DrivableMech : DrivableObject
 	
 	virtual double GetMechScale()
 	{
+		// If fixedScale, just return that.
+		if(fixedScale > 0) return fixedScale;
+	
 		// Dropship map has a fixed mechscale.
 		Name mapname = level.mapname;
 		if(mapname == 'DROPSHIP') return dropshipScale;

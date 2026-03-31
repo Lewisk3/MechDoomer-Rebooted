@@ -27,7 +27,7 @@ DoomEdNums
 	16506 = "Rock_07"
 	16507 = "Rock_08"
 	16508 = "Rock_09"
-	16600 = "TitleMechAI_Timberwolf"
+	16600 = "TitleMechAI_Deco"
 	16601 = "MDRTitleMap_OpenMainmenu"
 }
 

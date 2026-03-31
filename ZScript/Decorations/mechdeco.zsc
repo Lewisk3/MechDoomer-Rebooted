@@ -1,23 +1,29 @@
-class TitleMechTimberwolf : MechTimberWolf
-{
-	override double GetMechScale()
-	{
-		return 3.0;
-	}
-}
-
-class TitleMechAI_Timberwolf : MechAIControllerBase
+class TitleMechAI_Deco : MechAIControllerBase
 {
 	bool finishpowerup;
 
 	Default
 	{
-		MechAIControllerBase.MechType "TitleMechTimberwolf";
+		MechAIControllerBase.MechType "";
 		+INTERPOLATEANGLES;
+	}
+	
+	override class<DrivableMech> PickMechType()
+	{
+		Array<class<DrivableMech> > mechs;
+		foreach(cls : AllActorClasses)
+		{
+			let mechClass = (class<DrivableMech>)(cls);
+			if(mechClass && mechClass != "DrivableMech") mechs.Push(mechClass);
+		}
+		
+		return mechs[random[MechDecoPicker](0, mechs.Size()-1)];
 	}
 	
 	override void AIThink(bool poweredup)
 	{
+		if(mech) mech.fixedScale = 3.0;
+	
 		mech.hideHUD = true;
 		if(!poweredup && !mech.CheckMechDestroyed() && !mech.heatShutdown && mech.shutdown)
 		{
