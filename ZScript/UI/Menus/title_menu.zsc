@@ -81,12 +81,35 @@ class MDRTitleButton : MDRTitleMenu_Button
 class MDRTitleLogo : MDRTitleMenuElement
 {	
 	String graphic; 
-	TextureID graphicTex;
+	TextureID graphicTex, mDoomTex;
+	string mDoomPath;
 
 	override void Init()
 	{
 		graphic = "Graphics/Title/TitleLogo.png";
 		graphicTex = TexMan.CheckForTexture(graphic);
+			
+		// Find last M_DOOM graphic
+		mDoomPath = "";
+		for(int lmp = Wads.FindLump("M_DOOM"); lmp != -1; lmp = Wads.FindLump("M_DOOM", lmp+1))
+		{
+			mDoomPath = Wads.GetLumpFullPath(lmp);
+		}
+		
+		// Parse file-path
+		if(mDoomPath != "")
+		{
+			mDoomPath = mDoomPath.Mid(mDoomPath.IndexOf(":")+1);
+			mDoomTex = TexMan.CheckForTexture(mDoomPath);
+		}	
+	}
+
+	void DrawMDoom(double dT, vector2 pos, double texScale = 1.0)
+	{
+		console.printf("Got path: %s", mDoomPath); 
+		if(!mDoomTex || mDoomPath == "") return;
+		MWDrawer.DrawImage(mDoomPath, pos, scale:(texScale,texScale));
+		console.printf("Drawing at: (%f, %f)", pos.x, pos.y);
 	}
 
 	override void Draw(double dT)
@@ -98,6 +121,29 @@ class MDRTitleLogo : MDRTitleMenuElement
 			pos.x + (size.x * 0.5),
 			pos.y + (size.y * 0.5)
 		);
+		
+		if(mDoomTex)
+		{
+			let [MD_Width, MD_Height] = TexMan.GetSize(mDoomTex);
+			// Scale to roughly the same size as MDR logo
+			double scaleFactor = min(scaledSize.x / double(MD_Width), scaledSize.y / double(MD_Height)) * 0.8;
+			vector2 MD_ScaledSize = (MD_Width * scaleFactor, MD_Height * scaleFactor);
+			
+			double mdPadding = 50;
+			imgPos.x -= (MD_ScaledSize.x * 0.5) + (mdPadding * 0.5);
+			
+			vector2 mDoomPos = (
+				pos.x + size.x + (mdPadding * 0.5),
+				imgPos.y
+			);
+			
+			vector2 textPos = (
+				imgPos.x + (scaledSize.x * 0.5) + (mdPadding * 0.25) - 4, 
+				imgPos.y - 5
+			);
+			MWDrawer.DrawString("bt_classic", "with", textPos, flags:MWDrawer.SS_TEXT_CENTER, Font.CR_BLACK, 0.8, scale:(1.0,1.0));
+			DrawMDoom(dT, mDoomPos, scaleFactor); 
+		}
 		
 		MWDrawer.DrawImage(graphic, imgPos, flags:0, scale:(toScale, toScale));
 		
@@ -154,7 +200,6 @@ class MDRTitleMenu : MDRTitleMenuBase
 		int btnCount = menuOptions.Size();
 		double buttonSpacing = buttonSize.x + 30;
 		double buttonsWidth = (buttonSpacing * btnCount);
-		console.printf("W: %f", buttonsWidth);
 		
 		buttonPos = (
 			buttonPos.x - (buttonsWidth * 0.5),
