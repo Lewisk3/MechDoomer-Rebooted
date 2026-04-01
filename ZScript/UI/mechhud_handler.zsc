@@ -1,5 +1,10 @@
 class MechHUD_Handler : EventHandler
 {
+	ui int old_reltop;
+	ui int old_resx;
+	ui int old_resy;
+	ui bool cachedStatusBar;
+	
 	ui bool hidingHUD;
 	
 	ui void HideHUD()
@@ -19,6 +24,23 @@ class MechHUD_Handler : EventHandler
 		Screen.EnableStencil(false);
 		Screen.ClearStencil();
 		hidingHUD = false;
+	}
+	
+	ui void SetupStatusBar(bool revert = false)
+	{
+		if(!revert)
+		{
+			old_reltop = statusbar.reltop;
+			old_resx = statusbar.HorizontalResolution;
+			old_resy = statusbar.VerticalResolution;
+			statusbar.SetSize(0,320,200);
+			cachedStatusBar = true;
+		}
+		else
+		{
+			statusbar.SetSize(old_reltop, old_resx, old_resy);
+			cachedStatusBar = false;
+		}
 	}
 	
 	ui DrivableMech getPilotingMech(RenderEvent e)
@@ -44,7 +66,13 @@ class MechHUD_Handler : EventHandler
 	{		
 		// Get pilot
 		let mech = getPilotingMech(e);
-		if(!mech) return;
+		if(!mech)
+		{
+			if(cachedStatusBar)
+				SetupStatusBar(true);
+				
+			return;
+		}
 		
 		if(!mech.activeHUD)
 		{
@@ -53,6 +81,9 @@ class MechHUD_Handler : EventHandler
 		}
 		else
 		{
+			if(!cachedStatusBar) 
+				SetupStatusBar();
+				
 			ShowHUD();
 			mech.activeHUD.Update(mech);
 			mech.activeHUD.Draw(e);
@@ -479,6 +510,9 @@ class VehicleHUD : Object ui
 		{
 			let curKey = Key(plr.FindInventory(Key.GetKeyType(i)));
 			if(!curKey) continue;
+			
+			let icon = getKeyIcon(curKey);
+			if(!icon.isValid()) continue;
 			curKeyCount++;
 		}
 		
