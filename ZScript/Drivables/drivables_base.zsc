@@ -4,27 +4,6 @@ class I_DrivingObject : Inventory
 	bool disableWeapons, disableDamage, resetDriver;
 	uint oldscrBlocks;
 	State defaultWeaponState;
-
-	// A lot of this traveling code is going to be commented out, currently it's
-	// only used to signal to a vehicle that it's about to get thanos snapped out of the game
-	// this allows for a vehicle to potentially save all of it's relevant data to an inventory
-	// item on the player before-hand.
-	
-	/*
-	override void PreTravelled()
-	{
-		source.ChangeStatNum(STAT_TRAVELLING);
-		source.PreTravelled();
-	}
-	
-	override void Travelled()
-	{	
-		source.ChangeStatNum(STAT_DEFAULT);
-		source.SetOrigin(Owner.pos, false);
-		resetDriver = true;
-		source.Travelled();
-	}
-	*/
 	
 	override void ModifyDamage(int damage, Name damageType, out int newdamage, bool passive, Actor inflictor, Actor source, int flags)
 	{
@@ -33,6 +12,15 @@ class I_DrivingObject : Inventory
 		// otherwise monsters will ignore them.
 		
 		if(passive && disableDamage) newdamage = 0;
+	}
+	
+	// This virtual has the added benefit of detecting whenever P_Teleport is called!
+	// Really neat way to tell an actor has teleported without any class override.
+	// Special thanks to Jaih1r0 on the ZDoom discord for pointing this virtual out to me!
+	override bool GetNoTeleportFreeze()
+	{
+		if(source) source.OnDriverTeleport(Owner.pos);
+		return super.GetNoTeleportFreeze();
 	}
 	
 	clearscope static I_DrivingObject Get(Actor from)
@@ -458,6 +446,7 @@ class DrivableObject : DrivableComponent
 		}
 		
 		// Detect driver teleport
+		/*
 		if(driver)
 		{
 			vector3 driverPosDiff = level.vec3diff(driver.pos, driver.Prev);
@@ -466,6 +455,7 @@ class DrivableObject : DrivableComponent
 		}
 		
 		//console.printf("Set Pos: %f, %f, %f", (pos.x, pos.y, pos.z));
+		*/
 		
 		// Physics
 		DoPhysics();

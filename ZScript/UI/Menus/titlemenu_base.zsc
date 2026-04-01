@@ -196,6 +196,21 @@ class MDRTitleMenuBase : ListMenu
 		DontDim = true;
 		
 		// Populate items with only TextItem entries.
+		// Ensure Quit menu is the last option.
+		int quitItemIndex;
+		for(int i = 0; i < mDesc.mItems.Size(); i++)
+		{
+			let item = mDesc.mItems[i];
+			if(item.getAction() == "QuitMenu")
+			{
+				quitItemIndex = i;
+				break;
+			}
+		}
+		let quitItem = mDesc.mItems[quitItemIndex];
+		mDesc.mItems.Delete(quitItemIndex);
+		mDesc.mItems.Push(quitItem);
+		
 		foreach(item : mDesc.mItems)
 		{
 			let textItem = ListMenuItemTextItem(item);

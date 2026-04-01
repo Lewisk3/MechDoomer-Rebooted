@@ -196,14 +196,22 @@ class MDRTitleMenu : MDRTitleMenuBase
 	{
 		// Add buttons based on text elements.
 		vector2 buttonSize = (200,64) * 1.5;
+		double buttonFitX = 1650;
 		double bottomSpacing = 120;
 		
 		vector2 buttonPos = (1920 / 2.0, 1080 - bottomSpacing);
 		
-		// Fit options menu
+		
+		// Position alignment
 		int btnCount = menuOptions.Size();
-		double buttonSpacing = buttonSize.x + 30;
+		double buttonSpacing = buttonSize.x + 45;
 		double buttonsWidth = (buttonSpacing * btnCount);
+		
+		// Find optimal scaling
+		double optScale = buttonFitX / buttonsWidth;
+		buttonSize.x *= optScale;
+		buttonSpacing *= optScale;
+		buttonsWidth *= optScale;
 		
 		buttonPos = (
 			buttonPos.x - (buttonsWidth * 0.5),
