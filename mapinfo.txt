@@ -32,6 +32,10 @@ DoomEdNums
 }
 
 // Prevent cluster text from appearing when the dropship map is loaded.
+cluster 1  {exittext = ""}
+cluster 2  {exittext = ""}
+cluster 3  {exittext = ""}
+cluster 4  {exittext = ""}
 cluster 5  {exittext = ""}
 cluster 6  {exittext = ""}
 cluster 7  {exittext = ""}

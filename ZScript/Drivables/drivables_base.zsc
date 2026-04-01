@@ -457,9 +457,28 @@ class DrivableObject : DrivableComponent
 			}
 		}
 		
+		// Detect driver teleport
+		if(driver)
+		{
+			vector3 driverPosDiff = level.vec3diff(driver.pos, driver.Prev);
+			double dist = driverPosDiff.Length();
+			if(dist > 100) OnDriverTeleport(driver.Prev);
+		}
+		
+		//console.printf("Set Pos: %f, %f, %f", (pos.x, pos.y, pos.z));
+		
 		// Physics
 		DoPhysics();
 		extbtns_old = extbtns;
+	}
+	
+	virtual void OnDriverTeleport(vector3 toPos)
+	{
+		// Called when the driver is teleported.
+		vector3 posDiff = level.vec3diff(pos, toPos);
+		SetOrigin(toPos, false);
+		driver.SetOrigin(toPos, false);
+		driver.Prev = toPos;
 	}
 	
 	override void PostBeginPlay()

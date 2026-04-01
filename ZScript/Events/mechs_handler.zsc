@@ -174,7 +174,11 @@ class MechInteraction_Handler : EventHandler
 			if(args[1] == "give")
 			{
 				let item = (class<MechItem>)(args[2]);
-				if(!inv || !item) return;
+				if(!inv || !item) 
+				{
+					console.printf("Unrecognized MechItem: %s", item.getClassName());
+					return;
+				}
 			
 				inv.AddItem(MechItem.Init(item));
 				console.printf("Received: %s.", item.getClassName());
@@ -182,7 +186,11 @@ class MechInteraction_Handler : EventHandler
 			
 			if(args[1] == "printmoney")
 			{
-				inv.cbills += args[2].ToInt();
+				double amt = args[2].ToDouble();
+				if( (inv.cbills + amt) > 2e9 ) 
+					inv.cbills = 2e9;
+				else
+					inv.cbills += int(amt);
 				console.printf("Printed %s more cbills. (I believe this is what they call the \"STONKS\", comrade.)", args[2]);
 			}
 		}

@@ -498,7 +498,6 @@ class VehicleHUD : Object ui
 				let [width, height] = TexMan.GetSize(icon);
 				double iconScale = keySize / double(width);
 				vector2 scaledSize = (width, height) * iconScale;
-				console.printf("Sc: %f", scaledSize.x);
 				MWDrawer.DrawTexture(icon, drawPos + (scaledSize.x * 0.5, scaledSize.y * 0.5), flags:0, alpha, scale:(iconScale, iconScale));
 				drawPos.x += spacing + (width * iconScale);
 			}
