@@ -88,6 +88,18 @@ class MechLaserWeapon : MechWeapon
 		return continuous ? cooldownTime * (fireTime / double(maxLaserTime)) : super.getCooldownTime();
 	}
 	
+	override bool CanFire()
+	{
+		bool energyGood = true;
+		if(continuous)
+		{
+			double curEnergy = getMechEnergy();
+			energyGood = (curEnergy - (energyUse * (maxLaserTime * 0.1))) >= 0;
+		}
+		
+		return super.CanFire() && energyGood;
+	}
+	
 	// Called so long as the weapon's fire button is held.
 	override void preFire()
 	{

@@ -289,6 +289,13 @@ class MechItem : Object
 		engine.energy -= amt;
 	}
 	
+	clearscope virtual double getMechEnergy()
+	{
+		let engine = mech.engine;
+		if(!engine) return 0;
+		return engine.energy;
+	}
+	
 	play virtual void Repair(int amt)
 	{
 		hp = min(10, hp+amt);

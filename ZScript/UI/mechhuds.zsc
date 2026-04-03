@@ -162,7 +162,8 @@ class MechHUD : VehicleHUD
 					}
 				}
 				
-				MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
+				// Always center retical, disabled as it kind of makes it hard to read aiming position for the arms.
+				// MWDrawer.DrawImage("Graphics/HUD/ArmRet.png", (0,0), MWDrawer.SS_SCREEN_CENTER, alpha:crosshairAlpha, tint:0xAAFF0000);
 		
 				// Disable zoom stencil
 				Screen.EnableStencil(false);
@@ -613,7 +614,7 @@ class MechHUD : VehicleHUD
 			if(!weap) continue;
 			
 			bool onArm = weap.parent is "MechArm";
-			bool onTorso = weap.parent is "MechTorso" || weap.parent is "MechSideTorso";
+			bool onTorso = weap.parent is "MechTorso" || weap.parent is "MechSideTorso" || weap.parent is "MechCockpit";
 			bool destroyed = weap.checkDestroyed();
 			
 			if(onArm && ArmMounted == -1 )
