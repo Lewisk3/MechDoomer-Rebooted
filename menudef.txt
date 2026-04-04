@@ -55,10 +55,11 @@ OptionMenu "MDROptionsMenu"
 	Option "Start On Dropship", "sv_mdr_startondropship", "YesNo"
 	Slider "Mech Scale", "sv_mdr_mechscale",  0.1, 5, 0.1, 1
 	StaticText " "
-	StaticText "Cheats", "Orange"
+	StaticText "Global Variables", "Orange"
 	Option "Enable full mechlab outside of dropship", "sv_mdr_cheats_alwaysfullmechlab", "YesNo"
 	Option "Exit Anytime", "sv_mdr_exitanytime", "YesNo"
 	Option "Show mech hitboxes", "sv_mdr_drawmechhitboxes", "YesNo"
+	Slider "Mech Speed Modifier", "sv_mdr_mechspeedscale", 0.05, 3, 0.05, 2
 }
 
 OptionMenu "MDRControlsMenu"

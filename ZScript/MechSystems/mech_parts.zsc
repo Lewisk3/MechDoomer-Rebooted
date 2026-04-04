@@ -505,8 +505,8 @@ class MechHardpoint : MechPart
 			// Damage notification(s)
 			if(self is "MechTorso" || self is "MechSideTorso")
 			{
-				double threshold = mech.torso == self ? 0.5 : 0.35;
-				if( (healthPoints / maxHP <= threshold) && !mech.isCriticallyDamaged )
+				double dmgThreshold = (mech.torso == self) ? 0.5 : 0.35;
+				if( (healthPoints / maxHP) < dmgThreshold && !mech.isCriticallyDamaged )
 				{
 					mech.head.A_StartSound("Damage/Critical", flags:CHANF_OVERLAP|CHANF_LOCAL);
 					mech.betty.Push("Betty/DamageCritical");
@@ -518,7 +518,7 @@ class MechHardpoint : MechPart
 			double armorDmg = abs(prevFrontArmor - frontArmor) + abs(prevRearArmor - rearArmor); 
 			double hpDamage = abs(prevInternals - healthPoints);
 			double totalDamage = armorDmg + hpDamage;
-			if( armorDmg >= 2 || hpDamage > 2 ) 
+			if( armorDmg > 2 || hpDamage >= 2 ) 
 			{
 				double dmgIntensity = DrivablesMath.fmap(totalDamage, 2, 8, 0.3, 0.7);
 				double dmgTics = DrivablesMath.fmap(totalDamage, 2, 8, 10, 35);

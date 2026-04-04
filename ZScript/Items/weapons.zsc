@@ -993,7 +993,7 @@ class MRM30 : MRM10
 		DisplayName = "MRM30";
 		
 		refireCount = 30;
-		weight = 10.0 / double(refireCount);
+		weight = 10.0;
 		heat = 10.0;
 		size = 5;
 		cooldownTime = ceil(4.2 * TICRATE);

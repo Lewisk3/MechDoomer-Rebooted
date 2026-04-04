@@ -277,7 +277,7 @@ class MechItem : Object
 	}
 	
 	play virtual void modifyHeat(double amt)
-	{
+	{	
 		mech.modifyHeat(amt);
 		parent.adjustLocalHeat(amt);
 	}
@@ -1170,7 +1170,7 @@ class MechEngine : MechItem
 	{
 		if(!mech) return 0, 0;
 		
-		int walkMP = rating / mech.maxWeight;
+		double walkMP = rating / double(mech.maxWeight);
 		double runMP = walkMP * 1.5; 
 		return runMP, walkMP;
 	}

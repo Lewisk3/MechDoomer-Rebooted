@@ -1927,20 +1927,29 @@ class I_SaveMechData : Inventory
 	void RecycleActiveMechs()
 	{
 		let drvObj = I_DrivingObject.Get(Owner);
-		if(drvObj && drvObj.source is "DrivableMech") 
-		{
+		bool isDrivingMech = (drvObj && drvObj.source is "DrivableMech");
+		
+		// Remove pilot from mech before recycling.
+		if(isDrivingMech) 
 			drvObj.source.RemovePilot();
-			drvObj.source.Destroy();
-		}
-	
+			
+		bool foundActiveMech = false;
 		foreach(mechData : mechsData)
 		{
 			let mechobj = mechData.mechobj;
 			if(!mechobj) continue;
 			
+			// Save mechdata and remove stale mech.
 			saveMechData(mechobj);
+			if(drvObj && drvObj.source == mechobj)
+				foundActiveMech = true;
+				
 			mechobj.Destroy();
 		}
+		
+		// If we somehow didn't find the mech during the mechData iteration, clean it up here.
+		if(!foundActiveMech && isDrivingMech)
+			drvObj.source.Destroy();
 	}
 	
 	void ReloadAllMechbays()
@@ -2044,6 +2053,9 @@ class I_SaveMechData : Inventory
 			data.hardpointData.push(hardpointData);
 		}
 		
+		// Attach mechobj, pretty important to do this here it turns out...
+		data.mechobj = mech;
+		
 		return data;
 	}
 	
@@ -2136,7 +2148,7 @@ class I_SaveMechData : Inventory
 			let loader = MechLoader(Spawn("MechLoader", atPos));
 			loader.mech = mech;
 			loader.data = mechData;
-			mechData.mechobj = mech;
+			mechsData[mechSaveID].mechobj = mech;
 		}
 		return mech;
 	}

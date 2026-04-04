@@ -354,7 +354,6 @@ class MechMissileWeapon : MechWeapon
 		proj.homingTarget = homingTarget;
 		
 		double heatMod = heat / double(max(1, refireCount));
-		modifyHeat(heatMod);
 		depleteAmmo(ammoUse);
 		return true;
 	}
@@ -372,6 +371,7 @@ class MechBallisticWeapon : MechWeapon
 	Sound reloadSound;
 	double spread;
 	double fireCount;
+	double projMassScalar;
 	bool disableMountRecoil;
 	Actor firedProjectile;
 
@@ -400,7 +400,7 @@ class MechBallisticWeapon : MechWeapon
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
 		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
-		double projRawDamage = projDefs.GetMonsterDamage(NULL);
+		double projRawDamage = projDefs.GetMonsterDamage(NULL, 1.0 - projMassScalar);
 	
 		string suffix = fireCount > 1 ? String.Format("x %d", fireCount) : "";
 		string DMGString = String.Format("%.2f %s", projRawDamage, suffix);
@@ -408,7 +408,7 @@ class MechBallisticWeapon : MechWeapon
 		statName.Push("DAMAGE");
 		statValue.Push(DMGString);
 		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f K", BHUTOKelvin(heat)));
+		statValue.Push(String.Format("%.2f K", BHUTOKelvin(getHeatGen())));
 		statName.Push("FIRE RATE");
 		statValue.Push(String.Format("%.1f/s", 1.0 / cooldownSeconds));
 		statName.Push("COOLDOWN");
@@ -457,7 +457,7 @@ class MechBallisticWeapon : MechWeapon
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 		double minRange = projDefs.minRange;
 		double maxRange = projDefs.maxRange;
-		double projRawDamage = projDefs.GetMonsterDamage(NULL);
+		double projRawDamage = projDefs.GetMonsterDamage(NULL, 1.0 - projMassScalar);
 		
 
 		stats.Push("Range");
@@ -498,6 +498,14 @@ class MechBallisticWeapon : MechWeapon
 		}
 	}
 	
+	play virtual void ModifyProjectile(Actor proj)
+	{
+		// Called after a projectile is spawned by this weapon.
+		// Scale mass of projectile, used for fine-tuning weapon damage.
+		if(!proj) return;
+		proj.mass *= (1.0 - projMassScalar);
+	}
+	
 	override bool Fire(vector3 firePos)
 	{
 		// Setup weapon refire on the first Fire call.
@@ -512,10 +520,10 @@ class MechBallisticWeapon : MechWeapon
 		
 			firedProjectile = EffectsHelper.Fire3DProjectile(parent, parent.lookingPos, projType, firePos.x, firePos.y, firePos.z, true, projSpread.x, projSpread.y);
 			firedProjectile.master = mech.driver;
+			ModifyProjectile(firedProjectile);
 		}
 		
 		WeapSound(fireSound);
-		modifyHeat(heat);
 		depleteAmmo(ammoUse);
 		justFired = true;
 		
@@ -538,6 +546,7 @@ class UltraAC : MechBallisticWeapon
 		refireDelay = fireTime*4;
 		ammoUse = 1;
 		jamChance = jamperc;
+		projMassScalar = 0.4;
 	}
 
 	override void Defaults()

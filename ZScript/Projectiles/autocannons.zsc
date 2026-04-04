@@ -1,3 +1,6 @@
+// Autocannons need some slight adjustments for balance.
+const MDR_AC_DMGSCALAR = 0.55;
+
 class MechAutocannon : MechProjectile
 {
 	bool overlay;
@@ -13,6 +16,12 @@ class MechAutocannon : MechProjectile
 		MechProjectile.ImpactSound "Generic/Impact";
 		MechAutocannon.CreateOverlay true;
 		MechAutocannon.SmokeTrail true;
+	}
+	
+	override double GetMonsterDamage(Actor victim, double massModifier)
+	{
+		double dmg = super.GetMonsterDamage(victim, massModifier);
+		return dmg * MDR_AC_DMGSCALAR;
 	}
 
 	override void Tick()

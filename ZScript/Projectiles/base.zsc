@@ -141,7 +141,7 @@ class MechProjectile : FastProjectile
 	
 	// Only called on non-mech targets.
 	// NOTE: All play-scope data accessed from this function must not be written to.
-	virtual clearscope double GetMonsterDamage(Actor victim) const
+	virtual clearscope double GetMonsterDamage(Actor victim, double massModifier = 1.0) const
 	{
 		// Always null-check victim if you overwrite this!
 		// Damage descriptions are generated with victim set to NULL.
@@ -149,7 +149,7 @@ class MechProjectile : FastProjectile
 		if(mass <= 0 || trueDamage <= 0) return 0;
 	
 		// Calculate real-world damage value using projectile speed and mass.
-		double roundWeight = mass * MASS_SCALAR; // KG per Round
+		double roundWeight = mass * MASS_SCALAR * massModifier; // KG per Round
 		double roundSpeed = (victim == NULL ? speedKPH : GetKPHSpeed()) * 0.28; // Meters Per Second
 
 		double kForce = 0.5 * (roundWeight * (roundSpeed*roundSpeed));
