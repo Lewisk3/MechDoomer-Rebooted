@@ -365,7 +365,7 @@ class MechHardpoint : MechPart
 	{
 		double internalHeatPerc = min(1.0, localHeat / (mech.maxHeat / 2.0));
 		double heatperc = mech.getHeatPerc();
-		if(heatperc < 0.9 && internalHeatPerc < 0.9) return;
+		if(heatperc < 0.95 && internalHeatPerc < 0.95) return;
 		
 		// Take 10% structural damage every second, multiplied by local heat ratio.
 		double heatDmg = (0.1 * maxHP) / double(TICRATE);		
@@ -509,7 +509,8 @@ class MechHardpoint : MechPart
 				if( (healthPoints / maxHP) < dmgThreshold && !mech.isCriticallyDamaged )
 				{
 					mech.head.A_StartSound("Damage/Critical", flags:CHANF_OVERLAP|CHANF_LOCAL);
-					mech.betty.Push("Betty/DamageCritical");
+					// TODO: Fix this looping a million times...
+					// mech.betty.Push("Betty/DamageCritical"); 
 					mech.isCriticallyDamaged = true;
 					MechHUD_Handler.FlashScreen(mech.driver.PlayerNumber(), dmgFlash, 0.9, 35);
 				}

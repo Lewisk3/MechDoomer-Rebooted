@@ -393,6 +393,10 @@ class MechHUD : VehicleHUD
 	{
 		double amMin = 0.02;
 		double ambient = mech.getAmbient();
+		
+		return clamp(DrivablesMath.fmap(fromHeat, ambient, mech.maxHeat, amMin, 1.0), 0, 1.0);
+		
+		/*
 		if(fromHeat <= ambient) return (fromHeat / ambient) * amMin;
 		if(fromHeat >= mech.maxHeat) return 1.0;
 
@@ -409,6 +413,7 @@ class MechHUD : VehicleHUD
 		{
 			return fromHeat / mech.maxHeat;
 		}
+		*/
 	}
 	
 	double heatCurve;
@@ -477,7 +482,12 @@ class MechHUD : VehicleHUD
 		
 		// Fill
 		curHeat = DrivablesMath.Lerp(curHeat, min(mech.maxHeat, mech.curHeat), 0.25 * deltaTime);
+		
+		double critHeat = MECH_SHUTDOWNHEAT * 0.85;
+		
 		double curHeatCurve = getHeatBarPerc(curHeat);
+		double critHeatPerc = getHeatBarPerc(mech.kelvinToBHU(mech.maxKelvin * critHeat));
+		double emergencyHeatPerc = getHeatBarPerc(mech.kelvinToBHU(mech.maxKelvin * MECH_SHUTDOWNHEAT));
 		
 		// This helps hide the transition point when mapping heat onto the bar.
 		heatCurve = DrivablesMath.Lerp(heatCurve, curHeatCurve, 0.25 * deltaTime);
@@ -487,8 +497,8 @@ class MechHUD : VehicleHUD
 		DrawRect(heatColor, heatPos + (2,barSize.y-2), (barSize.x-3, -heatHeight), flags:flags); 
 		
 		// Heat bars
-		double highHeat = barSize.y * 0.60;
-		double criticalHeat = barSize.y * 0.85;
+		double highHeat = barSize.y * critHeatPerc;
+		double criticalHeat = barSize.y * emergencyHeatPerc;
 		DrawRect(0xCCFFFF00, heatPos + (2,barSize.y-2 - highHeat), (barSize.x-3, 4), flags:flags);
 		DrawRect(0xCCFF0000, heatPos + (2,barSize.y-2 - criticalHeat), (barSize.x-3, 4), flags:flags);
 

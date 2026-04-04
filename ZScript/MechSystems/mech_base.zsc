@@ -1,4 +1,6 @@
 
+const MECH_SHUTDOWNHEAT = 0.95;
+
 class DrivableMech : DrivableObject
 {
 	const MECHFRICTION = 0.94;
@@ -1239,11 +1241,20 @@ class DrivableMech : DrivableObject
 			}
 				
 			shutdownTimer = 0;
-			if(heatShutdown)
+		}
+		
+		double critHeat = MECH_SHUTDOWNHEAT * 0.85;
+		double warnHeat = MECH_SHUTDOWNHEAT * 0.6;
+		double alarmHeat = MECH_SHUTDOWNHEAT * 0.75;
+		
+		if(heatShutdown && shutdown)
+		{
+			// Wait until heat level is low enough to power up again.
+			if(curHeat < kelvinToBHU(maxKelvin * alarmHeat))
 			{
-				powerupTimer = 35*4;
+				powerupTimer = 15;
 				heatShutdown = false;
-			}
+			}	
 		}
 				
 		if( powerupTimer > 0 && !(--powerupTimer) )
@@ -1260,13 +1271,13 @@ class DrivableMech : DrivableObject
 			heatWarn = true;
 		}
 		
-		if(curHeat > kelvinToBHU(maxKelvin * 0.60) && !heatCritical)
+		if(curHeat > kelvinToBHU(maxKelvin * critHeat) && !heatCritical)
 		{
 			betty.Push("Betty/Heat/Critical");
 			heatCritical = true;
 		}
 		
-		if(curHeat > kelvinToBHU(maxKelvin * 0.85) && !heatShutdown && !shutdown)
+		if(curHeat > kelvinToBHU(maxKelvin * MECH_SHUTDOWNHEAT) && !heatShutdown && !shutdown)
 		{
 			if(!overrideShutdown) 
 			{
@@ -1276,11 +1287,11 @@ class DrivableMech : DrivableObject
 			heatShutdown = true;
 		}
 		
-		if(curHeat <= kelvinToBHU(maxKelvin * 0.30)) heatWarn = false;
+		if(curHeat <= kelvinToBHU(maxKelvin * (warnHeat * 0.6))) heatWarn = false;
 		
-		if(curHeat <= kelvinToBHU(maxKelvin * 0.50)) heatCritical = false;
+		if(curHeat <= kelvinToBHU(maxKelvin * (critHeat * 0.8))) heatCritical = false;
 		
-		if(curHeat > kelvinToBHU(maxKelvin * 0.60))
+		if(curHeat > kelvinToBHU(maxKelvin * alarmHeat))
 			DoCockpitSound("Mech/OverheatWarning", CHAN_ITEM, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
 		else
 			StopCockpitSound(CHAN_ITEM);
