@@ -308,6 +308,7 @@ class MechItem : Object
 	
 		// Under normal circumstances, if our hardpoint was destroyed, we took a lot of damage too.
 		if(parent.healthPoints <= 0) hp = 0;
+		hp = clamp(hp, 0, 10);
 	
 		if(!mech) mech = parent.getMech();
 	}
@@ -851,7 +852,7 @@ class MechChassisStructure : MechUtility
 	play static bool addToMech(DrivableMech mech, class<MechChassisStructure> type = "MechChassisStructure")
 	{
 		let ar = MechItem.Init(type);
-		if(ar) return ar.TryAttach(mech.torso, forced:true) == IAE_SUCCESS;
+		if(ar && mech.torso) return ar.TryAttach(mech.torso, forced:true) == IAE_SUCCESS;
 		return false;
 	}
 	
@@ -959,11 +960,29 @@ class MechEngineBlock : MechItem
 	}
 }
 
+class MechEngineHeatsinkBlock : MechHeatsink
+{
+	override void Defaults()
+	{
+		damagable = true;
+		movable = false;
+		weight = 0;
+		size = 1;
+		nosave = true; 
+		
+		// Two heat per-turn.
+		heatEff = 2.0 / double(TURNTICS);
+		
+		displayName = "Heatsink";
+		itemDescription = "\c[Orange]Heatsink added by the engine, cannot be moved.";
+	}
+}
+
 class MechEngine : MechItem
 {
 	double baseValue;
 	int rating, type;
-	uint blocks, blockSize; // How many engine blocks to add to both side torsos.
+	uint blocks, blockSize, hsBlocks; // How many engine blocks to add to both side torsos.
 	Array<MechItem> engineBlocks;
 	Array<MechHeatsink> heatSinks;
 	double energy; // Reactor available energy
@@ -1019,9 +1038,7 @@ class MechEngine : MechItem
 	
 	clearscope int getIntrinsicHeatsinks()
 	{
-		double hsRating = rating / 25.0;
-		double fpart = hsRating - int(hsRating);
-		return fpart <= 0.5 ? floor(hsRating) : ceil(hsRating);
+		return int(rating / 25);
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -1030,12 +1047,17 @@ class MechEngine : MechItem
 		statName.Push(" ");
 		statValue.Push(" ");
 		
+		double internalHS = getIntrinsicHeatsinks();
+		double blockSlots = blocks*blockSize;
+		
 		// Modify slots to reflect side slots
 		int slotsIndex = statName.Find("SLOTS");
-		statValue[slotsIndex] = String.Format("%d", size + (blocks*2) * blockSize);
+		statValue[slotsIndex] = String.Format("%d", (size + (blocks*2) * blockSize) + hsBlocks);
 		
 		statName.Push("SIDE SLOTS");
-		statValue.Push(String.Format("%d",blocks*blockSize));
+		string slotsString = String.Format("%d", blockSlots);
+		if(hsBlocks > 0) slotsString = String.Format("%d \c[Ice](+%d)", blockSlots, hsBlocks);
+		statValue.Push(slotsString);
 		
 		statName.Push("GYRO TONS");
 		statValue.Push(String.Format("%d",gyroWeight));
@@ -1046,7 +1068,9 @@ class MechEngine : MechItem
 		statValue.Push(" ");
 		
 		statName.Push("HEATSINKS");
-		statValue.Push(String.Format("%d",getIntrinsicHeatsinks()));
+		string hsString = String.Format("%d", internalHS);
+		if(hsBlocks > 0) hsString = String.Format("%d \c[Ice](+%d)", internalHS, hsBlocks);
+		statValue.Push(hsString);
 		
 		if(mechInfo)
 		{
@@ -1101,15 +1125,21 @@ class MechEngine : MechItem
 	{	
 		double MaxRating = 0.21;
 		double speedRating = (187.5 / rating);
+		double internalHS = getIntrinsicHeatsinks();
+		double blockSlots = blocks*blockSize;
 		
 		stats.Push("EFFICIENCY");
 		values.Push(String.Format("%.2f\%%", (maxRating / speedRating) * 100.0));	
 	
 		stats.Push("SIDE SLOTS");
-		values.Push(String.Format("%d",blocks*blockSize));
+		string slotsString = String.Format("%d", blockSlots);
+		if(hsBlocks > 0) slotsString = String.Format("%d \c[Ice](+%d)", blockSlots, hsBlocks);
+		values.Push(slotsString);
 		
 		stats.Push("HEATSINKS");
-		values.Push(String.Format("%d",getIntrinsicHeatsinks()));
+		string hsString = String.Format("%d", internalHS);
+		if(hsBlocks > 0) hsString = String.Format("%d \c[Ice](+%d)", internalHS, hsBlocks);
+		values.Push(hsString);
 	}
 	
 	double GetTonnage()
@@ -1337,6 +1367,9 @@ class MechEngine : MechItem
 			break;
 		}
 		
+		double externalHS = 10 - GetIntrinsicHeatsinks();
+		hsBlocks = max(0, externalHS);
+		
 		string prefix = "";
 		if(isClanEngine)
 		{
@@ -1373,6 +1406,24 @@ class MechEngine : MechItem
 			rt_block.displayName = displayName;
 			rt_block.size = blockSize ? blockSize : rt_block.size;
 			if(rt_block.TryAttach(rt, true)) engineBlocks.push(rt_block);
+		}
+		
+		MechItem hs_block;
+		for(uint i = 0; i < hsBlocks; i++)
+		{
+			// Add heatsinks from left to right
+			int dir = i%2;
+			switch(dir)
+			{
+				case 1: // Left
+					hs_block = MechItem.Init("MechEngineHeatsinkBlock");
+					if(hs_block.TryAttach(lt, true)) engineBlocks.push(hs_block);
+				break;
+				case 0: // Right
+					hs_block = MechItem.Init("MechEngineHeatsinkBlock");
+					if(hs_block.TryAttach(rt, true)) engineBlocks.push(hs_block);
+				break;
+			}
 		}
 		
 		// Add heatsinks to Engine
@@ -1421,9 +1472,10 @@ class MechEngine : MechItem
 
 		let engBlock = MechItem.Init("MechEngineBlock");
 		int eblockSlots = blocks * (blockSize ? blockSize : engBlock.size);
+		eblockSlots += hsBlocks;
 		engBlock.Destroy();
 		
-		int engTotalSlots = size + (blocks*2) * blockSize;
+		int engTotalSlots = (size + (blocks*2) * blockSize) + hsBlocks;
 		int freeSlots = MechDynamicStructure.getTotalFreeslots(part.mech);
 	
 		let lt = part.mech.leftTorso;
@@ -1812,11 +1864,19 @@ class MechWeapon : MechItem
 		return heat * max(1, refireCount) * fireTime;
 	}
 	
-	virtual double getDamageOutput()
+	virtual double getDamageOutput(bool againstMonsters = false, bool perTic = false)
 	{
+		double dmgSrc = damage;
 		let proj = projType ? GetDefaultByType(projType) : NULL;
-		double dmgOut = proj ? (proj.trueDamage * MechHardpoint.DMGSCALE * max(1, refireCount)) : damage;
-		return dmgOut;
+		
+		if(proj) 
+		{
+			dmgSrc = (proj.trueDamage * MechHardpoint.DMGSCALE);
+			if(againstMonsters) dmgSrc = proj.GetMonsterDamage(NULL);
+		}
+		
+		double dmgOut = dmgSrc * max(1, refireCount);
+		return perTic ? dmgSrc : dmgOut;
 	}
 	
 	virtual bool DoRefire()
@@ -2036,8 +2096,7 @@ class I_MechItemStorage : Inventory
 			foreach(item : startingItems)
 				itm.AddItem(item);
 			
-			// TODO: Move this somewhere more easily modifiable.
-			itm.cbills = 1e6; // Starting CBills 1,000,000.
+			itm.cbills = MDR_START_CBILLS; 
 		}
 		
 		return itm;

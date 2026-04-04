@@ -1872,6 +1872,8 @@ class I_SaveMechData : Inventory
 	{
 		if(!Owner || !Owner.player) return;
 		string plrName = Owner.player.GetUserName();
+		if(!sv_mdr_debug_nomechstart) activeMechID = 1;
+		
 		if(plrName == "Velocity")
 		{
 			GiveMech("MechNovaV");
@@ -1880,8 +1882,6 @@ class I_SaveMechData : Inventory
 		{
 			GiveMech("MechCommando");
 		}
-			
-		if(!sv_mdr_debug_nomechstart) activeMechID = 1;
 	}
 	
 	virtual void GiveMech(class<DrivableMech> mechClass)

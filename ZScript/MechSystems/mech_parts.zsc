@@ -799,9 +799,21 @@ class MechHardpoint : MechPart
 		}
 		totalArmorDamage = 0;
 	}
+	
 	virtual void fullRepairInternals()
 	{
 		healthPoints = maxHP;
+		repairCriticalItems();
+	}
+	
+	virtual void repairCriticalItems()
+	{
+		// Repair any damaged non-movable
+		foreach(itm : items)
+		{
+			if(!itm.movable) 
+				itm.hp = 10;
+		}
 		
 		// Repair any damaged structures
 		Array<MechItem> structures;
@@ -825,13 +837,7 @@ class MechHardpoint : MechPart
 		
 		healthPoints += healthAmt;
 		healthPoints = min(maxHP, healthPoints);
-		if(healthAmt > 0)
-		{
-			// Repair any damaged structures
-			Array<MechItem> structures;
-			FindAllItems("MechStructure", true, structures);
-			foreach(part : structures) part.hp = 10;
-		}
+		if(healthAmt > 0) repairCriticalItems();
 		
 		frontArmorDamage = max(0, frontArmorDamage);
 		rearArmorDamage = max(0, rearArmorDamage);		

@@ -328,6 +328,8 @@ class MechbayScripts abstract play
 		if(!mechData) return;
 		
 		DrivableMech mech = mechData.getMechbayMech(mechbayID);
+		if(!mech) return;
+		
 		console.printf("\"%s\" selected as primary mech.", mech.mechChassisName);
 		mechData.activeMechID = mechbayID;
 	}

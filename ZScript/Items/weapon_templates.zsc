@@ -20,18 +20,28 @@ class MechLaserWeapon : MechWeapon
 	
 	override double getHeatGen()
 	{
-		return laserHeat * fireTime;
+		double heatgen = laserHeat * fireTime;
+		if(continuous) heatgen = laserHeat * maxLaserTime;
+		return heatgen;
 	}
 	
-	override double getDamageOutput()
+	override double getDamageOutput(bool againstMonsters, bool perTic)
 	{
-		return damage * fireTime;
+		double dmgSrc = damage * MechHardpoint.DMGSCALE;
+		if(againstMonsters)
+			dmgSrc = MechLaser.GetJoulesDamage(PowerKJ);
+		
+		double dmgOut = dmgSrc * fireTime;
+		if(continuous) dmgOut = dmgSrc * maxLaserTime;
+		return perTic ? dmgSrc : dmgOut;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue);
-		double laserHeat = (laserHeat * fireTime);
+		double laserHeat = getHeatGen();
+		double laserDamage = getDamageOutput(againstMonsters:true);
+		double laserDamagePerTic = getDamageOutput(againstMonsters:true, perTic:true);
 		
 		let [hs, dissipation] = mechInfo.GetHeatsinkStatistics(skipDestroyed:true);
 		double ehps = max(0, (laserHeat*TICRATE) - dissipation);
@@ -39,10 +49,8 @@ class MechLaserWeapon : MechWeapon
 		statName.Push(" ");
 		statValue.Push(" ");
 		
-		double laserTime = maxLaserTime ? maxLaserTime : fireTime;
-		double dmgPerTic = MechLaser.GetJoulesDamage(PowerKJ);
 		statName.Push("DAMAGE");
-		statValue.Push(String.Format("%.2f", dmgPerTic * laserTime));
+		statValue.Push(String.Format("%.2f", laserDamage));
 		statName.Push("HEAT");
 		statValue.Push(String.Format("%.2f K", BHUToKelvin(laserHeat)));
 		statName.Push("COOLDOWN");
@@ -58,11 +66,11 @@ class MechLaserWeapon : MechWeapon
 		statName.Push(" ");
 		statValue.Push(" ");
 		statName.Push("DPS");
-		statValue.Push(String.Format("%.2f", dmgPerTic*TICRATE));
+		statValue.Push(String.Format("%.2f", laserDamagePerTic*TICRATE));
 		statName.Push("EHPS");
 		statValue.Push(String.Format("%.2f", ehps));
 		statName.Push("DPH");
-		statValue.Push(String.Format("%d", (dmgPerTic * laserTime) / laserHeat));
+		statValue.Push(String.Format("%d", laserDamage / laserHeat));
 	}
 	
 	override string GetShopDescription()
@@ -200,16 +208,15 @@ class MechMissileWeapon : MechWeapon
 		statValue.Push(" ");
 		readonly<MechProjectile> projDefs = NULL;
 		
-		double projRawDamage = 0;
+		double projRawDamage = GetDamageOutput(againstMonsters:true, perTic:false);
 		if(projType) projDefs = GetDefaultByType(projType);
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		double totalHeat = getHeatGen();
 		
 		if(projDefs)
-		{
-			projRawDamage = projDefs.GetMonsterDamage(NULL);
-			
+		{	
 			statName.Push("DAMAGE");
-			statValue.Push(String.Format("%.2f", (projRawDamage) * refireCount ));
+			statValue.Push(String.Format("%.2f", projRawDamage));
 		}
 		else
 		{
@@ -218,7 +225,7 @@ class MechMissileWeapon : MechWeapon
 		}
 		
 		statName.Push("HEAT");
-		statValue.Push(String.Format("%.2f K", BHUToKelvin(heat)));
+		statValue.Push(String.Format("%.2f K", BHUToKelvin(totalHeat)));
 		statName.Push("FIRE RATE");
 		statValue.Push(String.Format("%.1f/s", 1.0 / (refireDelay / double(TICRATE))));
 		statName.Push("COOLDOWN");
@@ -242,13 +249,13 @@ class MechMissileWeapon : MechWeapon
 			statValue.Push(
 				String.Format(
 					"%.2f", 
-					(projRawDamage*refireCount) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
+					(projRawDamage) * ( 1.0/( (refireDelay+cooldownTime)/double(TICRATE) ) ) 
 				) 
 			);
 		}
 		
 		let [hs, dissipation] = mechInfo.GetHeatsinkStatistics(skipDestroyed:true);
-		double ehps = max(0, ((heat*refireCount) / cooldownSeconds) - dissipation);
+		double ehps = max(0, (totalHeat / cooldownSeconds) - dissipation);
 		
 		statName.Push("EHPS");
 		statValue.Push(String.Format("%.2f", ehps));
@@ -256,7 +263,7 @@ class MechMissileWeapon : MechWeapon
 		if(projDefs)
 		{
 			statName.Push("DPH");
-			statValue.Push(String.Format("%d", (projRawDamage*refireCount) / (heat*refireCount)) );
+			statValue.Push(String.Format("%d", projRawDamage / totalHeat));
 		}
 	}
 	
@@ -385,9 +392,16 @@ class MechBallisticWeapon : MechWeapon
 		return heat * max(1, refireCount);
 	}
 	
-	override double getDamageOutput()
+	override double getDamageOutput(bool againstMonsters, bool perTic)
 	{
-		return super.getDamageOutput() * max(1, fireCount);
+		let projDefs = GetDefaultByType(projType);
+		double cnt = perTic ? 1 : (max(1, fireCount) + refireCount);
+		
+		if(againstMonsters && projDefs) 
+		{
+			return projDefs.GetMonsterDamage(NULL, 1.0 - projMassScalar) * cnt;
+		}
+		return super.getDamageOutput() * cnt;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
@@ -400,7 +414,8 @@ class MechBallisticWeapon : MechWeapon
 		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
 		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
 		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
-		double projRawDamage = projDefs.GetMonsterDamage(NULL, 1.0 - projMassScalar);
+		double projRawDamage = getDamageOutput(againstMonsters:true, perTic:true);
+		double projCnt = max(1, fireCount) + refireCount;
 	
 		string suffix = fireCount > 1 ? String.Format("x %d", fireCount) : "";
 		string DMGString = String.Format("%.2f %s", projRawDamage, suffix);
@@ -441,7 +456,7 @@ class MechBallisticWeapon : MechWeapon
 			statName.Push("EHPS");
 			statValue.Push(String.Format("%.2f", ehps));
 			statName.Push("DPH");
-			statValue.Push(String.Format("%d", projRawDamage / heat));
+			statValue.Push(String.Format("%d", (projRawDamage * projCnt) / heat));
 		}
 	}
 	

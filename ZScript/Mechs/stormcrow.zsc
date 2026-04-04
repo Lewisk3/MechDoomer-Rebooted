@@ -127,7 +127,7 @@ class Stormcrow_CenterTorso : MechTorso
 		Height 32;
 		
 		MechHardpoint.Vitals 47, 24;
-		MechHardpoint.SetupArmor 35, 14;
+		MechHardpoint.SetupArmor 35, 12;
 		MechHardpoint.RearArmor true;
 	}	
 	

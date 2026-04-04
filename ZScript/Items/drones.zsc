@@ -128,7 +128,11 @@ class FieldRepairDrone : MechFieldDrone
 				{
 					// Repair damage and restore armor points.
 					droneLaser.disabled = false;
-					hp.Repair(0.025, 0);
+					
+					// Note: there is a very technical reason 0.032 is used here.
+					// This number should produce a finite set of bits when represented 
+					// using a ZScript double, and thus prevent some rounding issues and precision loss.
+					hp.Repair(0.032, 0);
 				}
 					
 				return SetDroneState(!repairBtn || !mech.shutdown, "DroneReturn");

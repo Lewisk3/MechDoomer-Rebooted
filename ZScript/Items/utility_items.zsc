@@ -21,9 +21,10 @@ class MechHeatsink : MechUtility
 		statName.Push(" ");
 		statValue.Push(" ");
 		
-		
 		statName.Push("COOLING");
 		statValue.Push(String.Format("\c[Green]+%.2f K/s",mechInfo.BHUtoKelvin(heatEff*double(TICRATE))));
+		
+		if(itemDescription != "") flavorText = itemDescription; 
 	}
 	
 	override void OnAttach()

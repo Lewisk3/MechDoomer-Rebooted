@@ -498,11 +498,11 @@ class CartContainer : MenuElement
 		for(int i = base.shopCart.Size()-1; i >= 0; i--)
 		{
 			let item = base.shopCart[i];
-			if(item) RemoveFromCart(item, item.count);
+			if(item) RemoveFromCart(item, item.count, doSound:false);
 		}
 	}
 	
-	virtual void RemoveFromCart(ShopItem shopItm, double amt = 1)
+	virtual void RemoveFromCart(ShopItem shopItm, double amt = 1, bool doSound = true)
 	{		
 		int cartItemIndex;
 		ShopItem cartItem = NULL;
@@ -542,7 +542,7 @@ class CartContainer : MenuElement
 		if(base.shopCart.Size() <= 0)
 			base.shopMode = ShopMenu.SHOP_NEUTRAL;
 			
-		MenuSound("Menus/Shop/Remove");
+		if(doSound) MenuSound("Shop/Item/Remove");
 	}
 	
 	virtual void AddToCart(ShopItem shopItm)

@@ -1384,7 +1384,7 @@ class MechInfoContainer : MenuElement
 		textPos.y += 50;
 		double heatDissipation = 0;
 		int heatsinkCount;
-		[heatsinkCount, heatDissipation] = mech.GetHeatsinkStatistics();
+		[heatsinkCount, heatDissipation] = mech.GetHeatsinkStatistics(skipDestroyed:true);
 			
 		MWDrawer.DrawString(textFont, 
 			String.Format("\c[Teal]HEATSINKS"), 
@@ -1423,6 +1423,7 @@ class MechInfoContainer : MenuElement
 		
 		double heatGen = 0;
 		double damageOut = 0;
+		double damageOutMonsters = 0;
 		Array<MechItem> weapons;
 		mech.FindAllItems("MechWeapon", true, weapons);
 		for(int i = 0; i < weapons.Size(); i++)
@@ -1430,16 +1431,9 @@ class MechInfoContainer : MenuElement
 			let weap = MechWeapon(weapons[i]);
 			if(!weap) continue;
 			
-			heatGen += (weap.heat * max(1,weap.refireCount));
-			damageOut += weap.damage * max(1,weap.fireTime);
-			
-			let laserweap = SmallLaser(weap);
-			if(laserweap) heatGen += laserweap.laserHeat * max(1,weap.fireTime);
-			if(weap.projType) 
-			{
-				let defs = GetDefaultByType(weap.projType);
-				damageOut += defs.truedamage * max(1,weap.refireCount);
-			}
+			heatGen += weap.getHeatGen();
+			damageOut += weap.getDamageOutput();
+			damageOutMonsters += weap.getDamageOutput(againstMonsters:true);
 		}
 		
 		textPos.y += 50;
@@ -1449,7 +1443,7 @@ class MechInfoContainer : MenuElement
 			scale:(textSize, textSize)
 		);
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[White]%.2f K/s", mech.BHUtoKelvin(heatGen) / TICRATE), 
+			String.Format("\c[White]%.2f K/s", mech.BHUtoKelvin(heatGen / double(TICRATE))), 
 			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);
@@ -1461,7 +1455,7 @@ class MechInfoContainer : MenuElement
 			scale:(textSize, textSize)
 		);
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[White]%.2f", damageOut * MechHardpoint.DMGSCALE), 
+			String.Format("\c[White]%.2f", damageOutMonsters), 
 			textPos + (size.x - 90, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);

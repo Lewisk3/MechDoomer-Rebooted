@@ -270,7 +270,7 @@ class ExoticRepairKit : MechRepairKit
 		displayName = "Exotic Repair Kit";		 
 		internalRepairAmount = 20;
 		armorRepairAmount = 20;
-		itemRepairAmount = 1000;
+		itemRepairAmount = 10;
 		
 		repairTier = 3;
 		value = CalculateCost();

@@ -170,19 +170,39 @@ class MechInteraction_Handler : EventHandler
 		if(cmd ~== "inv")
 		{
 			let inv = I_MechItemStorage.Get(plr.mo, give:false);
+			let mechData = I_SaveMechData(plr.mo.FindInventory("I_SaveMechData"));
 			
 			if(args[1] == "give")
 			{
+				if(mechData)
+				{		
+					if(args[2] == "mech")
+					{
+						let mech = (class<DrivableMech>)(args[3]);
+						if(!mech) 
+						{
+							console.printf("Unrecognized Mech: %s", args[3]);
+							return;
+						}
+					
+						mechData.GiveMech(mech);
+						mechData.ReloadAllMechbays();
+						console.printf("Received: %s.", mech.getClassName());
+						return;
+					}
+				}
+				
 				let item = (class<MechItem>)(args[2]);
 				if(!inv || !item) 
 				{
-					console.printf("Unrecognized MechItem: %s", item.getClassName());
+					console.printf("Unrecognized MechItem: %s", args[2]);
 					return;
 				}
 			
 				inv.AddItem(MechItem.Init(item));
 				console.printf("Received: %s.", item.getClassName());
 			}
+			
 			
 			if(args[1] == "printmoney")
 			{
