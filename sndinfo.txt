@@ -48,6 +48,7 @@ Damage/NoArmor "Sounds/Mech/damage_alarm1.wav"
 Damage/CriticalInternals "Sounds/Mech/damage_alarm2.wav"
 Damage/Critical	"Sounds/Mech/damage_critical.wav"
 Damage/CriticalAlarm "Sounds/Mech/critical_alarm.wav"
+Damage/HardpointDestroyed "Sounds/Mech/component_destroyed.wav"
 Item/Alarm "Sounds/Mech/remind_alarm.wav"
 Item/CriticalWarning "Sounds/Mech/notif_warning.wav"
 Item/MASC/Enable "Sounds/Mech/masc_start.wav"
@@ -61,8 +62,10 @@ Engine/Back		"Sounds/Ambient/engine_decel.wav"
 Legs/Accel		"Sounds/Ambient/accel.wav"
 Legs/Decel		"Sounds/Ambient/decel.wav"
 Legs/Footstep	"Sounds/Ambient/footstep.ogg"
-// $volume Legs/Footstep 0.75
-$limit Legs/Footstep 0
+$volume Legs/Footstep 0.85
+$limit Legs/Footstep 2
+$pitchshift Legs/Footstep 1
+
 
 Reactor/Powerup "Sounds/Reactor/powerup.wav"
 Reactor/Shutdown "Sounds/Reactor/shutdown.wav"

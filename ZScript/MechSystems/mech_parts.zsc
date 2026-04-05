@@ -10,6 +10,8 @@ class MechPart : DrivableObjectPart
 		-SOLID;
 		-SHOOTABLE;
 		+DONTTHRUST;
+		+NOCLIP;
+		+NOBLOOD;
 		Radius 0;
 		Height 0;
 	}
@@ -99,6 +101,8 @@ class MechHitbox : DrivableObjectPart
 	Default
 	{
 		+SHOOTABLE;
+		+SOLID;
+		+NOBLOOD;
 	}
 		
 	override bool CanCollideWith(Actor other, bool passive)
@@ -544,6 +548,7 @@ class MechHardpoint : MechPart
 	virtual void DestroyHardpoint(double hitDamage = 0)
 	{
 		healthPoints = 0;
+		A_StartSound("Damage/HardpointDestroyed", CHAN_AUTO, CHANF_OVERLAP);
 		if(explosionType)
 		{
 			CreateExplosion(explosionType);
@@ -1598,6 +1603,7 @@ class MechCockpitModel : Actor
 	{	
 		+INTERPOLATEANGLES;
 		+NOGRAVITY;
+		+NOINTERACTION;
 	}
 	
 	override void Tick()

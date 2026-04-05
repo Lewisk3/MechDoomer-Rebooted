@@ -17,7 +17,7 @@ class MechFlamer : MechProjectile abstract
 		DamageType 'Fire';
 		
 		MechFlamer.FlamerEffect "MechFlamerEffect";
-		MechFlamer.HeatDamage 1;
+		MechFlamer.HeatDamage 3.0 / double(TURNTICS);
 	}
 	
 	static MechFlamerEffect Fire(Actor source, class<MechFlamer> type, vector3 fromPos, vector3 facingPos, bool damaging = true, int amt = 1)

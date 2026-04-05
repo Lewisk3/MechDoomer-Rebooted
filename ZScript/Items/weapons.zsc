@@ -1811,7 +1811,7 @@ class Flamer : MechWeapon
 		mountType = "Energy";
 		weight = 1;
 		size = 1;
-		heat = 3 / TURNTICS;
+		heat = 3 / double(TURNTICS);
 		energyUse = 0.015;
 		
 		fireTime = 1;

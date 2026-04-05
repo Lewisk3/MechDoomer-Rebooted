@@ -31,6 +31,7 @@ Model Hellbringer_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -42,6 +43,7 @@ Model Hellbringer_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -171,6 +173,7 @@ Model Jenner_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -182,6 +185,7 @@ Model Jenner_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -311,6 +315,7 @@ Model MarauderIIC_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -322,6 +327,7 @@ Model MarauderIIC_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -451,6 +457,7 @@ Model Centurion_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -462,6 +469,7 @@ Model Centurion_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -613,6 +621,7 @@ Model Timberwolf_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -624,6 +633,7 @@ Model Timberwolf_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -752,6 +762,7 @@ Model Rifleman_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -763,6 +774,7 @@ Model Rifleman_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -904,6 +916,7 @@ Model Hunchback_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -915,6 +928,7 @@ Model Hunchback_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1044,6 +1058,7 @@ Model Commando_LeftArm
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -1055,6 +1070,7 @@ Model Commando_RightArm
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -1183,6 +1199,7 @@ Model Catapult_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1194,6 +1211,7 @@ Model Catapult_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1323,6 +1341,7 @@ Model MadDog_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1334,6 +1353,7 @@ Model MadDog_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1465,6 +1485,7 @@ Model Raven_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1476,6 +1497,7 @@ Model Raven_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1605,6 +1627,7 @@ Model NovaPrime_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1616,6 +1639,7 @@ Model NovaPrime_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1745,6 +1769,7 @@ Model NovaS_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1756,6 +1781,7 @@ Model NovaS_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -1871,6 +1897,7 @@ Model Cicada_LeftTorso
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -1882,6 +1909,7 @@ Model Cicada_RightTorso
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -2011,6 +2039,7 @@ Model Atlas_LeftArm
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -2022,6 +2051,7 @@ Model Atlas_RightArm
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -2163,6 +2193,7 @@ Model Summoner_LeftArm
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -2174,6 +2205,7 @@ Model Summoner_RightArm
    Scale 1.0 1.0 1.0
    USEACTORPITCH
    USEACTORROLL
+   DONTCULLBACKFACES
    
    FrameIndex MODL A 0 0
 }
@@ -2303,6 +2335,7 @@ Model Stormcrow_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2314,6 +2347,7 @@ Model Stormcrow_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2443,6 +2477,7 @@ Model Warhawk_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2454,6 +2489,7 @@ Model Warhawk_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2583,6 +2619,7 @@ Model Direwolf_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2594,6 +2631,7 @@ Model Direwolf_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2723,6 +2761,7 @@ Model Warhammer_LeftArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2734,6 +2773,7 @@ Model Warhammer_RightArm
 	Scale 1.0 1.0 1.0
 	USEACTORPITCH
 	USEACTORROLL
+	DONTCULLBACKFACES
 	
    FrameIndex MODL A 0 0
 }
@@ -2863,6 +2903,7 @@ Model Urbanmech_LeftArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -2874,6 +2915,7 @@ Model Urbanmech_RightArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3003,6 +3045,7 @@ Model Kitfox_LeftArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3014,6 +3057,7 @@ Model Kitfox_RightArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3143,6 +3187,7 @@ Model Crab_LeftArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3154,6 +3199,7 @@ Model Crab_RightArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3282,6 +3328,7 @@ Model Battlemaster_LeftArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3293,6 +3340,7 @@ Model Battlemaster_RightArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3422,6 +3470,7 @@ Model Firemoth_LeftArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }
@@ -3433,6 +3482,7 @@ Model Firemoth_RightArm
   Scale 1.0 1.0 1.0
   USEACTORPITCH
   USEACTORROLL
+  DONTCULLBACKFACES
   
    FrameIndex MODL A 0 0
 }

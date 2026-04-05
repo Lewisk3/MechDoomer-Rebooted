@@ -145,6 +145,7 @@ class GaussCannon : MechProjectile
 		vector3 curVel = (moveDirection * (Speed * fric, 0, 0));
 		vel.xy = curVel.xy;
 		
+		if(vel.length() <= 0.001) died = true;	
 		if(curDist >= maxRange * 0.5) vel.z -= 1;
 	}
 	
@@ -159,6 +160,7 @@ class GaussCannon : MechProjectile
 		XDeath:
 			TNT1 A 1
 			{
+				died = true;
 				SpawnEffect("GaussExplosion", pos);
 			}
 		stop;

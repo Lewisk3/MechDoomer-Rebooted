@@ -956,7 +956,8 @@ class MechEngineBlock : MechItem
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		// Report back engine description
-		mech.engine.GetDescription(flavorText, statName, statValue, mechInfo);
+		if(mech && mech.engine)
+			mech.engine.GetDescription(flavorText, statName, statValue, mechInfo);
 	}
 }
 

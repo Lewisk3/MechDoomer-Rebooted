@@ -12,6 +12,7 @@ class MechMountDeco : EffectsActor
 		Scale 1.5;
 		MechMountDeco.MountOffset (0, 0, 0);
 		+INTERPOLATEANGLES;
+		+NOINTERACTION;
 	}
 	
 	static MechMountDeco Attach(MechWeapon src, class<MechMountDeco> type, int mountIndex = 0)
