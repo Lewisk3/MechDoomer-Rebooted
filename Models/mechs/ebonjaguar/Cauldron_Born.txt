@@ -1,0 +1,8 @@
+Cauldron Born
+
+XYZ: Left-Right Forward-Backward Up-Down
+
+Torso: 0 -90 530
+Hips: 0 -90 530
+LArm/RArm to Torso: 0 -100 160
+Legs: 0 0 0

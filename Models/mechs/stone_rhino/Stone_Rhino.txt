@@ -1,0 +1,8 @@
+Stone Rhino
+
+XYZ: Left-Right Forward-Backward Up-Down
+
+Torso: 0 -404.066 875 (to Hips: 0 0 0)
+Hips: 0 -404.066 875
+LArm/RArm to Torso: +-382.0 102 181.85
+Legs: 0 0 0

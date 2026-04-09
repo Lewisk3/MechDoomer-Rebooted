@@ -1,0 +1,8 @@
+Stalker
+
+XYZ: Left-Right Forward-Backward Up-Down
+
+Torso: 0 0 580
+Hips: 0 0 580
+LArm/RArm to Torso: 0 -240 435
+Legs: 0 0 0

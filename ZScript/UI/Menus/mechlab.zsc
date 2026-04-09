@@ -1778,7 +1778,7 @@ class MechMenu_Mechlab : MechMenu
 		
 		// Torso(s)
 		let leftTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LT", hpSlotsPos - (spacing,0), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_LT", hpSlotsPos + (spacing,0), (slotsWidth,256))
 		);
 		SetupHardpointContainer(leftTorsoSlots, mech.leftTorso, slotsWidth, slotsHeight);
 		
@@ -1788,7 +1788,7 @@ class MechMenu_Mechlab : MechMenu
 		SetupHardpointContainer(centerTorsoSlots, mech.torso, slotsWidth, slotsHeight);
 		
 		let rightTorsoSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RT", hpSlotsPos + (spacing,0), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_RT", hpSlotsPos - (spacing,0), (slotsWidth,256))
 		);
 		SetupHardpointContainer(rightTorsoSlots, mech.rightTorso, slotsWidth, slotsHeight);
 		

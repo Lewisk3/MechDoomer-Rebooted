@@ -1,0 +1,295 @@
+class MechStalker : DrivableMech
+{
+	Default
+	{
+		Radius 48;
+		DrivableMech.Acceleration 15, 19;
+		DrivableMech.MaxWeight 85; // In Tons.
+		DrivableMech.ChassisName "Stalker";
+		DrivableMech.VariantName "5M";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Stalker_icon.png";
+		DrivableMech.CBillValue (7463825   * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Defiance Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Stalker was first produced in 2594 as a heavy assault "
+			"BattleMech for the Reunification War. The engineers and designers "
+			"at Triad Technologies created the Stalker to be a heavily-armored "
+			"weapons platform capable of handling combat at any range and "
+			"absorbing a tremendous amount of punishment. Although among the "
+			"slowest 'Mechs ever built, the Stalker was still fast enough to keep "
+			"up with other assault 'Mechs and lead major advances, using its firepower "
+			"to blast holes in the enemy's lines. Its heavy armor and armament also "
+			"makes it well-suited for urban combat."
+			"(Source: https://www.sarna.net/wiki/Stalker)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("Stalker_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Stalker_Hips",  0,0,50, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("Stalker_CenterTorso", 0,0,10, hips);
+		leftTorso  = AddHardpoint("Stalker_LeftTorso",  0,-10,0, torso);
+		rightTorso = AddHardpoint("Stalker_RightTorso", 0, 10,0, torso);
+		
+		leftLeg = AddHardpoint("Stalker_LeftLeg",  0, -20,0, legs);
+		rightLeg = AddHardpoint("Stalker_RightLeg", 0, 20,0, legs);
+			
+		leftArm  = AddHardpoint("Stalker_LeftArm",  -25,-37,24, leftTorso);
+		rightArm = AddHardpoint("Stalker_RightArm", -25, 37,24, rightTorso);
+		
+		head = AddHardpoint("Stalker_Cockpit", 54,0,32, torso);
+		cam  = AddPart("CockpitCamera", 2,0,0, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_STD255");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		
+		torso.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		
+		rightTorso.AddWeapon("SRM6", GROUPFLG_TWO);
+		leftTorso.AddWeapon("SRM6", GROUPFLG_TWO);
+		
+		rightTorso.AddWeapon("AMS", GROUPFLG_TWO);
+		
+		leftArm.AddWeapon("LRM10", GROUPFLG_THREE);
+		rightArm.AddWeapon("LRM10", GROUPFLG_THREE);
+		SetChainFire(GROUPFLG_THREE, true);
+		
+		leftArm.AddWeapon("MediumLaser", GROUPFLG_FOUR);
+		leftArm.AddWeapon("MediumLaser", GROUPFLG_FOUR);
+		rightArm.AddWeapon("MediumLaser", GROUPFLG_FOUR);
+		rightArm.AddWeapon("MediumLaser", GROUPFLG_FOUR);
+		
+		rightTorso.AddItem("AMSAmmo");
+		rightTorso.AddItem("AMSAmmoHalf");
+		
+		leftLeg.AddItem("SRMAmmo");
+		rightLeg.AddItem("SRMAmmo");
+		leftLeg.AddItem("SRMAmmo");
+		rightLeg.AddItem("SRMAmmo");
+		
+		leftArm.AddItem("LRMAmmo");
+		rightArm.AddItem("LRMAmmo");
+		leftArm.AddItem("LRMAmmo");
+		rightArm.AddItem("LRMAmmo");
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+	}
+}
+
+/*
+14.5 tons = 290 pts Std Armor
+[HD] - 12
+[CT] - 62
+[LT] - 42
+[RT] - 42
+[LA] - 30
+[RA] - 30
+[LL] - 36
+[RL] - 36
+*/
+
+class Stalker_Hips : MechHips {}
+
+class Stalker_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 5;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "StalkerCockpitModel";
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class StalkerCockpitModel : MechCockpitModel {}
+
+
+class Stalker_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 40; // degs second
+	}
+}
+class Stalker_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 85, 85; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 85;
+		MechTorso.PitchRange 30, 30;
+		MechHardpoint.Hitbox 15,52, 0,0,-18;
+		
+		MechHardpoint.Vitals 62, 31;
+		MechHardpoint.SetupArmor 50, 12;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBox(-18,0,2, 15,32);
+		
+		//Sides
+		AddHitBox(-18,-15,2, 13,32);
+		AddHitBox(-18, 15,2, 13,32);
+		
+		// Front
+		AddHitBox(24,0,2, 15,32);
+		AddHitBox(50,0,2, 15,28);
+		AddHitBox(70,0,4, 12,24);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 65,0,5, 0.8);
+	}
+}
+
+class Stalker_LeftArm : MechArm
+{
+	Default
+	{	
+		Radius 0; Height 0;
+		MechArm.ActuationRange 0;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		MechHardpoint.Hitbox 10,30, 15,10,-15;
+		
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+	
+	override void SetupHitboxes()
+	{
+		double lr = 10;
+		double fwOffs = 15;
+		for(int i = 0; i < 3; i++)
+			AddHitBox(15 - (fwOffs * i),lr,-15, 10,30);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 15,12.25,9, 0.85);
+		AddMountPoint("Energy", 15,6.5,9, 0.85);
+		SetupMountArray("Missile", 22.5,7,-8, 2,4, 5,4.25, scale:1.0);
+	}
+}
+class Stalker_RightArm : Stalker_LeftArm 
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+		MechHardpoint.Hitbox 10,30, 15,-10,-15;
+
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}
+	
+	override void SetupHitboxes()
+	{
+		double lr = -10;
+		double fwOffs = 15;
+		for(int i = 0; i < 3; i++)
+			AddHitBox(15 - (fwOffs * i),lr,-15, 10,30);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 15,-12.25,9, 0.85);
+		AddMountPoint("Energy", 15,-6.5,9, 0.85);
+		SetupMountArray("Missile", 22.5,-11,-8, 2,4, 5,4.25, scale:1.0);
+	}
+}
+
+class Stalker_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.Hitbox 10,30, 25,-16,3;
+		
+		MechHardpoint.Vitals 42, 21;
+		MechHardpoint.SetupArmor 34, 8;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 28.5,-19,12.75, 1,3, 5,4.25, scale:1.0);
+		SetupMountArray("Missile", 28.5,-23,12.75, 1,3, 5,4.25, scale:1.0);
+	}
+}
+class Stalker_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.Hitbox 10,30, 25,16,3;
+
+		MechHardpoint.Vitals 42, 21;
+		MechHardpoint.SetupArmor 34, 8;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 28.5,19,12.75, 2,3, 4,4.25, scale:1.0);
+		AddMountPoint("PDS", -10,10,34.25);
+	}
+}
+
+class Stalker_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 12;
+		Height 60;
+		
+		MechHardpoint.Vitals 36, 18;
+		MechHardpoint.SetupArmor 36, 0;
+	}	
+}
+class Stalker_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 12;
+		Height 60;
+		
+		MechHardpoint.Vitals 36, 18;
+		MechHardpoint.SetupArmor 36, 0;
+	}	
+}

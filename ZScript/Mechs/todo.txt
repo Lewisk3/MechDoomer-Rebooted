@@ -1,21 +1,23 @@
-[Light]
+[Light] 7/7
 Commando [x]
 Jenner   [x]
 Raven [x]
-Urbanmech <x>
-Kitfox <x>
-FireMoth <x>
-Tarantula <x>
+Urbanmech [x]
+Kitfox [x]
+FireMoth [x]
+Tarantula [x]
 
-[Medium]
+[Medium] 6/8
 Centurion [x]
 Hunchback [x]
 Nova [x]
 Cicada [x]
 Stormcrow [x]
-Crab <x>
+Crab [x]
+Shadowcat? [?]
+Bushwacker? [?]
 
-[Heavy]
+[Heavy] 7/8
 Catapult [x]
 Hellbringer [x]
 Mad Dog [x]
@@ -23,10 +25,13 @@ Rifleman [x]
 Timberwolf [x]
 Summoner [x]
 Warhammer [x]
+EbonJaguar [2]
 
-[Assault]
+[Assault] 5/7
 Marauder [x]
 Atlas [x]
 Warhawk [x]
 Direwolf [x]
-BattleMaster <x>
+BattleMaster [x]
+Stalker [1]
+StoneRhino [3]
