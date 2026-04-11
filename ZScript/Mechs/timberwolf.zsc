@@ -2,7 +2,6 @@ class MechTimberwolf : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 30, 32;
 		DrivableMech.MaxWeight 75; // In Tons.
 		DrivableMech.ChassisName "Timberwolf";

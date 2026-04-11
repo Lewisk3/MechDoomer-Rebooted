@@ -1,0 +1,264 @@
+class MechEbonJaguar : DrivableMech
+{
+	Default
+	{
+		DrivableMech.Acceleration 27, 30;
+		DrivableMech.MaxWeight 65; // In Tons.
+		DrivableMech.ChassisName "Ebon Jaguar";
+		DrivableMech.VariantName "A";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/ebon_icon.png";
+		DrivableMech.CBillValue (18606500 * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Huntress Manufacturing";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]Introduced in 3049 to address flaws in the venerable Hellbringer, "
+			"the Ebon Jaguar had only just started to spread through the Smoke Jaguar "
+			"touman when Operation REVIVAL began. The 'Mech's ability to take damage and "
+			"remain operational led the Inner Sphere warriors who fought it giving it the "
+			"code name Cauldron-Born after the unstoppable zombies of Irish myth. "
+			"(Source: https://www.sarna.net/wiki/Ebon_Jaguar_(Cauldron-Born))"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("EbonJaguar_Legs",  0,0,0,  self);
+		hips  = AddMechPart("EbonJaguar_Hips",  0,0,44.5, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("EbonJaguar_CenterTorso", 0,0,5.25, hips);
+		leftTorso  = AddHardpoint("EbonJaguar_LeftTorso",  0,-10,0, torso);
+		rightTorso = AddHardpoint("EbonJaguar_RightTorso", 0, 10,0, torso);
+		
+		leftLeg = AddHardpoint("EbonJaguar_LeftLeg",   -10,-18,0, legs);
+		rightLeg = AddHardpoint("EbonJaguar_RightLeg", -10, 18,0, legs);
+			
+		leftArm  = AddHardpoint("EbonJaguar_LeftArm",  0,-34,5, leftTorso);
+		rightArm = AddHardpoint("EbonJaguar_RightArm", 0, 34,5, rightTorso);
+		
+		head = AddHardpoint("EbonJaguar_Cockpit", 30,0,10, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL325");
+		MechChassisStructure.addToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		rightTorso.AddWeapon("UltraAC10", GROUPFLG_FOUR);
+		
+		leftTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		leftTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		leftTorso.AddWeapon("ERMediumLaser", GROUPFLG_THREE);
+		rightLeg.AddItem("MGAmmo");
+		rightLeg.AddItem("MGAmmoHalf");
+		leftLeg.AddItem("UAC10Ammo");
+		leftLeg.AddItem("UAC10Ammo");
+		leftTorso.AddItem("UAC10Ammo");
+		
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("Machinegun", GROUPFLG_TWO);
+		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_THREE);
+		
+		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("Flamer", GROUPFLG_FIVE);
+		leftArm.AddWeapon("Machinegun", GROUPFLG_TWO);
+		
+		leftArm.AddItem("MechDoubleHeatsink");
+		rightArm.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");
+	}
+}
+
+/*
+9.5 tons = 238 pts Ferro Armor
+[HD] - 12
+[CT] - 48
+[LT] - 34
+[RT] - 34
+[LA] - 25
+[RA] - 25
+[LL] - 30
+[RL] - 30
+*/
+
+class EbonJaguar_Hips : MechHips {}
+
+class EbonJaguar_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 3;
+		Height 3;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "EbonJaguarCockpitModel";
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class EbonJaguarCockpitModel : MechCockpitModel {}
+
+
+class EbonJaguar_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 65; // degs second
+	}
+}
+class EbonJaguar_CenterTorso : MechTorso 
+{
+	Default
+	{
+		MechTorso.TurnSpeed 99, 99; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 95;
+		MechTorso.PitchRange 30, 30;
+		Radius 0; Height 0;
+		
+		MechHardpoint.Vitals 48, 24;
+		MechHardpoint.SetupArmor 36, 12;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		AddHitboxRect(0,0,-5, 22,30,25);
+		AddHitboxRect(27,0,0, 14,25,10);
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class EbonJaguar_LeftArm : MechArm
+{
+	Default
+	{	
+		MechArm.ActuationRange 20;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 25, 13;
+		MechHardpoint.SetupArmor 25, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{		
+		AddHitboxRect(0,-5,-8, 30,8,18);
+		AddHitboxRect(32,-5,0, 28,6,8);
+	}
+
+	override void SetupMounts()
+	{	
+		AddMountPoint("Ballistic", 45,-5,4.5, scale:1.0);
+		AddMountPoint("Energy", 15,-5,-1.5, scale:0.65);
+		AddMountPoint("Energy", 15,-5,-6, scale:0.65);
+	}
+}
+class EbonJaguar_RightArm : EbonJaguar_LeftArm 
+{
+	Default
+	{
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 25, 13;
+		MechHardpoint.SetupArmor 25, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		AddHitboxRect(0,5,-8, 30,8,18);
+		AddHitboxRect(32,5,0, 28,6,8);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 45,5,4.5, scale:1.0);
+		AddMountPoint("Energy", 15,5,-1.5, scale:0.65);
+		AddMountPoint("Energy", 15,5,-6, scale:0.65);
+	}
+}
+
+class EbonJaguar_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+	
+		MechHardpoint.Vitals 34, 17;
+		MechHardpoint.SetupArmor 26, 8;
+		MechHardpoint.RearArmor true;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		AddHitboxRect(-8,-20,10, 12,16,24);
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", -6,-14.5,29.25, scale:1.0);
+		AddMountPoint("Energy", -6,-20.5,29.25, scale:1.0);
+		AddMountPoint("Energy", -6,-26,29.25, scale:1.0);
+	}
+}
+class EbonJaguar_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+
+		MechHardpoint.Vitals 34, 17;
+		MechHardpoint.SetupArmor 26, 8;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		AddHitboxRect(-8,20,10, 14,16,30);
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 8,20,31, scale:1.0); 
+	}
+}
+
+class EbonJaguar_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 10;
+		Height 45;
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+}
+class EbonJaguar_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 10;
+		Height 45;
+		
+		MechHardpoint.Vitals 30, 15;
+		MechHardpoint.SetupArmor 30, 0;
+	}	
+}

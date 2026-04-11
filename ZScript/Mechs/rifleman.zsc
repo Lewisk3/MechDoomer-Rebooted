@@ -2,7 +2,6 @@ class MechRiflemanIIC : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 25, 28;
 		DrivableMech.MaxWeight 65; // In Tons.
 		DrivableMech.ChassisName "Rifleman";

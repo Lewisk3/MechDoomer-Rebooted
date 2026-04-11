@@ -2,7 +2,6 @@ class MechSummonerPrime : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 41, 32;
 		DrivableMech.MaxWeight 75; // In Tons.
 		DrivableMech.ChassisName "Summoner";

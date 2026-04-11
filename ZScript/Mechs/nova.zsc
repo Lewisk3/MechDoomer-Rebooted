@@ -2,7 +2,6 @@ class MechNovaPrime : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 35, 45;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Nova";
@@ -283,7 +282,6 @@ class MechNovaS : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 35, 45;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Nova";
@@ -555,7 +553,6 @@ class MechNovaV : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 35, 45;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Nova";

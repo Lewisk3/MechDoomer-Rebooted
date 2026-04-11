@@ -2,7 +2,6 @@ class MechCicada : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 90, 100;
 		DrivableMech.MaxWeight 40; // In Tons.
 		DrivableMech.ChassisName "Cicada";

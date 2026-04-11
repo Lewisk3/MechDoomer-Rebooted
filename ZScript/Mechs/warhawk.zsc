@@ -2,7 +2,6 @@ class MechWarhawk : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 25, 22;
 		DrivableMech.MaxWeight 85; // In Tons.
 		DrivableMech.ChassisName "Warhawk";

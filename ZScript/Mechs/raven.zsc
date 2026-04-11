@@ -2,7 +2,6 @@ class MechRaven : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 82, 96;
 		DrivableMech.MaxWeight 35; // In Tons.
 		DrivableMech.ChassisName "Raven";

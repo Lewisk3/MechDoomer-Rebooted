@@ -2,7 +2,6 @@ class MechCrab : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 34, 42;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Crab";

@@ -2,7 +2,6 @@ class MechFiremoth : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 87, 134;
 		DrivableMech.MaxWeight 20; // In Tons.
 		DrivableMech.ChassisName "Firemoth";

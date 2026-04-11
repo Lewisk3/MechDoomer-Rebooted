@@ -2,7 +2,6 @@ class MechCommando : DrivableMech
 {
    Default
    {
-      Radius 48;
       DrivableMech.Acceleration 80, 140;
       DrivableMech.MaxWeight 25; // In Tons.
       DrivableMech.ChassisName "Commando";

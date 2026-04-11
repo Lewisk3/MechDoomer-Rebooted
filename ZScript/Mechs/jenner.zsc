@@ -2,7 +2,6 @@ class MechJenner : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 90, 113;
 		DrivableMech.MaxWeight 35; // In Tons.
 		DrivableMech.ChassisName "Jenner";

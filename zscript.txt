@@ -113,6 +113,7 @@ const MDR_VERSION = "0.9rc";
 #include "ZScript/Mechs/firemoth.zsc"
 #include "ZScript/Mechs/tarantula.zsc"
 #include "ZScript/Mechs/stalker.zsc"
+#include "ZScript/Mechs/ebonjaguar.zsc"
 
 // Other
 #include "ZScript/cine_drone.zsc"

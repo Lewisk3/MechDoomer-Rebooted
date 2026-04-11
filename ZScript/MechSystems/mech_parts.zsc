@@ -689,6 +689,27 @@ class MechHardpoint : MechPart
 		}
 	}
 	
+	virtual void AddHitboxRect(double fw, double lr, double ud, double length, double width, double height, double cDist = 1.8)
+	{
+		double blockSize = min(length, width);
+		double rad = (cDist*blockSize);
+		double fwCount = ceil(length / rad);
+		double lrCount = ceil(width / rad);
+		
+		double fwSpacing = length / fwCount;
+		double lrSpacing = width / lrCount;
+		
+		for(int f = 0; f < fwCount; f++)
+		{
+			double fwCenter = -(length / 2.0) + (fwSpacing / 2.0) + (f * fwSpacing);
+			for(int r = 0; r < lrCount; r++)
+			{
+				double lrCenter = -(width / 2.0) + (lrSpacing / 2.0) + (r * lrSpacing);
+				AddHitBox(fwCenter + fw, lrCenter + lr, ud, blockSize, height);
+			}
+		}
+	}
+	
 	clearscope vector3 getHitboxPos()
 	{
 		return OffsetPos(hitboxPos_FW, hitboxPos_LR, hitboxPos_UD);

@@ -561,7 +561,7 @@ class UltraAC : MechBallisticWeapon
 		refireDelay = fireTime*4;
 		ammoUse = 1;
 		jamChance = jamperc;
-		projMassScalar = 0.4;
+		// projMassScalar = 0.4;
 	}
 
 	override void Defaults()

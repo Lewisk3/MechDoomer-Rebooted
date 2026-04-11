@@ -7,6 +7,7 @@ server bool sv_mdr_campaignmode = false; // If true, adjusts scale parameters fo
 server bool sv_mdr_wireframe = false;
 server bool sv_mdr_drawmechhitboxes = false;
 server bool sv_mdr_drawhitboxes = false;
+server bool sv_mdr_relativescales = false; // If true, will scale enemies down to match the lore-accurate size of mechs. Not super functional, but pretty funny.
 
 // Debug
 server bool sv_mdr_startondropship = true;
@@ -17,10 +18,12 @@ server bool sv_mdr_debug_nomechstart = false;
 // Utility
 server bool sv_mdr_simplemechmovement = true;
 server float sv_mdr_mechscale = 0.7; // Fixed at 0.35 for campaign mode.
+// A mechscale of 6.32 would be fairly close to their lore-accurate size.
 
 // Cheats
 server bool sv_mdr_cheats_alwaysfullmechlab = false; // If enabled, mech can be modified freely outside of the dropship.
 server bool sv_mdr_exitanytime = false;
+server bool sv_mdr_instantsalvage = false;
 
 // Pilot (Client) Vars
 user bool cl_mdr_throttledecay = true;

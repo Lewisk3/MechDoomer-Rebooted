@@ -2,7 +2,6 @@ class MechMadDog : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 29, 35;
 		DrivableMech.MaxWeight 60; // In Tons.
 		DrivableMech.ChassisName "Mad Dog";

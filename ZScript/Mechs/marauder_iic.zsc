@@ -2,7 +2,6 @@ class MechMarauderIIC : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 18, 22;
 		DrivableMech.MaxWeight 85; // In Tons.
 		DrivableMech.ChassisName "Marauder";

@@ -2,7 +2,6 @@ class MechKitfox : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 73, 102;
 		DrivableMech.MaxWeight 30; // In Tons.
 		DrivableMech.ChassisName "Kitfox";

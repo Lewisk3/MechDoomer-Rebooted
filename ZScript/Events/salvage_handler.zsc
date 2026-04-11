@@ -83,6 +83,14 @@ class Salvage_Handler : EventHandler
 		
 		Array<MechItem> output;
 		SalvageHelper.GenerateItems(deathValue, output);
-		itemInv.AddSalvage(output);
+		if(!sv_mdr_instantsalvage)
+		{
+			itemInv.AddSalvage(output);
+		}
+		else
+		{
+			foreach(item: output)
+				itemInv.AddItem(item);
+		}
 	}
 }

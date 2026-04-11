@@ -2,7 +2,6 @@ class MechCenturion : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 48, 48;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Centurion";

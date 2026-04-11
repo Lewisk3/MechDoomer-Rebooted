@@ -12,24 +12,8 @@ class MDRTitleButton : MDRTitleMenu_Button
 		curScale = 0;
 	}
 	
-	override void Draw(double dT)
-	{
-		if(waitTimer > 0)
-		{
-			waitTimer--;
-			return;
-		}
-		
-		curScale = DrivablesMath.lerp(curScale, 1.0, scaleTimer * min(1.0, dT));
-		curScale = clamp(curScale, 0, 1.0);
-		
-		if(hovered) curScale *= 1.02;
-		
-		vector2 scaleSize = size * curScale;
-
-		Font fnt = "bt_classic";
-		double fontScale = 1.25;
-		
+	void FallbackDraw(double dT, vector2 dScale)
+	{	
 		Color btnColor = 0xFF7F7F7F;
 		if(btnDown) btnColor = 0xFFFF0000;
 		if(pressed) btnColor = 0xFF00FF00;
@@ -48,15 +32,67 @@ class MDRTitleButton : MDRTitleMenu_Button
 		if(!btnDown)
 		{
 			// Shadow
-			MWDrawer.Fill(0x000000, pos.x + 2, pos.y + 4, scaleSize.x + 6, scaleSize.y + 6, 0.8);
+			MWDrawer.Fill(0x000000, pos.x + 2, pos.y + 4, dScale.x + 6, dScale.y + 6, 0.8);
 		}
 		vector2 offs = (0,0);
 		if(btnDown) offs = (2,2);
 		vector2 drawPos = pos + offs;
 	
-		MWDrawer.Fill(outerColor, drawPos.x - 4, drawPos.y - 4, scaleSize.x + 8, scaleSize.y + 8, 1.0);
-		MWDrawer.Fill(innerColor, drawPos.x, drawPos.y, scaleSize.x, scaleSize.y, 1.0);
+		MWDrawer.Fill(outerColor, drawPos.x - 4, drawPos.y - 4, dScale.x + 8, dScale.y + 8, 1.0);
+		MWDrawer.Fill(innerColor, drawPos.x, drawPos.y, dScale.x, dScale.y, 1.0);
+	}
 	
+	override void Draw(double dT)
+	{
+		// If the map just loaded the timing will be fucked up.
+		if(level.maptime < 4) return;
+		
+		if(waitTimer > 0)
+		{
+			waitTimer -= dT;
+			return;
+		}
+		
+		curScale = DrivablesMath.lerp(curScale, 1.0, scaleTimer * dT);
+		curScale = clamp(curScale, 0, 1.0);
+		
+		if(hovered) curScale *= 1.02;
+		
+		vector2 scaleSize = size * curScale;
+		
+		// Background Image.
+		Color bgTint = 0;
+		
+		if(hovered) bgTint = 0x700F0F0F;
+		if(btnDown) bgTint = 0xC70F0F0F;
+	
+		vector2 offs = (0,0);
+		if(btnDown) offs = (2,2);
+		vector2 drawPos = pos + offs;
+	
+		// Scale Image exactly to box size.
+		string bgGraphic = "Graphics/Title/titleButton.png";
+		let bgTex = TexMan.CheckForTexture(bgGraphic);
+		let [bgWidth, bgHeight] = TexMan.GetSize(bgTex);
+		vector2 bgScale = (
+			(scaleSize.x / bgWidth),
+			(scaleSize.y / bgHeight) * 1.2
+		);
+		
+		vector2 bgPos = drawPos + (scaleSize.x * 0.5, scaleSize.y * 0.5);
+		
+		if(!btnDown)
+		{
+			// Shadow
+			MWDrawer.DrawTexture(bgTex, bgPos + (2,4), scale:(bgScale.x * 1.02, bgScale.y * 1.02), tint:0xFA0F0F0F); 
+		}
+		
+		MWDrawer.DrawTexture(bgTex, bgPos, scale:bgScale, tint:bgTint); 
+	
+		// Text
+		Font fnt = "bt_classic";
+		double fontScale = 1.25;
+		
 		// Autofit 
 		double fitX = scaleSize.x - 20;
 		double itemNameWidth = fnt.StringWidth(elementName) * fontScale * 2.0;
@@ -64,8 +100,6 @@ class MDRTitleButton : MDRTitleMenu_Button
 		fontScale *= fitScale;
 		
 		vector2 btnCenter = getTextCenter(fnt, fontScale);
-		
-		// Text
 		MWDrawer.DrawString(fnt, String.Format("%s", elementName), btnCenter + offs, MWDrawer.SS_TEXT_CENTER, Font.CR_GRAY, scale:(fontScale * curScale, fontScale * curScale));
 	}
 	

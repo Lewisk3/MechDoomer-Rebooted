@@ -2,7 +2,6 @@ class MechUrbanmech : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 66, 97;
 		DrivableMech.MaxWeight 30; // In Tons.
 		DrivableMech.ChassisName "Urbanmech";

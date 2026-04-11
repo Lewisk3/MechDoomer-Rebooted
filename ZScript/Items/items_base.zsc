@@ -1201,8 +1201,8 @@ class MechEngine : MechItem
 	{
 		if(!mech) return 0, 0;
 		
-		double walkMP = rating / double(mech.maxWeight);
-		double runMP = walkMP * 1.5; 
+		double walkMP = ceil(rating / double(mech.maxWeight));
+		double runMP = ceil(walkMP * 1.5); 
 		return runMP, walkMP;
 	}
 	

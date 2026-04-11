@@ -2,7 +2,6 @@ class MechStormcrow : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 50, 51;
 		DrivableMech.MaxWeight 55; // In Tons.
 		DrivableMech.ChassisName "Stormcrow";

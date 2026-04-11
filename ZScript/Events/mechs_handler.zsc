@@ -7,7 +7,7 @@ class MechInteraction_Handler : EventHandler
 		super.OnRegister();
 		mechlab_curmech.Resize(MAXPLAYERS);
 	}
-		
+	
 	// Setup MechItems for players
 	override void WorldTick()
 	{
@@ -23,7 +23,28 @@ class MechInteraction_Handler : EventHandler
 			// Give player a repair drone
 			if(!plr.FindInventory("RepairDrone"))
 				plr.GiveInventoryType("RepairDrone");
+			
+			// Relative scales
+			if(sv_mdr_relativescales && !plr.FindInventory("I_ScaleRelative"))
+				plr.A_GiveInventory("I_ScaleRelative", 1);
 		}	
+		
+		// Apply relative scale CVar.
+		if(sv_mdr_relativescales)
+		{
+			let actIt = ThinkerIterator.Create();
+			Actor thing;
+			while(thing = Actor(actIt.Next()))
+			{
+				bool doSkip = (
+					(thing is "DrivableObjectPart" || thing is "DrivableObject")
+				    || !(thing.bSHOOTABLE || thing is "Inventory")
+				);
+			
+				if(doSkip) continue;
+				thing.A_GiveInventory("I_ScaleRelative", 1);
+			}
+		}
 	}
 
 	play void OpenMechlab(int PID, DrivableMech mech)
@@ -214,5 +235,56 @@ class MechInteraction_Handler : EventHandler
 				console.printf("Printed %s more cbills. (I believe this is what they call the \"STONKS\", comrade.)", args[2]);
 			}
 		}
+	}
+}
+
+class I_ScaleRelative : Inventory
+{
+	Default
+	{
+		Inventory.MaxAmount 1;
+		+INVENTORY.UNDROPPABLE;
+		-INVENTORY.INVBAR;
+	}
+	
+	void ApplyScale(double scalar)
+	{
+		Owner.A_SetScale(
+			Owner.default.scale.x / scalar, 
+			Owner.default.scale.y / scalar
+		);
+		
+		Owner.A_SetSize(
+			Owner.default.radius / scalar,
+			Owner.default.height / scalar
+		);
+		
+		Owner.A_SetSpeed(Owner.default.speed / scalar);
+		
+		if(Owner.player)
+			Owner.player.viewz /= scalar;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		if(!Owner) return; // Idk if this can happen...
+		
+		if(level.mapName ~== "DROPSHIP")
+		{
+			ApplyScale(1.0);
+			return;
+		}
+		
+		if(!sv_mdr_relativescales)
+		{
+			ApplyScale(1.0);
+			Owner.RemoveInventory(self);
+			GoAwayAndDie();
+			return;
+		}
+		
+		double toScale = LOREMECHSCALE / sv_mdr_mechscale;
+		ApplyScale(toScale);
 	}
 }

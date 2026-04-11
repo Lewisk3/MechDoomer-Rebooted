@@ -2,7 +2,6 @@ class MechHunchback4G : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 43, 55;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Hunchback";
@@ -71,7 +70,6 @@ class MechHunchback4P : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 43, 55;
 		DrivableMech.MaxWeight 50; // In Tons.
 		DrivableMech.ChassisName "Hunchback";

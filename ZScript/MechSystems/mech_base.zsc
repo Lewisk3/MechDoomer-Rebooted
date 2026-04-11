@@ -152,7 +152,7 @@ class DrivableMech : DrivableObject
 		-SHOOTABLE;
 		-SOLID;
 		
-		Radius 16;
+		Radius 24;
 		Height 56;
 		Gravity 0.25;
 		Scale 1.0;
@@ -326,6 +326,8 @@ class DrivableMech : DrivableObject
 	
  	clearscope virtual double, double getMechSize()
 	{
+		// TODO: Fix radius calculation for this...
+		// Also, this is just the wrong way in general to approach hitbox calculation.
 		double maxHeight = 0;
 	
 		double curRadius;

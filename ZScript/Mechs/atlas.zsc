@@ -2,7 +2,6 @@ class MechAtlas : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 20, 22;
 		DrivableMech.MaxWeight 100; // In Tons.
 		DrivableMech.ChassisName "Atlas";

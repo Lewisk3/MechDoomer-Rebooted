@@ -2,7 +2,6 @@ class MechStalker : DrivableMech
 {
 	Default
 	{
-		Radius 48;
 		DrivableMech.Acceleration 15, 19;
 		DrivableMech.MaxWeight 85; // In Tons.
 		DrivableMech.ChassisName "Stalker";
@@ -16,11 +15,9 @@ class MechStalker : DrivableMech
 	override string getShopDescription()
 	{
 		return ( 
-			"\c[White]The Stalker was first produced in 2594 as a heavy assault "
-			"BattleMech for the Reunification War. The engineers and designers "
+			"\c[White]The engineers and designers "
 			"at Triad Technologies created the Stalker to be a heavily-armored "
-			"weapons platform capable of handling combat at any range and "
-			"absorbing a tremendous amount of punishment. Although among the "
+			"weapons platform capable of handling combat at any range. Although among the "
 			"slowest 'Mechs ever built, the Stalker was still fast enough to keep "
 			"up with other assault 'Mechs and lead major advances, using its firepower "
 			"to blast holes in the enemy's lines. Its heavy armor and armament also "
