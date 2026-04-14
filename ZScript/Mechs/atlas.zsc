@@ -134,6 +134,7 @@ class Atlas_LeftLeg : MechLeftLeg
       // Leg Stuff
       Radius 15;
       Height 60;
+	  
       MechHardpoint.Vitals 48, 24;
       MechHardpoint.SetupArmor 48, 0;
    }  

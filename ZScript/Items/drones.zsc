@@ -45,7 +45,9 @@ class RepairDrone : DeployableDrone
 class FieldRepairDrone : MechFieldDrone 
 {
 	int curHP;
+	int repairTics;
 	Array<MechHardpoint> hpList;
+	MechHitBox hbTarget;
 	double minRepairAmt;
 	DrivableMech mech;
 	DroneLaserGun droneLaser;
@@ -121,7 +123,13 @@ class FieldRepairDrone : MechFieldDrone
 					return ResolveState("DroneCycle");
 				}
 				
-				engagingTarget = hp;
+				if(!hbTarget || hbTarget.hardpoint != hp)
+				{
+					int hitbox = random[DroneTargetRNG](0, hp.hitboxes.Size()-1);;
+					hbTarget = hp.hitboxes[hitbox];
+					engagingTarget = hbTarget;
+					repairTics = 0;
+				}
 				mech.SetDroneCamera();
 				
 				if(A_TrackTarget())
@@ -134,7 +142,8 @@ class FieldRepairDrone : MechFieldDrone
 					// using a ZScript double, and thus prevent some rounding issues and precision loss.
 					hp.Repair(0.032, 0);
 				}
-					
+				
+				repairTics++;	
 				return SetDroneState(!repairBtn || !mech.shutdown, "DroneReturn");
 			}
 		loop;

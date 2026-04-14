@@ -155,7 +155,7 @@ class MechProjectile : FastProjectile
 		double kForce = 0.5 * (roundWeight * (roundSpeed*roundSpeed));
 		double dmg = ceil(kForce / 28); // old: 32
 		
-		return dmg;
+		return dmg * sv_mdr_damage_dealt;
 	}
 	
 	virtual void UpdateVelocity()

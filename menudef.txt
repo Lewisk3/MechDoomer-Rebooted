@@ -55,6 +55,8 @@ OptionMenu "MDROptionsMenu"
 	Option "Start On Dropship", "sv_mdr_startondropship", "YesNo"
 	Slider "Mech Scale", "sv_mdr_mechscale",  0.1, 6.32, 0.1, 1
 	Slider "Mech Speed Modifier", "sv_mdr_mechspeedscale", 0.05, 3, 0.05, 2
+	Slider "Mech Damage Dealt", "sv_mdr_damage_dealt", 0.1, 10, 0.1, 1
+	Slider "Mech Damage Recieved", "sv_mdr_damage_taken", 0.1, 10, 0.1, 1
 	StaticText " "
 	StaticText "Cheat Variables", "Orange"
 	Option "Always Full Mechlab", "sv_mdr_cheats_alwaysfullmechlab", "YesNo"

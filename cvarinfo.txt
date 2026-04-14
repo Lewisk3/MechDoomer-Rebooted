@@ -25,6 +25,10 @@ server bool sv_mdr_cheats_alwaysfullmechlab = false; // If enabled, mech can be 
 server bool sv_mdr_exitanytime = false;
 server bool sv_mdr_instantsalvage = false;
 
+// Balance - For modifying damage
+server float sv_mdr_damage_taken = 1.0;
+server float sv_mdr_damage_dealt = 1.0;
+
 // Pilot (Client) Vars
 user bool cl_mdr_throttledecay = true;
 user bool cl_mdr_analogthrottle = false;

@@ -26,7 +26,7 @@ class ParticleCannon : MechProjectile
 		if(trueDamage <= 0) return 0;
 		
 		// The PPC doesn't really have mass, but it does exert joules.
-		return MechLaser.GetJoulesDamage(PowerKJ);
+		return MechLaser.GetJoulesDamage(PowerKJ) * sv_mdr_damage_dealt;
 	}
 
 	override void PostBeginPlay()

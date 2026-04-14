@@ -11,4 +11,4 @@ Trees
 
 Drone models and textures created by inkoalawetrust.
 Simsun Shader and Mech walk/run animations as well as part compilation and texturing were done by Cherno.
-Logo and weapon mount models created by fire-hound.
+Logo, weapon mount models and title buttons created by fire-hound.

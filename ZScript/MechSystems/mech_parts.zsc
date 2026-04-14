@@ -48,6 +48,7 @@ class MechPart : DrivableObjectPart
 	
 	override bool CanCollideWith(Actor other, bool passive)
 	{
+		if(other.bMISSILE) return other.CanCollideWith(self, passive);
 		if(!mech) return super.CanCollideWith(other, passive);
 		
 		return mech.CanCollideWith(other, passive);
@@ -113,6 +114,13 @@ class MechHitbox : DrivableObjectPart
 	
 	override void Tick()
 	{
+		if(radius <= 0 || height <= 0)
+		{
+			bSOLID = bSHOOTABLE = false;
+			super.Tick();
+			return;
+		}
+		
 		hardpoint = MechHardpoint(parent);
 		if(hardpoint && hardpoint.healthPoints <= 0)
 			bSOLID = bSHOOTABLE = false;
@@ -233,6 +241,7 @@ class MechHardpoint : MechPart
 	Property RearArmor : hasRearArmor; 
 	
 	Array<MechItem> items;	
+	Array<MechHitBox> hitboxes;
 	
 	// Discrete hitbox
 	double hitboxRadius, hitboxHeight;
@@ -624,7 +633,7 @@ class MechHardpoint : MechPart
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
 		if(!mech || healthPoints <= 0) return 0;
-		double trueDamage = double(damage) * DMGSCALE;
+		double trueDamage = double(damage) * DMGSCALE * sv_mdr_damage_taken;
 		double hitAngle = 0;
 		
 		if(inflictor || source)
@@ -662,6 +671,7 @@ class MechHardpoint : MechPart
 		SetupMounts();
 		if(mech) angle = mech.angle;
 		
+		AddHitbox(0,0,0, radius, height);
 		SetupHitBoxes();
 	}
 	
@@ -681,11 +691,12 @@ class MechHardpoint : MechPart
 	{	
 		if(!mech) return;
 		
-		let part = MechHitBox.Create(fw, lr, ud, "MechHitBox");
+		let part = MechHitbox(MechHitBox.Create(fw, lr, ud, "MechHitBox"));
 		if(part) 
 		{
 			part.A_SetSize(r, h);
 			mech.AttachPart(part, self);
+			hitboxes.Push(part);
 		}
 	}
 	
@@ -823,13 +834,16 @@ class MechHardpoint : MechPart
 			frontArmor = maxFrontArmor;
 			frontArmorDamage = 0;
 		}
-		totalArmorDamage = 0;
+		totalArmorDamage = (rearArmorDamage + frontArmorDamage);
 	}
 	
 	virtual void fullRepairInternals()
 	{
 		healthPoints = maxHP;
 		repairCriticalItems();
+		
+		if(healthPoints > 0) 
+			bInvisible = false;
 	}
 	
 	virtual void repairCriticalItems()
@@ -864,15 +878,15 @@ class MechHardpoint : MechPart
 		healthPoints += healthAmt;
 		healthPoints = min(maxHP, healthPoints);
 		if(healthAmt > 0) repairCriticalItems();
-		
-		frontArmorDamage = max(0, frontArmorDamage);
-		rearArmorDamage = max(0, rearArmorDamage);		
-		
+				
 		// Addresses annoying rounding errors.
 		if(frontArmorDamage <= 0) frontArmor = maxFrontArmor;
 		if(rearArmorDamage <= 0) rearArmor = maxRearArmor;
 		
+		frontArmorDamage = max(0, frontArmorDamage);
+		rearArmorDamage = max(0, rearArmorDamage);	
 		totalArmorDamage = min(maxArmor, frontArmorDamage + rearArmorDamage);
+		
 		if(healthPoints > 0) bInvisible = false;
 	}
 	
@@ -1167,6 +1181,9 @@ class MechLegs : MechPart
 		if( (frame == 5 || frame == 16) && stepSound )
 		{
 			A_StartSound("Legs/Footstep", CHAN_BODY, CHANF_OVERLAP, pitch:frandom[FootstepPitch](0.8, 1.2));
+			// Trample Damage
+			EffectsHelper.ExplodeEx(self, 8, 64, damageType:"Crush"); 
+			
 			if(mech.driver) mech.driver.A_AlertMonsters(512,0);
 			if(mech.head && mech.torso) 
 			{

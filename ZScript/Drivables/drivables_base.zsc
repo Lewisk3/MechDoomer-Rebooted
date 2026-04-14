@@ -67,6 +67,9 @@ class I_DrivingObject : Inventory
 				Owner.tics = -1;
 		}
 		
+		// Shrink driver's hitbox so it doesn't interfere with the vehicle.
+		Owner.A_SetSize(1,1);
+		
 		if(resetDriver) 
 		{	
 			source.RemovePilot();
@@ -86,6 +89,9 @@ class I_DrivingObject : Inventory
 			else // Enable actor
 				Owner.tics = 1;
 		}
+		
+		// Reset driver hitbox
+		Owner.A_SetSize(Owner.default.radius, Owner.default.height);
 		
 		Owner.RemoveInventory(self);
 		GoAwayAndDie();

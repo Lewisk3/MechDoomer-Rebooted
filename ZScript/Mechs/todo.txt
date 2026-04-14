@@ -17,7 +17,7 @@ Crab [x]
 Shadowcat? [?]
 Bushwacker? [?]
 
-[Heavy] 7/8
+[Heavy] 8/8
 Catapult [x]
 Hellbringer [x]
 Mad Dog [x]
@@ -25,7 +25,7 @@ Rifleman [x]
 Timberwolf [x]
 Summoner [x]
 Warhammer [x]
-EbonJaguar [2]
+EbonJaguar [x]
 
 [Assault] 6/7
 Marauder [x]
@@ -34,4 +34,4 @@ Warhawk [x]
 Direwolf [x]
 BattleMaster [x]
 Stalker [x]
-StoneRhino [3]
+StoneRhino [1]

@@ -150,9 +150,8 @@ class DrivableMech : DrivableObject
 	Default
 	{
 		-SHOOTABLE;
-		-SOLID;
 		
-		Radius 24;
+		Radius 32;
 		Height 56;
 		Gravity 0.25;
 		Scale 1.0;
@@ -455,6 +454,10 @@ class DrivableMech : DrivableObject
 	override bool CanCollideWith(Actor other, bool passive)
 	{
 		if( other == driver || other == exitedPilot ) return false;
+		
+		// The vehicle controller does not collide with projectiles.
+		if(other.bMISSILE) return false;
+		
 		return super.CanCollideWith(other, passive);
 	}
 	
@@ -517,6 +520,7 @@ class DrivableMech : DrivableObject
 		
 		let driverPlr = PlayerPawn(driver);
 		if(driverPlr) driverPlr.UseRange = driverPlr.Default.UseRange;
+		driver.A_StopAllSounds();
 		
 		super.RemovePilot();
 	}
@@ -1063,6 +1067,7 @@ class DrivableMech : DrivableObject
 		}
 		
 		double legTurnSpeed = DegToTurnSpeed(MechLegs(legs).getTurnSpeed()) * turnSpeedScale;
+		legTurnSpeed *= sv_mdr_mechspeedscale;
 		
 		angVel -= legTurnSpeed * DrivablesMath.sign(sm);
 		angle += angVel;
@@ -1134,6 +1139,7 @@ class DrivableMech : DrivableObject
 	
 		// Movement Math
 		double legTurnDegs = (MechLegs(legs).getTurnSpeed() / double(TICRATE)) * 2.0;
+		legTurnDegs *= sv_mdr_mechspeedscale;
 		
 		let mtorso = MechTorso(torso);
 		bool noTorsoTwist = (mtorso.turnMax <= 1);
@@ -1223,7 +1229,12 @@ class DrivableMech : DrivableObject
 	override void OnDrive()
 	{	
 		// Don't do anything if the driver is dead.
-		if( driver && (driver.health <= 0 || driver.bCORPSE) ) return;
+		if( driver && (driver.health <= 0 || driver.bCORPSE) || CheckMechDestroyed() ) 
+		{
+			A_StopAllSounds();
+			driver.A_StopAllSounds();
+			return;
+		}
 		if(MP_CheckPredicting()) return;
 		super.OnDrive();
 		
@@ -1531,13 +1542,16 @@ class DrivableMech : DrivableObject
 		bool driverDead = driver && (driver.health <= 0 || driver.bCORPSE);
 		if(driverDead && (torso && !MechTorso(torso).exploded))
 			SetDroneCamera();
+		
 	
 		// Determine when mech needs to be destroyed
 		if( CheckMechDestroyed() && driverDead )
 		{
 			Destroy();
+			A_StopAllSounds();
 			return;
 		}
+		if(!driver) A_StopAllSounds();
 	
 		GetEngine(); // Update engine.
 		super.Tick();

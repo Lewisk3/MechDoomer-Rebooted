@@ -198,7 +198,7 @@ class MechFlamerEffect : EffectsActor
 			if( !(GetAge()%2) )
 			{
 				double damageMod = 1.0;
-				if( !(victim is "DrivableObjectPart") ) damageMod = 5.0; 
+				if( !(victim is "DrivableObjectPart") ) damageMod = 5.0 * sv_mdr_damage_dealt; 
 				victim.DamageMobJ(target, master, trueDamage * damageMod, damageType);
 				
 				// Increase heat-level of mech if hit.
