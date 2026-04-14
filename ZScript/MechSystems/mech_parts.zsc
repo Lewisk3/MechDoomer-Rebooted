@@ -104,11 +104,13 @@ class MechHitbox : DrivableObjectPart
 		+SHOOTABLE;
 		+SOLID;
 		+NOBLOOD;
+		DrivableComponent.CheapTicker true;
 	}
 		
 	override bool CanCollideWith(Actor other, bool passive)
 	{
 		if(!hardpoint || !hardpoint.mech) return super.CanCollideWith(other, passive);	
+		if(other.bMISSILE) return other.CanCollideWith(self, passive);
 		return hardpoint.mech.CanCollideWith(other, passive);
 	}
 	

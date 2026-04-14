@@ -153,11 +153,13 @@ class DriverBtns abstract
 class DrivableComponent : Actor 
 {	
 	bool noaccel;
+	bool useFastTick;
 
 	DrivableComponent parent;
 	vector2 spawnSize;
 	
 	Property CannotAccelerate : noaccel;
+	Property CheapTicker : useFastTick;
 	
 	Default
 	{
@@ -170,6 +172,7 @@ class DrivableComponent : Actor
 		+NOBLOOD; 
 		-BLOCKEDBYSOLIDACTORS;
 		DrivableComponent.CannotAccelerate true;
+		DrivableComponent.CheapTicker false;
 		Scale 1.0;
 	}
 	
@@ -179,9 +182,29 @@ class DrivableComponent : Actor
 		spawnSize = (radius, height);
 	}
 	
+	virtual void CheapTick()
+	{
+		// IMPORTANT: I don't know how this is going to play with the new bone system, 
+		// if we experience issues with decoupled animations, this will need to be addressed!
+		
+		if (isFrozen()) return;
+			
+		//animation:
+		if (tics != -1) 
+		{
+			if(tics > 0) tics--;
+			while (!tics) 
+				if(!SetState(CurState.NextState)) return;
+		}
+	}
+	
 	override void Tick()
 	{
-		super.Tick();
+		if(useFastTick)
+			CheapTick();
+		else 
+			super.Tick();
+
 		if(parent) 
 		{
 			A_SetSize(spawnSize.x * parent.Scale.X, spawnSize.y * parent.Scale.Y);

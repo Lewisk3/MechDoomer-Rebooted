@@ -1,0 +1,243 @@
+class MechStoneRhino : DrivableMech
+{
+	Default
+	{
+		DrivableMech.Acceleration 11, 15;
+		DrivableMech.MaxWeight 100; // In Tons.
+		DrivableMech.ChassisName "StoneRhino";
+		DrivableMech.VariantName "SR4";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/StoneRhino_icon.png";
+		DrivableMech.CBillValue (23258000  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Csesztreg Industriplex Alpha";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Stone Rhino was one of the most remarkable surprises "
+			"sprung upon the Inner Sphere by the invading Clans. The Inner "
+			"Sphere code-named the 'Mech Behemoth. Mainly seen in the Clan Smoke "
+			"Jaguar touman, scattered examples of the Stone Rhino do appear in "
+			"other Clans even though it was produced in somewhat limited numbers. "
+			"Because of these low production numbers, most Stone Rhinos in existence "
+			"are ancient machines with long and storied histories of their combat "
+			"actions and their quirks in the hangar. "
+			"(Source: https://www.sarna.net/wiki/Stone_Rhino_(Behemoth))"
+		);
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("StoneRhino_Legs",  0,0,0,  self);
+		hips  = AddMechPart("StoneRhino_Hips",  -40,0,62, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("StoneRhino_CenterTorso", 6,0,-2, hips);
+		leftTorso  = AddHardpoint("StoneRhino_LeftTorso",  0,-20,0, torso);
+		rightTorso = AddHardpoint("StoneRhino_RightTorso", 0, 20,0, torso);
+
+		leftLeg = AddHardpoint("StoneRhino_LeftLeg",   -40, -22,0, legs);
+		rightLeg = AddHardpoint("StoneRhino_RightLeg", -40,  22,0, legs);
+		 
+		leftArm  = AddHardpoint("StoneRhino_LeftArm",  8,-30,20, leftTorso);
+		rightArm = AddHardpoint("StoneRhino_RightArm", 8, 30,20, rightTorso);
+
+		head = AddHardpoint("StoneRhino_Cockpit", 90,0,10, torso);
+		cam  = AddPart("CockpitCamera", 0,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL300");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+
+	}
+}
+
+// (16.5 tons) Armor PTS
+/*
+Armor Points: 330
+	[HD] - 12
+	[CT] - 68
+	[LT] - 48
+	[RT] - 48
+	[LA] - 33
+	[RA] - 33
+	[LL] - 44
+	[RL] - 44
+*/
+
+class StoneRhino_Hips : MechHips {}
+class StoneRhino_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 35;
+   }
+}
+
+class StoneRhino_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+	  MechCockpit.Model "StoneRhinoCockpitModel";
+   }
+   
+	override void SetupMounts()
+	{
+	}
+}
+class StoneRhinoCockpitModel : MechCockpitModel {}
+
+class StoneRhino_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 60;
+      MechHardpoint.Vitals 44, 22;
+      MechHardpoint.SetupArmor 44, 0;
+   }  
+}
+class StoneRhino_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 15;
+      Height 60;
+      
+      MechHardpoint.Vitals 44, 24;
+      MechHardpoint.SetupArmor 44, 0;
+   }  
+}
+
+class StoneRhino_CenterTorso : MechTorso 
+{
+	Default
+	{
+	  MechTorso.TurnSpeed 68, 68;
+	  MechTorso.TurnRange 90;
+	  MechTorso.PitchRange 30, 30;
+	  Radius 0; Height 0;
+	  
+	  MechHardpoint.Vitals 68, 34;
+	  MechHardpoint.SetupArmor 56, 12;
+	  MechHardpoint.RearArmor true;
+	}  
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBoxRect(30,0,0, 110,12,30);
+	}
+   
+	override void SetupMounts()
+	{
+	}
+}
+
+class StoneRhino_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 0; Height 0;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 48, 24;
+      MechHardpoint.SetupArmor 40, 8;
+      MechHardpoint.RearArmor true;
+   }
+   
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBoxRect(15,-5,0, 90,15,35);
+		AddHitBoxRect(-8,-2,30, 25,20,15);
+		AddHitBoxRect(-10,14,40, 50,8,12);
+		AddHitBoxRect(60,14,43, 80,6,8);
+	}
+      
+	override void SetupMounts()
+	{
+	}
+}
+class StoneRhino_RightTorso : MechSideTorso
+{
+	Default
+	{
+	  Radius 0; Height 0;
+	  MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+	  
+	  MechHardpoint.Vitals 48, 24;
+	  MechHardpoint.SetupArmor 40, 8;
+	  MechHardpoint.RearArmor true;
+	}  
+	
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBoxRect(15,5,0, 90,15,35);
+		AddHitBoxRect(-8,2,30, 25,20,15);
+		AddHitBoxRect(-10,-14,40, 50,8,12);
+		AddHitBoxRect(60,-14,43, 80,6,8);
+	}
+
+	override void SetupMounts()
+	{
+	}
+}
+
+class StoneRhino_LeftArm : MechArm
+{
+   Default
+   {
+      MechArm.ActuationRange 30;
+      MechArm.PitchRange 30, 30;
+      MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+      MechHardpoint.Vitals 33, 17;
+      MechHardpoint.SetupArmor 33, 0;
+   }
+
+	override void SetupHitboxes()
+	{
+		AddHitBoxRect(60,-25,-30, 160,12,26);
+		AddHitboxRect(0,0,-15, 10,20,30);
+	}
+
+	override void SetupMounts()
+	{
+	}
+}
+
+class StoneRhino_RightArm : StoneRhino_LeftArm 
+{
+	Default
+	{
+	  MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+	  MechHardpoint.Vitals 33, 17;
+	  MechHardpoint.SetupArmor 33, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		AddHitBoxRect(60,25,-30, 160,12,26);
+		AddHitboxRect(0,0,-15, 10,20,30);
+	}
+
+	override void SetupMounts()
+	{
+	}
+}
