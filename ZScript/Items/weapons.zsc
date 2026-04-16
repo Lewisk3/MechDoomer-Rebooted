@@ -1360,7 +1360,7 @@ class UltraAC10 : UltraAC
 		DisplayName = "UAC/10";
 		mountType = "Ballistic";
 		heat = 4.0;
-		weight = 9.0;
+		weight = 13.0;
 		size = 7.0;
 		energyUse = 0.12;
 		
@@ -1409,7 +1409,7 @@ class LBXAC10 : AC10
 		DisplayName = "LB 10-X AC";
 		mountType = "Ballistic";
 		heat = 2.0;
-		weight = 11.0;
+		weight = 12.0;
 		size = 6.0;
 		
 		fireTime  = 2;

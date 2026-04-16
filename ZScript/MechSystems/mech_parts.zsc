@@ -149,6 +149,7 @@ class HardpointMount : Object
 	Array<double> lrPos;
 	Array<double> udPos;
 	double decoScale;
+	double pitchOffs;
 	
 	MechItem mountedItem;
 	
@@ -769,7 +770,7 @@ class MechHardpoint : MechPart
 		}	
 	}
 	
-	virtual HardpointMount SetupMountArray(string mountType, double fw, double lr, double ud, int width, int height, double spacingx, double spacingy, double depth = 0, double scale = 1.0)
+	virtual HardpointMount SetupMountArray(string mountType, double fw, double lr, double ud, int width, int height, double spacingx, double spacingy, double depth = 0, double scale = 1.0, double mntPitch = 0)
 	{
 		HardpointMount mntarray = NULL; 
 		
@@ -786,7 +787,7 @@ class MechHardpoint : MechPart
 					mntarray.newOffset(curOffs.x, curOffs.y, curOffs.z);
 					
 				curOffs.y += spacingx;
-				
+				mntarray.pitchOffs = mntPitch;
 			}
 			curOffs.y = lr;
 			curOffs.z += spacingy;

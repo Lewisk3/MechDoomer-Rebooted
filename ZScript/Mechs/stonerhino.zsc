@@ -4,12 +4,13 @@ class MechStoneRhino : DrivableMech
 	{
 		DrivableMech.Acceleration 11, 15;
 		DrivableMech.MaxWeight 100; // In Tons.
-		DrivableMech.ChassisName "StoneRhino";
+		DrivableMech.ChassisName "Stone Rhino";
 		DrivableMech.VariantName "SR4";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/StoneRhino_icon.png";
 		DrivableMech.CBillValue (23258000  * MECHPRICESCALAR);
+		DrivableMech.DropshipScale 2.0;
 		
-		DrivableMech.Manufacturer "Csesztreg Industriplex Alpha";
+		DrivableMech.Manufacturer "Csesztreg Industriplex";
 	}
 	
 	override string getShopDescription()
@@ -54,7 +55,39 @@ class MechStoneRhino : DrivableMech
 		// Armor and Engine
 		torso.AddItem("MechEngine_XL300");
 		MechArmor.addToMech(self, "MechArmor_Standard");
-
+	
+		torso.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+		rightArm.AddItem("LRMAmmo");
+		rightArm.AddItem("LRMAmmo");
+		rightLeg.AddItem("UAC5Ammo");
+		leftLeg.AddItem("UAC5Ammo");
+		leftArm.AddItem("LRMAmmo");
+		leftArm.AddItem("UAC5Ammo");
+		rightArm.AddItem("UAC5Ammo");
+		leftArm.AddItem("MGAmmo");
+		rightArm.AddItem("MGAmmo");
+		leftArm.AddItem("MechCASE");
+		rightArm.AddItem("MechCASE");
+		
+		rightTorso.AddWeapon("LRM10", GROUPFLG_FOUR);
+		rightTorso.AddWeapon("LRM10", GROUPFLG_FOUR);
+		rightTorso.AddWeapon("UltraAC5", GROUPFLG_TWO);
+		leftTorso.AddWeapon("LRM10", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("LRM10", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("UltraAC5", GROUPFLG_TWO);
+		
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("MachineGun", GROUPFLG_THREE);
+		rightArm.AddWeapon("MachineGun", GROUPFLG_THREE);
+		
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("MachineGun", GROUPFLG_THREE);
+		leftArm.AddWeapon("MachineGun", GROUPFLG_THREE);
+		SetChainFire(GROUPFLG_ONE, true);
 	}
 }
 
@@ -94,6 +127,8 @@ class StoneRhino_Cockpit : MechCockpit
    
 	override void SetupMounts()
 	{
+		// PDS
+		AddMountPoint("PDS", -18,0,12, scale:1.0);
 	}
 }
 class StoneRhinoCockpitModel : MechCockpitModel {}
@@ -170,6 +205,10 @@ class StoneRhino_LeftTorso : MechSideTorso
       
 	override void SetupMounts()
 	{
+		// 1B, 2M
+		AddMountPoint("Ballistic", 100,14.4,46.75, scale:0.6);
+		SetupMountArray("Missile", -16.7,-10.5,31, 1,5, 0, 2, depth:38, scale:1.5, mntPitch:-70);
+		SetupMountArray("Missile", -16.7,0,31, 1,5, 0, 2, depth:38, scale:1.5, mntPitch:-70);
 	}
 }
 class StoneRhino_RightTorso : MechSideTorso
@@ -195,6 +234,10 @@ class StoneRhino_RightTorso : MechSideTorso
 
 	override void SetupMounts()
 	{
+		// 1B, 2M
+		AddMountPoint("Ballistic", 100,-12.4,46.75, scale:0.6);
+		SetupMountArray("Missile", -17.5,10,31, 1,5, 0, 2, depth:38, scale:1.5, mntPitch:-70);
+		SetupMountArray("Missile", -17.5,-0.5,31, 1,5, 0, 2, depth:38, scale:1.5, mntPitch:-70);
 	}
 }
 
@@ -218,6 +261,11 @@ class StoneRhino_LeftArm : MechArm
 
 	override void SetupMounts()
 	{
+		// 2B, 2E
+		AddMountPoint("Ballistic", 140,-23,-18.5, scale:1.0);
+		AddMountPoint("Ballistic", 105,-32,-10.75, scale:0.7);
+		AddMountPoint("Energy", 60,-31,-25.25, scale:0.6);
+		AddMountPoint("Energy", 80,-14.15,-25.65, scale:0.45);
 	}
 }
 
@@ -239,5 +287,10 @@ class StoneRhino_RightArm : StoneRhino_LeftArm
 
 	override void SetupMounts()
 	{
+		// 2B, 2E
+		AddMountPoint("Ballistic", 140,22.5,-18.5, scale:1.0);
+		AddMountPoint("Ballistic", 105,31.5,-10.75, scale:0.7);
+		AddMountPoint("Energy", 60,30.5,-25.25, scale:0.6);
+		AddMountPoint("Energy", 80,13.65,-25.65, scale:0.45);
 	}
 }

@@ -47,7 +47,7 @@ class MechMountDeco : EffectsActor
 		
 		SetOrigin(mountPos, true);
 		A_SetAngle(src.parent.angle, SPF_INTERPOLATE);
-		A_SetPitch(src.parent.pitch, SPF_INTERPOLATE);
+		A_SetPitch(src.parent.pitch + src.mount.pitchOffs, SPF_INTERPOLATE);
 		A_SetRoll(src.parent.roll, SPF_INTERPOLATE);
 		
 		A_SetScale(default.scale.X * src.parent.scale.X * itemMountScale);
