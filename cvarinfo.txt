@@ -17,7 +17,7 @@ server bool sv_mdr_debug_nomechstart = false;
 
 // Utility
 server bool sv_mdr_simplemechmovement = true;
-server float sv_mdr_mechscale = 0.7; // Fixed at 0.35 for campaign mode.
+server float sv_mdr_mechscale = 1.0; // Fixed at 0.35 for campaign mode.
 // A mechscale of 6.32 would be fairly close to their lore-accurate size.
 
 // Cheats

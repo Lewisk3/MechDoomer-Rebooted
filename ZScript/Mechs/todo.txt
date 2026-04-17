@@ -27,11 +27,11 @@ Summoner [x]
 Warhammer [x]
 EbonJaguar [x]
 
-[Assault] 6/7
+[Assault] 7/7
 Marauder [x]
 Atlas [x]
 Warhawk [x]
 Direwolf [x]
 BattleMaster [x]
 Stalker [x]
-StoneRhino [1]
+StoneRhino [x]

@@ -1798,7 +1798,10 @@ class MechWeapon : MechItem
 					{
 						// Alert monsters
 						if(weap.mech.driver)
-							weap.mech.driver.A_AlertMonsters(1024);
+						{
+							//weap.mech.driver.A_AlertMonsters(1024);
+							weap.mech.driver.SoundAlert(weap.mech.driver, false);
+						}
 						
 						weap.modifyHeat(weap.heat);
 						weap.modifyEnergy(weap.energyUse);
@@ -1822,8 +1825,11 @@ class MechWeapon : MechItem
 			{
 				// Alert monsters
 				if(weap.mech.driver)
-					weap.mech.driver.A_AlertMonsters(1024);
-			
+				{
+					//weap.mech.driver.A_AlertMonsters(1024);
+					weap.mech.driver.SoundAlert(weap.mech.driver, false);
+				}
+						
 				weap.modifyHeat(weap.heat);
 				weap.modifyEnergy(weap.energyUse);
 				weap.cooldown += weap.getCooldownTime();
