@@ -1542,7 +1542,9 @@ class DrivableMech : DrivableObject
 		bool driverDead = driver && (driver.health <= 0 || driver.bCORPSE);
 		if(driverDead && (torso && !MechTorso(torso).exploded))
 			SetDroneCamera();
-		
+	
+		// Round weight to nearest 100th place.
+		weight = round(weight * 100.0) / 100.0;
 	
 		// Determine when mech needs to be destroyed
 		if( CheckMechDestroyed() && driverDead )

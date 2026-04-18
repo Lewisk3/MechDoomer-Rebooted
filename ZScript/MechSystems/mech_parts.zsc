@@ -342,8 +342,9 @@ class MechHardpoint : MechPart
 	
 	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)
 	{
+		ratio = int(ratio * 10) / 10.0;
 		if(ratio <= 0) return MWDrawerColor.HSLtoRGB(0,1.0,0.0,1.0);
-		double hue = DrivablesMath.fmap(max(0.3,ratio), 0.3, 1.0, 0, 0.36);
+		double hue = ratio * 0.3;
 		return MWDrawerColor.HSLtoRGB(hue, 1.0, 0.5, tintalpha);
 	}
 	clearscope double, double getVitals()
@@ -1420,6 +1421,7 @@ class MechTorso : MechHardpoint
 			{
 				double str = clamp(abs(zAccel) * 0.25, 1, 3);
 				mech.cockpit.DoCockpitQuake(str,str,str, 15);
+				mech.cockpit.StepOffset += str * 1.5;
 			}
 				
 			// Shockwave - get kinetic energy
