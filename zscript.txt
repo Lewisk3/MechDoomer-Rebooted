@@ -1,5 +1,5 @@
 version "4.10.0"
-const MDR_VERSION = "0.9rc";
+const MDR_VERSION = "1.0";
 
 // Internal Settings
 #include "skill_const.cfg"
