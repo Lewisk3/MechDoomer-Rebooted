@@ -27,6 +27,7 @@ class DrivableMech : DrivableObject
 	bool hasLockedEngine; // If true, engine cannot be removed once initially equipped.
 	bool isQuadMech; // If true, this mech will always use the mech-assault styled movement.
 	double fixedScale; // If non-zero, mech will always be scaled by this amount.
+	double unstuckScale; // Used whenever a mech gets stuck.
 	
 	double prevThrottle; // Man I hate doing acceleration sounds...
 	double cachedScale, cachedAutoFit; // Cache of sv_mdr_mechscale CVar.
@@ -146,6 +147,7 @@ class DrivableMech : DrivableObject
 	transient CVar cv_throttleDecay;
 	transient CVar cv_run;
 	transient CVar cv_analogthrottle;
+	transient CVar cv_autounstuck;
 	
 	Default
 	{
@@ -359,8 +361,9 @@ class DrivableMech : DrivableObject
 		Name mapname = level.mapname;
 		if(mapname == 'DROPSHIP') return dropshipScale;
 		if(sv_mdr_campaignmode) return 0.35;
+		if(unstuckScale <= 0) unstuckScale = 1.0;
 		
-		return sv_mdr_mechscale;
+		return sv_mdr_mechscale * unstuckScale;
 	}
 	
 	// If toTarget is NULL, then we this will automatically choose the closest target.
@@ -449,6 +452,7 @@ class DrivableMech : DrivableObject
 		cv_throttleDecay = CVar.GetCVar("cl_mdr_throttledecay", driver.player);
 		cv_run = CVar.GetCVar("cl_run", driver.player); 
 		cv_analogthrottle = CVar.GetCVar("cl_mdr_analogthrottle", driver.player); 
+		cv_autounstuck = CVar.GetCVar("cl_mdr_autounstuck", driver.player); 
 	}
 	
 	override bool CanCollideWith(Actor other, bool passive)
@@ -1442,9 +1446,64 @@ class DrivableMech : DrivableObject
 	}
 	
 	
+	double prevStuckScale;
+	void UnstuckMech()
+	{
+		FLineTraceData ltData;
+		bool isWallStuck = false;
+		bool isCeilStuck = false;
+		int minDist = int.max;
+		
+		// Radius clipping
+		double checkRadius = (default.radius * sv_mdr_mechscale);
+		double checkHeight = (default.height * sv_mdr_mechscale);
+		double traces = 8;
+		for(int i = 0; i < traces; i++)
+		{
+			double checkAngle = angle + (i * (360 / traces));
+			LineTrace(checkAngle, checkRadius * 2.0, 0, TRF_THRUACTORS, offsetz: height * 0.5, data:ltData);
+			double dist = ltData.distance;
+			
+			if(dist < checkRadius) 
+			{
+				isWallStuck = true;
+				if(dist < minDist) 
+					minDist = dist;
+			}
+		}
+
+		// Height cliping
+		if(!isWallStuck && (pos.z+checkHeight) > ceilingz)
+		{
+			minDist = ceilingz-pos.z;
+			isCeilStuck = true;
+		}
+		
+		// Scale down mech if stuck.
+		if(isWallStuck || isCeilStuck)
+		{
+			if(unstuckScale <= 0.9) 
+				SendHUDMessage("\c[Orange]Un-Stuck: \c[White]Small space detected, mech has been temporarily scaled down.", 35, "UnstuckMSG");
+				
+			if(abs(unstuckScale - prevStuckScale) >= 0.1) 
+			{
+				unstuckScale = isWallStuck ? (minDist / checkRadius) : (minDist / checkHeight);
+				prevStuckScale = unStuckScale;
+			}
+		}
+		else
+		{
+			unstuckScale = 1.0;
+		}
+	}
+	
 	override void DoPhysics()
 	{	
 		super.DoPhysics();
+		
+		// Attempt to unstuck mech, if stuck.
+		if(cv_autounstuck && cv_autounstuck.getBool()) 
+			UnstuckMech();
 		
 		if( (!sv_mdr_simplemechmovement && !isQuadMech) || (driver && !driver.player) )
 			DoThrottleAcceleration();
