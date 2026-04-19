@@ -1767,12 +1767,12 @@ class MechMenu_Mechlab : MechMenu
 	
 		// Arms
 		let leftArmSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_LA", hpSlotsPos + (spacing*2, 50), (slotsWidth,256))
 		);
 		SetupHardpointContainer(leftArmSlots, mech.leftArm, slotsWidth, slotsHeight);
 		
 		let rightArmSlots = MechHardpointContainer(
-			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos + (spacing*2, 50), (slotsWidth,256))
+			AddElement("MechHardpointContainer", "Hardpoint_RA", hpSlotsPos - (spacing*2, -50), (slotsWidth,256))
 		);
 		SetupHardpointContainer(rightArmSlots, mech.rightArm, slotsWidth, slotsHeight);
 		

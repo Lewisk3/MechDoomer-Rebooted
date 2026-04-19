@@ -1367,22 +1367,6 @@ class DrivableMech : DrivableObject
 			moveSpeed = moveSpeedKPH = 0;
 		
 		DriverInteraction();
-		
-		// Crossable lines
-		if(pos.z <= floorz)
-		{
-			let blockLines = BlockLinesIterator.Create(self, 16);	
-			while(blockLines.Next())		
-			{
-				let ln = blockLines.CurLine;
-				bool crossable = ln.activation & (SPAC_Cross|SPAC_AnyCross);
-				if(crossable) 
-				{
-					if(DrivablesMath.DistanceToLine(ln, pos.xy) > 16) continue;
-					ln.Activate(driver, level.PointOnLineSide(pos.xy, ln), SPAC_Cross); 
-				}
-			}
-		}
 	}
 	
 	virtual void modifyHeat(double amt)
@@ -1690,6 +1674,24 @@ class DrivableMech : DrivableObject
 			A_SetGravity(0.04);
 		else
 			A_SetGravity(default.gravity);
+			
+		// Crossable lines
+		if(pos.z <= floorz)
+		{
+			let blockLines = BlockLinesIterator.Create(self, 16);	
+			while(blockLines.Next())		
+			{
+				let ln = blockLines.CurLine;
+				bool crossable = ln.activation & (SPAC_Cross|SPAC_AnyCross);
+				if(crossable) 
+				{
+					if(DrivablesMath.DistanceToLine(ln, pos.xy) > 16) continue;
+					int lineSide = level.PointOnLineSide(pos.xy, ln, true);
+					int oldSide = level.PointOnLineSide(prev.xy, ln, true);
+					if(lineSide != oldSide) ln.Activate(driver, lineSide, SPAC_Cross); 
+				}
+			}
+		}
 	}
 	
 	States

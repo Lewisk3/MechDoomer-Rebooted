@@ -47,6 +47,15 @@ class MechInteraction_Handler : EventHandler
 		}
 	}
 
+	override void WorldLinePreActivated(WorldEvent e)
+	{
+		// Crossable line interaction is handled elsewhere by mechs.
+		let actMech = DrivableMech(e.Thing);
+		bool crossable = e.ActivationType & (SPAC_Cross|SPAC_AnyCross);
+		if(actMech && crossable)
+			e.ShouldActivate = false;
+	}
+
 	play void OpenMechlab(int PID, DrivableMech mech)
 	{
 		if(!mech) return;
