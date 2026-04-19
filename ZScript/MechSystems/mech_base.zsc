@@ -1676,7 +1676,7 @@ class DrivableMech : DrivableObject
 			A_SetGravity(default.gravity);
 			
 		// Crossable lines
-		if(pos.z <= floorz)
+		if(pos.z <= floorz && vel.length() > 0)
 		{
 			let blockLines = BlockLinesIterator.Create(self, 16);	
 			while(blockLines.Next())		
@@ -1688,7 +1688,9 @@ class DrivableMech : DrivableObject
 					if(DrivablesMath.DistanceToLine(ln, pos.xy) > 16) continue;
 					int lineSide = level.PointOnLineSide(pos.xy, ln, true);
 					int oldSide = level.PointOnLineSide(prev.xy, ln, true);
-					if(lineSide != oldSide) ln.Activate(driver, lineSide, SPAC_Cross); 
+					
+					if(lineSide == line.back && oldSide == line.front)
+						ln.Activate(driver, lineSide, SPAC_Cross); 
 				}
 			}
 		}
