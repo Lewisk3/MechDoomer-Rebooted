@@ -7,11 +7,17 @@ class I_DrivingObject : Inventory
 	
 	override void ModifyDamage(int damage, Name damageType, out int newdamage, bool passive, Actor inflictor, Actor source, int flags)
 	{
+		// REALLY should've picked a better name for this variable...
+		let vehicle = self.source;
+	
 		// Don't allow the pilot to take damage while in a vehicle.
 		// bSHOOTABLE cannot simply be toggled off for the driver,
 		// otherwise monsters will ignore them.
-		
-		if(passive && disableDamage) newdamage = 0;
+		if(passive) 
+		{
+			if(vehicle) vehicle.OnDriverDamaged(damage, damageType, passive, inflictor, source, flags);
+			if(disableDamage) newDamage = 0;
+		}
 	}
 	
 	// This virtual has the added benefit of detecting whenever P_Teleport is called!
@@ -498,6 +504,11 @@ class DrivableObject : DrivableComponent
 		SetOrigin(toPos, false);
 		driver.SetOrigin(toPos, false);
 		driver.Prev = toPos;
+	}
+	
+	virtual void OnDriverDamaged(int damage, Name damageType, bool passive, Actor inflictor, Actor source, int flags)
+	{
+		// Called whenever the driver takes damage, mostly important for melee attacks.
 	}
 	
 	override void PostBeginPlay()

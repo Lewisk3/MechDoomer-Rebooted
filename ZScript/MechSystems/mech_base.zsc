@@ -465,6 +465,43 @@ class DrivableMech : DrivableObject
 		return super.CanCollideWith(other, passive);
 	}
 	
+	// When enemies melee, they target the player directly, so the damage needs to be passed onto the mech.
+	override void OnDriverDamaged(int damage, Name damageType, bool passive, Actor inflictor, Actor source, int flags)
+	{
+		bool selfDamage = (inflictor == self || source == self || inflictor == driver || source == driver);
+		if(selfDamage) return;
+		
+		String mod = damageType;
+		if(mod.IndexOf("melee") == -1 && mod.IndexOf("Melee") == -1) return;
+		
+		// Randomly pass damage onto torsos or legs.
+		int dmgIndex = random[DriverDMGD](0,100);
+		MechHardpoint dest; 
+		
+		if(dmgIndex <= 100) 
+		{
+			int dir = random[DriverDMGD](0,1);
+			switch(dir)
+			{
+				case 0: dest = leftLeg; break;
+				case 1: dest = rightLeg; break;
+			}
+		}
+		if(dmgIndex <= 50)
+		{
+			int dir = random[DriverDMGD](0,1);
+			switch(dir)
+			{
+				case 0: dest = leftTorso; break;
+				case 1: dest = rightTorso; break;
+			}
+		}
+		if(dmgIndex <= 20) dest = torso;
+		
+		// Damage Hardpoint
+		if(dest) dest.DamageMobJ(inflictor, source, damage, damageType, flags);
+	}
+	
 	override void TakePilot(Actor user)
 	{
 		if(head && head.healthPoints <= 0)

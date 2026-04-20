@@ -1192,7 +1192,7 @@ class MechLegs : MechPart
 			// Trample Damage
 			double mechScale = mech.getMechScale();
 			double stepRadius = radius;
-			if(mech.driver) EffectsHelper.ExplodeEx(self, 8 * (mechScale*mechScale) , mech.radius * 2.0, damageType:"Crush"); 
+			if(mech.driver) EffectsHelper.ExplodeEx(mech, 8 * (mechScale*mechScale) , mech.radius * 2.0, damageType:"Crush"); 
 			
 			if(mech.driver)
 				mech.driver.SoundAlert(mech.driver, false, 256);
@@ -1436,7 +1436,7 @@ class MechTorso : MechHardpoint
 
 			double kForce = 0.05 * (kgWeight * (accelMS*accelMS));
 			double shockwaveDmg = ceil(kForce / 28); // old: 32
-			EffectsHelper.ExplodeEx(mech.legs, shockwaveDmg, 128 * mech.GetMechScale(), thrustMod:0.25);
+			EffectsHelper.ExplodeEx(mech, shockwaveDmg, 128 * mech.GetMechScale(), thrustMod:0.25);
 		}
 		
 		pitchBob = clamp(pitchBobVel, -bobmax, bobmax);
