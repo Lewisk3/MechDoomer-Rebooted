@@ -62,6 +62,7 @@ Alias -mw_togglelamp "netevent -mw_togglelamp"
 
 Alias printmoney "netevent inv.printmoney.%1"
 Alias printitem "netevent inv.give.%1"
+Alias bringmechtome "netevent mech.BringToMe"
 
 addkeysection "Mech Controls" DrivableMechControls
 addmenukey "Fire Group 1" +ATTACK

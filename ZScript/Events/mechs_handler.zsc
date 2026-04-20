@@ -197,6 +197,30 @@ class MechInteraction_Handler : EventHandler
 		cmd.Split(args, ".");
 		cmd = args[0];
 		
+		if(cmd ~== "mech")
+		{
+			if(args[1] == "BringToMe")
+			{
+				// Pointless on the dropship.
+				if(level.mapname == "DROPSHIP") return;
+			
+				// Player is already driving their mech.
+				if(drvObj && drvObj.source) return;
+			
+				let mechData = I_SaveMechData(plr.mo.FindInventory("I_SaveMechData"));
+				let curMech = mechData.GetMechbayMech(mechData.activeMechID);
+				if(!curMech)
+				{
+					console.printf("Error: No active mech found.");
+					return;
+				}
+				
+				Actor.Spawn("TeleportFog", plr.mo.pos);
+				curMech.SetOrigin(plr.mo.pos, false);
+				curMech.exitedPilot = plr.mo;
+			}
+		}
+		
 		if(cmd ~== "inv")
 		{
 			let inv = I_MechItemStorage.Get(plr.mo, give:false);
