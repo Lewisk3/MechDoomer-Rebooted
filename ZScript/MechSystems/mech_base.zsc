@@ -1488,6 +1488,12 @@ class DrivableMech : DrivableObject
 		// Attempt to unstuck mech, if stuck.
 		if(cv_autounstuck && cv_autounstuck.getBool()) 
 			UnstuckMech();
+			
+		// Update noclip
+		if(driver) bNOCLIP = driver.bNOCLIP;
+		
+		// Update stepheight based on scale.
+		MaxStepHeight = default.MaxStepHeight * GetMechScale();
 		
 		if( (!sv_mdr_simplemechmovement && !isQuadMech) || (driver && !driver.player) )
 			DoThrottleAcceleration();

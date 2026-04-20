@@ -39,7 +39,7 @@ class CommonHUD_Handler : EventHandler
 			
 			string munitionsText = String.Format("\c[Sapphire]MUNITIONS STATION\n\t\t\t\c[Orange]Capacity %d\%%", st.munitions);
 			
-			MWDrawer.DrawString("SmallFont", munitionsText, textPos, scale:(txtScale,txtScale), absolute:true);
+			MWDrawer.DrawString("hm_thin", munitionsText, textPos, scale:(txtScale,txtScale), absolute:true);
 		}
 	
 		UpdateDeltaTime();
