@@ -639,6 +639,8 @@ class MechHardpoint : MechPart
 	override int DamageMobJ(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
 	{		
 		if(!mech || healthPoints <= 0) return 0;
+		if(source == mech.driver) return 0; // Don't take damage from the driver!
+		
 		double trueDamage = double(damage) * DMGSCALE * sv_mdr_damage_taken;
 		double hitAngle = 0;
 		
