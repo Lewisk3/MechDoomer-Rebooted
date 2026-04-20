@@ -342,8 +342,10 @@ class MechHardpoint : MechPart
 	
 	clearscope Color getHealthyColor(double ratio, double tintalpha=1.0)
 	{
+		if(ratio <= 0) 
+			return MWDrawerColor.HSLtoRGB(0,1.0,0.0,1.0);
+		
 		ratio = int(ratio * 10) / 10.0;
-		if(ratio <= 0) return MWDrawerColor.HSLtoRGB(0,1.0,0.0,1.0);
 		double hue = ratio * 0.3;
 		return MWDrawerColor.HSLtoRGB(hue, 1.0, 0.5, tintalpha);
 	}
@@ -1186,7 +1188,9 @@ class MechLegs : MechPart
 		{
 			A_StartSound("Legs/Footstep", CHAN_BODY, CHANF_OVERLAP, pitch:frandom[FootstepPitch](0.8, 1.2));
 			// Trample Damage
-			EffectsHelper.ExplodeEx(self, 8, 64, damageType:"Crush"); 
+			double mechScale = mech.getMechScale();
+			double stepRadius = radius;
+			if(mech.driver) EffectsHelper.ExplodeEx(self, 8 * (mechScale*mechScale) , mech.radius * 2.0, damageType:"Crush"); 
 			
 			if(mech.driver)
 				mech.driver.SoundAlert(mech.driver, false, 256);
