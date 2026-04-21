@@ -15,7 +15,7 @@ class I_DrivingObject : Inventory
 		// otherwise monsters will ignore them.
 		if(passive) 
 		{
-			if(vehicle) vehicle.OnDriverDamaged(damage, damageType, passive, inflictor, source, flags);
+			if(vehicle && vehicle.driver == Owner) vehicle.OnDriverDamaged(damage, damageType, passive, inflictor, source, flags);
 			if(disableDamage) newDamage = 0;
 		}
 	}
