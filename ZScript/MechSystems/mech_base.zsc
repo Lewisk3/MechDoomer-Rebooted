@@ -1067,11 +1067,8 @@ class DrivableMech : DrivableObject
 	
 	clearscope double, double NormalizeMoveInputs(double fm, double sm)
 	{
-		bool running = cv_run && cv_run.getBool();
-		double moveRatio = gameinfo.normforwardmove[0] / gameinfo.normsidemove[0];
-		double normFM = clamp((fm / (gameinfo.normforwardmove[0]*256.)) * (running ? 0.5 : 1), -1, 1);	
-		double normSM = clamp((sm / (gameinfo.normsidemove[0]*256.)) * (running ? 0.5 : 1), -1, 1);	
-		normSM /= (moveRatio * 0.8);
+		bool running = cv_run && cv_run.getBool();		
+		let [normFM, normSM] = DrivablesMath.NormalizeMoveInputs(running, fm, sm);
 		
 		return normFM, normSM;
 	}

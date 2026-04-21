@@ -626,7 +626,7 @@ class MechHardpoint : MechPart
 		if(!abovePivot && !forced) return;
 		
 		if(behind) angles.xy *= -1;
-		torso.recoilAngles = angles * (amt / 10.0);
+		if(amt >= 20) torso.recoilAngles = angles * (amt / 20.0);
 		
 		// Cockpit shake
 		torso.recoilShake += (
@@ -653,7 +653,7 @@ class MechHardpoint : MechPart
 		
 		if( explosiveDamage )
 		{
-			trueDamage *= 0.25;
+			trueDamage *= 0.08;
 			if(immuneToExplosions) return 0;
 		}
 		

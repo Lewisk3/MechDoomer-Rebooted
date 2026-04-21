@@ -318,6 +318,15 @@ class DrivablesMath Abstract
         return -(d * v) - (k * (p - r));
     }
 	
+	static double, double NormalizeMoveInputs(bool isRunning, double fm, double sm)
+	{
+		double moveRatio = gameinfo.normforwardmove[0] / gameinfo.normsidemove[0];
+		double normFM = clamp((fm / (gameinfo.normforwardmove[0]*256.)) * (isRunning ? 0.5 : 1), -1, 1);	
+		double normSM = clamp((sm / (gameinfo.normsidemove[0]*256.)) * (isRunning ? 0.5 : 1), -1, 1);	
+		normSM /= (moveRatio * 0.8);
+		
+		return normFM, normSM;
+	}
 	
 	// Get angle, pitch, roll from Quaternion q.
 	static vector3 GetEuler(Quat q)

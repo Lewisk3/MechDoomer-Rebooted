@@ -358,7 +358,9 @@ class HardpointButton : MenuElement
 		// Cannot select arms if side torsos are destroyed.
 		disabled = (
 			(hp == base.mech.rightArm && base.mech.rightTorso.healthpoints <= 0) ||
-			(hp == base.mech.leftArm && base.mech.leftTorso.healthpoints <= 0)
+			(hp == base.mech.leftArm && base.mech.leftTorso.healthpoints <= 0)	 ||
+			(hp == base.mech.leftTorso && base.mech.torso.healthpoints <= 0) 	 ||
+			(hp == base.mech.rightTorso && base.mech.torso.healthpoints <= 0) 
 		);
 		
 		if(disabled) armorCol = internalCol = 0xFF070707;

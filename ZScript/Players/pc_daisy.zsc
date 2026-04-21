@@ -1,0 +1,281 @@
+class DaisyPlayer : DoomPlayer
+{
+	bool isIdle;
+	double aimAngle;
+	DaisyCamera cam;
+
+	Default
+	{
+		Speed 2;
+		Health 100;
+		Radius 8;
+		Height 18;
+		Mass 10; 
+		Player.JumpZ 16;
+		Player.ViewHeight 10;
+		Player.ViewBob 0.2;
+		PainChance 255;
+		Player.DisplayName "Daisy";
+		Player.CrouchSprite "RABA";
+		Player.StartItem "DaisyWeapon";
+		Player.WeaponSlot 1, "DaisyWeapon";
+	}
+
+	bool CheckVoodoo()
+	{
+		return (!player || !player.mo || player.mo != self);
+	}
+
+	override void Tick()
+	{
+		super.Tick();
+		double moveSpeed = vel.length();
+		double idleSpeed = 2;
+		
+		// Set camera to daisy cam, if set to self.
+		if(!cam) cam = DaisyCamera.SetupCamera(self, -80, 0, 16);
+			
+		if(player.Camera == self && cam)
+			SetCamera(cam, false);
+		
+		// Ensure daisy has her claws.
+		if(!FindInventory("DaisyWeapon") && !CheckVoodoo())
+			A_GiveInventory("DaisyWeapon", 1);
+	}
+	
+	override bool CanReceive(Inventory item)
+	{
+		// Rabbits don't exactly have thumbs...
+		if(item is "Weapon" && !(item is "DaisyWeapon")) return false;
+		
+		return true;
+	}
+	
+	override void MovePlayer ()
+	{
+		if(CheckVoodoo()) 
+		{
+			super.MovePlayer();
+			return;
+		}
+	
+		let player = self.player;
+		UserCmd cmd = player.cmd;
+		player.onground = (pos.z <= floorz) || bOnMobj || bMBFBouncer || (player.cheats & CF_NOCLIP2);
+
+		// Update angle
+		aimAngle += cmd.yaw * (360./65536.);
+
+		double moveFriction, movefactor;
+		[moveFriction, movefactor] = GetFriction();
+		
+		double moveSpeed = speed;
+		double turnRate = 0.2;
+		
+		bool running = cmd.buttons & BT_RUN;
+		bool attacking = cmd.buttons & BT_ATTACK;
+		let [fm, sm] = DrivablesMath.NormalizeMoveInputs(running, cmd.forwardmove, cmd.sidemove);
+		
+		// Animations
+		isIdle = !(fm || sm);
+		if(player.onground)
+		{
+			if(!isIdle) 
+				PlayRunning();
+			else
+				PlayIdle();
+		}
+		else
+		{
+			SetState(ResolveState("InAir"));
+		}
+		
+		if(fm || sm)
+		{
+			// Move Inputs
+			vector2 moveDir = (fm, -sm);
+			double moveAngle = aimAngle + atan2(moveDir.y, moveDir.x);
+			double accelDirModifier = (cos(angle), sin(angle)) dot (cos(moveAngle), sin(moveAngle));
+			if(accelDirModifier < 0) accelDirModifier = 0;
+			
+			// Interpolate legs to movement direction, then accelerate in that direction.
+			angle = DrivablesMath.LerpDegrees(angle, moveAngle, turnRate);	
+			vel += DrivablesMath.VecFromAngles(angle, pitch, moveSpeed * accelDirModifier);		
+			
+			// Camera stuff
+			if (player.cheats & CF_REVERTPLEASE)
+			{
+				player.cheats &= ~CF_REVERTPLEASE;
+				player.camera = player.mo;
+			}
+		}
+		
+		// Faster stopping
+		vel *= 0.94;
+		
+		// Set angle to aim direction, if attacking, or camera is not active.
+		if(attacking || player.Camera != cam) Angle = aimAngle;
+	}
+
+	States
+	{
+	Spawn:
+		RABW A 1 NoDelay
+		{
+			frame = randompick[DaisyIdle](0,4);
+			tics = random[DaisyIdle](20,70);
+		}
+		
+	SpawnIdle:
+		TNT1 A 0 A_Jump(128, "SpawnIdle2");
+		RABW ABCDCBA 5;
+		RABW A 5 
+		{
+			tics = random[DaisyIdle](10,25);
+		}
+		TNT1 A 0 A_Jump(256, "SpawnIdle");
+	
+	SpawnIdle2:
+		RABW EFGHGFE 5;
+		RABW E 5 
+		{
+			tics = random[DaisyIdle](10,25);
+		}
+	goto SpawnIdle;
+	
+	InAir:
+		RABA B 1 A_JumpIf(player.onground, "Spawn");
+	Loop;
+	
+	See:
+		RABA ABC 4;
+	Loop;
+		
+	Melee:
+	Missile:
+		RABA B 20;
+		Goto Spawn;
+	Pain:
+		"####" "#" 1 A_Pain;
+		Goto Spawn;
+	Death:
+	Death1:
+	XDeath:
+	XDeath1:
+		RIB1 A 5;
+		RIB1 B 5 A_XScream;
+		RIB1 C 5 A_NoBlocking;
+		PLAY DEF 5;
+		RIB1 F -1;
+		Stop;
+	}
+}
+
+class DaisyCamera : Actor
+{
+	DaisyPlayer daisy;
+	vector3 offs;
+	
+	Default
+	{
+		+NOINTERACTION
+		+INTERPOLATEANGLES;
+		Radius 0;
+		Height 0;
+	}
+	
+	static DaisyCamera SetupCamera(DaisyPlayer src, double dist, double lr, double ud)
+	{
+		let cam = DaisyCamera(Spawn("DaisyCamera", src.pos));
+		if(cam)
+		{
+			cam.daisy = src;
+			cam.offs = (dist, lr, ud);
+		}
+		return cam;
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		if(!daisy) return;
+		
+		// Get angles to daisy
+		let dir = Quat.FromAngles(daisy.aimAngle, daisy.pitch, daisy.roll) * offs;
+		
+		vector3 anglesTo = level.SphericalCoords(level.vec3offset(daisy.pos, dir), daisy.pos, (0,0));
+		anglesTo.xy = -anglesTo.xy;
+		
+		// Don't clip through walls, if possible.
+		double maxdist = anglesTo.z;
+		
+		FLineTraceData lnData;
+		double ltHeightOffs = offs.y;
+		daisy.LineTrace(anglesTo.x + 180, maxdist, -anglesTo.y, TRF_THRUACTORS|TRF_THRUBLOCK, offsetz:ltHeightOffs, data:lnData);
+			
+		if( lndata.HitType == lndata.TRACE_HitWall    || 
+			lndata.HitType == lndata.TRACE_HitCeiling || 
+			lndata.HitType == TRACE_HitFloor			  ) 
+		{
+			maxdist = lndata.Distance;
+		}	
+	
+		// Update FOV
+		CameraFOV = daisy.player.FOV; 
+		
+		// Follow daisy
+		
+		dir *= maxDist / max(1, anglesTo.z);
+		
+		vector3 followPos = level.vec3offset(daisy.pos, dir);
+		followPos = level.vec3offset(followPos, daisy.vel);
+	
+		SetOrigin(followPos, true);
+		
+		// Look towards daisy
+		angle = anglesTo.x;
+		pitch = daisy.pitch;
+	}
+	
+	States
+	{
+		Spawn:
+			TNT1 A -1;
+		stop;
+	}
+}
+
+class DaisyWeapon : Weapon
+{
+	Default
+	{
+		Obituary "%o was clawed to death by Daisy";
+		Tag "Claws";
+		+WEAPON.WIMPY_WEAPON
+		+WEAPON.MELEEWEAPON
+	}
+	
+	action void A_Claw(double dmg, Sound hitSound = "imp/melee")
+	{
+		A_CustomPunch(dmg, false, flags:0, "", 64, 10, 25, MeleeSound:hitSound, MissSound:"");
+	}
+	
+	States
+	{
+	Ready:
+		TNT1 A 1 A_WeaponReady;
+		Loop;
+	Deselect:
+		TNT1 A 0; // Cannot Deselect Claws.
+		goto Ready;
+	Select:
+		TNT1 A 1 A_Raise(WEAPONTOP);
+		goto Ready;
+	Fire:
+		TNT1 A 4 A_StartSound("Daisy/Melee/Swipe");
+		TNT1 A 4 A_Claw(32);
+		TNT1 A 16;
+		TNT1 A 0 A_ReFire();
+		Goto Ready;
+	}
+}

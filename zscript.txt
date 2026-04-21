@@ -116,5 +116,8 @@ const MDR_VERSION = "1.01 [Hotfix]";
 #include "ZScript/Mechs/ebonjaguar.zsc"
 #include "ZScript/Mechs/stonerhino.zsc"
 
+// Playerclasses
+#include "ZScript/Players/pc_daisy.zsc"
+
 // Other
 #include "ZScript/cine_drone.zsc"

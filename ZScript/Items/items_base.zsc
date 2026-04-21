@@ -813,7 +813,7 @@ class MechChassisStructure : MechUtility
 	{
 		double maxInternalPts = 0;
 		Array<MechHardpoint> hardpoints;
-		mech.getHardPoints(hardpoints);
+		mech.getHardPoints(hardpoints, skipDestroyed:false);
 		
 		for(int i = 0; i < hardpoints.Size(); i++)
 			maxInternalPts += hardpoints[i].maxHP;
@@ -825,7 +825,7 @@ class MechChassisStructure : MechUtility
 	{
 		double curInternalPts = 0;
 		Array<MechHardpoint> hardpoints;
-		mech.getHardPoints(hardpoints);
+		mech.getHardPoints(hardpoints, skipDestroyed:false);
 		
 		for(int i = 0; i < hardpoints.Size(); i++)
 		{
