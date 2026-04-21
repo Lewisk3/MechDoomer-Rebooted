@@ -210,7 +210,10 @@ class MDRTitleMenu : MDRTitleMenuBase
 		if(isTitlemap)
 			HorizontalButtons();
 		else
+		{
 			VerticalButtons();
+			menuactive = On;
+		}
 			
 		// Add Title Icon
 		double logoWidth = 650 * (isTitlemap ? 0.8 : 0.8);
