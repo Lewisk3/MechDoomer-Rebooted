@@ -1966,6 +1966,7 @@ class I_MechItemStorage : Inventory
 	Array<MechItem> shopItems;
 	Array<MechItem> salvageItems; // Temporary salvage list, added to items later.
 	string dropshipNextMap; // Map to return to after dropship.
+	string dropshipNextSecretmap; // Cache for level.NextSecretMap.
 	
 	Default
 	{

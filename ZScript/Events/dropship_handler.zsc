@@ -100,6 +100,20 @@ class MechDropship_Handler : StaticEventHandler
 		}
 	}
 	
+	// Handle secret exits
+	override void WorldLinePreActivated(WorldEvent e)
+	{
+		Actor activator = e.Thing;
+		Line ln = e.ActivatedLine;
+		let inv = I_MechItemStorage.Get(activator);
+		if(!inv || !ln) return;
+		
+		bool isSecretExit = (ln.special == 244);
+		
+		if(isSecretExit)
+			inv.dropshipNextMap = inv.dropshipNextSecretMap;
+	}
+	
 	override void WorldLoaded(WorldEvent e)
 	{
 		if(gamestate == GS_TITLELEVEL) return;
@@ -123,9 +137,15 @@ class MechDropship_Handler : StaticEventHandler
 		if(curmap != "DROPSHIP")
 		{
 			inv.dropshipNextMap = level.NextMap;
+			inv.dropshipNextSecretMap = level.NextSecretMap;
 			if(onFirstMap) inv.dropshipNextMap = curMap;
 			
-			level.NextMap = "DROPSHIP";		
+			if(!sv_mdr_disabledropship) 
+			{
+				level.NextMap = "DROPSHIP";		
+				level.NextSecretMap = "DROPSHIP";
+			}
+				
 			reloadActiveMech = true;
 		}
 		else
