@@ -109,7 +109,7 @@ class MechInteraction_Handler : EventHandler
 		let it = ThinkerIterator.Create("DrivableObject");
 		DrivableObject vehicle;
 		while(vehicle = DrivableObject(it.Next())) 
-			vehicle.PreTravelled();
+			vehicle.OnWorldUnload();
 	}
 	
 	override void InterfaceProcess(ConsoleEvent e)

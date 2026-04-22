@@ -12,7 +12,7 @@ class MechDropship_Handler : StaticEventHandler
 		if(plr) I_MechItemStorage.Get(plr);
 	}
 
-	virtual void RestoreActiveMechs()
+	virtual void RestoreActiveMechs(bool recycleOld = true)
 	{
 		// Spawn active mech and put the driver in it.
 		for(int i = 0; i < MAXPLAYERS; i++)
@@ -22,15 +22,25 @@ class MechDropship_Handler : StaticEventHandler
 			let plr = players[i].mo;
 			
 			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-			if(mechData && mechData.activeMechID > 0)
+			if(!mechData) continue;
+					
+			if(mechData.activeMechID > 0)
 			{
-				let mech = mechData.loadMechData(mechData.activeMechID, plr.pos);
+				if(recycleOld)
+					mechData.RecycleActiveMechs();
+
+				let mech = mechData.loadMechData(mechData.activeMechID, plr.pos, plr.angle);
 				if(mech) 
 				{
 					mech.angle = plr.angle;
-					mech.autoTakePilot = plr;
 					mech.shutdown = true;
-					mech.powerupTimer = 35*2;
+					
+					bool shouldTakePilot = mech.Distance2D(plr) <= (128 * mech.scale.X);
+					if(shouldTakePilot)
+					{
+						mech.autoTakePilot = plr;
+						mech.powerupTimer = 35*2;
+					}
 				}
 			}			
 		}	
@@ -81,29 +91,12 @@ class MechDropship_Handler : StaticEventHandler
 					}
 				}
 			}
-		} 
-		else if(curMap != "TITLEMAP")
+		}
+		else if(curMap != "TITLEMAP" && reloadActiveMech && level.maptime >= 8)
 		{
-			// Load player's mech, if starting on a new map.
-			if(level.maptime >= 8 && reloadActiveMech)
-			{
-				for(int i = 0; i < MAXPLAYERS; i++)
-				{
-					PlayerInfo plrInfo = players[i];
-					if(!plrInfo || !playerInGame[i]) continue;
-					let plr = players[i].mo;
-					let inv = I_MechItemStorage.Get(plr);
-			
-					// If there are active mechs, destroy them.
-					// This needs to be done because, if loaded from a save there will exist
-					// a kind of mech-voodoo situation.
-					let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
-					if(mechData) mechData.RecycleActiveMechs();
-					
-					RestoreActiveMechs();
-					reloadActiveMech = false;
-				}
-			}
+			// Restore mechs
+			RestoreActiveMechs(recycleOld:true);
+			reloadActiveMech = false;
 		}
 	}
 	
@@ -116,7 +109,7 @@ class MechDropship_Handler : StaticEventHandler
 		if(!inv) return;
 		
 		Name curMap = level.mapname;
-		
+				
 		scrfade = 2.0;
 		onFirstMap = curmap != "DROPSHIP" && (inv.dropshipNextMap == "") && sv_mdr_startondropship;
 		
@@ -366,7 +359,7 @@ class MechBay : EffectsActor
 		
 		bool isLocal = (mechOwner == cplr);
 		vector3 localPos = isLocal ? pos : offmapPos;
-		mechs.Insert(PID, mechData.LoadMechData(mechbayID, localPos, angle));
+		mechs.Insert(PID, mechData.LoadMechData(mechbayID, localPos, angle, absolutePos:true));
 	}
 
 	override void Activate(Actor activator)
@@ -403,7 +396,7 @@ class MechBay : EffectsActor
 			// Load mech
 			bool isLocal = (plr == cplr);
 			vector3 localPos = isLocal ? pos : offmapPos;
-			mechs.Insert(i, mechData.LoadMechData(mechbayID, localPos, angle));
+			mechs.Insert(i, mechData.LoadMechData(mechbayID, localPos, angle, absolutePos:true));
 		}
 	}
 

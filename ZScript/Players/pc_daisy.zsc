@@ -14,6 +14,7 @@ class DaisyPlayer : DoomPlayer
 		Player.JumpZ 16;
 		Player.ViewHeight 10;
 		Player.ViewBob 0.2;
+		Player.UseRange 64;
 		PainChance 255;
 		Player.DisplayName "Daisy";
 		Player.CrouchSprite "RABA";
@@ -71,7 +72,7 @@ class DaisyPlayer : DoomPlayer
 		[moveFriction, movefactor] = GetFriction();
 		
 		double moveSpeed = speed;
-		double turnRate = 0.2;
+		double turnRate = 0.4;
 		
 		bool running = cmd.buttons & BT_RUN;
 		bool attacking = cmd.buttons & BT_ATTACK;

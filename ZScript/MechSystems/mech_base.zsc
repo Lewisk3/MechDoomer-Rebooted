@@ -172,9 +172,9 @@ class DrivableMech : DrivableObject
 		DrivableMech.DropshipScale 3.0;
 	}
 	
-	override void PreTravelled()
+	override void OnWorldUnload()
 	{
-		super.PreTravelled();
+		super.OnWorldUnload();
 		
 		// Save mech to serializer
 		if(MechSerializer) MechSerializer.SaveMechData(self);
@@ -1842,6 +1842,8 @@ class MechSaveData : Object
 	DrivableMech mechobj; // This mech's active Map Object.
 	int mechbayID;
 	bool isCriticallyDamaged;
+	vector3 lastPos;
+	String lastMapData; // Needed to know when to use lastPos, or to update it.
 	
 	// Shop information
 	Array<String> ShopStats;
@@ -1850,6 +1852,8 @@ class MechSaveData : Object
 	
 	virtual void Save(DrivableMech mech)
 	{
+		lastPos = mech.pos;
+		lastMapData = level.GetChecksum();
 		mechType = mech.getClass();
 		weaponGroups.Copy(mech.weaponGroups);
 		engineType = mech.engine ? mech.engine.getClass() : NULL;
@@ -2246,7 +2250,7 @@ class I_SaveMechData : Inventory
 		return mechsData.Find(mechData);
 	}
 	
-	DrivableMech loadMechData(int mechbayID, vector3 atPos, double atAngle = 0)
+	DrivableMech loadMechData(int mechbayID, vector3 fallbackPos, double atAngle = 0, bool absolutePos = false)
 	{
 		int mechSaveID = -1;
 		MechSaveData mechData;
@@ -2264,6 +2268,11 @@ class I_SaveMechData : Inventory
 		// Destroy old mechs of this same type.
 		if(mechData.mechobj)
 			mechData.mechobj.Destroy();
+		
+		// Determine position to spawn mech at.
+		vector3 atPos = mechData.lastPos;
+		if( absolutePos || (level.getChecksum() != mechData.lastMapData) )
+			atPos = fallbackPos;
 		
 		// Respawn mech.
 		let mech = DrivableMech(Spawn(mechData.mechType, atPos));
