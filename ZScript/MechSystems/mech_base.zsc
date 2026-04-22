@@ -1715,7 +1715,13 @@ class DrivableMech : DrivableObject
 		else
 			A_SetGravity(default.gravity);
 			
-		// Crossable lines
+		// Crossable lines and secrets
+		if(driver) ProcessMapGeometry();
+	}
+	
+	void ProcessMapGeometry()
+	{
+		// Walkover lines
 		if(pos.z <= floorz && vel.length() > 0)
 		{
 			let blockLines = BlockLinesIterator.Create(self, 16);	
@@ -1733,6 +1739,13 @@ class DrivableMech : DrivableObject
 						ln.Activate(driver, lineSide, SPAC_Cross); 
 				}
 			}
+		}
+		
+		// Secret Sectors
+		if(CurSector && CurSector.isSecret())
+		{
+			level.GiveSecret(driver);
+			CurSector.ClearSecret();
 		}
 	}
 	
