@@ -864,9 +864,9 @@ class MechHUD : VehicleHUD
 		vector2 namePos = (120,95) * drawScale; 
 		
 		// Annoying sprite angle bullshit.
-		vector3 posDiff = level.SphericalCoords(mech.pos, target.pos, (mech.head.angle - 90, 0));
-		double rawAngle = (Actor.Normalize180(posDiff.x) + 180);
-		int targetAngle = floor(rawAngle / 45.0);
+		vector3 posDiff = level.SphericalCoords(mech.pos, target.pos, (target.angle, 0));
+		double rawAngle = Actor.Normalize180(-posDiff.x) + 180;
+		int targetAngle = ceil(rawAngle / 45.0) % 8;
 		
 		TextureID targetTex;
 		targetTex = target.CurState.GetSpriteTexture(targetAngle);

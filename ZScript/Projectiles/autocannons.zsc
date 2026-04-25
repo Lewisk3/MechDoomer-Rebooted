@@ -120,7 +120,11 @@ class MechAutocannon : MechProjectile
 	
 	override void DoDebris(Actor hitActor)
 	{
-		if(overlay || died) return; // Overlays do not have debris.
+		if(overlay || died) 
+		{
+			died = true; // Needed to properly remove the heat overlay on impact.
+			return; // Overlays do not have debris.
+		}
 
 		Array<Actor> debris;
 		EffectsHelper.SpawnFX("AutocannonDebris", random[DebrisAmt](10,20), pos, (angle+180, -pitch, roll), 3, (5,5,5), (45,30,0), 3, spawnedActors:debris);
