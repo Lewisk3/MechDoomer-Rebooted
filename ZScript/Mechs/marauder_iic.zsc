@@ -7,7 +7,7 @@ class MechMarauderIIC : DrivableMech
 		DrivableMech.ChassisName "Marauder";
 		DrivableMech.VariantName "IIC";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/marauder_icon.png";
-		DrivableMech.CBillValue (9913533  * MECHPRICESCALAR);
+		DrivableMech.CBillValue (9913533  * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Various;Clans";
 	}

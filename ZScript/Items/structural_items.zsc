@@ -9,6 +9,7 @@ class MechArmor_Standard : MechArmor
 		damageMod = 1.0;
 		displayName = "Standard";
 		armorTier = 0;
+		costPerTon = 10000;
 	}
 }
 
@@ -68,6 +69,7 @@ class MechChassis_Standard : MechChassisStructure
 		displayName = "Standard";
 		chassisWeightPercent = 1.0;
 		structureTier = 0;
+		costPerTon = 20000;
 	}
 }
 
@@ -80,7 +82,7 @@ class MechChassis_EndoSteel : MechChassisStructure
 		displayName = "Endosteel";
 		chassisWeightPercent = 0.5;
 		structureTier = 1; // Advanced structure tier
-		costPerTon = 40000; // Per-ton of structural materials.
+		costPerTon = 35000; // Per-ton of structural materials.
 		
 		value = 150000;
 	}
@@ -94,7 +96,7 @@ class MechChassis_ClanEndoSteel : MechChassis_EndoSteel
 		structureSlots = 7;
 		displayName = "Clan-Endosteel";
 		structureTier = 3;
-		costPerTon = 80000;
+		costPerTon = 70000;
 		
 		value = 300000;
 	}

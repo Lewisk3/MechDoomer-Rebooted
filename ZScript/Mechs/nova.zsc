@@ -7,7 +7,7 @@ class MechNovaPrime : DrivableMech
 		DrivableMech.ChassisName "Nova";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/nova_prime_icon.png";
-		DrivableMech.CBillValue (11586250   * MECHPRICESCALAR);
+		DrivableMech.CBillValue (11586250   * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Olivetti Weaponry";
 	}

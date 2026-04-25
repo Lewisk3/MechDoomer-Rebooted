@@ -7,7 +7,7 @@ class MechHellbringer : DrivableMech
 		DrivableMech.ChassisName "Hellbringer";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/hellbringer_icon.png";
-		DrivableMech.CBillValue (19074687  * MECHPRICESCALAR);
+		DrivableMech.CBillValue (19074687  * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Clan Hell's Horses";
 	}

@@ -7,7 +7,7 @@ class MechTimberwolf : DrivableMech
 		DrivableMech.ChassisName "Timberwolf";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/timberwolf_icon.png";
-		DrivableMech.CBillValue (24233124 * MECHPRICESCALAR);
+		DrivableMech.CBillValue (24233124 * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Various;Clans";
 	}

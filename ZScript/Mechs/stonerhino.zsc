@@ -7,7 +7,7 @@ class MechStoneRhino : DrivableMech
 		DrivableMech.ChassisName "Stone Rhino";
 		DrivableMech.VariantName "SR4";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/StoneRhino_icon.png";
-		DrivableMech.CBillValue (23258000  * MECHPRICESCALAR);
+		DrivableMech.CBillValue (23258000  * CLANMECHPRICESCALAR);
 		DrivableMech.DropshipScale 2.0;
 		
 		DrivableMech.Manufacturer "Csesztreg Industriplex";

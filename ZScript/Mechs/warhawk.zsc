@@ -7,7 +7,7 @@ class MechWarhawk : DrivableMech
 		DrivableMech.ChassisName "Warhawk";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/Warhawk_icon.png";
-		DrivableMech.CBillValue (26355948  * MECHPRICESCALAR);
+		DrivableMech.CBillValue (26355948  * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Imperial BattleMechs";
 	}

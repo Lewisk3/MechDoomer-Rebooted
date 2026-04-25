@@ -7,7 +7,7 @@ class MechMadDog : DrivableMech
 		DrivableMech.ChassisName "Mad Dog";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/MadDog_icon.png";
-		DrivableMech.CBillValue (15292000 * MECHPRICESCALAR);
+		DrivableMech.CBillValue (15292000 * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Bergan Industries";
 	}

@@ -7,7 +7,7 @@ class MechSummonerPrime : DrivableMech
 		DrivableMech.ChassisName "Summoner";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/Summoner_icon.png";
-		DrivableMech.CBillValue (21150833  * MECHPRICESCALAR);
+		DrivableMech.CBillValue (21150833  * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Defiance Industries";
 	}

@@ -7,7 +7,7 @@ class MechEbonJaguar : DrivableMech
 		DrivableMech.ChassisName "Ebon Jaguar";
 		DrivableMech.VariantName "A";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/ebon_icon.png";
-		DrivableMech.CBillValue (18606500 * MECHPRICESCALAR);
+		DrivableMech.CBillValue (18606500 * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Huntress Manufacturing";
 	}

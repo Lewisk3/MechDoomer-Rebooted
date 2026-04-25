@@ -4,8 +4,7 @@ class SalvageHelper abstract
 
 	static double GetEnemyValue(Actor victim)
 	{
-		double cbillPerHP = 150.;
-		return victim.getSpawnHealth() * cbillPerHP;
+		return victim.getSpawnHealth() * MDR_CBILLPERHP;
 	}
 
 	play static void GenerateItems(double maxValue, out Array<MechItem> items, out Array<class<MechItem> > excludedItems = NULL)

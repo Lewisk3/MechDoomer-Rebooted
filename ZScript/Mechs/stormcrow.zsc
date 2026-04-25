@@ -7,7 +7,7 @@ class MechStormcrow : DrivableMech
 		DrivableMech.ChassisName "Stormcrow";
 		DrivableMech.VariantName "Prime";
 		DrivableMech.ItemGraphic "Graphics/MechIcons/Stormcrow_icon.png";
-		DrivableMech.CBillValue (14771113   * MECHPRICESCALAR);
+		DrivableMech.CBillValue (14771113   * CLANMECHPRICESCALAR);
 		
 		DrivableMech.Manufacturer "Tokasha MechWorks";
 	}

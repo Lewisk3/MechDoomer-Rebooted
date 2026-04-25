@@ -118,15 +118,17 @@ OptionMenu "MDRControlsMenu"
 	StaticText " "
 	StaticText " "
 	StaticText "Interactions", "Orange"
-	Control    "Target Nearest [R]", "+mw_gettarget"
 	Control    "Power Cycle [P]", "+mw_powercycle"
 	Control    "Override Shutdown [O]", "+mw_overrideshutdown"
+	Control    "Target Nearest [R]", "+mw_gettarget"
+	Control    "Repair Drone [V]", "+mw_repairdrone"
+	Control    "Open Mechlab [M]", "netevent +mw_openmechlab"
 	Control    "Toggle Camera [F]", "+RELOAD"
 	Control    "Toggle Headlights [L]", "+mw_togglelamp"
 	Control    "Item Magnet [G]", "+mw_itemmagnet"
 	Control    "View Mech Inventory", "+mw_peekinventory"
-	Control    "Open Mechlab [M]", "netevent +mw_openmechlab"
-	Control    "Repair Drone [V]", "+mw_repairdrone"
+	Control    "Teleport Mech to Me", "bringmechtome"
+
 	
 }
 
