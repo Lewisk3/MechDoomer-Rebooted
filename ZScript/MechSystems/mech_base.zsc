@@ -647,6 +647,14 @@ class DrivableMech : DrivableObject
 		MechWeapon.FireWeapons(weaps, weaponGroups, grp, instantFire);
 	}
 	
+	// Lets each weapon in the corresponding group know that the fire button was released.
+	virtual void EndFireWeapons(uint grp = 0)
+	{
+		Array<MechWeapon> weaps;
+		getAllWeapons(weaps, grp);
+		foreach(weap : weaps) weap.endFire();
+	}
+	
 	// Wrappers for readability.
 	virtual MechPart AddMechPart(class<MechPart> part, double fw, double lr, double ud, DrivableComponent parent)
 	{
@@ -1003,11 +1011,19 @@ class DrivableMech : DrivableObject
 		{
 			FireWeapons(1, instantFire:clicked);
 		}
+		else if(getDriverBtn(BT_ATTACK, DriverBtns.BTS_RELEASED))
+		{
+			EndFireWeapons(1);
+		}
 		
 		clicked = getDriverBtn(BT_ALTATTACK, DriverBtns.BTS_PRESSED);
 		if(getDriverBtn(BT_ALTATTACK, DriverBtns.BTS_DOWN)) 
 		{
 			FireWeapons(2, instantFire:clicked);
+		}
+		else if(getDriverBtn(BT_ALTATTACK, DriverBtns.BTS_RELEASED))
+		{
+			EndFireWeapons(2);
 		}
 		
 		clicked = getDriverBtn(BT_USER1, DriverBtns.BTS_PRESSED);
@@ -1015,17 +1031,29 @@ class DrivableMech : DrivableObject
 		{
 			FireWeapons(3, instantFire:clicked);
 		}
+		else if(getDriverBtn(BT_USER1, DriverBtns.BTS_RELEASED))
+		{
+			EndFireWeapons(3);
+		}
 		
 		clicked = getDriverBtn(BT_USER2, DriverBtns.BTS_PRESSED);
 		if(getDriverBtn(BT_USER2, DriverBtns.BTS_DOWN)) 
 		{
 			FireWeapons(4, instantFire:clicked);
 		}
+		else if(getDriverBtn(BT_USER2, DriverBtns.BTS_RELEASED))
+		{
+			EndFireWeapons(4);
+		}
 		
 		clicked = getDriverBtn(BT_USER3, DriverBtns.BTS_PRESSED);
 		if(getDriverBtn(BT_USER3, DriverBtns.BTS_DOWN)) 
 		{
 			FireWeapons(5, instantFire:clicked);
+		}
+		else if(getDriverBtn(BT_USER3, DriverBtns.BTS_RELEASED))
+		{
+			EndFireWeapons(5);
 		}
 								
 		torsoLock = getExtBtn(BT_TORSOLOCK, DriverBtns.BTS_DOWN);

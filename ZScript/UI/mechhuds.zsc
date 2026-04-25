@@ -709,9 +709,14 @@ class MechHUD : VehicleHUD
 			
 			string weapName = String.Format("%-13s", weap.DisplayName);
 			weapName = weapName.MakeUpper();
+			
+			// Fix weapon name width.
+			double fitX = 128;
+			double itemNameWidth = weapFont.StringWidth(weapName) * infoScale * 2.0;
+			double fitScale = itemNameWidth > fitX ? fitX / itemNameWidth : infoScale;
 		
 			vector2 weapDrawPos = drawPos+offs+weapOffs;
-			MWDrawer.DrawString(weapFont, weapName, weapDrawPos, flags, translation:tint, scale:(infoScale,infoScale));
+			MWDrawer.DrawString(weapFont, weapName, weapDrawPos, flags, translation:tint, scale:(fitScale,fitScale));
 			
 			// Ammo
 			if(ammoCount ~== "INF")
@@ -732,12 +737,18 @@ class MechHUD : VehicleHUD
 			// Range
 			MWDrawer.DrawString(weapFont, weapRange, weapDrawPos + (215,0), flags | MWDrawer.SS_TEXT_RIGHT, translation:tint, scale:(infoScale*0.65,infoScale));
 			
-			// Weapon cooldown
-			vector2 cooldownPos = (weapDrawPos.x + 230, weapDrawPos.y + 3);
+			// Weapon Cooldown and Charge
+			vector2 weapMeterPos = (weapDrawPos.x + 230, weapDrawPos.y + 3);
+			MWDrawer.Fill(0xFF7F7F7F, weapMeterPos.x - 1, weapMeterPos.y - 1, 52, 12, flags:flags);
+			MWDrawer.Fill(0xFF000000, weapMeterPos.x, weapMeterPos.y, 50, 10, flags:flags);
+			
+			// Charge
+			double chargePerc = min(1, weap.fireCharge);
+			MWDrawer.Fill(0xFFFFFF00, weapMeterPos.x + 1, weapMeterPos.y + 0.5, 48 * chargePerc, 8.5, flags:flags);
+			
+			// Cooldown
 			double cooldownPerc = min(1, max(0.01,weap.cooldown) / max(0.01,double(weap.cooldownTime)));
-			MWDrawer.Fill(0xFF7F7F7F, cooldownPos.x - 1, cooldownPos.y - 1, 52, 12, flags:flags);
-			MWDrawer.Fill(0xFF000000, cooldownPos.x, cooldownPos.y, 50, 10, flags:flags);
-			MWDrawer.Fill(0xFFFF0000, cooldownPos.x + 1, cooldownPos.y + 0.5, 48 * cooldownPerc, 8.5, flags:flags);
+			MWDrawer.Fill(0xFFFF0000, weapMeterPos.x + 1, weapMeterPos.y + 0.5, 48 * cooldownPerc, 8.5, flags:flags);
 			
 			// Next weapon
 			drawPos.y += yoff;

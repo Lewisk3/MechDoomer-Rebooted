@@ -1532,6 +1532,12 @@ class MechWeapon : MechItem
 	double energyUse;
 	MechAmmo loadedAmmo;
 	
+	// Used for weapons which require charging before firing.
+	double fireCharge, chargeTime;
+	bool requiresCharge; // If true, weapon will not fire until fully charged.
+	Sound chargeSound;
+	bool isCharging, doChargeSound;
+	
 	MechMountDeco mountDecoObject;
 	class<MechMountDeco> mountDeco;
 	double mountDecoScale;
@@ -1660,13 +1666,45 @@ class MechWeapon : MechItem
 	play virtual void preFire()
 	{
 		// Called when fire button is pressed on this weapon or weapon group.
+		if(checkDestroyed()) return;
+		
+		// Process weapon charging
+		if(chargeTime > 0 && !cooldown)
+		{
+			fireCharge += (1.0 / chargeTime);
+			if(!isCharging) OnChargeStart();
+			isCharging = true;
+		}
+	}
+	
+	play virtual void OnChargeStart()
+	{
+		// Called once charging begins or is resumed.
+		if(chargeSound) WeapSound(chargeSound);
+	}
+	
+	play virtual void OnChargeEnd()
+	{
+		// Called when the charge (or fire) button is released.
+	}
+	
+	play virtual void endFire()
+	{
+		// Called when fire button is released for this weapon or weapon group.
+		if(checkDestroyed()) return;
+		if(isCharging) 
+		{
+			OnChargeEnd();
+			isCharging = false;
+		}
 	}
 	
 	clearscope virtual bool canFire()
 	{
+		bool chargeCheck = requiresCharge ? fireCharge >= 1.0 : true;
 		bool ammoCheck = ammoUse <= 0 || countAmmo() >= ammoUse;
 		bool energyCheck = energyUse <= 0 || (mech.engine && mech.engine.energy >= energyUse);
-		return ammoCheck && energyCheck;
+		return ammoCheck && energyCheck && chargeCheck;
 	}
 	
 	play virtual void depleteAmmo(int amt)
@@ -1806,6 +1844,7 @@ class MechWeapon : MechItem
 						weap.modifyHeat(weap.heat);
 						weap.modifyEnergy(weap.energyUse);
 						weap.cooldown += weap.getCooldownTime();
+						if(weap.requiresCharge) weap.fireCharge = 0;
 						group.weapCycle = weap.fireTime;
 						group.prevWeapFired = weap;
 					}
@@ -1833,6 +1872,7 @@ class MechWeapon : MechItem
 				weap.modifyHeat(weap.heat);
 				weap.modifyEnergy(weap.energyUse);
 				weap.cooldown += weap.getCooldownTime();
+				if(weap.requiresCharge) weap.fireCharge = 0;
 				group.weapCycle = weap.fireTime;
 			}
 		}
@@ -1843,17 +1883,21 @@ class MechWeapon : MechItem
 		let hardpoint = weap.parent;
 		if(!hardpoint || !weap) return false;
 		if(weap.checkDestroyed()) return false; // Cannot fire destroyed weapons.	
+		let group = weap.mech.weaponGroups[weap.group-1];
 		
 		weap.preFire();
 		if( weap.canFire() && weap.cooldown <= 0 && weap.mount && weap.Fire(weap.getFirePos()))
 		{
 			// Alert monsters
 			if(weap.mech.driver)
-				weap.mech.driver.A_AlertMonsters(1024);
+				weap.mech.driver.SoundAlert(weap.mech.driver, false);
 		
 			weap.modifyHeat(weap.heat);
 			weap.modifyEnergy(weap.energyUse);
 			weap.cooldown += weap.getCooldownTime();
+			group.weapCycle = weap.fireTime;
+			if(weap.requiresCharge) weap.fireCharge = 0;
+			group.prevWeapFired = weap;
 			return true;
 		}
 		
@@ -1906,6 +1950,10 @@ class MechWeapon : MechItem
 	{
 		super.DoEffect();
 		if(cooldown) cooldown--;
+		if(chargeTime > 0 && !isCharging && fireCharge > 0) 
+		{
+			fireCharge = max(0, fireCharge - (1.0 / chargeTime));
+		}
 		
 		// Refire logic
 		if(--refireTimer <= 0 && refire > 0)

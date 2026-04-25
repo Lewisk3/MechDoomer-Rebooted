@@ -83,8 +83,8 @@ class MechLaserWeapon : MechWeapon
 		stats.Push("Range");
 		values.Push(String.Format("%dm", laserRange));
 		stats.Push("Raw Damage");
-		double dmgPerSec = MechLaser.GetJoulesDamage(PowerKJ) * TICRATE;
-		values.Push(String.Format("%.2f/s", dmgPerSec));
+		double dmgPerBeam = MechLaser.GetJoulesDamage(PowerKJ) * (fireTime + maxLaserTime);
+		values.Push(String.Format("%.2f", dmgPerBeam));
 		stats.Push("Heat");
 		values.Push(String.Format("%.2f H/s", (laserHeat/6.5) * fireTime) );
 		stats.Push("Cooldown");
@@ -111,6 +111,8 @@ class MechLaserWeapon : MechWeapon
 	// Called so long as the weapon's fire button is held.
 	override void preFire()
 	{
+		super.preFire();
+	
 		if(!continuous || !laser) return;
 		
 		if(maxLaserTime > 0 && contLaserTime > 0)
@@ -578,6 +580,8 @@ class UltraAC : MechBallisticWeapon
 	
 	override void preFire()
 	{
+		super.preFire();
+	
 		// Play weapon jammed sound.
 		if(jammed && jamNotifyWait <= 0) 
 		{

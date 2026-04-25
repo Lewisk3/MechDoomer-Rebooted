@@ -1415,8 +1415,20 @@ class MechInfoContainer : MenuElement
 			textPos + (0,15), 
 			scale:(textSize, textSize)
 		);
+		
+		// Get max heat
+		Array<MechItem> heatBanks;
+		mech.FindAllItems("MechHeatBank", true, heatBanks);
+		double heatBuffer;
+		foreach(item : heatBanks)
+		{
+			let bank = MechHeatBank(item);
+			if(bank) heatBuffer += mech.BHUtoKelvin(bank.maxBuffer);
+		}
+		
+		string maxHeatStr = String.Format("\c[White]%.2f K", mech.maxKelvin + heatBuffer);
 		MWDrawer.DrawString(textFont, 
-			String.Format("\c[White]%.2f K", mech.maxKelvin), 
+			maxHeatStr,
 			textPos + (size.x - 30, 15), flags:MWDrawer.SS_TEXT_RIGHT, 
 			scale:(textSize, textSize)
 		);

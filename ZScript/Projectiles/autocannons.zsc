@@ -1,5 +1,5 @@
 // Autocannons need some slight adjustments for balance.
-const MDR_AC_DMGSCALAR = 0.55;
+const MDR_AC_DMGSCALAR = 0.6;
 
 class MechAutocannon : MechProjectile
 {
@@ -383,18 +383,28 @@ class AutocannonMuzzleFlash : AutocannonExplosion
 // Machine gun
 class MGBullet : MechAutocannon
 {
+	double MGDamageScale;
+	Property InfantryDamageScale : MGDamageScale;
+
 	Default
 	{	
 		Radius 1;
 		Height 1;
 		Scale 0.2;
-		MechProjectile.Dmg 0.12 / MechHardpoint.DMGSCALE; // Roughly 2 damage a second.
-		MechProjectile.Ranges 0, 100;
+		MechProjectile.Dmg 0.12 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 120;
 		MechProjectile.SpeedKPH 1200;
 		MechProjectile.ImpactSound "MGun/Impact";
 		MechAutocannon.CreateOverlay false;
 		MechAutocannon.SmokeTrail false;
+		MGBullet.InfantryDamageScale 1.0;
 		Mass 1;
+	}
+	
+	override double GetMonsterDamage(Actor victim, double massModifier)
+	{
+		// 50% less damage than the standard machine gun.
+		return super.GetMonsterDamage(victim, massModifier) * MGDamageScale;
 	}
 		
 	override void PostBeginPlay()
@@ -465,6 +475,32 @@ class MGBullet : MechAutocannon
 		Spawn:
 			MODL A -1;
 		stop;
+	}
+}
+
+// Heavy Machine Gun
+class HeavyMGBullet : MGBullet
+{
+	Default
+	{	
+		Scale 0.3;
+		MechProjectile.Dmg 0.18 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 90;
+		MechProjectile.ImpactSound "MGun/Impact";
+		MGBullet.InfantryDamageScale 1.5;
+	}
+}
+
+// Light Machine Gun
+class LightMGBullet : MGBullet
+{
+	Default
+	{	
+		Scale 0.1;
+		MechProjectile.Dmg 0.09 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 200;
+		MechProjectile.ImpactSound "MGun/Impact";
+		MGBullet.InfantryDamageScale 0.5;
 	}
 }
 

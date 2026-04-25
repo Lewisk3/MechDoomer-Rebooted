@@ -116,6 +116,37 @@ class SmallPulseLaser : SmallLaser
 		);
 	}
 }
+class HeavySmallLaser : SmallLaser
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "HEAVYSMALLLASER";
+		damage = convertDMG(6.0, fireTime);
+		laserHeat = convertHeat(3.00, fireTime); // Laserbeam heat.
+		energyUse *= 1.5;
+		PowerKJ = 36000;
+		chargeTime = 5; // Delay before firing
+		requiresCharge = true; // Must be fully charged before firing.
+		
+		fireSound = "Laser/Small";
+		laserColor = "Orange";
+		
+		value = 20000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[Gray]Introduced in 3059 by Clan Star Adder developed the heavy "
+			"lasers to deal more damage, but the side effect of that was increased "
+			"heat output. In addition, a subtle firing delay and interference with "
+			"a BattleMech's sensors means that the weapon suffers from poor accuracy."
+			"\n(Source: https://www.sarna.net/wiki/Heavy_Small_Laser)"
+		);
+	}
+}
 
 class MediumLaser : MechLaserWeapon
 {
@@ -230,6 +261,36 @@ class MediumPulseLaser : MediumLaser
 			"causes good damage, although the Medium Pulse Laser still cannot be constantly "
 			"discharged for extended periods of time."
 			"\n(Source: https://www.sarna.net/wiki/Medium_Pulse_Laser)"
+		);
+	}
+}
+class HeavyMediumLaser : MediumLaser
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "HEAVYMEDIUMLASER";
+		damage = convertDMG(10.0, fireTime);
+		laserHeat = convertHeat(7.00, fireTime); // Laserbeam heat.
+		energyUse *= 1.5;
+		PowerKJ *= 2.0;
+		chargeTime = 15; // Delay before firing
+		requiresCharge = true; // Must be fully charged before firing.
+		
+		fireSound = "Laser/Medium";
+		laserColor = "#2DFF7F";
+		value = 100000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[Gray]Introduced in 3059 by Clan Star Adder developed the heavy "
+			"lasers to deal more damage, but the side effect of that was increased "
+			"heat output. In addition, a subtle firing delay and interference with "
+			"a BattleMech's sensors means that the weapon suffers from poor accuracy."
+			"\n(Source: https://www.sarna.net/wiki/Heavy_Medium_Laser)"
 		);
 	}
 }
@@ -350,6 +411,36 @@ class LargePulseLaser : LargeLaser
 			"the heat buildup is tremendous and will quickly overheat 'Mechs if "
 			"used for prolonged periods."
 			"\n(Source: https://www.sarna.net/wiki/Large_Pulse_Laser)"
+		);
+	}
+}
+class HeavyLargeLaser : LargeLaser
+{
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "HEAVYLARGELASER";
+		damage = convertDMG(16.0, fireTime);
+		laserHeat = convertHeat(18.00, fireTime); // Laserbeam heat.
+		energyUse *= 1.5;
+		PowerKJ *= 2.0;
+		chargeTime = 25; // Delay before firing
+		requiresCharge = true; // Must be fully charged before firing.
+		
+		fireSound = "Laser/Large";
+		laserColor = "#EB24FF";
+		value = 250000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[Gray]Introduced in 3059 by Clan Star Adder developed the heavy "
+			"lasers to deal more damage, but the side effect of that was increased "
+			"heat output. In addition, a subtle firing delay and interference with "
+			"a BattleMech's sensors means that the weapon suffers from poor accuracy."
+			"\n(Source: https://www.sarna.net/wiki/Heavy_Large_Laser)"
 		);
 	}
 }
@@ -1263,8 +1354,8 @@ class UltraAC5 : UltraAC
 			"Utilizing a different loading mechanism, Ultra autocannons are capable of firing two"
 			"projectiles back-to-back, at the cost of higher heat and the risk of jamming."
 			"Being of a lower caliber, the Ultra autocannon/5 has an increased "
-			"range, at the cost of reduced damage over higher-caliber versions."
-			"\n(Source: https://www.sarna.net/wiki/Ultra_AC/5)"
+			"range, at the cost of reduced damage over higher-caliber versions. "
+			"(Source: https://www.sarna.net/wiki/Ultra_AC/5)"
 		);
 	}
 }
@@ -1432,7 +1523,7 @@ class LBXAC10 : AC10
 			"\c[White]The LB 10-X AC is essentially a 'Mech-mounted shotgun, capable"
 			" of firing special \"cluster rounds\" that fragment after being fired, "
 			"allowing the weapon to either spread damage out or focus damage on "
-			"a small area, depending on the range."
+			"a small area, depending on the range. "
 			"\n(Source: https://www.sarna.net/wiki/LB_10-X_AC)"
 		);
 	}
@@ -1478,8 +1569,8 @@ class AC20 : MechBallisticWeapon
 			"\c[White] This autocannon class can decapitate any 'Mech with one good hit to the head,"
 			" regardless of the weight class, as that location can only mount around half a ton's worth of standard armor."
 			" The AC/20 is capable of ripping nearly a ton and a quarter of armor off a 'Mech in a single shot. "
-			"This is enough damage to take down even the heaviest of 'Mechs, if aimed well."
-			"\n(Source: https://www.sarna.net/wiki/Autocannon/20)"
+			"This is enough damage to take down even the heaviest of 'Mechs, if aimed well. "
+			"(Source: https://www.sarna.net/wiki/Autocannon/20)"
 		);
 	}
 }
@@ -1622,6 +1713,87 @@ class MachineGun : MechBallisticWeapon
 		);
 	}
 }
+class LightMachineGun : MachineGun
+{
+	override void Defaults()
+	{	
+		DisplayName = "LIGHT MACHINEGUN";
+		mountType = "Ballistic";
+		heat = 0;
+		weight = 0.25;
+		size = 1.0;
+		
+		ammoUse = 1;
+		fireTime     = 1;
+		cooldownTime = 1;
+		
+		projType = "LightMGBullet";
+		ammoType = "LMGAmmo";
+		fireSound = "";
+		mgunFire = "Ballistic/MachineGun";
+		sndItemName = "Betty/Item/Machinegun";
+		mountDeco = "MGunMountDeco";
+		fireOffs = (7.5,0,0);
+		
+		spread = 1.4;
+		damagable = true;
+		mountDecoScale = 0.75;
+		
+		value = 3500;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The creation of the Light Machine Gun was one of Clan "
+			"Smoke Jaguar's last acts before they were all but destroyed by "
+			"the Inner Sphere. It was originally intended as a weapon for "
+			"ProtoMechs, but it soon made its way onto heavier units."
+			"\n(Source: https://www.sarna.net/wiki/Light_Machine_Gun)"
+		);
+	}
+}
+class HeavyMachineGun : MachineGun
+{
+	override void Defaults()
+	{	
+		DisplayName = "HEAVY MACHINEGUN";
+		mountType = "Ballistic";
+		heat = 0;
+		weight = 0.5;
+		size = 1.0;
+		
+		ammoUse = 1;
+		fireTime     = 1;
+		cooldownTime = 1;
+		
+		projType = "HeavyMGBullet";
+		ammoType = "HMGAmmo";
+		fireSound = "";
+		mgunFire = "Ballistic/MachineGun";
+		sndItemName = "Betty/Item/Machinegun";
+		mountDeco = "MGunMountDeco";
+		fireOffs = (15,0,0);
+		
+		spread = 1.0;
+		damagable = true;
+		mountDecoScale = 1.50;
+		
+		value = 7500;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]As its name implies, the Heavy Machine Gun "
+			"is a larger version of the standard Machine Gun. Twice as "
+			"heavy as its more traditional cousin, the Heavy Machine Gun does "
+			"up to fifty percent more damage, though at the cost of a third "
+			"of its already short range."
+			"\n(Source: https://www.sarna.net/wiki/Heavy_Machine_Gun)"
+		);
+	}
+}
 
 class GaussRifle : MechBallisticWeapon
 {
@@ -1675,8 +1847,8 @@ class GaussRifle : MechBallisticWeapon
 			"it a devastating and lethal long-range weapon."
 			"One hit from a Gauss rifle is capable of killing nearly any Light 'Mech. "
 			"However, due to it's \"railgun\"-like propellant solution, the Gauss rifle "
-			"also has fairly heavy power requirements."
-			"\n(Source: https://www.sarna.net/wiki/Gauss_rifle)"
+			"also has fairly heavy power requirements. "
+			"(Source: https://www.sarna.net/wiki/Gauss_rifle)"
 		);
 	}
 }
