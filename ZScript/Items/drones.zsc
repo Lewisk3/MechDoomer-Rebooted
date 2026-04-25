@@ -97,6 +97,13 @@ class FieldRepairDrone : MechFieldDrone
 		if(!mech) return;
 	} 
 	
+	// Do not collide with parent mech.
+	override bool CanCollideWith(Actor other, bool passive)
+	{
+		if(other == mech) return false;
+		return super.CanCollideWith(other, passive);
+	}
+	
 	bool A_TrackTarget(double minDist = 256, vector3 offs = (-20,0,20))
 	{
 		A_LookTowards(engagingTarget, 0.3);

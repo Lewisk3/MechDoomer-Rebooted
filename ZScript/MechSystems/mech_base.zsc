@@ -457,7 +457,8 @@ class DrivableMech : DrivableObject
 	
 	override bool CanCollideWith(Actor other, bool passive)
 	{
-		if( other == driver || other == exitedPilot ) return false;
+		// Do not collide with the driver, or the repair drone.
+		if( other == driver || other == exitedPilot || other == activeDronePtr ) return false;
 		
 		// The vehicle controller does not collide with projectiles.
 		if(other.bMISSILE) return false;
