@@ -140,7 +140,14 @@ class MechLaser : MechLaserBeam
 				trueDamage = monsterDmg;
 			}
 			
-			hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Fire");
+			trueDamage = max(1, trueDamage);
+			int dmgDealt = hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Fire");
+			if(dmgDealt <= 0)
+			{
+				// If no damage was dealth, we likely need to try a more generic damagetype.
+				hitActor.DamageMobJ(self, hardpoint.mech.driver, trueDamage, "Laser");
+			}
+			
 			if(!hitSomething)
 			{
 				A_StartSound(impactSound, flags:CHANF_OVERLAP);

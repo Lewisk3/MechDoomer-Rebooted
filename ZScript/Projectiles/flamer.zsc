@@ -78,7 +78,7 @@ class MechFlamerEffect : EffectsActor
 		+FLOAT;
 		
 		Damage 0;
-		Radius 16; 
+		Radius 12; 
 		Height 8;
 		EffectsActor.RemoveOnAlpha false;
 	}
@@ -178,7 +178,7 @@ class MechFlamerEffect : EffectsActor
 			victim = blockingIt.Thing;
 			if(!victim) continue;
 			
-			if(Distance2DSquared(victim) > cRad) continue;
+			if(Distance3DSquared(victim) > cRad) continue;
 			if(!victim.bSHOOTABLE) continue;
 			if(victim == target) continue;
 			
@@ -189,26 +189,29 @@ class MechFlamerEffect : EffectsActor
 			if(!hitHardpoint && hitMechBox) 
 				hitHardpoint = MechHardpoint(hitMechBox.parent);
 
+			// If we somehow hit ourselves.
 			bool hitMechPart = hitHardpoint && hardpoint && hitHardpoint.mech == hardpoint.mech;
 			
 			if( victim == target || victim == master || hitMechPart )
 				continue; // Ignore actor.
 			
-			// Do not attack every frame.
-			if( !(GetAge()%2) )
+			// Attack
+			double damageMod = 1.0;
+			if( !(victim is "DrivableObjectPart") ) damageMod = 5.0 * sv_mdr_damage_dealt; 
+			double finalDamage = trueDamage * damageMod;
+			int dmgDealt = victim.DamageMobJ(target, master, finalDamage, damageType);
+			
+			// Try a different damage type, if no damage was dealt, but deal only 1 damage,
+			// if an enemy is meant to resist fire, it should.
+			if(dmgDealt <= 0) victim.DamageMobJ(target, master, 1.0, "Flamer");
+			
+			// Increase heat-level of mech if hit.
+			if(hitHardpoint && hitHardpoint.mech) 
 			{
-				double damageMod = 1.0;
-				if( !(victim is "DrivableObjectPart") ) damageMod = 5.0 * sv_mdr_damage_dealt; 
-				victim.DamageMobJ(target, master, trueDamage * damageMod, damageType);
-				
-				// Increase heat-level of mech if hit.
-				if(hitHardpoint && hitHardpoint.mech) 
-				{
-					hitHardpoint.adjustLocalHeat(heat * 0.5); 
-					hitHardpoint.mech.modifyHeat(heat * 0.5);
-				}
-				Destroy();
+				hitHardpoint.adjustLocalHeat(heat); 
+				hitHardpoint.mech.modifyHeat(heat);
 			}
+			Destroy();
 		}
 	}
 	
