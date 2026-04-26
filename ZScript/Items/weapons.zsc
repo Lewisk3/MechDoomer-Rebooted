@@ -92,7 +92,7 @@ class SmallPulseLaser : SmallLaser
 		laserHeat = convertHeat(2.00, maxLaserTime / 1.5); // Laserbeam heat.
 		pulseSpeed = 90;
 		energyUse = 0.02 / double(fireTime);
-		PowerKJ = 24000;
+		PowerKJ = 20000;
 		
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
@@ -239,7 +239,7 @@ class MediumPulseLaser : MediumLaser
 		laserHeat = convertHeat(4.0, maxLaserTime / 1.5); // Laserbeam heat.
 		pulseSpeed = 70;
 		energyUse = 0.02 / double(fireTime);
-		PowerKJ = 43200;
+		PowerKJ = 37000;
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
@@ -390,7 +390,7 @@ class LargePulseLaser : LargeLaser
 		laserHeat = convertHeat(10.0, maxLaserTime / 1.5); // Laserbeam heat.
 		energyUse = 0.03 / double(fireTime);
 		pulseSpeed = 50;
-		PowerKJ = 200000;
+		PowerKJ = 180000;
 		
 		fireSound = "Laser/Large";
 		laserType = "MechPulseLaser";
