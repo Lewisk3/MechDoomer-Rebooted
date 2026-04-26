@@ -48,6 +48,7 @@ class MechSwitchableAmmo : MechAmmo
 	}
 }
 
+// SRM Ammo
 class SRMAmmo : MechAmmo
 {
 	override void Defaults()
@@ -89,6 +90,7 @@ class SSRMAmmoHalf : SSRMAmmo
 	}
 }
 
+// MRM Ammo
 class MRMAmmo : MechAmmo
 {
 	override void Defaults()
@@ -113,6 +115,7 @@ class MRMAmmoHalf : MRMAmmo
 	}
 }
 
+// LRM Ammo
 class LRMAmmo : MechAmmo
 {
 	override void Defaults()
@@ -137,6 +140,7 @@ class LRMAmmoHalf : LRMAmmo
 	}
 }
 
+// Autocannon Ammo
 class AC2Ammo : MechAmmo
 {
 	override void Defaults()
@@ -229,76 +233,8 @@ class AC20AmmoHalf : AC20Ammo
 		SetupHalfAmmo("AC20Ammo");
 	}
 }
-class MGAmmo : MechAmmo
-{
-	override void Defaults()
-	{
-		damagable = true;
-		displayName = "Machinegun Ammo";
-		maxAmmo = 1000;
-		weight = 1.0;
-		size = 1.0;
-		explosionDamage = 0.04;
-		value = 1000;
-		
-		SetupAmmo();
-	}
-}
-class MGAmmoHalf : MGAmmo
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		SetupHalfAmmo("MGAmmo");
-	}
-}
-class LMGAmmo : MechAmmo
-{
-	override void Defaults()
-	{
-		damagable = true;
-		displayName = "Light Machinegun Ammo";
-		maxAmmo = 1000;
-		weight = 1.0;
-		size = 1.0;
-		explosionDamage = 0.02;
-		value = 1000;
-		
-		SetupAmmo();
-	}
-}
-class LMGAmmoHalf : LMGAmmo
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		SetupHalfAmmo("LMGAmmo");
-	}
-}
-class HMGAmmo : MechAmmo
-{
-	override void Defaults()
-	{
-		damagable = true;
-		displayName = "Heavy Machinegun Ammo";
-		maxAmmo = 500;
-		weight = 1.0;
-		size = 1.0;
-		explosionDamage = 0.06;
-		value = 2000;
-		
-		SetupAmmo();
-	}
-}
-class HMGAmmoHalf : HMGAmmo
-{
-	override void Defaults()
-	{
-		super.Defaults();
-		SetupHalfAmmo("HMGAmmo");
-	}
-}
 
+// Ultra AC Ammo
 class UAC2Ammo : AC2Ammo 
 {
 	override void Defaults()
@@ -370,6 +306,7 @@ class UAC20AmmoHalf : UAC20Ammo
 	}
 }
 
+// LBX AC Ammo
 class LBX2Ammo : AC2Ammo
 {
 	override void Defaults()
@@ -435,6 +372,126 @@ class LBX20AmmoHalf : LBX20Ammo
 	}
 }
 
+// Rotary AC Ammo
+class RAC2Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Rotary AC/2 Ammo";
+		maxAmmo = 45;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 2;
+		value = 3000; 
+		
+		SetupAmmo();
+	}
+}
+class RAC2AmmoHalf : RAC2Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo("RAC2Ammo");
+	}
+}
+class RAC5Ammo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Rotary AC/5 Ammo";
+		maxAmmo = 20;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 5;
+		value = 12000;
+		
+		SetupAmmo();
+	}
+}
+class RAC5AmmoHalf : RAC5Ammo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo("RAC5Ammo");
+	}
+}
+
+// Machinegun Ammo
+class MGAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Machinegun Ammo";
+		maxAmmo = 1000;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0.04;
+		value = 1000;
+		
+		SetupAmmo();
+	}
+}
+class MGAmmoHalf : MGAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo("MGAmmo");
+	}
+}
+class LMGAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Light Machinegun Ammo";
+		maxAmmo = 1000;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0.02;
+		value = 1000;
+		
+		SetupAmmo();
+	}
+}
+class LMGAmmoHalf : LMGAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo("LMGAmmo");
+	}
+}
+class HMGAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Heavy Machinegun Ammo";
+		maxAmmo = 500;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0.06;
+		value = 2000;
+		
+		SetupAmmo();
+	}
+}
+class HMGAmmoHalf : HMGAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo("HMGAmmo");
+	}
+}
+
+// Gauss Ammo
 class GaussAmmo : MechAmmo
 {
 	override void Defaults()

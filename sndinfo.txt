@@ -104,6 +104,7 @@ Ballistic/Autocannon/Reload "Sounds/Weapons/ac_reload.wav"
 
 Ballistic/LBXAutocannon10 "Sounds/Weapons/lbx10_fire.wav"
 Ballistic/LBXAutocannon20 "Sounds/Weapons/lbx20_fire.wav"
+Ballistic/RotaryAC/SpinUp "Sounds/Weapons/rotaryac_spinup.wav"
 
 Ballistic/GaussRifle "Sounds/Weapons/gauss_fire.wav"
 Ballistic/GaussRifle/Reload "Sounds/Weapons/gauss_reload.wav"

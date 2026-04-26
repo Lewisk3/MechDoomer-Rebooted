@@ -1269,6 +1269,52 @@ class LBXAC2 : AC2
 		);
 	}
 }
+class RotaryAC2 : RotaryAC
+{
+	override void Defaults()
+	{
+		displayName = "Rotary AC/2";
+		mountType = "Ballistic";
+	
+		heat = 1.0;
+		weight = 8.0;
+		size = 3.0;
+		energyUse = 0.08; // Magnetic loading system uses reactor power.
+		ammoType = "RAC2Ammo";
+
+		ammoUse = 1;
+		fireTime     = 6;
+		cooldownTime = ceil(0.25 * TICRATE);
+		
+		projType = "Autocannon2";
+		fireSound = "Ballistic/Autocannon2";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 0.6;
+		mountDeco = "ACMountDeco";
+		chargeSound = "Ballistic/RotaryAC/SpinUp";
+		
+		spread = 0;
+		damagable = true;
+		
+		SetupRAC(15, 5);
+		value = 175000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Developed in 3062 by the Federated Commonwealth, the Rotary Autocannon/2 "
+			"is based only loosely on the Autocannon/2. While it has the same bore, it is capable "
+			"of firing up to six times as many rounds as its standard cousin, allowing it to deal "
+			"three times the damage of even an Ultra AC/2. At the same time, each extra shot increases "
+			"the amount of heat the autocannon builds and increases the chance for a jam. "
+			"\n(Source: https://www.sarna.net/wiki/Rotary_AC/2)"
+		);
+	}
+}
 
 class AC5 : MechBallisticWeapon
 {
@@ -1397,6 +1443,52 @@ class LBXAC5 : AC5
 			"ammunition that more effectively damages weakened points in an enemy's armor."
 			"This effect creates flak that is useful against VTOLs."
 			"\n(Source: https://www.sarna.net/wiki/LB_5-X_AC)"
+		);
+	}
+}
+class RotaryAC5 : RotaryAC
+{
+	override void Defaults()
+	{
+		displayName = "Rotary AC/5";
+		mountType = "Ballistic";
+	
+		heat = 1.0;
+		weight = 10.0;
+		size = 6.0;
+		energyUse = 0.12; // Magnetic loading system uses reactor power.
+		ammoType = "RAC5Ammo";
+
+		ammoUse = 1;
+		fireTime     = 10;
+		cooldownTime = ceil(0.5 * TICRATE);
+		
+		projType = "Autocannon5";
+		fireSound = "Ballistic/Autocannon5";
+		reloadSound = "Ballistic/Autocannon/Reload";
+		sndItemName = "Betty/Item/Autocannon";
+		
+		fireOffs = (15,0,0);
+		mountDecoScale = 1.0;
+		mountDeco = "ACMountDeco";
+		chargeSound = "Ballistic/RotaryAC/SpinUp";
+		
+		spread = 0;
+		damagable = true;
+		
+		SetupRAC(30, 10);
+		value = 275000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]Developed in 3062 by the Federated Commonwealth, the Rotary Autocannon/5 "
+			"is based only loosely on the Autocannon/5. While it has the same bore, it is capable "
+			"of firing up to six times as many rounds as its standard cousin, allowing it to deal "
+			"three times the damage of even an Ultra AC/5. At the same time, each extra shot increases "
+			"the amount of heat the autocannon builds and increases the chance for a jam. "
+			"\n(Source: https://www.sarna.net/wiki/Rotary_AC/5)"
 		);
 	}
 }

@@ -2339,6 +2339,11 @@ class I_SaveMechData : Inventory
 		vector3 atPos = mechData.lastPos;
 		if( absolutePos || (level.getChecksum() != mechData.lastMapData) )
 			atPos = fallbackPos;
+			
+		// Edge-case behavior
+		// Otherwise the mech spawns at (0,0,0) when start on dropship is disabled.
+		// If the map has just started, spawn us wherever the player is.
+		if(level.maptime <= TICRATE) atPos = fallbackPos;
 		
 		// Respawn mech.
 		let mech = DrivableMech(Spawn(mechData.mechType, atPos));
@@ -2383,38 +2388,5 @@ class I_SaveMechData : Inventory
 		
 		// Starting Mech
 		GiveStartingMechs();
-	}
-
-	override void DoEffect()
-	{
-		super.DoEffect();
-		
-		let plr = Owner.player;
-		if(!plr) return;
-		
-		let btns = plr.cmd.buttons;
-		let obtns = plr.oldbuttons;
-		
-		// Saving and loading debug
-		/*
-		if( (btns & BT_RELOAD) && !(obtns & BT_RELOAD) )
-		{
-			if(mechsData.Size() <= 0) return;
-			console.printf("Restoring mechbay 1...");
-
-			loadMechData(0, Owner.pos + (100,0,0));
-		}
-		
-		if( (btns & BT_ZOOM) && !(obtns & BT_ZOOM) )
-		{
-			let veh = I_DrivingObject.Get(Owner);
-			if(!veh) return;
-			
-			let mech = DrivableMech(veh.source);
-			if(!mech) return;
-			
-			saveMechData(mech);
-		}
-		*/
 	}
 }

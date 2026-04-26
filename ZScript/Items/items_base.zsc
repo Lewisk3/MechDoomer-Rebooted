@@ -1676,6 +1676,8 @@ class MechWeapon : MechItem
 			if(!isCharging) OnChargeStart();
 			isCharging = true;
 		}
+		else if(requiresCharge && cooldown && isCharging)
+			isCharging = false;
 	}
 	
 	play virtual void OnChargeStart()

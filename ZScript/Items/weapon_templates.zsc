@@ -56,6 +56,12 @@ class MechLaserWeapon : MechWeapon
 		statName.Push("COOLDOWN");
 		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
 		
+		if(chargeTime > 0)
+		{
+			statName.Push("CHARGE TIME");
+			statValue.Push(String.Format("%.2fs", chargeTime / double(TICRATE) ));
+		}
+		
 		statName.Push(" ");
 		statValue.Push(" ");
 		statName.Push("MAX RANGE");
@@ -408,12 +414,12 @@ class MechBallisticWeapon : MechWeapon
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
-		super.getDescription(flavorText, statName, statValue);
+		super.getDescription(flavorText, statName, statValue, mechInfo);
 		statName.Push(" ");
 		statValue.Push(" ");
 		
 		let projDefs = GetDefaultByType(projType);
-		double cooldownSeconds = (fireTime+cooldownTime) / double(TICRATE);
+		double cooldownSeconds = getCooldownTime() / double(TICRATE);
 		double projSpeedKPH = projDefs.speedKPH ? projDefs.speedKPH : MechEngine.speedToKPH(projDefs.Speed);
 		int metersPerSeconds = (projSpeedKPH / 3600.0) * 1000;
 		double projRawDamage = getDamageOutput(againstMonsters:true, perTic:true);
@@ -430,6 +436,12 @@ class MechBallisticWeapon : MechWeapon
 		statValue.Push(String.Format("%.1f/s", 1.0 / cooldownSeconds));
 		statName.Push("COOLDOWN");
 		statValue.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		if(chargeTime > 0)
+		{
+			statName.Push("SPIN-UP TIME");
+			statValue.Push(String.Format("%.2fs", chargeTime / double(TICRATE) ));
+		}
 		
 		statName.Push(" ");
 		statValue.Push(" ");
@@ -566,6 +578,18 @@ class UltraAC : MechBallisticWeapon
 		// projMassScalar = 0.4;
 	}
 
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue, mechInfo);
+		statName.Push(" ");
+		statValue.Push(" ");
+		
+		statName.Push("JAM CHANCE");
+		statValue.Push(String.Format("%d%%", jamChance));
+		statName.Push("JAM CLEAR");
+		statValue.Push("3s");
+	}
+	
 	override void Defaults()
 	{	
 		template = true;
@@ -586,7 +610,7 @@ class UltraAC : MechBallisticWeapon
 		if(jammed && jamNotifyWait <= 0) 
 		{
 			parent.A_StartSound("Ballistic/Jammed", CHAN_BODY, CHANF_OVERLAP);
-			jamNotifyWait = 10;
+			jamNotifyWait = 30;
 		}
 	}
 	
@@ -608,9 +632,120 @@ class UltraAC : MechBallisticWeapon
 	{
 		super.DoEffect();
 		
-		if(jammed && jamNotifyWait)
-			jamNotifyWait--;
+		if(jamNotifyWait) jamNotifyWait--;
+		if( jammed && cooldown <= 0)
+		{
+			SetJammed(false);
+			parent.A_StartSound("Ballistic/Autocannon/Reload", CHAN_BODY, CHANF_OVERLAP);
+		}
+	}
+}
+
+// RAC
+class RotaryAC : MechBallisticWeapon
+{
+	string baseName;
+	int shotsCounter;
+	int jamChance;
+	int jamNotifyWait; // Wait this many tics before playing the jammed SFX.
+	bool jammed;
+	
+	// Used as an alternative cooldown. 
+	// This essentially allows the autocannon to fire 6 rounds every turntics, 
+	// once jammed it uses the true cooldown value.
+	int fireWait; 
+	
+	virtual void SetupRAC(double spinTime = 15, double jamperc = 10)
+	{
+		baseName = displayName;
+		ammoUse = 1;
+		jamChance = jamperc;
+		chargeTime = spinTime;
+	}
+	
+	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
+	{
+		super.getDescription(flavorText, statName, statValue, mechInfo);
+		statName.Push(" ");
+		statValue.Push(" ");
 		
+		double jamClearTime = (cooldownTime * 2.0) / double(TICRATE);
+		
+		statName.Push("JAM CHANCE");
+		statValue.Push(String.Format("%d%%", jamChance));
+		statName.Push("JAM CLEAR");
+		statValue.Push(String.Format("%0.2fs", jamClearTime));
+	}
+
+	override void Defaults()
+	{	
+		template = true;
+	}
+	
+	virtual void SetJammed(bool onoff)
+	{
+		jammed = onoff;
+		if(jammed) 
+		{	
+			displayName = "\c[Red]" .. baseName .. " - JAMMED\c[White]";	
+			isCharging = false;
+			shotsCounter = 0;
+		}
+		if(!jammed) displayName = baseName;
+	}
+	
+	override bool canFire()
+	{
+		if(fireCharge < 1.0) 
+			return false;
+		
+		return super.canFire();
+	}
+	
+	override double getCooldownTime()
+	{
+		return fireTime;
+	}
+	
+	override void preFire()
+	{
+		super.preFire();
+	
+		// Play weapon jammed sound.
+		if(jammed && jamNotifyWait <= 0) 
+		{
+			parent.A_StartSound("Ballistic/Jammed", CHAN_BODY, CHANF_OVERLAP);
+			jamNotifyWait = 30;
+		}
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		parent.A_StopSound(WEAPCHAN_CHARGE);
+		if(random[RACRNG](1,100) <= jamChance && shotsCounter > 0)
+		{
+			// Weapon jammed
+			cooldown = (cooldownTime * 2.0);
+			parent.A_StartSound("Ballistic/Jammed", CHAN_BODY, CHANF_OVERLAP);
+			SetJammed(true);
+			return true;
+		}
+		
+		shotsCounter++;
+		return super.Fire(firepos);
+	}
+	
+	override void endFire()
+	{
+		super.endFire();
+		shotsCounter = 0;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if(jamNotifyWait) jamNotifyWait--;
 		if( jammed && cooldown <= 0)
 		{
 			SetJammed(false);
