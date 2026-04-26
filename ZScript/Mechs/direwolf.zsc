@@ -55,15 +55,15 @@ class MechDirewolf : DrivableMech
 		torso.AddItem("MechEngine_XL300");
 		MechArmor.addToMech(self, "MechArmor_Standard");
 
-		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
-		leftArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("LargeLaser", GROUPFLG_ONE);
+		leftArm.AddWeapon("LargeLaser", GROUPFLG_ONE);
 		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
 		leftArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
 		leftArm.AddWeapon("AC5", GROUPFLG_THREE);
 		leftTorso.AddItem("AC5Ammo");
 		
-		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
-		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("LargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("LargeLaser", GROUPFLG_ONE);
 		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
 		rightArm.AddWeapon("MediumPulseLaser", GROUPFLG_TWO);
 		rightArm.AddWeapon("AC5", GROUPFLG_THREE);

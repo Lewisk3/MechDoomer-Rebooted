@@ -159,7 +159,7 @@ class FieldRepairDrone : MechFieldDrone
 			DRON A 1
 			{
 				curHP++;
-				if(curHP >= hpList.Size()-1) 
+				if(curHP >= hpList.Size()) 
 					return ResolveState("DroneReturn");
 					
 				return ResolveState(null);

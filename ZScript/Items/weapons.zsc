@@ -132,6 +132,7 @@ class HeavySmallLaser : SmallLaser
 		
 		fireSound = "Laser/Small";
 		laserColor = "Orange";
+		chargeSound = "Laser/Charge";
 		
 		value = 20000;
 	}
@@ -279,7 +280,9 @@ class HeavyMediumLaser : MediumLaser
 		requiresCharge = true; // Must be fully charged before firing.
 		
 		fireSound = "Laser/Medium";
+		chargeSound = "Laser/Charge";
 		laserColor = "#2DFF7F";
+		
 		value = 100000;
 	}
 	
@@ -429,7 +432,9 @@ class HeavyLargeLaser : LargeLaser
 		requiresCharge = true; // Must be fully charged before firing.
 		
 		fireSound = "Laser/Large";
+		chargeSound = "Laser/Charge";
 		laserColor = "#EB24FF";
+		
 		value = 250000;
 	}
 	

@@ -1535,8 +1535,9 @@ class MechWeapon : MechItem
 	// Used for weapons which require charging before firing.
 	double fireCharge, chargeTime;
 	bool requiresCharge; // If true, weapon will not fire until fully charged.
+	const WEAPCHAN_CHARGE = 12;
 	Sound chargeSound;
-	bool isCharging, doChargeSound;
+	bool isCharging;
 	
 	MechMountDeco mountDecoObject;
 	class<MechMountDeco> mountDeco;
@@ -1618,9 +1619,9 @@ class MechWeapon : MechItem
 		}
 	}
 	
-	virtual void WeapSound(Sound snd, double vol = 1.0, bool randomPitch = false)
+	virtual void WeapSound(Sound snd, double vol = 1.0, bool randomPitch = false, int channel = CHAN_WEAPON)
 	{
-		if(parent) parent.A_StartSound(snd, CHAN_WEAPON, flags:CHANF_OVERLAP, volume:vol, pitch:randomPitch ? frandom[SFXRNG](0.6,1.0) : 0);
+		if(parent) parent.A_StartSound(snd, channel, flags:CHANF_OVERLAP, volume:vol, pitch:randomPitch ? frandom[SFXRNG](0.6,1.0) : 0);
 	}
 	
 	play virtual void reloadAmmo()
@@ -1680,12 +1681,14 @@ class MechWeapon : MechItem
 	play virtual void OnChargeStart()
 	{
 		// Called once charging begins or is resumed.
-		if(chargeSound) WeapSound(chargeSound);
+		if(chargeSound) WeapSound(chargeSound, channel:WEAPCHAN_CHARGE);
 	}
 	
 	play virtual void OnChargeEnd()
 	{
 		// Called when the charge (or fire) button is released.
+		if(chargeSound && parent)
+			parent.A_StopSound(WEAPCHAN_CHARGE);
 	}
 	
 	play virtual void endFire()
@@ -1844,7 +1847,11 @@ class MechWeapon : MechItem
 						weap.modifyHeat(weap.heat);
 						weap.modifyEnergy(weap.energyUse);
 						weap.cooldown += weap.getCooldownTime();
-						if(weap.requiresCharge) weap.fireCharge = 0;
+						if(weap.requiresCharge) 
+						{
+							weap.fireCharge = 0;
+							weap.OnChargeEnd();
+						}
 						group.weapCycle = weap.fireTime;
 						group.prevWeapFired = weap;
 					}
@@ -1872,7 +1879,11 @@ class MechWeapon : MechItem
 				weap.modifyHeat(weap.heat);
 				weap.modifyEnergy(weap.energyUse);
 				weap.cooldown += weap.getCooldownTime();
-				if(weap.requiresCharge) weap.fireCharge = 0;
+				if(weap.requiresCharge) 
+				{
+					weap.fireCharge = 0;
+					weap.OnChargeEnd();
+				}
 				group.weapCycle = weap.fireTime;
 			}
 		}
@@ -1896,7 +1907,11 @@ class MechWeapon : MechItem
 			weap.modifyEnergy(weap.energyUse);
 			weap.cooldown += weap.getCooldownTime();
 			group.weapCycle = weap.fireTime;
-			if(weap.requiresCharge) weap.fireCharge = 0;
+			if(weap.requiresCharge) 
+			{
+				weap.fireCharge = 0;
+				weap.OnChargeEnd();
+			}
 			group.prevWeapFired = weap;
 			return true;
 		}

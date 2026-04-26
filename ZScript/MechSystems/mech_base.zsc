@@ -1763,9 +1763,33 @@ class DrivableMech : DrivableObject
 					if(DrivablesMath.DistanceToLine(ln, pos.xy) > 16) continue;
 					int lineSide = level.PointOnLineSide(pos.xy, ln, true);
 					int oldSide = level.PointOnLineSide(prev.xy, ln, true);
+					bool crossed = (lineSide != oldSide);
+					if(!crossed) continue;
 					
-					if(lineSide == line.back && oldSide == line.front)
-						ln.Activate(driver, lineSide, SPAC_Cross); 
+					bool fromFront = (lineSide == line.back && oldSide == line.front);
+					bool fromBack  = (lineSide == line.front && oldSide == line.back);
+					bool frontOnly = (ln.flags & line.ML_FIRSTSIDEONLY) || (ln.flags2 & line.ML_FIRSTSIDEONLY);
+					
+					// Why isn't there a native way to test for this?
+					// Fuck if I know.
+					int spec = ln.special;
+					bool isTeleport = (
+						(spec == 70)  || 
+						(spec == 71)  || 
+						(spec == 76)
+					);
+
+					// Crossed front to back (Teleporters)
+					if(isTeleport || frontOnly)
+					{
+						if(fromFront)
+							ln.Activate(driver, lineSide, SPAC_Cross); 
+					}
+					else
+					{
+						// Activate the line from both sides.
+						ln.Activate(driver, lineSide, SPAC_Cross);
+					}
 				}
 			}
 		}
