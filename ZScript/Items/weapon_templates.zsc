@@ -28,20 +28,22 @@ class MechLaserWeapon : MechWeapon
 	override double getDamageOutput(bool againstMonsters, bool perTic)
 	{
 		double dmgSrc = damage * MechHardpoint.DMGSCALE;
+		
 		if(againstMonsters)
 			dmgSrc = MechLaser.GetJoulesDamage(PowerKJ);
 		
-		double dmgOut = dmgSrc * fireTime;
-		if(continuous) dmgOut = dmgSrc * maxLaserTime;
-		return perTic ? dmgSrc : dmgOut;
+		if(perTic)
+			dmgSrc *= max(1, continuous ? maxLaserTime : fireTime);
+		
+		return dmgSrc;
 	}
 	
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)
 	{
 		super.getDescription(flavorText, statName, statValue);
 		double laserHeat = getHeatGen();
-		double laserDamage = getDamageOutput(againstMonsters:true);
-		double laserDamagePerTic = getDamageOutput(againstMonsters:true, perTic:true);
+		double laserDamage = getDamageOutput(againstMonsters:true, perTic:true);
+		double laserDamagePerTic = getDamageOutput(againstMonsters:true);
 		
 		let [hs, dissipation] = mechInfo.GetHeatsinkStatistics(skipDestroyed:true);
 		double ehps = max(0, (laserHeat*TICRATE) - dissipation);

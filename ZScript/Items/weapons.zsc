@@ -80,19 +80,19 @@ class SmallPulseLaser : SmallLaser
 		DisplayName = "SMLPULSELASER";
 		mountType = "Energy";
 		heat = 0; // Initial heat.
-		weight =1.0;
+		weight = 1.0;
 				
 		fireTime     = 5 + floor(0.15 * TICRATE);
 		cooldownTime = floor(0.75 * TICRATE);
-		maxLaserTime = floor(1.00 * TICRATE);
+		maxLaserTime = floor(1.5 * 0.5 * TICRATE);
 		
 		laserRange = 220; // Meters
 		range = 110;
 		damage = convertDMG(3.0, maxLaserTime);
-		laserHeat = convertHeat(2.00, maxLaserTime*0.5); // Laserbeam heat.
+		laserHeat = convertHeat(2.00, maxLaserTime / 1.5); // Laserbeam heat.
 		pulseSpeed = 90;
 		energyUse = 0.02 / double(fireTime);
-		PowerKJ = 18000 * 0.25;
+		PowerKJ = 24000;
 		
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
@@ -231,15 +231,15 @@ class MediumPulseLaser : MediumLaser
 				
 		fireTime     = 5 + floor(0.3 * TICRATE);
 		cooldownTime = floor(1.50 * TICRATE);
-		maxLaserTime = floor(2.00 * TICRATE);
+		maxLaserTime = floor(1.5 * 1.0 * TICRATE);
 		
 		laserRange = 440; // Meters
 		range = 220;
 		damage = convertDMG(6.0, maxLaserTime);
-		laserHeat = convertHeat(8.0, maxLaserTime); // Laserbeam heat.
+		laserHeat = convertHeat(4.0, maxLaserTime / 1.5); // Laserbeam heat.
 		pulseSpeed = 70;
 		energyUse = 0.02 / double(fireTime);
-		PowerKJ = 36000 * 0.25;
+		PowerKJ = 43200;
 		
 		fireSound = "Laser/Medium";
 		laserType = "MechPulseLaser";
@@ -382,15 +382,15 @@ class LargePulseLaser : LargeLaser
 				
 		fireTime     = 5 + floor(0.5 * TICRATE);
 		cooldownTime = floor(3.0 * TICRATE);
-		maxLaserTime = floor(3.0 * TICRATE);
+		maxLaserTime = floor(1.5 * 1.5 * TICRATE);
 		
 		laserRange = 740; // Meters
 		range = 370;
 		damage = convertDMG(9.0, maxLaserTime);
-		laserHeat = convertHeat(20.0, maxLaserTime); // Laserbeam heat.
+		laserHeat = convertHeat(10.0, maxLaserTime / 1.5); // Laserbeam heat.
 		energyUse = 0.03 / double(fireTime);
 		pulseSpeed = 50;
-		PowerKJ = 180000 * 0.25;
+		PowerKJ = 200000;
 		
 		fireSound = "Laser/Large";
 		laserType = "MechPulseLaser";
@@ -400,8 +400,7 @@ class LargePulseLaser : LargeLaser
 		
 		damagable = true;
 		continuous = true; 
-		damage *= 1.50;
-		
+
 		value = 175000;
 	}
 	
