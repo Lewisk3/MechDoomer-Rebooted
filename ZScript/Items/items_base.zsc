@@ -418,9 +418,12 @@ class MechAmmo : MechItem
 			stats.Push("Available Ammunition");
 			values.Push(String.Format("%d", curAmmo));
 		}
+	
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 		
 		stats.Push("Price-Per-Round");
-		values.Push(String.Format("%d", (value * 0.9) / maxAmmo));
+		values.Push(String.Format("%.2f", (value * 0.9) / double(maxAmmo)));
 	}	
 	
 	override MechItem MakeCopy()
@@ -1141,6 +1144,9 @@ class MechEngine : MechItem
 		string hsString = String.Format("%d", internalHS);
 		if(hsBlocks > 0) hsString = String.Format("%d \c[Ice](+%d)", internalHS, hsBlocks);
 		values.Push(hsString);
+		
+		stats.Push("WEIGHT");
+		values.Push(String.Format("%.2f tons", weight + gyroWeight + cockpitWeight));
 	}
 	
 	double GetTonnage()

@@ -166,6 +166,9 @@ class MechJumpJet : MechUtility
 		values.Push(String.Format("%.1f s", fuelTime));	
 		stats.Push("RECHARGE");
 		values.Push(String.Format("%.1f s", rechargeRate));	
+		
+		stats.Push("Weight");
+		values.Push("0.5 to 2.0 tons");
 	}
 	
 	override void OnDetach()

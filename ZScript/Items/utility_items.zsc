@@ -70,6 +70,9 @@ class MechHeatsink : MechUtility
 	{	
 		stats.Push("Heat Gen");
 		values.Push(String.Format("-%.2f BHU/s", heatEff*double(TICRATE)));
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 }
 
@@ -190,7 +193,8 @@ class MechHeatBank : MechUtility
 		stats.Push("VENT RATE");
 		double ventSpeed = (ventRate * 35.0);
 		values.Push(String.Format("\c[Green]-%.2f BHU/s", ventSpeed));
-		values.Push(" ");
+		stats.Push("WEIGHT");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 }
 

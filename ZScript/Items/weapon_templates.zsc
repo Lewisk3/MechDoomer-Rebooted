@@ -97,6 +97,9 @@ class MechLaserWeapon : MechWeapon
 		values.Push(String.Format("%.2f H/s", (laserHeat/6.5) * fireTime) );
 		stats.Push("Cooldown");
 		values.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 	
 	override double getCooldownTime()
@@ -321,6 +324,9 @@ class MechMissileWeapon : MechWeapon
 		values.Push(String.Format("%.2f H/s", (heat*refireCount) / cooldownSeconds) );
 		stats.Push("Cooldown");
 		values.Push(String.Format("%.2fs", cooldownTime / double(TICRATE) ));
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 	
 	override vector3 getFirePos()
@@ -503,6 +509,9 @@ class MechBallisticWeapon : MechWeapon
 		values.Push(String.Format("%.2f Heat/Shot", heat));
 		stats.Push("Cooldown");
 		values.Push(String.Format("%.2fs", cooldownSeconds));
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 	
 	override void DoEffect()

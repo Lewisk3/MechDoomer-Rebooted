@@ -1078,11 +1078,11 @@ class ShopBackground : MenuElement
 	void DrawItemDescription(ShopItem item)
 	{
 		Font descFont = "hm_thin";
-		vector2 statsPos = pos + (20, 960);
+		vector2 statsPos = pos + (20, 958);
 		double valueOffs = 373;
 		vector2 itemDescPos = pos + (valueOffs + 100, statsPos.y - 10);
-		double statLineHeight = 20;
-		double descScale = 1.0;
+		double statLineHeight = 17;
+		double descScale = 0.95;
 		double lineHeight = descFont.getHeight() + 7;
 	
 		// Draw stats

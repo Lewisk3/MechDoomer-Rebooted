@@ -23,7 +23,7 @@ class GaussCannon : MechProjectile
 	override double GetMonsterDamage(Actor victim, double massModifier)
 	{
 		double baseDMG = super.GetMonsterDamage(victim, massModifier);
-		return floor(baseDMG * 0.33);
+		return floor(baseDMG * 0.55);
 	}
 
 	override void PostBeginPlay()

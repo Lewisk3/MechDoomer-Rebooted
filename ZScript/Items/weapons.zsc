@@ -37,7 +37,7 @@ class SmallLaser : MechLaserWeapon
 			"Small Laser allows it to be equipped and used efficiently on practically"
 			" anything; however the reduced firepower means that Small Lasers are "
 			"not usually used on heavier combat devices such as 'Mechs or tanks."
-			"\n(Source: https://www.sarna.net/wiki/Small_Laser)"
+			"(Source: https://www.sarna.net/wiki/Small_Laser)"
 		);
 	}
 }
@@ -69,7 +69,7 @@ class ERSmallLaser : SmallLaser
 			" As the name suggests, the ER variant of the Small Laser increases the power of the beam to project it "
 			"to much farther ranges. The power necessary to facilitate the production of such generates an increased "
 			"quantity of waste heat."
-			"\n(Source: https://www.sarna.net/wiki/Extended-Range_Small_Laser)"
+			"(Source: https://www.sarna.net/wiki/Extended-Range_Small_Laser)"
 		);
 	}
 }
@@ -112,7 +112,7 @@ class SmallPulseLaser : SmallLaser
 			"\c[White]Small Pulse Lasers, being the smallest pulse laser variant, have a very limited range. "
 			"However, inside that range they are a lethal weapon, having a much smaller heat buildup compared "
 			"to other pulse lasers, making them an excellent short-range support weapon."
-			"\n(Source: https://www.sarna.net/wiki/Small_Pulse_Laser)"
+			"(Source: https://www.sarna.net/wiki/Small_Pulse_Laser)"
 		);
 	}
 }
@@ -144,7 +144,7 @@ class HeavySmallLaser : SmallLaser
 			"lasers to deal more damage, but the side effect of that was increased "
 			"heat output. In addition, a subtle firing delay and interference with "
 			"a BattleMech's sensors means that the weapon suffers from poor accuracy."
-			"\n(Source: https://www.sarna.net/wiki/Heavy_Small_Laser)"
+			"(Source: https://www.sarna.net/wiki/Heavy_Small_Laser)"
 		);
 	}
 }
@@ -216,7 +216,7 @@ class ERMediumLaser : MediumLaser
 			"system of the laser to project it to much farther ranges. The optics are less "
 			"efficient, though, necessitating more input power for the same armor ablation "
 			"and thus more waste heat in the weapon."
-			"\n(Source: https://www.sarna.net/wiki/Extended-Range_Medium_Laser)"
+			"(Source: https://www.sarna.net/wiki/Extended-Range_Medium_Laser)"
 		);
 	}
 }
@@ -261,7 +261,7 @@ class MediumPulseLaser : MediumLaser
 			"useful in most situations. The heat buildup is moderate and the weapon "
 			"causes good damage, although the Medium Pulse Laser still cannot be constantly "
 			"discharged for extended periods of time."
-			"\n(Source: https://www.sarna.net/wiki/Medium_Pulse_Laser)"
+			"(Source: https://www.sarna.net/wiki/Medium_Pulse_Laser)"
 		);
 	}
 }
@@ -293,7 +293,7 @@ class HeavyMediumLaser : MediumLaser
 			"lasers to deal more damage, but the side effect of that was increased "
 			"heat output. In addition, a subtle firing delay and interference with "
 			"a BattleMech's sensors means that the weapon suffers from poor accuracy."
-			"\n(Source: https://www.sarna.net/wiki/Heavy_Medium_Laser)"
+			"(Source: https://www.sarna.net/wiki/Heavy_Medium_Laser)"
 		);
 	}
 }
@@ -335,7 +335,7 @@ class LargeLaser : MechLaserWeapon
 			"laser firing a much more powerful beam, allowing it to reach to further "
 			"ranges and cause more damage. However, the increased bulk and heat "
 			"generation limits the weapon to ground vehicles, aircraft, and BattleMechs. "
-			"\n(Source: https://www.sarna.net/wiki/Large_Laser)"
+			"(Source: https://www.sarna.net/wiki/Large_Laser)"
 		);
 	}
 }
@@ -366,7 +366,7 @@ class ERLargeLaser : LargeLaser
 			"of the beam to project it to much farther ranges. The power necessary to "
 			"facilitate the production of such generates a greatly increased quantity "
 			"of waste heat."
-			"\n(Source: https://www.sarna.net/wiki/Extended-Range_Large_Laser)"
+			"(Source: https://www.sarna.net/wiki/Extended-Range_Large_Laser)"
 		);
 	}
 }
@@ -2141,6 +2141,9 @@ class Flamer : MechWeapon
 		values.Push(String.Format("%.2f H/s", heat * double(TICRATE)));
 		stats.Push("Cooldown");
 		values.Push("N/A");
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 	
 	override string getShopDescription()
@@ -2297,6 +2300,9 @@ class AMS : MechWeapon
 		
 		stats.Push("Cooldown");
 		values.Push(String.Format("%0.2f s", cooldownSeconds));
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
 	}
 	
 	override string getShopDescription()
