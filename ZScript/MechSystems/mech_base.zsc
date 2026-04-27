@@ -1746,6 +1746,25 @@ class DrivableMech : DrivableObject
 			
 		// Crossable lines and secrets
 		if(driver) ProcessMapGeometry();
+		
+		// Exit Prompt
+		if(shutdown && powerupTimer <= 0)
+		{
+			Array<int> exitBinds, powerBinds;
+			Bindings.GetAllKeysForCommand(exitBinds, "+Use");
+			Bindings.GetAllKeysForCommand(powerBinds, "+mw_powercycle");
+			string exitBindings = Bindings.NameAllKeys(exitBinds);
+			string powerBindings = Bindings.NameAllKeys(powerBinds);
+			
+			bool holdingBtn = getDriverBtn(BT_USE, DriverBtns.BTS_DOWN);
+			string msg = String.Format("\c[Yellow]Mech Shutdown: \c[Blue]Hold \c[Yellow]'%s' to Exit, \c[Blue]Press \c[Yellow]'%s' to Power Up.", exitBindings, powerBindings);
+			
+			if(heatShutdown) msg = "\c[Yellow]Mech Shutdown: \c[Red]OVERHEATED";
+			if(!engine) msg = "\c[Yellow]Mech Shutdown: \c[Red]Engine not installed.";
+			
+			if(holdingBtn) msg = "\c[Yellow]Mech Shutdown: Exiting...";
+			SendHUDMessage(msg, TICRATE, "ExitBindingMSG");	
+		}
 	}
 	
 	void ProcessMapGeometry()
