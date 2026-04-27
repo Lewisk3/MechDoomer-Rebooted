@@ -10,6 +10,7 @@ class MechArmor_Standard : MechArmor
 		displayName = "Standard";
 		armorTier = 0;
 		costPerTon = 10000;
+		freeToEquip = true;
 	}
 }
 
@@ -70,6 +71,7 @@ class MechChassis_Standard : MechChassisStructure
 		chassisWeightPercent = 1.0;
 		structureTier = 0;
 		costPerTon = 20000;
+		freeToEquip = true;
 	}
 }
 

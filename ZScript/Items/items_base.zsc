@@ -620,6 +620,7 @@ class MechArmor : MechUtility
 	class<MechDynamicStructure> structType;
 	int structureSlots;
 	double costPerTon; // CBill armor cost per-ton.
+	bool freeToEquip; // If true, doesn't cost CBills to equip.
 
 	override void Defaults()
 	{
@@ -704,7 +705,9 @@ class MechArmor : MechUtility
 	override double getEquipmentCost(DrivableMech mech)
 	{
 		double tons = getMaxArmorPoints(mech) * armorWeight;
-		return costPerTon * tons;
+		double cost = costPerTon * tons;
+		if(freeToEquip) cost = 0;
+		return cost;
 	}
 	
 	// Forced skips cbill transaction
@@ -798,6 +801,7 @@ class MechChassisStructure : MechUtility
 	int structureSlots;
 	int structureTier;
 	double costPerTon; // Per-ton of structural materials.
+	bool freeToEquip; // If true, doesn't cost CBills to equip.
 
 	override void Defaults()
 	{
@@ -840,7 +844,9 @@ class MechChassisStructure : MechUtility
 	
 	override double getEquipmentCost(DrivableMech mech)
 	{
-		return costPerTon * (mech.maxWeight * 0.1 * chassisWeightPercent);
+		double cost = costPerTon * (mech.maxWeight * 0.1 * chassisWeightPercent);
+		if(freeToEquip) cost = 0;
+		return cost;
 	}
 		
 	override void getDescription(out string flavorText, out Array<String> statName, out Array<String> statValue, DrivableMech mechInfo)

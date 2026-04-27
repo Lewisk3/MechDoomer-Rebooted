@@ -40,7 +40,8 @@ class MechMountDeco : EffectsActor
 		if(!itemMountScale) itemMountScale = 1.0;
 		itemMountScale *= src.mount.decoScale;
 		
-		vector3 mountPos = src.mount.getOffset(mountIndex) + (offs*itemMountScale) + src.mountDecoOffs + animOffs;
+		vector3 rotAnimOffs = Quat.FromAngles(0, pitch, 0) * animOffs;
+		vector3 mountPos = src.mount.getOffset(mountIndex) + (offs*itemMountScale) + src.mountDecoOffs + rotAnimOffs;
 
 		double sc = src.parent.Scale.X;
 		mountPos = src.parent.OffsetPos(mountPos.x * sc, mountPos.y * sc, mountPos.z * sc);
