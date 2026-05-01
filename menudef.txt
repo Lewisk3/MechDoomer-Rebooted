@@ -64,6 +64,11 @@ OptionMenu "MDROptionsMenu"
 	Slider "Mech Damage Dealt", "sv_mdr_damage_dealt", 0.1, 10, 0.1, 1
 	Slider "Mech Damage Recieved", "sv_mdr_damage_taken", 0.1, 10, 0.1, 1
 	StaticText " "
+	StaticText "Economy Variables", "Orange"
+	Slider "Income Modifier", "sv_mdr_eco_incomescale", 0.1, 10.0, 0.1, 1  
+	Slider "Mech Cost Modifier", "sv_mdr_eco_mechcostscale", 0.1, 2.0, 0.1, 1
+	FormattedNumberField "Starting CBills", "sv_mdr_eco_startingcbills"
+	StaticText " "
 	StaticText "Cheat Variables", "Orange"
 	Option "Always Full Mechlab", "sv_mdr_cheats_alwaysfullmechlab", "YesNo"
 	StaticText "Removes restrictions to the mechlab when you're not in your dropship.", "Black"
@@ -71,7 +76,12 @@ OptionMenu "MDROptionsMenu"
 	Option "Instant Salvage", "sv_mdr_instantsalvage", "YesNo"
 	StaticText "Adds salvage to your inventory directly, no need to claim it at your dropship.", "Black"
 	StaticText " "
+	Option "Infinity Money", "sv_mdr_eco_infinitemoney", "YesNo"
+	StaticText "Gives you infinite cbills.", "Black"
+	StaticText " "
 	Option "Exit Anytime", "sv_mdr_exitanytime", "YesNo"
+	StaticText "You can exit your mech without it needing to be shutdown first.", "Black"
+	StaticText " "
 	Option "Show mech hitboxes", "sv_mdr_drawmechhitboxes", "YesNo"
 }
 
@@ -118,6 +128,7 @@ OptionMenu "MDRControlsMenu"
 	StaticText " "
 	StaticText " "
 	StaticText "Interactions", "Orange"
+	Control	   "Enter/Exit Mech [E]", "+Use" 
 	Control    "Power Cycle [P]", "+mw_powercycle"
 	Control    "Override Shutdown [O]", "+mw_overrideshutdown"
 	Control    "Target Nearest [R]", "+mw_gettarget"

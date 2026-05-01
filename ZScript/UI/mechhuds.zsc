@@ -395,25 +395,6 @@ class MechHUD : VehicleHUD
 		double ambient = mech.getAmbient();
 		
 		return clamp(DrivablesMath.fmap(fromHeat, ambient, mech.maxHeat, amMin, 1.0), 0, 1.0);
-		
-		/*
-		if(fromHeat <= ambient) return (fromHeat / ambient) * amMin;
-		if(fromHeat >= mech.maxHeat) return 1.0;
-
-		double heatRange = mech.maxHeat - ambient;
-		double tPoint = ambient + (heatRange * 0.3);
-
-		if(fromHeat <= tPoint)
-		{
-			double perc = (fromHeat - ambient) / (tPoint - ambient);
-			double tPerc = (tPoint / mech.maxHeat);
-			return amMin + (tPerc * (sin(perc * 90) ** 2));
-		}
-		else
-		{
-			return fromHeat / mech.maxHeat;
-		}
-		*/
 	}
 	
 	double heatCurve;

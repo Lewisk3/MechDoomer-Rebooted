@@ -127,7 +127,13 @@ class PaperDollContainer : MenuElement
 			btnDoRepair.disabled = curRepairCost <= 0;
 			
 			double finalBalance = base.playerItems.cbills - curRepairCost;
-			string balString = MWDrawer.FormatNumber(finalBalance);
+			string balString = DrivablesMath.FormatNumber(finalBalance);
+			if(sv_mdr_eco_infinitemoney)
+			{
+				finalBalance = 0;
+				balString = "Infinity";
+			}
+			
 			balString = String.Format("\c[%s]%s", (finalBalance < 0 ? "Red" : "Green"), balString);
 			
 			if(mech.armorType)
@@ -153,7 +159,7 @@ class PaperDollContainer : MenuElement
 			string internalsCol = (paperDollType == PDM_INTERNAL ? "\c[Blue]" : "\c[White]");
 			DrawMechStat(2, armorCol .. "Armor", armorCol .. armorRating, infoPos, infoSize);
 			DrawMechStat(3, internalsCol .. "Internals", internalsCol .. internals, infoPos, infoSize);
-			DrawMechStat(5, "Repair Cost", MWDrawer.FormatNumber(curRepairCost), infoPos, infoSize);
+			DrawMechStat(5, "Repair Cost", DrivablesMath.FormatNumber(curRepairCost), infoPos, infoSize);
 			DrawMechStat(7, "Final Balance", balString, infoPos, infoSize);
 		}
 		else
@@ -187,7 +193,7 @@ class PaperDollContainer : MenuElement
 		string internalDamage = "0";
 		double armorRepairCost;
 		double internalRepairCost;
-		string cbills = MWDrawer.FormatNumber(base.playerItems.cbills);
+		string cbills = base.playerItems.getCBillString();
 		
 		if(mech.armorType) armorType = mech.armorType.displayName;
 		if(mech.chassisStructure) structureType = mech.chassisStructure.displayName;
@@ -532,7 +538,7 @@ class MechRepairMenu : MechMenu
 			string type = menuArgs[4];
 			string face = menuArgs[5];
 			
-			if( (playerItems.cbills - cost) < 0 ) return;
+			if( !playerItems.CheckHasFunds(-cost) ) return;
 			
 			let mech = playerMechs.getMechbayMech(mechbayID);
 			let hp = MechHardpoint(mech.parts[partID]);
@@ -548,7 +554,7 @@ class MechRepairMenu : MechMenu
 			else
 				hp.fullRepairInternals();
 				
-			playerItems.cbills -= cost;
+			playerItems.ModifyCBills(-cost);
 		}
 	}
 	

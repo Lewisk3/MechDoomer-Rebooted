@@ -24,10 +24,16 @@ server float sv_mdr_mechscale = 1.0; // Fixed at 0.35 for campaign mode.
 server bool sv_mdr_cheats_alwaysfullmechlab = false; // If enabled, mech can be modified freely outside of the dropship.
 server bool sv_mdr_exitanytime = false;
 server bool sv_mdr_instantsalvage = false;
+server bool sv_mdr_eco_infinitemoney = false; // If enabled, the player has an infinite amount of money.
 
 // Balance - For modifying damage
 server float sv_mdr_damage_taken = 1.0;
 server float sv_mdr_damage_dealt = 1.0;
+
+// Economy
+server float sv_mdr_eco_incomescale = 1.0; // Scalar for how much money you make from killing enemies.
+server float sv_mdr_eco_mechcostscale = 1.0; // Scalar for the cost of mechs.
+server int sv_mdr_eco_startingcbills = 200000; // Amount of CBills the player starts the game with.
 
 // Pilot (Client) Vars
 user bool cl_mdr_autounstuck = true;

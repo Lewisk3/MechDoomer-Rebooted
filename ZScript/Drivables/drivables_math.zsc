@@ -349,4 +349,25 @@ class DrivablesMath Abstract
 
         return (yaw, pitch, roll);
 	}
+	
+	// String formatting for numbers
+	clearscope static string FormatNumber(double num)
+	{
+		string numStr = String.Format("%d", num);
+
+		int numStrLen = numStr.Length();
+		if(numStrLen <= 3) return numStr; 
+			
+		for(int i = 1; i < ceil(numStrLen / 3.0); i++)
+		{
+			numStr = InsertCharAt(numStr, numStrLen - (i * 3), ",");
+		}
+			
+		return numStr;
+	}
+	
+	clearscope static string InsertCharAt(string str, int pos, string ch)
+	{
+		return String.Format("%s%s%s", str.Mid(0, pos), ch, str.Mid(pos));
+	}
 }

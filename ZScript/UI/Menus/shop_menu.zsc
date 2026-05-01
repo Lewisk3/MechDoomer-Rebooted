@@ -425,12 +425,19 @@ class CartContainer : MenuElement
 		}
 		
 		double cost = getTransactionCBills();
-		string price = String.Format("%s%s", colStr, MWDrawer.FormatNumber(abs(cost)));
+		string price = String.Format("%s%s", colStr, DrivablesMath.FormatNumber(abs(cost)));
 		MWDrawer.DrawString("hm_thin", price, trBoxPos + (size.x * 0.5,35), MWDrawer.SS_TEXT_CENTER);
 		
 		double balance = base.PlayerItems.cbills + cost;
-		string balString = String.Format("\c[Gray]%s\c[White]", MWDrawer.FormatNumber(balance));
-		if(balance < 0) balString = String.Format("\c[Red]%s\c[White]", MWDrawer.FormatNumber(balance));
+		string balString = String.Format("\c[Gray]%s\c[White]", DrivablesMath.FormatNumber(balance));
+		if(balance < 0) balString = String.Format("\c[Red]%s\c[White]", DrivablesMath.FormatNumber(balance));
+		
+		if(sv_mdr_eco_infinitemoney) 
+		{
+			balance = 1;
+			balString = String.Format("\c[Gray]Infinity\c[White]");
+		}
+		
 		MWDrawer.DrawString("hm_thin", "\c[White]= " .. balString, trBoxPos + (size.x * 0.5,65), MWDrawer.SS_TEXT_CENTER);
 		
 		// CBill Icons
@@ -453,7 +460,8 @@ class CartContainer : MenuElement
 		MWDrawer.Fill(0x101010, acBoxPos.x, acBoxPos.y, size.x, 100);
 		
 		MWDrawer.DrawString("bt_classic", "\c[Gray]Account Balance", acBoxPos + (size.x * 0.5,12), MWDrawer.SS_TEXT_CENTER);
-		String accBalanceStr = String.Format("\c[White]%s", MWDrawer.FormatNumber(base.PlayerItems.cbills)); 
+		String accBalanceStr = String.Format("\c[White]%s", base.PlayerItems.GetCBillString()); 
+
 		MWDrawer.DrawString("hm_thin", accBalanceStr, acBoxPos + (size.x * 0.5,50), MWDrawer.SS_TEXT_CENTER);
 		double balanceWidth = MWDrawer.GetTextWidth("hm_thin", accBalanceStr);
 		MWDrawer.DrawImage("Graphics/Shop/CBill_Icon.png", acBoxPos + ( 12 + (size.x * 0.5) + (balanceWidth * 0.5), 60), scale:(0.8,0.8));
@@ -462,7 +470,7 @@ class CartContainer : MenuElement
 	bool checkValidTransaction()
 	{
 		double cost = getTransactionCBills();
-		return (base.playerItems.cbills + cost) >= 0;
+		return base.playerItems.CheckHasFunds(cost);
 	}
 	
 	double getTransactionCBills()
@@ -476,7 +484,7 @@ class CartContainer : MenuElement
 			if(item.mechData)
 			{
 				let mechdefs = getDefaultByType(item.mechData.mechType);
-				cost += mechdefs.mechvalue * item.count;
+				cost += (sv_mdr_eco_mechcostscale * mechdefs.mechvalue * item.count);
 			}
 		}
 		
@@ -897,9 +905,10 @@ class ShopItem : MenuElement
 		
 		bool isPlayerMech = base.playerMechs.mechsData.Find(mechData) != base.playerMechs.mechsData.Size();
 		let mechdefs = getDefaultByType(mechData.mechType);
+		double mechvalue = sv_mdr_eco_mechcostscale * mechdefs.mechvalue;
 	
 		double txtScale = 0.85;
-		string value = MWDrawer.FormatNumber(isPlayerMech ? mechdefs.mechvalue * 0.5 : mechdefs.mechvalue);
+		string value = DrivablesMath.FormatNumber(isPlayerMech ?  mechvalue * 0.5 : mechvalue);
 		double valLength = MWDrawer.GetTextWidth("hm_type", value, (txtScale,txtScale));
 		double valHeight = MWDrawer.GetTextHeight("hm_type", value, scale:(txtScale,txtScale));
 		vector2 cbillIconPos = drawPos + (7, 5);
@@ -930,7 +939,7 @@ class ShopItem : MenuElement
 		double txtScale = 0.7;
 		
 		vector2 priceStringPos = (drawPos.x + size.x + 12, drawPos.y + size.y - 8);
-		string value = MWDrawer.FormatNumber(isPlayerItem ? objItem.GetValue() * 0.5 : objItem.GetValue());
+		string value = DrivablesMath.FormatNumber(isPlayerItem ? objItem.GetValue() * 0.5 : objItem.GetValue());
 		double valLength = MWDrawer.GetTextWidth("hm_type", value, (txtScale,txtScale));
 		double valHeight = MWDrawer.GetTextHeight("hm_type", value, scale:(txtScale,txtScale));
 		vector2 cbillIconPos = priceStringPos + (7 + valLength, 5);
@@ -1260,7 +1269,7 @@ class ShopMenu : MechMenu
 			let playerMechs = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 						
 			// Handle cbills
-			playerItems.cbills += cost;
+			playerItems.ModifyCBills(cost);
 			
 			// Unpack items
 			int listStart = menuCmd.IndexOf("[");

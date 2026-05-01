@@ -76,19 +76,29 @@ class CommonHUD_Handler : EventHandler
 		// Skip interpolating cbills if the map just began.
 		if(level.maptime <= 3) currentCBills = actualCBills;
 		
-		String cbillStr = String.Format("\c[White]%s", MWDrawer.FormatNumber(currentCBills)); 
+		String cbillStr = String.Format("\c[White]%s", DrivablesMath.FormatNumber(currentCBills)); 
 		vector2 cbillPos = (50,32);
 		
 		double strWidth = MWDrawer.getTextWidth("hm_type", cbillStr);
 		vector2 cbillIconPos = cbillPos + (strWidth + 14,14);
 		
-		MWDrawer.DrawString(
-			"hm_type", 
-			cbillStr, 
-			cbillPos,  
-			alpha:0.75, 
-			scale:(1.0,1.0)
-		);
+		if(!sv_mdr_eco_infinitemoney)
+		{
+			MWDrawer.DrawString(
+				"hm_type", 
+				cbillStr, 
+				cbillPos,  
+				alpha:0.75, 
+				scale:(1.0,1.0)
+			);
+		}
+		else
+		{
+			// Draw infinity symbol
+			MWDrawer.DrawImage("Graphics/HUD/ammoInf.png", cbillPos + (0,14), alpha:0.75, scale:(0.35, 0.35), tint:0xFFFFFFFF);
+			cbillIconPos = cbillPos + (42,14);
+		}
+		
 		MWDrawer.DrawImage(
 			"Graphics/Shop/CBill_Icon.png", 
 			cbillIconPos,
@@ -102,7 +112,7 @@ class CommonHUD_Handler : EventHandler
 		if(round(diff) != 0)
 		{
 			string valueStr = diff > 0 ? "\c[Green]+ %s" : "\c[Red]- %s";
-			String diffStr = String.Format(valueStr, MWDrawer.FormatNumber(abs(diff))); 
+			String diffStr = String.Format(valueStr, DrivablesMath.FormatNumber(abs(diff))); 
 			strWidth = MWDrawer.getTextWidth("hm_type", diffStr);
 			
 			MWDrawer.DrawString(

@@ -1,0 +1,89 @@
+class OptionMenuItemFormattedNumberField : OptionMenuFieldBase
+{
+	// We use our own input field, otherwise most of this is from OptionMenuItemTextField, modified to our needs.
+	MDRTextInput mEnter;
+	
+	OptionMenuItemFormattedNumberField Init (String label, Name command, CVar graycheck = null, int graycheckVal = 0)
+	{
+		Super.Init(label, command, graycheck, graycheckVal);
+		mEnter = null;
+		return self;
+	}
+
+	override String Represent()
+	{
+		// Draw properly formatted number, if not actively in the EnterMenu.
+		if (mEnter) return mEnter.GetText();
+		else 
+		{
+			bool b;
+			String s;
+			[b, s] = GetString(0);
+			
+			// Format number for readability.
+			int CVarNum = s.ToInt();
+			s = DrivablesMath.FormatNumber(CVarNum);
+			
+			return s;
+		}
+	}
+
+	override int Draw(OptionMenuDescriptor desc, int y, int indent, bool selected)
+	{
+		if (mEnter)
+		{
+			// reposition the text so that the cursor is visible when in entering mode.
+			String text = Represent();
+			int charPos = mEnter.seekpos;
+			
+			int tlen = Menu.OptionWidth(text, false) * CleanXfac_1;
+			int newindent = screen.GetWidth() - tlen - CursorSpace();
+			if (newindent < indent) indent = newindent;
+			
+			// Draw Cursor
+			string cursor = Menu.OptionFont().GetCursor();
+			int cursorIndent = Menu.OptionWidth(text.Left(mEnter.seekpos), false) * CleanXfac_1;
+			cursorIndent += indent;
+			
+			drawValue(cursorIndent, y, OptionMenuSettings.mFontColorValue, cursor, isGrayed(), false);
+		}
+		return Super.Draw(desc, y, indent, selected);
+	}
+
+	override bool MenuEvent (int mkey, bool fromcontroller)
+	{
+		if (mkey == Menu.MKEY_Enter)
+		{
+			bool b;
+			String s;
+			[b, s] = GetString(0);
+			Menu.MenuSound("menu/choose");
+			
+			string value = DrivablesMath.FormatNumber(s.ToInt());
+			mEnter = MDRTextInput.Open(Menu.GetCurrentMenu(), "NONE", 20, true, value);
+			mEnter.ActivateMenu();
+			return true;
+		}
+		else if (mkey == Menu.MKEY_Input)
+		{
+			string input = mEnter.GetText();
+			input.Replace(",", "");
+			
+			// Clamp to valid numbers
+			double num = input.ToDouble();
+			num = clamp(num, 0, 2e9);
+			input = String.Format("%d", num);
+			
+			SetString(0, input);
+			mEnter = null;
+			return true;
+		}
+		else if (mkey == Menu.MKEY_Abort)
+		{
+			mEnter = null;
+			return true;
+		}
+
+		return Super.MenuEvent(mkey, fromcontroller);
+	}
+}

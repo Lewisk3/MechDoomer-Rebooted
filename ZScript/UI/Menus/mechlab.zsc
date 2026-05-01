@@ -1480,7 +1480,7 @@ class MechInfoContainer : MenuElement
 		
 		// CBills
 		textPos.y = pos.y + size.y - 60;
-		string userCBills = MWDrawer.FormatNumber(mechlab.inv.cbills);
+		string userCBills = mechlab.inv.getCBillString();
 		MWDrawer.DrawString(textFont, 
 			"\c[Teal]CBills", 
 			textPos, scale:(textSize, textSize)
@@ -1618,7 +1618,7 @@ class MechlabUtilityButton : MenuButton
 		double utilCost = util.getEquipmentCost(mechlab.mech);
 		if(utilCost > 0)
 		{
-			string formatCost = MWDrawer.FormatNumber(utilCost);
+			string formatCost = DrivablesMath.FormatNumber(utilCost);
 			string msg = String.Format("This Item costs %s cbills to equip.\nPurchase and equip item?", formatCost);
 			MDRDialogMenu.Open(mechlab, String.Format("Util.Confirm:%d", itemID), msg, "Yes", "No");
 			return;

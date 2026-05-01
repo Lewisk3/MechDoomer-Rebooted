@@ -21,8 +21,10 @@ class MDRTextInput : Menu
 		self.maxlen = maxlen;
 		self.parent = parent;
 		self.inputSound = (inputSound == "") ? "Menus/Text/Input" : inputSound;
+		if(inputSound == "NONE") self.InputSound = "";
+		
 		numbersOnly = numberInput;
-		numberList = " 0123456789.";
+		numberList = " 0123456789.,";
 		seekpos = textbuffer.Length();
 		DontDim = true;
 	}

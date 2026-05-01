@@ -725,7 +725,7 @@ class MechArmor : MechUtility
 		double cbillChange = (prevArmor ? prevArmor.getEquipmentCost(mech) : 0) - getEquipmentCost(mech);
 		if(forced) cbillChange = 0;
 		
-		if(inv && (inv.cbills + cbillChange) < 0)
+		if(inv && !inv.CheckHasFunds(cbillChange))
 			return IAE_NOMONEY;
 		
 		if(prevArmor) prevArmor.OnDetach();
@@ -748,7 +748,7 @@ class MechArmor : MechUtility
 		else
 		{
 			// Modify user cbills by equipmentCost
-			if(inv) inv.cbills += cbillChange;
+			if(inv) inv.ModifyCBills(cbillChange);
 		
 			self.mech = mech;
 			self.armorAmount = 0;
@@ -880,7 +880,7 @@ class MechChassisStructure : MechUtility
 		double cbillChange = (prevStructure ? prevStructure.getEquipmentCost(mech) : 0) - getEquipmentCost(mech);
 		if(forced) cbillChange = 0;
 		
-		if(inv && (inv.cbills + cbillChange) < 0) 
+		if(inv && !inv.CheckHasFunds(cbillChange)) 
 			return IAE_NOMONEY;
 		
 		if(prevStructure) prevStructure.OnDetach();
@@ -898,7 +898,7 @@ class MechChassisStructure : MechUtility
 		}
 		else
 		{
-			if(inv) inv.cbills += cbillChange;
+			if(inv) inv.ModifyCBills(cbillChange);
 			mech.chassisStructure = self;
 			OnAttach();
 		}
@@ -2057,6 +2057,29 @@ class I_MechItemStorage : Inventory
 		cbills = clamp(cbills, 0, 2e9);
 	}
 	
+	// Used to change the amount of cbills the player has.
+	play void ModifyCBills(double amt)
+	{
+		if(sv_mdr_eco_infinitemoney) return;
+		cbills += amt;
+	}
+	
+	// Checks if a transaction is valid (if cbills minus amt is greater than zero)
+	// Some systems use a relative changing system, which means that the value can be greater or less than zero.
+	// We should always return true if gaining money from a transaction.
+	clearscope bool CheckHasFunds(double amt)
+	{
+		if(sv_mdr_eco_infinitemoney || amt > 0) return true;
+		return (cbills + amt) >= 0;	
+	}
+	
+	// Returns the cbill string value for use in UI.
+	clearscope string GetCBillString()
+	{
+		if(sv_mdr_eco_infinitemoney) return "Infinite";
+		return DrivablesMath.FormatNumber(cbills);
+	}
+	
 	play void AddSalvage(out Array<MechItem> salvage)
 	{
 		foreach(item : salvage)
@@ -2181,7 +2204,7 @@ class I_MechItemStorage : Inventory
 			foreach(item : startingItems)
 				itm.AddItem(item);
 			
-			itm.cbills = MDR_START_CBILLS; 
+			itm.cbills = sv_mdr_eco_startingcbills; 
 		}
 		
 		return itm;

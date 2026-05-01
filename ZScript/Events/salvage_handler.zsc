@@ -69,7 +69,7 @@ class Salvage_Handler : EventHandler
 		// Get killer's mechdoomer inventory
 		let itemInv = I_MechItemStorage.Get(killer, give:false);
 		if(!itemInv) return;
-		itemInv.cbills += deathValue;
+		itemInv.ModifyCBills(deathValue);
 		
 		// Higher odds the more health an enemy had.
 		int odds = min(8, DrivablesMath.fmap(e.Thing.getSpawnHealth(), 0, 1000, 0, 8)); 
