@@ -1833,6 +1833,15 @@ class MountSaveInfo : Object
 {
 	string mountType;
 	MechItem attached;
+	
+	virtual MountSaveInfo MakeCopy()
+	{
+		let mntData = new("MountSaveInfo");
+		mntData.mountType = mountType;
+		mntData.attached = attached;
+		
+		return mntData;
+	}
 }
 
 // Convert mechs into data so they can be saved between runs.
@@ -1857,6 +1866,9 @@ class HardpointSaveData : Object
 		hpData.rearArmorDamage = rearArmorDamage;
 		hpData.totalArmorDamage = totalArmorDamage;
 		hpData.doSpawnDebris = doSpawnDebris;
+		
+		foreach(mnt : mounts)
+			hpData.mounts.Push(mnt.MakeCopy());
 		
 		foreach(itm : items)
 			hpData.items.Push(itm.MakeCopy());
@@ -1929,6 +1941,7 @@ class MechSaveData : Object
 	bool isCriticallyDamaged;
 	vector3 lastPos;
 	String lastMapData; // Needed to know when to use lastPos, or to update it.
+	double cbillValue; // How much this mech is worth.
 	
 	// Shop information
 	Array<String> ShopStats;
@@ -1945,12 +1958,39 @@ class MechSaveData : Object
 		armorType = mech.armorType ? mech.armorType.getClass() : NULL;
 		chassisStructure = mech.chassisStructure ? mech.chassisStructure.getClass() : NULL;
 		isCriticallyDamaged = mech.isCriticallyDamaged; 
+		cbillValue = getMechValue(mech);
 		
 		// Populate shop information
 		mech.GetShopProperties(ShopStats, ShopValues);
 		shopDescription = mech.getShopDescription();
 		
 		Cache(mech);
+	}
+	
+	virtual double getMechValue(DrivableMech mech)
+	{
+		// Calculate chassis and item value.
+		double chassisValue = mech.mechvalue * sv_mdr_eco_mechcostscale;
+		double itemsValue = 0;
+		Array<MechItem> items;
+		mech.FindAllItems("MechItem", true, items);
+		foreach(item : items)
+		{
+			if(!item.movable || item.nosave) continue;
+			itemsValue += item.getValue();
+		}
+		
+		// Integrate also armor, chassis and engine values.
+		let engine = mech.engine;
+		let armorType = mech.armorType;
+		let structType = mech.chassisStructure;
+		
+		if(engine) itemsValue += engine.getValue();
+		if(armorType && !armorType.freeToEquip) itemsValue += armorType.getEquipmentCost(mech);
+		if(structType && !structType.freeToEquip) itemsValue += structType.getEquipmentCost(mech);
+		
+		// Final calculation
+		return chassisValue + itemsValue;
 	}
 	
 	virtual MechSaveData MakeCopy()
@@ -1964,6 +2004,7 @@ class MechSaveData : Object
 		saveData.ShopValues.Copy(ShopValues);
 		saveData.shopDescription = shopDescription;
 		saveData.isCriticallyDamaged = isCriticallyDamaged;
+		saveData.cbillValue = cbillValue;
 		
 		foreach(hp : hardpointData)
 			saveData.hardpointData.Push(hp.MakeCopy());
@@ -1989,15 +2030,16 @@ class MechLoader : Actor
 {
 	DrivableMech mech;
 	MechSaveData data;
-	
-	virtual void LoadMech()
+
+	virtual bool LoadMech()
 	{
-		if(!mech || !data) return;
+		if(!mech || !data) return false;
 		mech.noItemSlots = false;
 		
 		Array<MechHardpoint> hardpoints;
-		mech.getHardpoints(hardpoints);
-
+		mech.getHardpoints(hardpoints, skipDestroyed:false);
+		
+		// Proceed to load saved mech data.
 		for(int i = 0; i < hardpoints.Size(); i++)
 		{
 			let hardpointData = data.hardpointData[i];
@@ -2052,6 +2094,9 @@ class MechLoader : Actor
 		
 		// Restore misc fields
 		data.RestoreCache(mech);
+		
+		// Successfully loaded mech.
+		return true;
 	}
 	
 	States
@@ -2062,6 +2107,7 @@ class MechLoader : Actor
 		stop;
 	}
 }
+
 
 class I_SaveMechData : Inventory
 {
@@ -2127,6 +2173,12 @@ class I_SaveMechData : Inventory
 		mechData.mechbayID = getAvailableMechbay();
 	}
 	
+	// Calculate the CBill value of a saved mech.
+	clearscope static double getSavedMechValue(MechSaveData mech)
+	{
+		return mech.cbillValue;
+	}
+	
 	play static DrivableMech CreateMech(class<DrivableMech> mechClass)
 	{
 		let mech = DrivableMech(Spawn(mechClass));
@@ -2182,7 +2234,15 @@ class I_SaveMechData : Inventory
 		let bayIt = ThinkerIterator.Create("MechBay");
 		Mechbay bay;
 		while(bay = MechBay(bayIt.Next()))
-			bay.Activate(Owner);
+		{
+			let bayMech = bay.getMech(Owner);
+			if(bayMech) 
+				saveMechData(bayMech);
+			else
+				bay.Activate(Owner);
+			
+			bay.ReloadMech(Owner);
+		}
 	}
 	
 	void ReloadMechbay(int mechbayID)
@@ -2195,7 +2255,10 @@ class I_SaveMechData : Inventory
 			if(bay.mechbayID == mechbayID)
 			{
 				let bayMech = bay.getMech(Owner);
-				if(bayMech) saveMechData(bayMech);
+				if(bayMech) 
+					saveMechData(bayMech);
+				else
+					bay.Activate(Owner);
 				
 				bay.ReloadMech(Owner);
 				break;

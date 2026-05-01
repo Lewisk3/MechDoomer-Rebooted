@@ -38,8 +38,16 @@ class ShopItemsContainer : MenuElement
 	
 	virtual void Setup(out Array<MechItem> items, out Array<MechSaveData> mechs, int containerType)
 	{
-		if(items) self.items.Copy(items);
-		if(mechs) self.mechs.Copy(mechs);
+		if(items) 
+		{
+			self.items.Clear();
+			self.items.Copy(items);
+		}
+		if(mechs) 
+		{
+			self.mechs.Clear();
+			self.mechs.Copy(mechs);
+		}
 		self.containerType = containerType;
 		populateChildren();
 	}
@@ -477,16 +485,7 @@ class CartContainer : MenuElement
 	{
 		double cost = 0;
 		foreach(item : base.shopCart)
-		{
-			if(item.objItem) 
-				cost += item.objItem.GetValue() * item.count;
-				
-			if(item.mechData)
-			{
-				let mechdefs = getDefaultByType(item.mechData.mechType);
-				cost += (sv_mdr_eco_mechcostscale * mechdefs.mechvalue * item.count);
-			}
-		}
+			cost += item.GetItemValue();
 		
 		switch (base.shopMode)
 		{
@@ -722,6 +721,24 @@ class ShopItem : MenuElement
 		return sameItem || sameMech;
 	}
 	
+	virtual double GetItemValue()
+	{
+		if(objItem)
+		{
+			return objItem.getValue() * count;
+		}
+		
+		if(mechData)
+		{
+			bool isPlayerMech = base.playerMechs.mechsData.Find(mechData) != base.playerMechs.mechsData.Size();
+			double mechvalue = I_SaveMechData.getSavedMechValue(mechData);
+			return (isPlayerMech ? mechvalue * 0.5 : mechvalue) * count;
+		}
+		
+		// Has no item.
+		return 0;
+	}
+	
 	override void Init()
 	{
 		let [itemWidth, itemHeight] = MechItemSlot.getItemSlotSize();
@@ -904,11 +921,10 @@ class ShopItem : MenuElement
 		drawPos += (size.x - 40, 55);
 		
 		bool isPlayerMech = base.playerMechs.mechsData.Find(mechData) != base.playerMechs.mechsData.Size();
-		let mechdefs = getDefaultByType(mechData.mechType);
-		double mechvalue = sv_mdr_eco_mechcostscale * mechdefs.mechvalue;
+		double mechvalue = I_SaveMechData.getSavedMechValue(mechData);
 	
 		double txtScale = 0.85;
-		string value = DrivablesMath.FormatNumber(isPlayerMech ?  mechvalue * 0.5 : mechvalue);
+		string value = DrivablesMath.FormatNumber(isPlayerMech ? mechvalue * 0.5 : mechvalue);
 		double valLength = MWDrawer.GetTextWidth("hm_type", value, (txtScale,txtScale));
 		double valHeight = MWDrawer.GetTextHeight("hm_type", value, scale:(txtScale,txtScale));
 		vector2 cbillIconPos = drawPos + (7, 5);
@@ -1160,7 +1176,7 @@ class ShopMenu : MechMenu
 	ShopItemsContainer shopItemContainer;
 	CartContainer shoppingCartContainer;
 	ShopBackground ShopBG;
-
+	
 	MenuCursor cursor;
 	
 	override void InitElements() 
@@ -1339,7 +1355,7 @@ class ShopMenu : MechMenu
 					for(int x = 0; x < mechCounts[i]; x++)
 					{
 						let shopMech = playerMechs.defaultMechs[mechIDs[i]].MakeCopy();
-					
+						
 						// Add shop mech to player's mechs
 						playerMechs.AddSavedMech(shopMech);
 					}
@@ -1348,7 +1364,7 @@ class ShopMenu : MechMenu
 				if(buyingMechs)
 					playerMechs.ReloadAllMechbays();
 			}
-			
+		
 			// Finally, complete transaction
 			EventHandler.SendInterfaceEvent(e.Player, "transaction.completed");
 		}

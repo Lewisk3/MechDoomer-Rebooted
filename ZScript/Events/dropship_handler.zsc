@@ -394,9 +394,7 @@ class MechBay : EffectsActor
 		while(act = Actor(camIt.Next()))
 		{
 			if(act.TID == args[1]) camera = act;
-			
-			if(act is "MechOffMapCell")
-			offmapPos = act.pos;
+			if(act is "MechOffMapCell") offmapPos = act.pos;
 		}	
 		
 		mechs.Clear();
