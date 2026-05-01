@@ -122,7 +122,7 @@ class HeavySmallLaser : SmallLaser
 	{	
 		super.Defaults();
 		
-		DisplayName = "HEAVYSMALLLASER";
+		DisplayName = "SMLHEAVYLASER";
 		damage = convertDMG(6.0, fireTime);
 		laserHeat = convertHeat(3.00, fireTime); // Laserbeam heat.
 		energyUse *= 1.5;
@@ -271,7 +271,7 @@ class HeavyMediumLaser : MediumLaser
 	{	
 		super.Defaults();
 		
-		DisplayName = "HEAVYMEDIUMLASER";
+		DisplayName = "MEDHEAVYLASER";
 		damage = convertDMG(10.0, fireTime);
 		laserHeat = convertHeat(7.00, fireTime); // Laserbeam heat.
 		energyUse *= 1.5;
@@ -422,7 +422,7 @@ class HeavyLargeLaser : LargeLaser
 	{	
 		super.Defaults();
 		
-		DisplayName = "HEAVYLARGELASER";
+		DisplayName = "LRGHEAVYLASER";
 		damage = convertDMG(16.0, fireTime);
 		laserHeat = convertHeat(18.00, fireTime); // Laserbeam heat.
 		energyUse *= 1.5;
@@ -445,6 +445,311 @@ class HeavyLargeLaser : LargeLaser
 			"heat output. In addition, a subtle firing delay and interference with "
 			"a BattleMech's sensors means that the weapon suffers from poor accuracy."
 			"\n(Source: https://www.sarna.net/wiki/Heavy_Large_Laser)"
+		);
+	}
+}
+
+// PPC
+class PPC : MechBallisticWeapon
+{	
+	bool unsafeMode;
+	double fireRecoil;
+	Name defDisplayName;
+	double defEnergyUse;
+	
+	override void Defaults()
+	{	
+		DisplayName = "PPC";
+		
+		mountType = "Energy";
+		heat = 10.0;
+		weight = 7.0;
+		size = 3.0;
+		fireRecoil = -3.0;
+		
+		ammoUse = 0;
+		fireTime = 10;
+		cooldownTime = ceil(3 * TICRATE);
+		energyUse = 0.30;
+		
+		projType = "ParticleCannon";
+		ammoType = "";
+		fireSound = "Energy/PPC";
+		sndItemName = "Betty/Item/PPC";
+		mountDeco = "PPCMountDeco";
+		disableMountRecoil = true;
+		itemDescription = (
+			"\c[Orange]Comes equipped with a built-in Field Inhibitor, which results in a minimum range of 90m."
+			"This can be disabled by pressing the Weapon State button, however doing so will render "
+			"this weapon unsafe and cause damage to the user's mech when fired at close range."
+		);
+		
+		damagable = true;
+		
+		value = 200000;
+		
+		SetupPPC();
+	}
+	
+	virtual void SetupPPC()
+	{
+		defEnergyUse = energyUse;
+		defDisplayName = displayName;
+	}
+	
+	// Toggles the field inhibitor.
+	override void ToggleState()
+	{
+		unsafeMode = !unsafeMode;
+		if(unsafeMode) 
+		{
+			displayName = String.Format("\c[Orange][ER] %s", defDisplayName);
+			energyUse = 1.0;
+		}
+		if(!unsafeMode) 
+		{
+			// Restore default behavior.
+			displayName = defDisplayName;
+			energyUse = defEnergyUse;
+		}
+	}
+	
+	override bool Fire(vector3 firePos)
+	{
+		int ret = super.Fire(firePos);
+		let firedPPC = ParticleCannon(firedProjectile);
+		if(unsafeMode && firedPPC)
+		{
+			// Can potentially scramble a mech's systems, also causes self-damage at close range.
+			firedPPC.disableFieldInhibitor = true;
+		}
+	
+		A_Recoil(fireRecoil);
+		return ret;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Particle Projector Cannon is an energy weapon, firing "
+			"a concentrated stream of protons at a target dealing both "
+			"thermal and kinetic damage. Despite being an energy weapon, it does "
+			"produce recoil. The lethality of the weapon rivals that of higher-caliber autocannons; "
+			"just three shots from a PPC will vaporize nearly two tons of standard armor."
+			"\n(Source: https://www.sarna.net/wiki/Particle_Projector_Cannon)"
+		);
+	}
+}
+class ERPPC : PPC
+{	
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "ER PPC";
+		heat = 15.0;
+		energyUse = 0.40;
+				
+		projType = "RangedParticleCannon";
+		fireSound = "Energy/PPC";
+		sndItemName = "Betty/Item/ERPPC";
+		mountDeco = "ERPPCMountDeco";
+		mountDecoScale = 1.25;
+		mountDecoOffs = (0,0,0.5);
+		itemDescription = "\c[Orange]Unlike the regular PPC, this has no minimum range and is completely safe to fire at close ranges.";
+		
+		damagable = true;
+		
+		value = 300000;
+		SetupPPC();
+	}
+	
+	// ER-PPCs don't need this behavior
+	override void ToggleState() {}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Extended-Range Particle Projector Cannon, "
+			"or ER PPC for short, has a greatly increased range compared to "
+			"a standard PPC. Capable of extreme damage at long range, "
+			"unfortunately generates a tremendous amount of heat, and thus can "
+			"be difficult to use effectively. The ER PPC is also noteworthy "
+			"for having no minimal range."
+			"\n(Source: www.sarna.net/wiki/Extended-Range_Particle_Projector_Cannon)"
+		);
+	}
+}
+class SnubNosePPC : PPC
+{	
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "SNUB NOSE PPC";
+		heat = 10.0;
+		energyUse = 0.30;
+		weight = 6.0;
+		size = 2.0;
+		fireRecoil = -1.5;
+				
+		projType = "SnubNoseParticleCannon";
+		fireSound = "Energy/SnubNosePPC";
+		sndItemName = "Betty/Item/PPC";
+		mountDeco = "ERPPCMountDeco";
+		mountDecoScale = 1.0;
+		mountDecoOffs = (0,0,0.5);
+		itemDescription = "";
+		
+		damagable = true;
+		
+		value = 300000;
+		SetupPPC();
+	}
+	
+	// SubNose-PPCs don't need this behavior
+	override void ToggleState() {}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Snub-Nose PPC is to a Particle Projector Cannon as a "
+			"sawed-off shotgun is to a shotgun. Rediscovered by the Draconis Combine "
+			"from a Star League concept that didn't take off at the time, this version "
+			"of the PPC is slightly lighter than a standard PPC, but its energy discharge "
+			"trails off considerably faster, leading to shorter range and reduced damage "
+			"capacity over range. "
+			"(Source: https://www.sarna.net/wiki/Snub-Nose_PPC)"
+		);
+	}
+}
+class LightPPC : PPC
+{	
+	override void Defaults()
+	{	
+		super.Defaults();
+		
+		DisplayName = "LIGHT PPC";
+		heat = 5.0;
+		energyUse = 0.20;
+		weight = 3.0;
+		size = 2.0;
+		fireRecoil = -1.0;
+		cooldownTime = ceil(2 * TICRATE);
+				
+		projType = "LightParticleCannon";
+		fireSound = "Energy/LightPPC";
+		sndItemName = "Betty/Item/PPC";
+		mountDeco = "ERPPCMountDeco";
+		mountDecoScale = 0.65;
+		mountDecoOffs = (0,0,0.5);
+		
+		damagable = true;
+		
+		value = 150000;
+		SetupPPC();
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Light PPC is a smaller version of the Particle Projector Cannon. Introduced by the "
+			"Draconis Combine in 3067, it is often compared with the ER medium laser as it shares damage, "
+			"heat, and lack of ammunition dependency. The Light PPC is heavier and more bulky, though it does "
+			"have a longer range profile, albeit with the deficiency of a minimum range. "
+			"(Source: https://www.sarna.net/wiki/Light_Particle_Projector_Cannon)"
+		);
+	}
+}
+
+class Flamer : MechWeapon
+{
+	Sound beginFireSound;
+	const CHAN_FLMR = 20;
+
+	Actor activeFlame;
+	override void Defaults()
+	{
+		displayName = "FLAMER";
+		mountType = "Energy";
+		weight = 1;
+		size = 1;
+		heat = 3 / double(TURNTICS);
+		energyUse = 0.015;
+		
+		fireTime = 1;
+		cooldownTime = 1;
+		range = 90;
+		
+		projType = "MechFlamer";
+		sndItemName = "Betty/Item/Flamer";
+		fireSound = "Energy/Flamer/Loop";
+		beginFireSound = "Energy/Flamer/Start";
+		mountDeco = "ACMountDeco";
+		mountDecoScale = 0.5;
+		
+		damagable = true;
+		
+		value = 7500;
+	}
+		
+	override bool Fire(vector3 firePos)
+	{
+		if(!activeFlame)
+			parent.A_StartSound(beginFireSound, CHAN_FLMR+1, CHANF_OVERLAP);
+	
+		vector3 absFirePos = parent.OffsetPos(firePos.x, firePos.y, firePos.z);
+		let flame = MechFlamer.Fire(parent, (class<MechFlamer>)(projType), absFirePos, parent.lookingPos, damaging:true);
+		if(flame) 
+		{
+			flame.master = mech.driver;
+			flame.vel += mech.vel;
+			activeFlame = flame;
+		}
+		return true;
+	}
+	
+	override void DoEffect()
+	{
+		super.DoEffect();
+		
+		if(activeFlame && activeFlame.getAge() > 4) 
+			activeFlame = NULL;
+		
+		// Sound Effect
+		if(activeFlame) 
+			parent.A_StartSound(fireSound, CHAN_FLMR, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
+		else
+			parent.A_StopSound(CHAN_FLMR);
+	}
+	
+	override void GetShopProperties(out Array<String> stats, out Array<string> values)
+	{
+		let projDefs = GetDefaultByType(projType);
+	
+		stats.Push("Range");
+		values.Push(String.Format("%dm", projDefs.maxRange));
+		
+		stats.Push("Raw Damage");
+		values.Push(String.Format("%.2f", projDefs.trueDamage));
+		stats.Push("Heat");
+		values.Push(String.Format("%.2f H/s", heat * double(TICRATE)));
+		stats.Push("Cooldown");
+		values.Push("N/A");
+		
+		stats.Push("Weight");
+		values.Push(String.Format("%.2f ton(s)", weight));
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The standard Flamer taps into a BattleMech's reactor to produce "
+			"heat in the form of a plasma release. An extremely short-ranged weapon, the "
+			"flamer is devastating against infantry, however damage done against other 'Mechs "
+			"and vehicles is negligible, though it can raise the enemy unit's heat levels "
+			"and potentially cause the target mech to shutdown from overheating."
+			"\n(Source: https://www.sarna.net/wiki/Flamer)"
 		);
 	}
 }
@@ -1978,216 +2283,7 @@ class GaussRifle : MechBallisticWeapon
 	}
 }
 
-// PPC
-class PPC : MechBallisticWeapon
-{	
-	bool unsafeMode;
-	
-	override void Defaults()
-	{	
-		DisplayName = "PPC";
-		mountType = "Energy";
-		heat = 10.0;
-		weight = 7.0;
-		size = 3.0;
-		
-		ammoUse = 0;
-		fireTime = 10;
-		cooldownTime = ceil(3 * TICRATE);
-		energyUse = 0.30;
-		
-		projType = "ParticleCannon";
-		ammoType = "";
-		fireSound = "Energy/PPC";
-		sndItemName = "Betty/Item/PPC";
-		mountDeco = "PPCMountDeco";
-		disableMountRecoil = true;
-		itemDescription = (
-			"\c[Orange]Comes equipped with a built-in Field Inhibitor, which results in a minimum range of 90m."
-			"This can be disabled by pressing the Weapon State button, however doing so will render "
-			"this weapon unsafe and cause damage to the user's mech when fired at close range."
-		);
-		
-		damagable = true;
-		
-		value = 200000;
-	}
-	
-	
-	// Toggles the field inhibitor.
-	override void ToggleState()
-	{
-		unsafeMode = !unsafeMode;
-		if(unsafeMode) 
-		{
-			displayName = "\c[Orange][ER] PPC";
-			energyUse = 1.0;
-		}
-		if(!unsafeMode) 
-		{
-			// Restore default behavior.
-			Defaults();
-		}
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		int ret = super.Fire(firePos);
-		let firedPPC = ParticleCannon(firedProjectile);
-		if(unsafeMode && firedPPC)
-		{
-			// Can potentially scramble a mech's systems, also causes self-damage at close range.
-			firedPPC.disableFieldInhibitor = true;
-		}
-	
-		A_Recoil(-3);
-		return ret;
-	}
-	
-	override string getShopDescription()
-	{
-		return (
-			"\c[White]The Particle Projector Cannon is an energy weapon, firing "
-			"a concentrated stream of protons at a target dealing both "
-			"thermal and kinetic damage. Despite being an energy weapon, it does "
-			"produce recoil. The lethality of the weapon rivals that of higher-caliber autocannons; "
-			"just three shots from a PPC will vaporize nearly two tons of standard armor."
-			"\n(Source: https://www.sarna.net/wiki/Particle_Projector_Cannon)"
-		);
-	}
-}
-class ERPPC : PPC
-{	
-	override void Defaults()
-	{	
-		super.Defaults();
-		
-		DisplayName = "ER PPC";
-		heat = 15.0;
-		energyUse = 0.40;
-				
-		projType = "RangedParticleCannon";
-		fireSound = "Energy/PPC";
-		sndItemName = "Betty/Item/ERPPC";
-		mountDeco = "ERPPCMountDeco";
-		mountDecoScale = 1.25;
-		mountDecoOffs = (0,0,-1);
-		itemDescription = "\c[Orange]Unlike the regular PPC, this has no minimum range and is completely safe to fire at close ranges.";
-		
-		damagable = true;
-		
-		value = 300000;
-	}
-	
-	// ER-PPCs don't need this behavior
-	override void ToggleState() {}
-	
-	override string getShopDescription()
-	{
-		return (
-			"\c[White]The Extended-Range Particle Projector Cannon, "
-			"or ER PPC for short, has a greatly increased range compared to "
-			"a standard PPC. Capable of extreme damage at long range, "
-			"unfortunately generates a tremendous amount of heat, and thus can "
-			"be difficult to use effectively. The ER PPC is also noteworthy "
-			"for having no minimal range."
-			"\n(Source: www.sarna.net/wiki/Extended-Range_Particle_Projector_Cannon)"
-		);
-	}
-}
-
-class Flamer : MechWeapon
-{
-	Sound beginFireSound;
-	const CHAN_FLMR = 20;
-
-	Actor activeFlame;
-	override void Defaults()
-	{
-		displayName = "FLAMER";
-		mountType = "Energy";
-		weight = 1;
-		size = 1;
-		heat = 3 / double(TURNTICS);
-		energyUse = 0.015;
-		
-		fireTime = 1;
-		cooldownTime = 1;
-		range = 90;
-		
-		projType = "MechFlamer";
-		sndItemName = "Betty/Item/Flamer";
-		fireSound = "Energy/Flamer/Loop";
-		beginFireSound = "Energy/Flamer/Start";
-		mountDeco = "ACMountDeco";
-		mountDecoScale = 0.5;
-		
-		damagable = true;
-		
-		value = 7500;
-	}
-		
-	override bool Fire(vector3 firePos)
-	{
-		if(!activeFlame)
-			parent.A_StartSound(beginFireSound, CHAN_FLMR+1, CHANF_OVERLAP);
-	
-		vector3 absFirePos = parent.OffsetPos(firePos.x, firePos.y, firePos.z);
-		let flame = MechFlamer.Fire(parent, (class<MechFlamer>)(projType), absFirePos, parent.lookingPos, damaging:true);
-		if(flame) 
-		{
-			flame.master = mech.driver;
-			flame.vel += mech.vel;
-			activeFlame = flame;
-		}
-		return true;
-	}
-	
-	override void DoEffect()
-	{
-		super.DoEffect();
-		
-		if(activeFlame && activeFlame.getAge() > 4) 
-			activeFlame = NULL;
-		
-		// Sound Effect
-		if(activeFlame) 
-			parent.A_StartSound(fireSound, CHAN_FLMR, CHANF_OVERLAP|CHANF_LOOPING|CHANF_NOSTOP);
-		else
-			parent.A_StopSound(CHAN_FLMR);
-	}
-	
-	override void GetShopProperties(out Array<String> stats, out Array<string> values)
-	{
-		let projDefs = GetDefaultByType(projType);
-	
-		stats.Push("Range");
-		values.Push(String.Format("%dm", projDefs.maxRange));
-		
-		stats.Push("Raw Damage");
-		values.Push(String.Format("%.2f", projDefs.trueDamage));
-		stats.Push("Heat");
-		values.Push(String.Format("%.2f H/s", heat * double(TICRATE)));
-		stats.Push("Cooldown");
-		values.Push("N/A");
-		
-		stats.Push("Weight");
-		values.Push(String.Format("%.2f ton(s)", weight));
-	}
-	
-	override string getShopDescription()
-	{
-		return (
-			"\c[White]The standard Flamer taps into a BattleMech's reactor to produce "
-			"heat in the form of a plasma release. An extremely short-ranged weapon, the "
-			"flamer is devastating against infantry, however damage done against other 'Mechs "
-			"and vehicles is negligible, though it can raise the enemy unit's heat levels "
-			"and potentially cause the target mech to shutdown from overheating."
-			"\n(Source: https://www.sarna.net/wiki/Flamer)"
-		);
-	}
-}
-
+// Anti-Missile Systems
 class AMS : MechWeapon
 {
 	Actor curTarget;

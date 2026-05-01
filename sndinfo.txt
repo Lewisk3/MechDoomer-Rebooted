@@ -116,6 +116,8 @@ Energy/PPC "Sounds/Weapons/ppc_fire.wav"
 Energy/PPC/Impact "Sounds/Weapons/ppc_hit.wav"
 Energy/PPC/Thunder "Sounds/Weapons/ppc_thunder.wav"
 Energy/PPC/Ambient "Sounds/Weapons/ppc_ambient.wav"
+Energy/SnubNosePPC "Sounds/Weapons/snub_ppc_fire.wav"
+Energy/LightPPC "Sounds/Weapons/light_ppc_fire.wav"
 
 Energy/Flamer/Start "Sounds/Weapons/flamethrower_start.wav"
 Energy/Flamer/Loop  "Sounds/Weapons/flamethrower_loop.wav"

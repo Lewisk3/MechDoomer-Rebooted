@@ -122,7 +122,7 @@ class ParticleCannon : MechProjectile
 					SpawnEffect("PPCExplosion", pos);
 					if(disableFieldInhibitor && curDist < default.minRange)
 					{
-						EffectsHelper.ExplodeEx(self, 8, 2048, thrustMod:0, selfDamage: 1.0);
+						EffectsHelper.ExplodeEx(self, 4, 512, thrustMod:0, selfDamage: 1.0);
 						let mexp = SpawnEffect("MissileExplosion", pos);
 						if(mexp) mexp.A_SetScale(mexp.Scale.X * 30.0);
 						if(mech) mech.EMI += 25;
@@ -140,6 +140,30 @@ class RangedParticleCannon : ParticleCannon
 	{
 		MechProjectile.Ranges 0, 1620;
 		MechProjectile.SpeedKPH 1900;
+	}
+}
+
+// Snub-Nose PPC
+class SnubNoseParticleCannon : ParticleCannon
+{
+	Default
+	{
+		MechProjectile.Ranges 0, 450;
+		MechProjectile.SpeedKPH 1900;
+		Scale 0.15;
+	}
+}
+
+// Light PPC
+class LightParticleCannon : ParticleCannon
+{
+	Default
+	{
+		MechProjectile.Dmg 5 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 90, 1080;
+		MechProjectile.SpeedKPH 1400;
+		ParticleCannon.PowerKJ 1750000;
+		Scale 0.10;
 	}
 }
 
