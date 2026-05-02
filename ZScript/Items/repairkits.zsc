@@ -113,11 +113,21 @@ class MechRepairKit : MechItem
 	}
 	
 	// Repair items
-	override void OnAddon(MechItem destItem)
+	override int ApplyAddon(MechItem destItem)
 	{
-		if(!itemRepairAmount) return;
+		if(!itemRepairAmount) 
+		{
+			// Pass to TryAttach.
+			if(destItem.parent)
+				return TryAttach(destItem.parent);
+				
+			return IAE_NOTFOUND;
+		}
 		
-		if(destItem.hp < 10 && destItem.movable && destItem.parent && destItem.parent.healthPoints > 0)
+		if(destItem.hp >= 10)
+			return IAE_INVALID;
+		
+		if(destItem.movable && destItem.parent && destItem.parent.healthPoints > 0)
 		{
 			Deplete();
 			if(destItem.hp <= 0)
@@ -127,6 +137,7 @@ class MechRepairKit : MechItem
 			}
 			else destItem.Repair(itemRepairAmount);
 		}
+		return IAE_SUCCESS;
 	}
 	
 	override void OnAttach()
@@ -151,10 +162,11 @@ class MechItemRepairKit : MechRepairKit
 {
 	override void Defaults()
 	{
+		addonType = ADT_SINGLEUSE;
 		displayName = "Item Repair Kit";		 
 		itemRepairAmount = 5;
 		repairTier = 0;
-		addonCapable = true;
+		
 		value = CalculateCost();
 		
 		itemDescription = (
@@ -163,6 +175,12 @@ class MechItemRepairKit : MechRepairKit
 		);
 	}
 	
+	override int TryAttach(MechHardpoint part)
+	{
+		// Cannot be used on hardpoints.
+		return IAE_INVALID;
+	}
+		
 	override string GetItemErrorMessage(int ERR_TYPE)	
 	{
 		switch(ERR_TYPE)
@@ -179,9 +197,11 @@ class MechArmorRepairKit : MechRepairKit
 {
 	override void Defaults()
 	{
+		addonType = ADT_SINGLEUSE;	
 		displayName = "Basic Armor Repair Kit";		 
 		armorRepairAmount = 12; // 12 points of armor per kit.
 		repairTier = 0;
+		
 		value = CalculateCost();
 		itemDescription = "\c[Yellow]Repairs Standard Armor. Drag and drop on a damaged hardpoint to activate.";
 	}
@@ -192,6 +212,7 @@ class MechArmorRepairKit : MechRepairKit
 		{
 			case IAE_INVALID: return "Hardpoint Armor is nominal.";
 			case IAE_FAIL: return "Armor is too advanced to be repaired by this kit.";
+			case IAE_NOTFOUND: return "Cannot be used on items.";
 			default: return super.GetItemErrorMessage(ERR_TYPE);
 		}
 	}
@@ -201,9 +222,11 @@ class AdvArmorRepairKit : MechArmorRepairKit
 {
 	override void Defaults()
 	{
+		addonType = ADT_SINGLEUSE;	
 		displayName = "Advanced Armor Repair Kit";		 
 		armorRepairAmount = 10; // 10 points of armor per kit.
 		repairTier = 3;
+		
 		value = CalculateCost();
 		itemDescription = "\c[Yellow]Repairs Standard or Advanced Armor. Drag and drop on a damaged hardpoint to activate.";
 	}
@@ -214,8 +237,10 @@ class MechInternalsRepairKit : MechRepairKit
 {
 	override void Defaults()
 	{
+		addonType = ADT_SINGLEUSE;
 		displayName = "Basic Internal Repair Kit";		 
 		internalRepairAmount = 10;
+		
 		repairTier = 0;
 		value = CalculateCost();
 		itemDescription = (
@@ -231,6 +256,7 @@ class MechInternalsRepairKit : MechRepairKit
 		{
 			case IAE_INVALID: return "Internals are nominal.";
 			case IAE_FAIL: return "Mech internal structure is too advanced to be repaired by this kit.";
+			case IAE_NOTFOUND: return "Cannot be used on items."; 
 			default: return super.GetItemErrorMessage(ERR_TYPE);
 		}
 	}
@@ -251,8 +277,10 @@ class AdvInternalsRepairKit : MechInternalsRepairKit
 {
 	override void Defaults()
 	{
+		addonType = ADT_SINGLEUSE;	
 		displayName = "Advanced Internal Repair Kit";		 
 		internalRepairAmount = 8;
+		
 		repairTier = 3;
 		value = CalculateCost();
 		itemDescription = (
@@ -267,6 +295,7 @@ class ExoticRepairKit : MechRepairKit
 {
 	override void Defaults()
 	{
+		addonType = ADT_SINGLEUSE;	
 		displayName = "Exotic Repair Kit";		 
 		internalRepairAmount = 20;
 		armorRepairAmount = 20;

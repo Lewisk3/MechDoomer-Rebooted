@@ -1139,7 +1139,8 @@ class MechInvItem : MenuElement
 		let mouseOverItem = mouseOverContainer ? mouseOverContainer.mouseHoverSlot : NULL; 
 
 		// If dropped over item
-		if(mouseOverItem && mouseOverItem.slotItem && item.addonCapable && cursor.checkCollision(mouseOverItem, false) && mechlab)
+		bool isAddon = (item.addonType != MechItem.ADT_NONE);
+		if(mouseOverItem && mouseOverItem.slotItem && isAddon && cursor.checkCollision(mouseOverItem, false) && mechlab)
 		{
 			// hardpointID:itemID
 			string destItemIDs = mechlab.mech.getMechItemIndex(mouseOverItem.slotItem);
@@ -2019,8 +2020,9 @@ class MechMenu_Mechlab : MechMenu
 					let invItem = inv.items[menuArgs[4].toInt()];
 					let destItem = MechHardpoint(mech.parts[partID]).items[itemID];
 					
-					invItem.OnAddon(destItem);
-					destItem.ApplyAddon(invItem);
+					int success = destItem.TryAddon(invItem);
+					if(success != MechItem.IAE_SUCCESS) 
+						SendItemErrorMessage(e.Player, invItem, success);
 				}
 			
 				if(menuArgs[2] ~== "equip") 

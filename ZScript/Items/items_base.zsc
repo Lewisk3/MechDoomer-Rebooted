@@ -16,7 +16,14 @@ class MechItem : Object
 	bool hidden; // If true, item is hidden from inventory screen.
 	bool infinite; // Item cannot be depleted.
 	string itemDescription;
-	bool addonCapable; // If false, addon logic will be skipped for this item.
+	
+	// Addon Stuff
+	Array<MechItem> addons; // Attached addons.
+	int addonType; // Addon Type for checking prerequisites.
+	int addonSlots, maxAddonSlots; // Used for static type addons.
+	MechItem parentItem; // Parent item of an addon.
+	int addonSize;
+	double addonWeight;
 	
 	enum ItemActionError 
 	{
@@ -28,7 +35,15 @@ class MechItem : Object
 		IAE_NOTFOUND	= 5,
 		IAE_TOOCOMPLEX  = 6,
 		IAE_NOMONEY		= 7,
+		IAE_NOADDONSLOTS = 8,
 		IAE_SUCCESS 	= 0xFF
+	};
+	
+	enum ItemAddonType
+	{
+		ADT_NONE = 0,
+		ADT_SINGLEUSE = 1,	// Addon does not take up any space and is single-use.
+		ADT_STATIC = 2		// Addon sticks to item until removed, taking up space.
 	};
 	
 	clearscope virtual bool isTypeOf(class<MechItem> item, bool subclass = false)
@@ -95,6 +110,7 @@ class MechItem : Object
 			case IAE_NOTFOUND  : return ("Missing component.");
 			case IAE_TOOCOMPLEX: return ("Mech' structure is too complex to be modified.");
 			case IAE_NOMONEY   : return ("Insufficient funds.");
+			case IAE_NOADDONSLOTS: return ("Item addon compartments are full.");
 			
 			// No Error message.
 			case IAE_SUCCESS:
@@ -113,10 +129,77 @@ class MechItem : Object
 	{
 		inv = destInv;
 	}
+		
+	// Called to determine if an item can be added to this item or not.
+	play virtual int TryAddon(MechItem addon) 
+	{
+		// Do not take addons which already have a parent.
+		if(addon.parentItem) return IAE_FAIL;
+			
+		// Check for static item requirements, such as slots and weight.
+		if(addon.addonType == ADT_STATIC)
+		{
+			if(parent)
+			{
+				if( (parent.slots+addon.addonSize) > parent.maxslots ) 
+					return IAE_NOSLOTS;
+				else if( (parent.mech.weight+addon.addonWeight) > parent.mech.maxWeight ) 
+					return IAE_OVERWEIGHT;	
+				else
+					return IAE_SUCCESS;
+			}
+			
+			// Check addon slots for space.
+			if(addonSlots + 1 > maxAddonSlots)
+				return IAE_NOADDONSLOTS;
+				
+			addon.parentItem = self;
+			size += addon.addonSize;
+			weight += addon.addonWeight;
+			addon.mech = mech;
+			
+			addonSlots++;
+			addons.Push(addon);
+		}
+				
+		// Let addon know it was added.
+		int addonStatus = addon.ApplyAddon(self);
+		return addonStatus;
+	}
+		
+	// Called from an addon when it is added to an item.
+	play virtual int ApplyAddon(MechItem parentItem) 
+	{
+		return IAE_SUCCESS;
+	}
 	
-	// Addon control, called when an item is dropped onto another.
-	play virtual void ApplyAddon(MechItem addon) {}
-	play virtual void OnAddon(MechItem destItem) {}
+	// Called when an addon is to be removed from this item.
+	play virtual void RemoveAddon(MechItem addon) 
+	{
+		// Inform addon it's about to be removed.
+		addon.OnAddonRemoved();
+		
+		// We only care about static addons for the rest of this.
+		if(addon.addonType != ADT_STATIC) return;
+		
+		int addonIndex = addons.Find(addon);
+		if(addonIndex == addons.Size()) return;
+		
+		// Remove addon and reset stats.
+		addon.parentItem = NULL;
+		size -= addon.addonSize;
+		weight -= addon.addonWeight;
+		addonSlots--;
+		
+		// Remove addon from list.
+		addons.Delete(addonIndex);
+		
+		// We likely also need to update any dynamic structures.
+		MechDynamicStructure.ReattachAll(mech);
+	}
+	
+	// Called from an addon when it is going to be removed from an item.
+	play virtual void OnAddonRemoved() {}
 	
 	clearscope virtual bool isEquipped(DrivableMech mech = NULL)
 	{
@@ -303,7 +386,13 @@ class MechItem : Object
 	
 	play virtual void DoEffect()
 	{
-		// Process destruction.
+		// Allow addons to think.
+		foreach(addon : addons)
+		{
+			if(!addon.mech) addon.mech = mech;
+			addon.DoEffect();
+		}
+	
 		if(!parent) return;
 	
 		// Under normal circumstances, if our hardpoint was destroyed, we took a lot of damage too.

@@ -94,6 +94,8 @@ class MDRTextInput : Menu
 	
 	override bool OnUIEvent(UIEvent ev)
 	{
+		parent.OnUIEvent(ev);
+	
 		// Save game and player name string input
 		int ch = ev.KeyChar;
 		if (ev.Type == UIEvent.Type_Char)

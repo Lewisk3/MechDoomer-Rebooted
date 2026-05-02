@@ -302,7 +302,7 @@ class MenuCursor : MenuElement
 		// Update temp-state buttons
 		if(leftPressed || rightPressed) tmpBtnTimer += dT;
 		tmpScrollTimer += dT;
-		if(tmpBtnTimer    >  5) 
+		if(tmpBtnTimer    >  2) 
 		{
 			leftPressed = rightPressed = false;
 			tmpBtnTimer = 0;
@@ -448,7 +448,11 @@ class MenuSearchBar : MenuElement
 	override void Update(double dT)
 	{
 		let cursor = MenuCursor(getCollidingWithType("MenuCursor"));
-		if(cursor && !active && cursor.leftPressed)
+	
+		if(!cursor && active && userCursor && userCursor.leftPressed)
+			CloseTextInput();
+	
+		if(cursor && cursor.leftPressed)
 		{
 			userCursor = cursor;
 			OpenTextInput();
