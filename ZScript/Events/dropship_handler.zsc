@@ -105,13 +105,15 @@ class MechDropship_Handler : StaticEventHandler
 	{
 		Actor activator = e.Thing;
 		Line ln = e.ActivatedLine;
-		let inv = I_MechItemStorage.Get(activator);
-		if(!inv || !ln) return;
+		if(!ln) return;
 		
 		bool isSecretExit = (ln.special == 244);
 		
 		if(isSecretExit)
-			inv.dropshipNextMap = inv.dropshipNextSecretMap;
+		{
+			let inv = I_MechItemStorage.Get(activator, give:false);
+			if(inv) inv.dropshipNextMap = inv.dropshipNextSecretMap;
+		}
 	}
 	
 	override void WorldLoaded(WorldEvent e)
