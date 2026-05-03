@@ -125,7 +125,13 @@ class MechRepairKit : MechItem
 		}
 		
 		if(destItem.hp >= 10)
+		{
+			// Pass to TryAttach, if item is fully healed.
+			if( (armorRepairAmount || internalRepairAmount) && destItem.parent)
+				return TryAttach(destItem.parent);
+				
 			return IAE_INVALID;
+		}
 		
 		if(destItem.movable && destItem.parent && destItem.parent.healthPoints > 0)
 		{

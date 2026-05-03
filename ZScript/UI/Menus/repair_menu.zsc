@@ -252,29 +252,37 @@ class PaperDollContainer : MenuElement
 	{
 		if(btnArmorMode.pressed)
 		{
+			if(!btnArmorMode.active) 
+				MenuSound("Menus/Button/Pressed");
+				
 			paperDollType = PDM_ARMOR;
 			btnArmorMode.pressed = false;
-			MenuSound("Menus/Button/Pressed");
 		}
 		if(btnInternalMode.pressed)
 		{
+			if(!btnInternalMode.active) 
+				MenuSound("Menus/Button/Pressed");
+				
 			paperDollType = PDM_INTERNAL;
 			btnInternalMode.pressed = false;
-			MenuSound("Menus/Button/Pressed");
 		}
 		if(btnArmorFront.pressed)
 		{
+			if(!btnArmorFront.active) 
+				MenuSound("Menus/Button/Pressed");
+				
 			paperDollArmor = AM_FRONT;
 			btnArmorFront.pressed = false;
 			selectedHardpoint = NULL;
-			MenuSound("Menus/Button/Pressed");
 		}
 		if(btnArmorRear.pressed)
 		{
+			if(!btnArmorRear.active) 
+				MenuSound("Menus/Button/Pressed");
+				
 			paperDollArmor = AM_REAR;
 			btnArmorRear.pressed = false;
 			selectedHardpoint = NULL;
-			MenuSound("Menus/Button/Pressed");
 		}
 		
 		if(btnDoRepair.pressed && selectedHardpoint)
@@ -290,6 +298,7 @@ class PaperDollContainer : MenuElement
 			);
 			EventHandler.SendNetworkEvent(repairString);
 			btnDoRepair.pressed = false;
+			MenuSound("Menus/Button/Pressed");
 			MenuSound("Menus/Repair/Pressed");
 		}
 		
@@ -462,6 +471,12 @@ class RepairMenuButton : MenuButton
 	bool active;
 	string text;
 
+	override void Init()
+	{
+		super.Init();
+		pressSound = "";
+	}
+
 	static RepairMenuButton AddToParent(MenuElement parent, class<RepairMenuButton> cls, string txt, vector2 pos, vector2 size)
 	{
 		let btn = RepairMenuButton(parent.AddChild(parent.parentMenu, cls, txt, pos, size));
@@ -482,7 +497,7 @@ class RepairMenuButton : MenuButton
 		Color bgColor = hovered ? 0xA3092f9e : 0xFFa1a1a1;
 		if(active || disabled) bgColor = 0xFF49494a;
 		
-		if(!hovered && !active) MWDrawer.Fill(0xFF1F1F1F, pos.x + 2, pos.y + 2, size.x + 2, size.y + 2);
+		if(!hovered && !active && !disabled) MWDrawer.Fill(0xFF1F1F1F, pos.x + 2, pos.y + 2, size.x + 2, size.y + 2);
 		MWDrawer.Fill(bgColor, pos.x, pos.y, size.x, size.y);
 		
 		MWDrawer.DrawString(fnt, text, txtPos - (0, textHeight * 0.75), MWDrawer.SS_TEXT_CENTER, scale:(txtScale,txtScale));

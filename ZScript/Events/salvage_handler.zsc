@@ -7,6 +7,9 @@ class Salvage_Handler : EventHandler
 		let source = PlayerPawn(inflictor);
 		if(source) return source;
 		
+		let mSource = DrivableMech(inflictor);
+		if(mSource && mSource.driver) return PlayerPawn(mSource.driver);
+		
 		source = PlayerPawn(inflictor.target);
 		if(source) return source;
 		
