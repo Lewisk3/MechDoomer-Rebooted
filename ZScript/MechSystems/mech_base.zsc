@@ -128,7 +128,8 @@ class DrivableMech : DrivableObject
 		BT_DRONEREPAIR = 1 << 17,
 		BT_MASC 	   = 1 << 18, // Toggles MASC status
 		BT_TOGGLE_LAMS = 1 << 19, // Toggle Laser AMS
-		BT_TOGGLELAMP  = 1 << 20  // Toggle headlight
+		BT_TOGGLELAMP  = 1 << 20, // Toggle headlight
+		BT_ALPHASTRIKE = 1 << 21  // Fire all weapons
 	};
 	
 	enum GroupBits
@@ -1055,6 +1056,20 @@ class DrivableMech : DrivableObject
 		{
 			EndFireWeapons(5);
 		}
+		
+		// Alpha Strike
+		clicked = GetExtBtn(BT_ALPHASTRIKE, DriverBtns.BTS_PRESSED);
+		if(GetExtBtn(BT_ALPHASTRIKE, DriverBtns.BTS_DOWN)) 
+		{
+			for(int i = 1; i <= 5; i++)
+				FireWeapons(i, instantFire:clicked);
+		}
+		else if(GetExtBtn(BT_ALPHASTRIKE, DriverBtns.BTS_RELEASED))
+		{
+			for(int i = 1; i <= 5; i++) 
+				EndFireWeapons(i);
+		}
+		
 								
 		torsoLock = getExtBtn(BT_TORSOLOCK, DriverBtns.BTS_DOWN);
 		armLock = getExtBtn(BT_ARMLOCK, DriverBtns.BTS_DOWN);
