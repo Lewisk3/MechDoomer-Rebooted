@@ -54,13 +54,10 @@ class MechUrbanmech : DrivableMech
 		MechArmor.addToMech(self, "MechArmor_Standard");
 		
 		leftArm.AddWeapon("ERSmallLaser", GROUPFLG_ONE);
-		rightArm.AddItem("MechHeatBank");
-		rightArm.AddWeapon("UltraAC10", GROUPFLG_TWO);
+		rightArm.AddWeapon("AC10", GROUPFLG_TWO);
+		rightTorso.AddItem("AC10Ammo");
 		torso.AddItem("MechJumpJet");
-		leftTorso.AddItem("MechJumpJet");
-		rightTorso.AddItem("MechJumpJet");
-		rightTorso.AddItem("UAC10Ammo");
-		rightTorso.AddItem("UAC10Ammo");
+		torso.AddItem("MechJumpJet");
 	}
 }
 
