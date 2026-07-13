@@ -92,7 +92,7 @@ class SmallPulseLaser : SmallLaser
 		laserHeat = convertHeat(2.00, maxLaserTime / 1.5); // Laserbeam heat.
 		pulseSpeed = 90;
 		energyUse = 0.02 / double(fireTime);
-		PowerKJ = 20000;
+		PowerKJ = 30000;
 		
 		fireSound = "Laser/Small";
 		laserType = "MechPulseLaser";
@@ -126,7 +126,7 @@ class HeavySmallLaser : SmallLaser
 		damage = convertDMG(6.0, fireTime);
 		laserHeat = convertHeat(3.00, fireTime); // Laserbeam heat.
 		energyUse *= 1.5;
-		PowerKJ = 36000;
+		PowerKJ *= 2.0;
 		chargeTime = 5; // Delay before firing
 		requiresCharge = true; // Must be fully charged before firing.
 		
@@ -315,7 +315,7 @@ class LargeLaser : MechLaserWeapon
 		damage = convertDMG(8.0, fireTime);
 		laserHeat = convertHeat(8.0, fireTime); // Laserbeam heat.
 		energyUse = 0.3 / double(fireTime);
-		PowerKJ = 180000;
+		PowerKJ = 150000;
 		
 		fireSound = "Laser/Large";
 		laserType = "MechLaser";
@@ -350,7 +350,7 @@ class ERLargeLaser : LargeLaser
 		range = 740;
 		laserHeat = convertHeat(12.0, fireTime); // Laserbeam heat.
 		energyUse = 0.45 / double(fireTime);
-		PowerKJ = 180000;
+		PowerKJ = 150000;
 		
 		laserColor = "Purple";
 		sndItemName = "Betty/Item/ERLaser";
@@ -390,7 +390,7 @@ class LargePulseLaser : LargeLaser
 		laserHeat = convertHeat(10.0, maxLaserTime / 1.5); // Laserbeam heat.
 		energyUse = 0.03 / double(fireTime);
 		pulseSpeed = 50;
-		PowerKJ = 180000;
+		PowerKJ = 100000;
 		
 		fireSound = "Laser/Large";
 		laserType = "MechPulseLaser";
@@ -426,7 +426,7 @@ class HeavyLargeLaser : LargeLaser
 		damage = convertDMG(16.0, fireTime);
 		laserHeat = convertHeat(18.00, fireTime); // Laserbeam heat.
 		energyUse *= 1.5;
-		PowerKJ *= 2.0;
+		PowerKJ *= 1.5;
 		chargeTime = 25; // Delay before firing
 		requiresCharge = true; // Must be fully charged before firing.
 		

@@ -50,6 +50,7 @@ class MechDropship_Handler : StaticEventHandler
 	{
 		if(gamestate == GS_TITLELEVEL) return;
 		
+		double loadWait = 20; // This is needed because autosave really messes with mechs.
 		Name curMap = level.mapname;
 		
 		if(level.maptime >= 2 && forceDropshipMap && !sv_mdr_disabledropship)
@@ -60,7 +61,7 @@ class MechDropship_Handler : StaticEventHandler
 		
 		if(sv_mdr_skipmaploading) scrfade = 0;
 		
-		if(level.maptime >= 8 && scrfade > 0 && gamestate == GS_LEVEL)
+		if(level.maptime >= loadWait && scrfade > 0 && gamestate == GS_LEVEL)
 		{	
 			scrfade *= 0.97;
 			if(scrfade < 0.1) scrfade = 0;
@@ -92,7 +93,7 @@ class MechDropship_Handler : StaticEventHandler
 				}
 			}
 		}
-		else if(curMap != "TITLEMAP" && reloadActiveMech && level.maptime >= 8)
+		else if(curMap != "TITLEMAP" && reloadActiveMech && level.maptime > loadWait)
 		{
 			// Restore mechs
 			RestoreActiveMechs(recycleOld:true);

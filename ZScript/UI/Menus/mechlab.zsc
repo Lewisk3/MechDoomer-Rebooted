@@ -2021,7 +2021,12 @@ class MechMenu_Mechlab : MechMenu
 					let destItem = MechHardpoint(mech.parts[partID]).items[itemID];
 					
 					int success = destItem.TryAddon(invItem);
-					if(success != MechItem.IAE_SUCCESS) 
+					if(success == MechItem.IAE_SUCCESS) 
+					{
+						inv.depleteItem(invItem);
+						SendItemConfirmMessage(e.Player, "equip");
+					}
+					else
 						SendItemErrorMessage(e.Player, invItem, success);
 				}
 			

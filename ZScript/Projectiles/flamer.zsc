@@ -51,7 +51,7 @@ class MechFlamer : MechProjectile abstract
 				flame.vel = flameVel;
 				
 				if(damaging && (i == 0)) 
-					flame.trueDamage = defs.trueDamage;
+					flame.trueDamage = (defs.trueDamage * 2.0);
 			}
 		}
 
