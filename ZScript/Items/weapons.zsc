@@ -1608,9 +1608,10 @@ class RotaryAC2 : RotaryAC
 		sndItemName = "Betty/Item/Autocannon";
 		
 		fireOffs = (15,0,0);
-		mountDecoScale = 0.6;
-		mountDeco = "ACMountDeco";
+		mountDecoScale = 0.8;
+		mountDeco = "RotaryACMountDeco";
 		chargeSound = "Ballistic/RotaryAC/SpinUp";
+		spindownSound = "Ballistic/RotaryAC/SpinDown";
 		
 		spread = 0;
 		damagable = true;
@@ -1793,9 +1794,10 @@ class RotaryAC5 : RotaryAC
 		sndItemName = "Betty/Item/Autocannon";
 		
 		fireOffs = (15,0,0);
-		mountDecoScale = 1.0;
-		mountDeco = "ACMountDeco";
+		mountDecoScale = 1.2;
+		mountDeco = "RotaryACMountDeco";
 		chargeSound = "Ballistic/RotaryAC/SpinUp";
+		spindownSound = "Ballistic/RotaryAC/SpinDown";
 		
 		spread = 0;
 		damagable = true;

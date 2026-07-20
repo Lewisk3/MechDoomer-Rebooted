@@ -660,6 +660,7 @@ class RotaryAC : MechBallisticWeapon
 	int jamChance;
 	int jamNotifyWait; // Wait this many tics before playing the jammed SFX.
 	bool jammed;
+	Sound spindownSound;
 	
 	// Used as an alternative cooldown. 
 	// This essentially allows the autocannon to fire 6 rounds every turntics, 
@@ -750,6 +751,12 @@ class RotaryAC : MechBallisticWeapon
 	{
 		super.endFire();
 		shotsCounter = 0;
+	}
+	
+	override void OnChargeEnd()
+	{
+		super.OnChargeEnd();
+		WeapSound(spindownSound, channel:WEAPCHAN_CHARGE);
 	}
 	
 	override void DoEffect()

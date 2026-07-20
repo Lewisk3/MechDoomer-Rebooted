@@ -4,6 +4,7 @@ class MechMountDeco : EffectsActor
 	int mountIndex;
 	MechWeapon src;
 	vector3 animOffs;
+	vector3 animAngles;
 	
 	Property MountOffset : offs;
 	
@@ -30,6 +31,7 @@ class MechMountDeco : EffectsActor
 	virtual void HandleAnimOffsets()
 	{
 		animOffs *= 0.95;
+		animAngles *= 0.95;
 	}
 	
 	virtual void followMountPos()
@@ -47,9 +49,9 @@ class MechMountDeco : EffectsActor
 		mountPos = src.parent.OffsetPos(mountPos.x * sc, mountPos.y * sc, mountPos.z * sc);
 		
 		SetOrigin(mountPos, true);
-		A_SetAngle(src.parent.angle, SPF_INTERPOLATE);
-		A_SetPitch(src.parent.pitch + src.mount.pitchOffs, SPF_INTERPOLATE);
-		A_SetRoll(src.parent.roll, SPF_INTERPOLATE);
+		A_SetAngle(src.parent.angle + animAngles.x, SPF_INTERPOLATE);
+		A_SetPitch(src.parent.pitch + src.mount.pitchOffs + animAngles.y, SPF_INTERPOLATE);
+		A_SetRoll(src.parent.roll + animAngles.z, SPF_INTERPOLATE);
 		
 		A_SetScale(default.scale.X * src.parent.scale.X * itemMountScale);
 	}
@@ -109,6 +111,35 @@ class ACMountDeco : MechMountDeco
 		animOffs.x = max(-maxFWOffs, animOffs.x);
 		
 		super.Tick();
+	}
+}
+
+class RotaryACMountDeco : ACMountDeco
+{
+	double spinAccel;
+
+	Default
+	{
+		MechMountDeco.MountOffset (-11,0.5,1.0);
+		ACMountDeco.MaxRecoil 2;
+	}
+	
+	override void HandleAnimOffsets()
+	{
+		animOffs *= 0.95;
+		// Do not apply friction to animAngles.
+	}
+	
+	override void Tick()
+	{
+		super.Tick();
+		spinAccel *= 0.94;
+		animAngles.z += spinAccel;
+		
+		double spinSpeed = 8;
+		double spin = src.fireCharge;
+		spinAccel += abs(spin * spinSpeed);
+		spinAccel = min(spinAccel, 25);
 	}
 }
 
