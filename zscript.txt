@@ -116,6 +116,7 @@ const MDR_VERSION = "1.1 [Dev]";
 #include "ZScript/Mechs/stalker.zsc"
 #include "ZScript/Mechs/ebonjaguar.zsc"
 #include "ZScript/Mechs/stonerhino.zsc"
+#include "ZScript/Mechs/bushwacker.zsc"
 
 // Playerclasses
 #include "ZScript/Players/pc_daisy.zsc"

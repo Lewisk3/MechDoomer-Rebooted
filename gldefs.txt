@@ -295,6 +295,11 @@ material texture models/mechs/StoneRhino/StoneRhino.png {
 	specularlevel 0.3
 	glossiness 10
 }
+material texture models/mechs/Bushwacker/Bushwacker.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
 
 material texture models/drones/Drone_Texture.png {
 	shader "shaders/simsun.fp"

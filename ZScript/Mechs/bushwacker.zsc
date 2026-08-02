@@ -1,0 +1,273 @@
+class MechBushwacker : DrivableMech
+{
+	Default
+	{
+		DrivableMech.Acceleration 34, 40;
+		DrivableMech.MaxWeight 55; // In Tons.
+		DrivableMech.ChassisName "Bushwacker";
+		DrivableMech.VariantName "P2";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/Bushwacker_icon.png";
+		DrivableMech.CBillValue (8614125  * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "TharHes Industries";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White] Full scale production of the corrected Bushwacker began in 3053 "
+			"on Tharkad following the Truce of Tukayyid, though many FedCom units who "
+			"served on the Clan frontlines received preproduction models during the "
+			"initial invasion. This led to the 'Mech being most numerous on the Clan/Lyran "
+			"Alliance border immediately following the succession, though by the conclusion "
+			"of the FedCom Civil War the Bushwacker could be found in almost every first "
+			"echelon unit in both halves of the Federated Commonwealth. "
+			"(Source: https://www.sarna.net/wiki/Bushwacker)"
+		);
+	}
+   
+	override void SetupParts()
+	{
+		super.SetupParts();
+
+		legs  = AddMechPart("Bushwacker_Legs",  0,0,0,  self);
+		hips  = AddMechPart("Bushwacker_Hips",  0,0,51, legs);
+
+		// Hardpoints
+		torso      = AddHardpoint("Bushwacker_CenterTorso", 0,0,0, hips);
+		leftTorso  = AddHardpoint("Bushwacker_LeftTorso",  0,-10,0, torso);
+		rightTorso = AddHardpoint("Bushwacker_RightTorso", 0, 10,0, torso);
+
+		leftLeg = AddHardpoint("Bushwacker_LeftLeg",  0, -15,0, legs);
+		rightLeg = AddHardpoint("Bushwacker_RightLeg", 0, 15,0, legs);
+		 
+		leftArm  = AddHardpoint("Bushwacker_LeftArm",  -3,-4.25,8, leftTorso);
+		rightArm = AddHardpoint("Bushwacker_RightArm", -12, 4,9, rightTorso);
+
+		head = AddHardpoint("Bushwacker_Cockpit", 0,0,18, torso);
+		cam  = AddPart("CockpitCamera", 15,0,0, head);
+	}
+
+	override void SetupItems()
+	{  
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL275");
+		MechArmor.addToMech(self, "MechArmor_Standard");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		leftArm.AddWeapon("LRM5", GROUPFLG_FOUR);
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		rightArm.AddWeapon("ERLargeLaser", GROUPFLG_ONE);
+		torso.AddWeapon("MediumPulseLaser", GROUPFLG_THREE);
+		torso.AddWeapon("MediumPulseLaser", GROUPFLG_THREE);
+		rightTorso.AddWeapon("MachineGun", GROUPFLG_TWO);
+		leftTorso.AddWeapon("LRM5", GROUPFLG_FOUR);
+		leftTorso.AddWeapon("MachineGun", GROUPFLG_TWO);
+		
+		rightTorso.AddItem("MGAmmo");
+		leftTorso.AddItem("LRMAmmo");
+		rightArm.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		rightTorso.AddItem("MechDoubleHeatsink");
+		leftTorso.AddItem("MechDoubleHeatsink");	
+		leftTorso.AddItem("MechDoubleHeatsink");
+	}
+}
+
+// (11.5 tons) Armor PTS
+/*
+	230pts 
+	[HD] - 12
+	[CT] - 46
+	[LT] - 32
+	[RT] - 32
+	[LA] - 24
+	[RA] - 24
+	[LL] - 30
+	[RL] - 30
+*/
+
+
+class Bushwacker_Hips : MechHips {}
+class Bushwacker_Legs : MechLegs 
+{
+   Default
+   {
+      MechLegs.TurnSpeed 65;
+   }
+}
+
+class Bushwacker_Cockpit : MechCockpit 
+{
+   Default
+   {
+      // Head component
+      Radius 5;
+      Height 3;
+      MechHardpoint.Vitals 12, 6;
+      MechHardpoint.SetupArmor 12, 0;
+	  MechCockpit.Model "BushwackerCockpitModel";
+   }
+   
+	override void SetupMounts()
+	{
+	}
+}
+class BushwackerCockpitModel : MechCockpitModel {}
+
+class Bushwacker_LeftLeg : MechLeftLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 6;
+      Height 47;
+      MechHardpoint.Vitals 30, 15;
+      MechHardpoint.SetupArmor 30, 0;
+   }  
+}
+class Bushwacker_RightLeg : MechRightLeg
+{
+   Default
+   {
+      // Leg Stuff
+      Radius 6;
+      Height 47;
+      
+      MechHardpoint.Vitals 30, 15;
+      MechHardpoint.SetupArmor 30, 0;
+   }  
+}
+
+class Bushwacker_CenterTorso : MechTorso 
+{
+	Default
+	{
+	  Radius 0; Height 0;
+	  MechTorso.TurnSpeed 126, 126;
+	  MechTorso.TurnRange 110;
+	  MechTorso.PitchRange 30, 30;
+	  MechHardpoint.HitBox 12,32, 0,0,-14;
+	  
+	  MechHardpoint.Vitals 46, 23;
+	  MechHardpoint.SetupArmor 38, 8;
+	  MechHardpoint.RearArmor true;
+	}  
+   
+	override void SetupHitboxes()
+	{
+		super.SetupHitboxes();
+		AddHitBox(15,0,0,12,12);
+		AddHitBox(15,0,0,12,12);
+		AddHitBox(-15,0,10,12,12);
+		AddHitBox(-28,0,12,8,12);
+	}
+   
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 21,-3,8, 0.65);
+		AddMountPoint("Energy", 21, 3,8, 0.65);
+	}
+}
+
+class Bushwacker_LeftTorso : MechSideTorso
+{
+   Default
+   {
+      Radius 0; Height 0;
+      MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+      
+      MechHardpoint.Vitals 32, 16;
+      MechHardpoint.SetupArmor 26, 6;
+      MechHardpoint.RearArmor true;
+   }
+   
+   	override void SetupHitboxes()
+	{
+		// Upper Left
+		AddHitBox(-25,-3,18,6,10);
+		
+		// Near Arm
+		AddHitBoxRect(-12,-2,0,10,4,12);
+	}
+      
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", -20,-5,20.2, 2,3, 5,3.2, scale:0.85); 
+		AddMountPoint("Ballistic", 25,3,4, scale:0.7);
+	}
+}
+class Bushwacker_RightTorso : MechSideTorso
+{
+	Default
+	{
+	  Radius 0; Height 0;
+	  MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+	  
+	  MechHardpoint.Vitals 32, 16;
+	  MechHardpoint.SetupArmor 26, 6;
+	  MechHardpoint.RearArmor true;
+	}  
+
+	override void SetupHitboxes()
+	{
+		// Near Arm
+		AddHitBoxRect(-12,2,0,10,4,12);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 25,-3,4, scale:0.7);
+	}
+}
+
+class Bushwacker_LeftArm : MechArm
+{
+	Default
+	{
+	  Radius 0; Height 0;
+	  MechArm.ActuationRange 35;
+	  MechArm.PitchRange 30, 30;
+	  MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+
+	  MechHardpoint.Vitals 24, 12;
+	  MechHardpoint.SetupArmor 24, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		AddHitBoxRect(0,-10,-5,6,10,10);
+		AddHitBoxRect(10,-14,-16,25,6,10);
+	}
+
+	override void SetupMounts()
+	{
+		SetupMountArray("Missile", 24.5,-16.5,-11.5, 3,2, 3,3.5, scale:0.7); 
+	}
+}
+
+class Bushwacker_RightArm : Bushwacker_LeftArm 
+{
+	Default
+	{
+	  Radius 0; Height 0;
+	//  MechHardpoint.HitBox 10,20, 35,11,-33;
+	  MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+	  MechHardpoint.Vitals 24, 12;
+	  MechHardpoint.SetupArmor 24, 0;
+	}
+   
+	override void SetupHitboxes()
+	{
+		double ud = -5;
+		AddHitBoxRect(0,8,-2 + ud,6,14,14);
+		AddHitBoxRect(14,14,-10 + ud,25,10,14);
+	}
+
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 32,8,-10.75, 0.75);
+		AddMountPoint("Energy", 24,15.5,-6.5, 0.75);
+	}
+}
