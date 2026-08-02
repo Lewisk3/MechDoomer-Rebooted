@@ -20,10 +20,8 @@ class MechKitfox : DrivableMech
 			"sinks sometimes barely able to fully cool the 'Mech down. However, "
 			"the Kit Fox is somewhat slow for its weight class, only capable of "
 			"a top speed of 97.2 km/h, provided by a lightweight 180-rated "
-			"extralight fusion engine. Available tonnage is further increased "
-			"by the use of a lightweight endo steel chassis, while four tons of "
-			"ferro-fibrous armor provide the Kit Fox with ample protection."
-			"(Source: https://www.sarna.net/wiki/Kit_Fox_(Uller))"
+			"extralight fusion engine. Four tons of ferro-fibrous armor provide "
+			"the Kit Fox with ample protection. (Source: https://www.sarna.net/wiki/Kit_Fox_(Uller))"
 		);
 	}
 	

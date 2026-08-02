@@ -18,10 +18,7 @@ class MechStoneRhino : DrivableMech
 		return ( 
 			"\c[White]The Stone Rhino was one of the most remarkable surprises "
 			"sprung upon the Inner Sphere by the invading Clans. The Inner "
-			"Sphere code-named the 'Mech Behemoth. Mainly seen in the Clan Smoke "
-			"Jaguar touman, scattered examples of the Stone Rhino do appear in "
-			"other Clans even though it was produced in somewhat limited numbers. "
-			"Because of these low production numbers, most Stone Rhinos in existence "
+			"Sphere code-named the 'Mech Behemoth. Most Stone Rhinos in existence "
 			"are ancient machines with long and storied histories of their combat "
 			"actions and their quirks in the hangar. "
 			"(Source: https://www.sarna.net/wiki/Stone_Rhino_(Behemoth))"

@@ -16,12 +16,11 @@ class MechBushwacker : DrivableMech
 	{
 		return ( 
 			"\c[White] Full scale production of the corrected Bushwacker began in 3053 "
-			"on Tharkad following the Truce of Tukayyid, though many FedCom units who "
+			"following the Truce of Tukayyid, though many FedCom units who "
 			"served on the Clan frontlines received preproduction models during the "
 			"initial invasion. This led to the 'Mech being most numerous on the Clan/Lyran "
-			"Alliance border immediately following the succession, though by the conclusion "
-			"of the FedCom Civil War the Bushwacker could be found in almost every first "
-			"echelon unit in both halves of the Federated Commonwealth. "
+			"Alliance border immediately following the succession; the Bushwacker could be "
+			"found in almost every first echelon unit in both halves of the Federated Commonwealth. "
 			"(Source: https://www.sarna.net/wiki/Bushwacker)"
 		);
 	}
