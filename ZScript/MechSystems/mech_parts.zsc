@@ -1197,7 +1197,7 @@ class MechLegs : MechPart
 			if(mech.driver)
 				mech.driver.SoundAlert(mech.driver, false, 256);
 				
-			if(mech.head && mech.torso) 
+			if(mech.head && mech.torso && mech.cockpit) 
 			{
 				// mech.head.animOffsets.z -= 5;
 				MechTorso(mech.torso).pitchBobVel -= 0.5;
@@ -1207,7 +1207,7 @@ class MechLegs : MechPart
 				double pBobDir = sin(pBob * 2.0) < 0 ? -1 : 1; 
 				
 				MechTorso(mech.torso).pitchBobTimer += 10 * pBobDir;
-				if(mech.cockpit) mech.cockpit.DoCockpitQuake(0.2,0.2,0.2, 5, keepOld:true);
+				mech.cockpit.DoCockpitQuake(0.2,0.2,0.2, 5, keepOld:true);
 				// mech.vel *= 0.96;
 			}
 		}
