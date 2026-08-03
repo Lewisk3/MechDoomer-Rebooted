@@ -1,0 +1,250 @@
+class MechShadowCat : DrivableMech
+{
+	Default
+	{
+		DrivableMech.Acceleration 52, 61;
+		DrivableMech.MaxWeight 45; // In Tons.
+		DrivableMech.ChassisName "Shadow Cat";
+		DrivableMech.VariantName "Prime";
+		DrivableMech.ItemGraphic "Graphics/MechIcons/ShadowCat_icon.png";
+		DrivableMech.CBillValue (11713009   * MECHPRICESCALAR);
+		
+		DrivableMech.Manufacturer "Barcella Beta";
+	}
+	
+	override string getShopDescription()
+	{
+		return ( 
+			"\c[White]The Shadow Cat is a heavily armed and maneuverable medium "
+			"OmniMech that was developed by Clan Nova Cat to supersede the Ice "
+			"Ferret in the early thirty-first century during preparations for "
+			"Operation Revival. First used against Inner Sphere forces during "
+			"the Battle of Luthien, the successful Shadow Cat was subsequently "
+			"deployed by the Clans against ComStar during the Battle of Tukayyid. "
+			"(Source: https://www.sarna.net/wiki/Shadow_Cat)"
+		);
+	}
+	
+	override void SetupParts()
+	{
+		super.SetupParts();
+		
+		legs  = AddMechPart("ShadowCat_Legs",  0,0,0,  self);
+		hips  = AddMechPart("ShadowCat_Hips",  0,0,48, legs);
+		
+		// Hardpoints
+		torso      = AddHardpoint("ShadowCat_CenterTorso", 0,0,0.1, hips);
+		leftTorso  = AddHardpoint("ShadowCat_LeftTorso",  -3,-3,-2, torso);
+		rightTorso = AddHardpoint("ShadowCat_RightTorso", -3, 3,-2, torso);
+		
+		leftLeg = AddHardpoint("ShadowCat_LeftLeg",   -8,-21,0, legs);
+		rightLeg = AddHardpoint("ShadowCat_RightLeg", -8, 21,0, legs);
+			
+		leftArm  = AddHardpoint("ShadowCat_LeftArm",  5,-17,10, leftTorso);
+		rightArm = AddHardpoint("ShadowCat_RightArm", 5, 17,10, rightTorso);
+		
+		head = AddHardpoint("ShadowCat_Cockpit", 28,0,8, torso);
+		cam  = AddPart("CockpitCamera", 4,0,2, head);
+	}
+	
+	override void SetupItems()
+	{	
+		// Armor and Engine
+		torso.AddItem("MechEngine_XL270");
+		MechChassisStructure.AddToMech(self, "MechChassis_ClanEndosteel");
+		MechArmor.addToMech(self, "MechArmor_ClanFerro");
+		
+		rightArm.AddWeapon("LightGaussRifle", GROUPFLG_TWO);
+		rightTorso.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		rightTorso.AddItem("LightGaussAmmo");
+		rightTorso.AddItem("LightGaussAmmo");
+		rightTorso.AddItem("MechJumpJet");
+		leftTorso.AddWeapon("AMS");
+		leftTorso.AddItem("AMSAmmoHalf");
+		leftTorso.AddItem("MechJumpJet");
+		leftArm.AddWeapon("ERMediumLaser", GROUPFLG_ONE);
+		// rightLeg.AddItem("MechJumpJet");
+		rightLeg.AddItem("MechJumpJet");
+		// leftLeg.AddItem("MechJumpJet");
+		leftLeg.AddItem("MechJumpJet");
+		leftTorso.AddItem("MechMASC");
+	}
+}
+
+/*
+7 tons = 175 pts Ferro Armor
+[HD] - 12
+[CT] - 35
+[LT] - 24
+[RT] - 24
+[LA] - 17
+[RA] - 17
+[LL] - 23
+[RL] - 23
+*/
+
+class ShadowCat_Hips : MechHips {}
+
+class ShadowCat_Cockpit : MechCockpit 
+{
+	Default
+	{
+		// Head component
+		Radius 5;
+		Height 2;
+		MechHardpoint.Vitals 12, 6;
+		MechHardpoint.SetupArmor 12, 0;
+		MechCockpit.Model "ShadowCatCockpitModel";
+		MechCockpit.StrictlyFollowTorso true;
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+class ShadowCatCockpitModel : MechCockpitModel {}
+
+
+class ShadowCat_Legs : MechLegs 
+{
+	Default
+	{
+		MechLegs.TurnSpeed 80; // degs second
+	}
+}
+class ShadowCat_CenterTorso : MechTorso 
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechTorso.TurnSpeed 140, 140; // Torso Yaw and Pitch Speed
+		MechTorso.TurnRange 135;
+		MechTorso.PitchRange 30, 30;
+		
+		MechHardpoint.Vitals 35, 17;
+		MechHardpoint.SetupArmor 25, 10;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupHitBoxes()
+	{
+		AddHitboxRect(0,0,0, 38,20,16);
+	}
+	
+	override void SetupMounts()
+	{
+	}
+}
+
+class ShadowCat_LeftArm : MechArm
+{
+	Default
+	{	
+		Radius 0; Height 0;
+		MechArm.ActuationRange 20;
+		MechArm.PitchRange 30, 30;
+		MechHardpoint.UIGraphics "paperdoll_LA.png", "paperdoll_SK_LA.png";
+		
+		MechHardpoint.Vitals 17, 9;
+		MechHardpoint.SetupArmor 17, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 18;
+		double ud = -8;
+		double lr = -25;
+		AddHitBoxRect(fw,lr,ud, 60,12,14);
+	}
+
+	override void SetupMounts()
+	{		
+		AddMountPoint("Energy", 48,-33.5,0, scale:0.65);
+	}
+}
+class ShadowCat_RightArm : ShadowCat_LeftArm 
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RA.png", "paperdoll_SK_RA.png";
+
+		MechHardpoint.Vitals 17, 9;
+		MechHardpoint.SetupArmor 17, 0;
+	}
+	
+	override void SetupHitBoxes()
+	{
+		double fw = 18;
+		double ud = -8;
+		double lr = 25;
+		AddHitBoxRect(fw,lr,ud, 60,12,14);
+		AddHitBoxRect(fw + 48,lr - 4,ud + 4, 42,5,8);
+	}
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Ballistic", 90,20,0, scale:0.7);
+	}
+}
+
+class ShadowCat_LeftTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_LT.png", "paperdoll_SK_LT.png";
+		MechHardpoint.HitBox 10,14, 6,-22,3;
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 16, 8;
+		MechHardpoint.RearArmor true;
+	}
+		
+	override void SetupMounts()
+	{
+		AddMountPoint("PDS", -5, -11, 19, scale:1.0);
+	}
+}
+class ShadowCat_RightTorso : MechSideTorso
+{
+	Default
+	{
+		Radius 0; Height 0;
+		MechHardpoint.UIGraphics "paperdoll_RT.png", "paperdoll_SK_RT.png";
+		MechHardpoint.HitBox 10,14, 6,22,3;
+		
+		MechHardpoint.Vitals 24, 12;
+		MechHardpoint.SetupArmor 16, 8;
+		MechHardpoint.RearArmor true;
+	}	
+	
+	override void SetupMounts()
+	{
+		AddMountPoint("Energy", 20,11.5,15.25, scale:0.55);
+	}
+}
+
+class ShadowCat_LeftLeg : MechLeftLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 7;
+		Height 50;
+		MechHardpoint.Vitals 23, 12;
+		MechHardpoint.SetupArmor 23, 0;
+	}	
+}
+class ShadowCat_RightLeg : MechRightLeg
+{
+	Default
+	{
+		// Leg Stuff
+		Radius 7;
+		Height 50;
+		
+		MechHardpoint.Vitals 23, 12;
+		MechHardpoint.SetupArmor 23, 0;
+	}	
+}

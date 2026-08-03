@@ -1779,6 +1779,7 @@ class MechArm : MechHardpoint
 		-SOLID;
 		Radius 0;
 		Height 0;
+		RenderRadius 32;
 		MechHardpoint.Slots 12;
 	}
 	

@@ -163,6 +163,19 @@ Model GaussCannon
 	
 	FrameIndex MODL A 0 0
 }
+Model LightGaussCannon
+{
+	Path "models/ballistics/"
+	Model 0 "gauss_ball.md3" 
+	Skin 0 "gauss.png"
+	Scale 1.0 1.0 1.0
+	USEACTORPITCH
+	USEACTORROLL
+	DONTCULLBACKFACES
+	AngleOffset 90
+	
+	FrameIndex MODL A 0 0
+}
 
 Model GaussBeam
 {

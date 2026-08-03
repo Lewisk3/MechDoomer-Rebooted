@@ -152,6 +152,7 @@ class GaussMountDeco : ACMountDeco
 	}
 }
 
+
 class MissileMountDeco : MechMountDeco 
 {
 	bool noAmmo;

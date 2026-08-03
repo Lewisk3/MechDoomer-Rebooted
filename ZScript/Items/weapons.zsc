@@ -2230,6 +2230,9 @@ class HeavyMachineGun : MachineGun
 
 class GaussRifle : MechBallisticWeapon
 {
+	double explodeDamage;
+	vector2 recoil;
+
 	override void Defaults()
 	{	
 		DisplayName = "GAUSS RIFLE";
@@ -2237,6 +2240,9 @@ class GaussRifle : MechBallisticWeapon
 		heat = 1.0;
 		weight = 15.0;
 		size = 7.0;
+		
+		explodeDamage = 20.0;
+		recoil = (-5, 6);
 		
 		ammoUse 	 = 1;
 		fireTime	 = 8;
@@ -2257,7 +2263,7 @@ class GaussRifle : MechBallisticWeapon
 	
 	override bool Fire(vector3 firePos)
 	{
-		A_Recoil(-5, 6);
+		A_Recoil(recoil.x, recoil.y);
 		return super.Fire(firePos);
 	}
 	
@@ -2268,7 +2274,7 @@ class GaussRifle : MechBallisticWeapon
 		
 		// Yeah, pretty bad idea to get one of these guys crit...
 		// Massive capacitor banks plus a hole, turns out, don't mix too well.
-		parent.DoExplosionDamage(20.0);
+		parent.DoExplosionDamage(explodeDamage);
 	}
 	
 	override string getShopDescription()
@@ -2284,6 +2290,52 @@ class GaussRifle : MechBallisticWeapon
 		);
 	}
 }
+
+class LightGaussRifle : GaussRifle
+{
+	override void Defaults()
+	{	
+		DisplayName = "L-GAUSS RIFLE";
+		mountType = "Ballistic";
+		heat = 1.0;
+		weight = 12.0;
+		size = 5.0;
+		explodeDamage = 8.0;
+		recoil = (-2, -3);
+		
+		ammoUse 	 = 1;
+		fireTime	 = 8;
+		cooldownTime = ceil(2 * TICRATE);
+		energyUse = 0.5;
+		
+		projType = "LightGaussCannon";
+		ammoType = "LightGaussAmmo";
+		fireSound = "Ballistic/GaussRifle/Light";
+		reloadSound = "Ballistic/GaussRifle/Reload";
+		sndItemName = "Betty/Item/GaussRifle";
+		mountDeco = "GaussMountDeco";
+		mountDecoScale = 0.6;
+		
+		damagable = true;
+		
+		value = 275000;
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Light Gauss Rifle was introduced in 3056 by the Free "
+			"Worlds League. As its name suggests, however, the Light Gauss Rifle is "
+			"designed to be compact, allowing Gauss Rifles to be mounted on smaller "
+			"combat units. The slug and damage caused by the miniaturized rifle "
+			"decreased in size, though the rifle is able to propel the smaller "
+			"slug farther. "
+			"(Source: https://www.sarna.net/wiki/Light_Gauss_Rifle)"
+		);
+	}
+}
+// TODO: Heavy Gauss Rifle
+
 
 // Anti-Missile Systems
 class AMS : MechWeapon

@@ -240,3 +240,28 @@ class GaussShockwave : EffectsActor
 		wait;
 	}
 }
+
+class LightGaussCannon : GaussCannon
+{
+	Default
+	{
+		Radius 12;
+		Height 12;
+		RenderStyle "Normal";
+		Scale 0.35;
+		MechProjectile.Dmg 8 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 4000;
+		MechProjectile.SpeedKPH 3000;
+		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
+		// MechProjectile.GlobalImpactSound true;
+		
+		MechProjectile.RipperCount 3;
+		Mass 40;
+	}
+	
+	override double GetMonsterDamage(Actor victim, double massModifier)
+	{
+		double baseDMG = super.GetMonsterDamage(victim, massModifier);
+		return floor( baseDMG * (8/15.) );
+	}
+}

@@ -16,12 +16,6 @@ material texture models/vfx/barrel.png {
 	glossiness 10
 }
 
-material texture models/vfx/muzzle.png {
-	shader "shaders/simsun.fp"
-	specularlevel 0.3
-	glossiness 10
-}
-
 material texture models/mechs/c_glass.png {
 	// shader "shaders/glass.fp" (TODO: proper glass shader that doesn't break depth sorting on models...)
 	brightmap "models/mechs/c_glass.png"
@@ -296,6 +290,11 @@ material texture models/mechs/StoneRhino/StoneRhino.png {
 	glossiness 10
 }
 material texture models/mechs/Bushwacker/Bushwacker.png {
+	shader "shaders/simsun.fp"
+	specularlevel 0.3
+	glossiness 10
+}
+material texture models/mechs/ShadowCat/ShadowCat.png {
 	shader "shaders/simsun.fp"
 	specularlevel 0.3
 	glossiness 10
