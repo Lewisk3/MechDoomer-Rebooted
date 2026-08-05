@@ -538,6 +538,29 @@ class LightGaussAmmoHalf : GaussAmmo
 		SetupHalfAmmo("LightGaussAmmo");
 	}
 }
+class HeavyGaussAmmo : MechAmmo
+{
+	override void Defaults()
+	{
+		damagable = true;
+		displayName = "Heavy Gauss Ammo";
+		maxAmmo = 4;
+		weight = 1.0;
+		size = 1.0;
+		explosionDamage = 0;
+		value = 20000;
+		
+		SetupAmmo();
+	}
+}
+class HeavyGaussAmmoHalf : GaussAmmo
+{
+	override void Defaults()
+	{
+		super.Defaults();
+		SetupHalfAmmo("HeavyGaussAmmo");
+	}
+}
 
 class AMSAmmo : MechAmmo
 {

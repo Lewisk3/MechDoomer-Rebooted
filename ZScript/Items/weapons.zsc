@@ -465,7 +465,7 @@ class PPC : MechBallisticWeapon
 		heat = 10.0;
 		weight = 7.0;
 		size = 3.0;
-		fireRecoil = -3.0;
+		recoil = (-3.0, 0);
 		
 		ammoUse = 0;
 		fireTime = 10;
@@ -523,8 +523,6 @@ class PPC : MechBallisticWeapon
 			// Can potentially scramble a mech's systems, also causes self-damage at close range.
 			firedPPC.disableFieldInhibitor = true;
 		}
-	
-		A_Recoil(fireRecoil);
 		return ret;
 	}
 	
@@ -1454,6 +1452,7 @@ class AC2 : MechBallisticWeapon
 		heat = 1.0;
 		weight = 6.0;
 		size = 1.0;
+		recoil = (-0.1, 0);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1473,12 +1472,6 @@ class AC2 : MechBallisticWeapon
 		damagable = true;
 		
 		value = 150000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.1, 0);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -1505,6 +1498,7 @@ class UltraAC2 : UltraAC
 		size = 3.0;
 		energyUse = 0.05; // Magnetic loading system uses reactor power.
 		ammoType = "UAC2Ammo";
+		recoil = (-0.1, 0);
 
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1526,12 +1520,6 @@ class UltraAC2 : UltraAC
 		SetupUAC();
 		
 		value = 120000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.1, 0);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -1597,6 +1585,7 @@ class RotaryAC2 : RotaryAC
 		size = 3.0;
 		energyUse = 0.08; // Magnetic loading system uses reactor power.
 		ammoType = "RAC2Ammo";
+		recoil = (-0.1, 0);
 
 		ammoUse = 1;
 		fireTime     = 6;
@@ -1618,12 +1607,6 @@ class RotaryAC2 : RotaryAC
 		
 		SetupRAC(15, 5);
 		value = 175000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.1, 0);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -1648,6 +1631,7 @@ class AC5 : MechBallisticWeapon
 		heat = 1.0;
 		weight = 8.0;
 		size = 4.0;
+		recoil = (-0.4, 0);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1666,12 +1650,6 @@ class AC5 : MechBallisticWeapon
 		damagable = true;
 		
 		value = 250000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.4, 0);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -1695,6 +1673,7 @@ class UltraAC5 : UltraAC
 		weight = 9.0;
 		size = 5.0;
 		energyUse = 0.08;
+		recoil = (-0.25, 0);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1716,12 +1695,6 @@ class UltraAC5 : UltraAC
 		
 		value = 200000;
 	}	
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.25, 0);
-		return super.Fire(firePos);
-	}
 	
 	override string getShopDescription()
 	{
@@ -1783,6 +1756,7 @@ class RotaryAC5 : RotaryAC
 		size = 6.0;
 		energyUse = 0.12; // Magnetic loading system uses reactor power.
 		ammoType = "RAC5Ammo";
+		recoil = (-0.4, 0);
 
 		ammoUse = 1;
 		fireTime     = 10;
@@ -1804,12 +1778,6 @@ class RotaryAC5 : RotaryAC
 		
 		SetupRAC(30, 10);
 		value = 275000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.4, 0);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -1834,6 +1802,7 @@ class AC10 : MechBallisticWeapon
 		heat = 2.0;
 		weight = 12.0;
 		size = 7.0;
+		recoil = (-0.8, 0.8);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1852,12 +1821,6 @@ class AC10 : MechBallisticWeapon
 		damagable = true;
 		
 		value = 400000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.8, 0.8);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -1884,6 +1847,7 @@ class UltraAC10 : UltraAC
 		weight = 13.0;
 		size = 7.0;
 		energyUse = 0.12;
+		recoil = (-0.6, 0.6);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1905,12 +1869,6 @@ class UltraAC10 : UltraAC
 		
 		value = 320000;
 	}	
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-0.6, 0.6);
-		return super.Fire(firePos);
-	}
 	
 	override string getShopDescription()
 	{
@@ -1969,6 +1927,7 @@ class AC20 : MechBallisticWeapon
 		heat = 6.0;
 		weight = 14.0;
 		size = 10.0;
+		recoil = (-2, 4);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -1987,12 +1946,6 @@ class AC20 : MechBallisticWeapon
 		damagable = true;
 		
 		value = 600000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-2, 4);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -2016,6 +1969,7 @@ class UltraAC20 : UltraAC
 		weight = 15.0;
 		size = 10.0;
 		energyUse = 0.2;
+		recoil = (-2, 4);
 		
 		ammoUse = 1;
 		fireTime     = 4;
@@ -2036,12 +1990,6 @@ class UltraAC20 : UltraAC
 		SetupUAC(20); // This needs to jam more often for balance, because holy shit are UAC20s scary.	
 		
 		value = 480000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(-2, 4);
-		return super.Fire(firePos);
 	}
 	
 	override string getShopDescription()
@@ -2231,8 +2179,7 @@ class HeavyMachineGun : MachineGun
 class GaussRifle : MechBallisticWeapon
 {
 	double explodeDamage;
-	vector2 recoil;
-
+	
 	override void Defaults()
 	{	
 		DisplayName = "GAUSS RIFLE";
@@ -2259,12 +2206,6 @@ class GaussRifle : MechBallisticWeapon
 		damagable = true;
 		
 		value = 300000;
-	}
-	
-	override bool Fire(vector3 firePos)
-	{
-		A_Recoil(recoil.x, recoil.y);
-		return super.Fire(firePos);
 	}
 	
 	override void OnDestroyed()
@@ -2295,13 +2236,13 @@ class LightGaussRifle : GaussRifle
 {
 	override void Defaults()
 	{	
-		DisplayName = "L-GAUSS RIFLE";
+		DisplayName = "LIGHT GAUSS RIFLE";
 		mountType = "Ballistic";
 		heat = 1.0;
 		weight = 12.0;
 		size = 5.0;
 		explodeDamage = 8.0;
-		recoil = (-2, -3);
+		recoil = (-2, 3);
 		
 		ammoUse 	 = 1;
 		fireTime	 = 8;
@@ -2334,8 +2275,62 @@ class LightGaussRifle : GaussRifle
 		);
 	}
 }
-// TODO: Heavy Gauss Rifle
 
+// TODO: Heavy Gauss Rifle
+class HeavyGaussRifle : GaussRifle
+{
+	override void Defaults()
+	{	
+		DisplayName = "HEAVY GAUSS RIFLE";
+		mountType = "Ballistic";
+		heat = 2.0;
+		weight = 18.0;
+		size = 11.0;
+		explodeDamage = 8.0;
+		recoil = (-8, 10);
+		
+		chargeTime = TICRATE; // Delay before firing
+		requiresCharge = true; // Must be fully charged before firing.
+		
+		ammoUse 	 = 1;
+		fireTime	 = 12;
+		cooldownTime = ceil(6.5 * TICRATE);
+		energyUse = 1.0;
+		
+		projType = "HeavyGaussCannon";
+		ammoType = "HeavyGaussAmmo";
+		fireSound = "Ballistic/GaussRifle/Heavy";
+		chargeSound = "Ballistic/GaussRifle/Heavy/Charge";
+		
+		reloadSound = "Ballistic/GaussRifle/Reload";
+		sndItemName = "Betty/Item/GaussRifle";
+		mountDeco = "GaussMountDeco";
+		mountDecoScale = 1.2;
+		
+		damagable = true;
+		
+		value = 500000;
+	}
+	
+	override int TryAttach(MechHardpoint part)
+	{
+		// Heavy Gauss cannot be equipped on arms.
+		if(part is "MechArm") return IAE_INVALID;
+		return super.TryAttach(part);
+	}
+	
+	override string getShopDescription()
+	{
+		return (
+			"\c[White]The Heavy Gauss Rifle is a new, deadly innovation by Lyran Alliance scientists introduced in 3061 "
+			"Applying their \"bigger is better\" philosophy to Gauss technology, the Heavy Gauss Rifle is one of the heaviest "
+			"battlefield weapons in existence, and has a correspondingly high damage potential. Indeed, the recoil from the "
+			"weapon is so great that the rifle cannot be mounted in a vehicle's turret or 'Mech's arms, as firing the rifle "
+			"would essentially rip it off."
+			"(Source: https://www.sarna.net/wiki/Heavy_Gauss_Rifle)"
+		);
+	}
+}
 
 // Anti-Missile Systems
 class AMS : MechWeapon

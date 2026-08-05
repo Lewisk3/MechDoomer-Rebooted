@@ -3,17 +3,24 @@
 class GaussCannon : MechProjectile
 {
 	Quat moveDirection;
+	vector3 railColors;
+	double railSize;
+	
+	Property RailColors : railColors;
+	Property RailSize : railSize;
 
 	Default
 	{
 		Radius 16;
 		Height 16;
 		RenderStyle "Normal";
-		Scale 0.5;
+		Scale 1.0;
 		MechProjectile.Dmg 15 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 2050;
 		MechProjectile.SpeedKPH 2200;
 		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
+		GaussCannon.RailColors (0xFF161af5, 0xFF5940e6, 0xFFa852ff);
+		GaussCannon.RailSize 1.0;
 		// MechProjectile.GlobalImpactSound true;
 		
 		MechProjectile.RipperCount 6;
@@ -29,6 +36,8 @@ class GaussCannon : MechProjectile
 	override void PostBeginPlay()
 	{
 		super.postBeginPlay();
+		
+		moveDirection = Quat.FromAngles(angle, pitch, roll);
 		FireRailgun();
 	}
 	
@@ -56,7 +65,7 @@ class GaussCannon : MechProjectile
 		HandleRanges();
 		
 		if( !(GetAge()%5) )
-			Shockwave(pos, 0.2 * Scale.X, 0xFF313de8); 
+			Shockwave(pos, 0.2 * Scale.X, int(railColors.x)); 
 		
 		if( !(GetAge()%5) )
 			LightningSparks();
@@ -64,12 +73,12 @@ class GaussCannon : MechProjectile
 	
 	override void OnRip(Actor victim)
 	{
-		Shockwave(pos, 0.2 * Scale.X, 0xFF313de8); 
+		Shockwave(pos, 0.2 * Scale.X, int(railColors.y)); 
 	}
 	
 	void FireGaussBeam(Color col, double size, double startAlpha)
 	{
-		let smok = GaussBeam(RailgunBeam.Start(col, spawnpos, spawnpos, (angle, pitch), startAlpha, type:"GaussBeam"));
+		let smok = GaussBeam(RailgunBeam.Start(col, spawnpos, spawnpos + vel, (angle, pitch), startAlpha, type:"GaussBeam"));
 		if(smok) 
 		{
 			smok.angle = angle;
@@ -81,21 +90,20 @@ class GaussCannon : MechProjectile
 		}
 	}
 	
-	void FireRailgun(double size = 1.0, vector3 colors = (0xFF161af5, 0xFF5940e6, 0xFFa852ff))
+	void FireRailgun()
 	{	
-		moveDirection = Quat.FromAngles(angle, pitch, roll);
-			
-		FireGaussBeam(int(colors.x), 17.0, 0.35);
-		FireGaussBeam(int(colors.y), 12.0, 0.65);
-		FireGaussBeam(int(colors.z),  7.0, 0.95);
+		double size = railSize;
+		FireGaussBeam(int(railColors.x), 17.0 * size, 0.35);
+		FireGaussBeam(int(railColors.y), 12.0 * size, 0.65);
+		FireGaussBeam(int(railColors.z),  7.0 * size, 0.95);
 		
-		A_StartSound("Ballistic/Gauss/Ambient", CHAN_AUTO, CHANF_OVERLAP, 1.0, ATTN_NONE);
+		A_StartSound("Ballistic/Gauss/Ambient", CHAN_AUTO, CHANF_OVERLAP, 0.5, ATTN_NONE);
 		
-		Shockwave(pos, 0.2 * size * Scale.X, 0xFF313de8); 
+		Shockwave(pos, 0.2 * size * Scale.X, int(railColors.x)); 
 		Sparks(min(12, 10 * size), min(200, 200 * size), 0);
 	}
 		
-	void Shockwave(vector3 pos, double scale, Color col = 0xFFfc9d03)
+	void Shockwave(vector3 pos, double scale, Color col)
 	{
 		vector3 forward = moveDirection * (20.0,0,0);
 		vector3 shockpos = level.vec3offset(pos, forward);
@@ -142,11 +150,17 @@ class GaussCannon : MechProjectile
 		
 		double fric = 1.0 - (curDist / (maxRange*0.8));
 		
-		vector3 curVel = (moveDirection * (Speed * fric, 0, 0));
-		vel.xy = curVel.xy;
+		if(fric > 0.5)
+		{
+			vector3 curVel = (moveDirection * (Speed * fric, 0, 0));
+			vel = curVel;
+		}
+		// Face velocity pitch
+		vector3 dir = vel.Unit();
+		desiredRotation = Quat.FromAngles(angle, -asin(dir.y), roll);
 		
 		if(vel.length() <= 0.001) died = true;	
-		if(curDist >= maxRange * 0.5) vel.z -= 1;
+		if(curDist >= maxRange * 0.5) vel.z -= 0.125;
 	}
 	
 	States
@@ -198,7 +212,8 @@ class GaussBeam : RailgunBeam
 	{
 		super.Tick();
 		if(!parentProj || parentProj.curDist <= 0) return;
-		dist = level.vec3diff(parentProj.spawnPos, parentProj.pos).Length();
+		double arbitraryAssScalarBullshit = 1.12; // Too bad, close enough.
+		dist = level.vec3diff(parentProj.spawnPos, level.vec3offset(parentProj.pos, parentProj.vel)).Length() * arbitraryAssScalarBullshit;
 	}
 	
 	States
@@ -248,11 +263,13 @@ class LightGaussCannon : GaussCannon
 		Radius 12;
 		Height 12;
 		RenderStyle "Normal";
-		Scale 0.35;
+		Scale 0.5;
 		MechProjectile.Dmg 8 / MechHardpoint.DMGSCALE;
 		MechProjectile.Ranges 0, 4000;
 		MechProjectile.SpeedKPH 3000;
 		MechProjectile.ImpactSound "Ballistic/Gauss/Impact";
+		GaussCannon.RailSize 0.6;
+		GaussCannon.RailColors (0xAA0d5254, 0xFF2a757a, 0xFF5fc4b8);
 		// MechProjectile.GlobalImpactSound true;
 		
 		MechProjectile.RipperCount 3;
@@ -263,5 +280,27 @@ class LightGaussCannon : GaussCannon
 	{
 		double baseDMG = super.GetMonsterDamage(victim, massModifier);
 		return floor( baseDMG * (8/15.) );
+	}
+}
+
+class HeavyGaussCannon : GaussCannon
+{
+	Default
+	{
+		Radius 20;
+		Height 20;
+		Scale 1.5;
+		MechProjectile.Dmg 25 / MechHardpoint.DMGSCALE;
+		MechProjectile.Ranges 0, 1000;
+		MechProjectile.SpeedKPH 1600;
+		GaussCannon.RailSize 1.5;
+		GaussCannon.RailColors (0xFF00a2ff, 0xFF00f2ff, 0xFFffffff);
+		Mass 160;
+	}
+	
+	override double GetMonsterDamage(Actor victim, double massModifier)
+	{
+		double baseDMG = super.GetMonsterDamage(victim, massModifier);
+		return floor( baseDMG * (25/15.) );
 	}
 }

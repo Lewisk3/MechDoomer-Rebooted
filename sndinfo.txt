@@ -109,8 +109,10 @@ Ballistic/RotaryAC/SpinDown "Sounds/Weapons/rotaryac_spindown.wav"
 
 Ballistic/GaussRifle "Sounds/Weapons/gauss_fire.wav"
 
-// TODO: Unique sound for light-gauss rifle.
-Ballistic/GaussRifle/Light "Sounds/Weapons/gauss_fire.wav" 
+// TODO: Unique sound for light gauss rifle.
+Ballistic/GaussRifle/Light "Sounds/Weapons/gauss_light_fire.ogg" 
+Ballistic/GaussRifle/Heavy "Sounds/Weapons/gauss_heavy_fire.wav" 
+Ballistic/GaussRifle/Heavy/Charge "Sounds/Weapons/gauss_heavy_charge.ogg" 
 
 Ballistic/GaussRifle/Reload "Sounds/Weapons/gauss_reload.wav"
 Ballistic/Gauss/Impact "Sounds/Weapons/gauss_hit.wav"

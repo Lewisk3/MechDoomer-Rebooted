@@ -397,6 +397,7 @@ class MechBallisticWeapon : MechWeapon
 	double projMassScalar;
 	bool disableMountRecoil;
 	Actor firedProjectile;
+	vector2 recoil;
 
 	override void Defaults()
 	{	
@@ -565,6 +566,7 @@ class MechBallisticWeapon : MechWeapon
 		
 		WeapSound(fireSound);
 		depleteAmmo(ammoUse);
+		A_Recoil(recoil.x, recoil.y);
 		justFired = true;
 		
 		return true;

@@ -326,6 +326,10 @@ material texture models/lasers/BEAM_detailed.png {
 	shader "shaders/lasernoise.fp"
 }
 
+material texture models/lasers/beam_cyl.png {
+	shader "shaders/lasernoise.fp"
+}
+
 // Titlemap
 material texture models/rocks/rock_tex.png {
 	shader "shaders/simsun.fp"
