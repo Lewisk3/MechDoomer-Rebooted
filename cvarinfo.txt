@@ -11,7 +11,7 @@ server bool sv_mdr_relativescales = false; // If true, will scale enemies down t
 
 // Scaling
 server int sv_mdr_scalemode = 1;
-server float sv_mdr_scaleconst = 0.5;
+server float sv_mdr_scaleconst = 0.7;
 
 // Debug
 server bool sv_mdr_startondropship = true;
