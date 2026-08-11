@@ -7,7 +7,7 @@ class MechInteraction_Handler : EventHandler
 		super.OnRegister();
 		mechlab_curmech.Resize(MAXPLAYERS);
 	}
-	
+		
 	// Setup MechItems for players
 	override void WorldTick()
 	{
@@ -30,19 +30,33 @@ class MechInteraction_Handler : EventHandler
 		}	
 		
 		// Apply relative scale CVar.
-		if(sv_mdr_relativescales)
+		let actIt = ThinkerIterator.Create();
+		Actor thing;
+		while(thing = Actor(actIt.Next()))
 		{
-			let actIt = ThinkerIterator.Create();
-			Actor thing;
-			while(thing = Actor(actIt.Next()))
-			{
-				bool doSkip = (
-					(thing is "DrivableObjectPart" || thing is "DrivableObject")
-				    || !(thing.bSHOOTABLE || thing is "Inventory")
-				);
+			bool doSkip = (
+				(thing is "DrivableObjectPart" || thing is "DrivableObject")
+				|| !!thing.FindInventory("I_ScaleRelative")
+			);
 			
-				if(doSkip) continue;
-				thing.A_GiveInventory("I_ScaleRelative", 1);
+			if(doSkip) continue;
+			thing.A_GiveInventory("I_ScaleRelative", 1);
+		}
+	}
+	
+	override void WorldThingSpawned(WorldEvent e)
+	{
+		// Projectiles spawned from a parent which is scaled, must be scaled first before being made visible.
+		let act = e.Thing;
+		if( act.bMISSILE && act.target && act.target.FindInventory("I_ScaleRelative") )
+		{
+			act.bInvisible = true;
+			act.GiveInventory("I_ScaleRelative", 1);
+			let scRel = I_ScaleRelative(act.FindInventory("I_ScaleRelative"));
+			if(scRel) 
+			{
+				scRel.AdjustMissilePosition();
+				scRel.DoEffect();
 			}
 		}
 	}
@@ -281,44 +295,97 @@ class I_ScaleRelative : Inventory
 		-INVENTORY.INVBAR;
 	}
 	
+	enum ScaleMode 
+	{
+		SCALE_OFF   = 0,
+		SCALE_AUTO  = 1,
+		SCALE_CONST = 2,
+		SCALE_LORE  = 3
+	};
+	
+	void AdjustMissilePosition()
+	{
+		if(!Owner.bMISSILE) return;
+		double scalar = getScalar();
+		
+		// Adjust spawn height of projectiles
+		let src = Owner.target;
+		if(src)
+		{
+			// Local coords because idk how the fuck else to solve this bullshit properly.
+			let localCoords = DrivablesMath.DiffToLocal(Owner.pos, src.pos, src.angle, src.pitch, src.roll);
+			vector3 relPos = Quat.FromAngles(src.angle, src.pitch, src.roll) * (localCoords * scalar);
+			Owner.SetOrigin(level.vec3offset(src.pos, relPos), false);
+		}
+	}
+	
 	void ApplyScale(double scalar)
 	{
+		//console.printf("Final Scale: %f", scalar);
+	
 		Owner.A_SetScale(
-			Owner.default.scale.x / scalar, 
-			Owner.default.scale.y / scalar
+			Owner.default.scale.x * scalar, 
+			Owner.default.scale.y * scalar
 		);
 		
 		Owner.A_SetSize(
-			Owner.default.radius / scalar,
-			Owner.default.height / scalar
+			Owner.default.radius * scalar,
+			Owner.default.height * scalar
 		);
 		
-		Owner.A_SetSpeed(Owner.default.speed / scalar);
+		Owner.A_SetSpeed(Owner.default.speed * scalar);
+		
+		// Reset speed of projectiles
+		if(Owner.bMISSILE && Owner.getAge() <= 1)
+		{
+			Owner.vel = Quat.FromAngles(Owner.angle, Owner.pitch, Owner.roll) * (Owner.speed,0,0);
+			// Make projectile visible again
+			Owner.bInvisible = false;
+		}
 		
 		if(Owner.player)
-			Owner.player.viewz /= scalar;
+			Owner.player.viewz *= scalar;
+	}
+	
+	double getScalar()
+	{
+		double toScale = 1.0;
+		switch(sv_mdr_scalemode)
+		{
+			case SCALE_OFF:
+				toScale = 1.0;
+			break;
+			
+			case SCALE_CONST:
+				toScale = sv_mdr_scaleconst;
+			break;
+			
+			case SCALE_AUTO:
+				toScale = sv_mdr_scaleconst * sv_mdr_mechscale;
+			break;
+			
+			case SCALE_LORE:
+				toScale = sv_mdr_mechscale / LOREMECHSCALE;
+			break;
+		}
+		
+		if(level.mapName ~== "DROPSHIP") toScale = 1.0;
+		return toScale;
 	}
 	
 	override void DoEffect()
 	{
 		super.DoEffect();
 		if(!Owner) return; // Idk if this can happen...
-		
-		if(level.mapName ~== "DROPSHIP")
+			
+		// Skip scaling if we're a driver in a mech
+		let plr = PlayerPawn(Owner);
+		if(plr)
 		{
-			ApplyScale(1.0);
-			return;
+			let drvObj = I_DrivingObject.Get(plr);
+			if(drvObj && drvObj.source) return;
 		}
-		
-		if(!sv_mdr_relativescales)
-		{
-			ApplyScale(1.0);
-			Owner.RemoveInventory(self);
-			GoAwayAndDie();
-			return;
-		}
-		
-		double toScale = LOREMECHSCALE / sv_mdr_mechscale;
-		ApplyScale(toScale);
+			
+		ApplyScale(getScalar());
 	}
 }

@@ -59,10 +59,14 @@ OptionMenu "MDROptionsMenu"
 	StaticText "Simulation Variables", "Orange"
 	Option "Use Tank Controls", "sv_mdr_simplemechmovement", "NoYes"
 	Option "Start On Dropship", "sv_mdr_startondropship", "YesNo"
-	Slider "Mech Scale", "sv_mdr_mechscale",  0.1, 6.32, 0.1, 1
 	Slider "Mech Speed Modifier", "sv_mdr_mechspeedscale", 0.05, 3, 0.05, 2
 	Slider "Mech Damage Dealt", "sv_mdr_damage_dealt", 0.1, 10, 0.1, 1
 	Slider "Mech Damage Recieved", "sv_mdr_damage_taken", 0.1, 10, 0.1, 1
+	StaticText " "
+	StaticText "Scaling", "Orange"
+	Slider "Mech Scale", "sv_mdr_mechscale",  0.1, 6.32, 0.1, 1
+	Option "Scaling Mode", "sv_mdr_scalemode", "ScaleModes"
+	Slider "Default Object Scale", "sv_mdr_scaleconst", 0.1, 1.0, 0.1, 1 
 	StaticText " "
 	StaticText "Economy Variables", "Orange"
 	Slider "Income Modifier", "sv_mdr_eco_incomescale", 0.1, 10.0, 0.1, 1  
@@ -142,6 +146,14 @@ OptionMenu "MDRControlsMenu"
 	Control    "Teleport Mech to Me", "bringmechtome"
 
 	
+}
+
+OptionValue "ScaleModes"
+{
+	0, "Disabled"
+	1, "Automatic (Relative to Mech)"
+	2, "Constant"
+	3, "Lore Accurate"
 }
 
 OptionValue "YesNo"

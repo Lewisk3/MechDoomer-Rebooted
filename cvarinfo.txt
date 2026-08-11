@@ -9,6 +9,10 @@ server bool sv_mdr_drawmechhitboxes = false;
 server bool sv_mdr_drawhitboxes = false;
 server bool sv_mdr_relativescales = false; // If true, will scale enemies down to match the lore-accurate size of mechs. Not super functional, but pretty funny.
 
+// Scaling
+server int sv_mdr_scalemode = 1;
+server float sv_mdr_scaleconst = 0.5;
+
 // Debug
 server bool sv_mdr_startondropship = true;
 server bool sv_mdr_skipmaploading = false;
@@ -17,7 +21,7 @@ server bool sv_mdr_debug_nomechstart = false;
 
 // Utility
 server bool sv_mdr_simplemechmovement = true;
-server float sv_mdr_mechscale = 1.0; // Fixed at 0.35 for campaign mode.
+server float sv_mdr_mechscale = 0.7; // Fixed at 0.35 for campaign mode.
 // A mechscale of 6.32 would be fairly close to their lore-accurate size.
 
 // Cheats
@@ -33,7 +37,7 @@ server float sv_mdr_damage_dealt = 1.0;
 // Economy
 server float sv_mdr_eco_incomescale = 1.0; // Scalar for how much money you make from killing enemies.
 server float sv_mdr_eco_mechcostscale = 1.0; // Scalar for the cost of mechs.
-server int sv_mdr_eco_startingcbills = 200000; // Amount of CBills the player starts the game with.
+server int sv_mdr_eco_startingcbills = 1000000; // Amount of CBills the player starts the game with.
 
 // Pilot (Client) Vars
 user bool cl_mdr_autounstuck = true;
