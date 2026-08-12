@@ -4,6 +4,9 @@ class MechRepairKit : MechItem
 	double internalRepairAmount;
 	double itemRepairAmount;
 	int repairTier;
+	
+	// Set when repair kit is dragged onto a valid item.
+	MechItem itemToRepair;
 
 	override void Defaults()
 	{
@@ -63,53 +66,73 @@ class MechRepairKit : MechItem
 		}
 	}
 	
-	virtual int GetAttachResult(MechHardpoint part)
+	virtual int GetAttachResult(MechHardpoint part, MechItem destItem)
 	{
 		int success = 0;
-		if(armorRepairAmount && part.totalArmorDamage > 0)
-		{		
-			let curArmor = part.mech.armorType;
-			if(!curArmor) return IAE_NOTFOUND;
+		
+		// Heal hardpoint
+		if(part)
+		{
+			if(armorRepairAmount > 0 && part.totalArmorDamage > 0)
+			{		
+				let curArmor = part.mech.armorType;
+				if(!curArmor) return IAE_NOTFOUND;
+				
+				if(curArmor.armorTier > repairTier) 
+					return IAE_FAIL;
+				
+				success++;
+			}
 			
-			if(curArmor.armorTier > repairTier) 
-				return IAE_FAIL;
-			
-			success++;
+			if(internalRepairAmount > 0 && part.healthPoints < part.maxHP)
+			{	
+				let curStructure = part.mech.chassisStructure;
+				if(!curStructure) return IAE_NOTFOUND;
+				
+				if(curStructure.structureTier > repairTier) 
+					return IAE_FAIL;
+					
+				success++;
+			}
 		}
 		
-		if(internalRepairAmount && part.healthPoints < part.maxHP)
-		{	
-			let curStructure = part.mech.chassisStructure;
-			if(!curStructure) return IAE_NOTFOUND;
-			
-			if(curStructure.structureTier > repairTier) 
+		// Heal valid items
+		if(destItem && itemRepairAmount > 0)
+		{
+			if(destItem.hp >= 10 || part.healthPoints < 0)
 				return IAE_FAIL;
 				
 			success++;
 		}
 		
-		if(!armorRepairAmount && !internalRepairAmount)
-			return IAE_INVALID;
-		
-		// If neither armor or internal repair attempt was successful.
 		if(success == 0) 
 			return IAE_INVALID;
 		
 		return IAE_SUCCESS;
 	}
 	
+	play virtual void RepairItem(MechItem itm)
+	{
+		if(itm.hp <= 0)
+		{
+			itm.hp = 0;
+			itm.Repair(1);
+		}
+		else itm.Repair(itemRepairAmount);
+	}
+	
 	override int TryAttach(MechHardpoint part)
 	{
-		int status = GetAttachResult(part);
+		int status = GetAttachResult(part, itemToRepair);
 		
 		if(status == IAE_SUCCESS)
 		{
 			parent = part;
 			OnAttach();
 			parent = NULL;
-			return status;
 		}
-		else return status;
+		else itemToRepair = NULL;
+		return status;
 	}
 	
 	// Repair items
@@ -123,32 +146,23 @@ class MechRepairKit : MechItem
 				
 			return IAE_NOTFOUND;
 		}
-		
-		if(destItem.hp >= 10)
+		else
 		{
-			// Pass to TryAttach, if item is fully healed.
-			if( (armorRepairAmount || internalRepairAmount) && destItem.parent)
-				return TryAttach(destItem.parent);
-				
-			return IAE_INVALID;
+			itemToRepair = destItem;
+			return TryAttach(destItem.parent);
 		}
 		
-		if(destItem.movable && destItem.parent && destItem.parent.healthPoints > 0)
-		{
-			Deplete();
-			if(destItem.hp <= 0)
-			{
-				destItem.hp = 0;
-				destItem.Repair(1);
-			}
-			else destItem.Repair(itemRepairAmount);
-		}
 		return IAE_SUCCESS;
 	}
 	
 	override void OnAttach()
 	{
 		parent.Repair(armorRepairAmount, internalRepairAmount);	
+		if(itemToRepair)
+		{
+			RepairItem(itemToRepair);
+			itemToRepair = NULL;
+		}
 	}
 	
 	// Returns CBill cost of repair-kit based on attributes.
@@ -180,19 +194,13 @@ class MechItemRepairKit : MechRepairKit
 			"If an item has been destroyed, using this item will repair it up to 1 HP."
 		);
 	}
-	
-	override int TryAttach(MechHardpoint part)
-	{
-		// Cannot be used on hardpoints.
-		return IAE_INVALID;
-	}
 		
 	override string GetItemErrorMessage(int ERR_TYPE)	
 	{
 		switch(ERR_TYPE)
 		{
 			case IAE_INVALID: return "Repair kit cannot be used on hardpoints.";
-			case IAE_FAIL: return "Failed to repair item.";
+			case IAE_FAIL: return "Item is not damaged, or is inaccessible.";
 			default: return super.GetItemErrorMessage(ERR_TYPE);
 		}
 	}
@@ -335,7 +343,7 @@ class ExoticRepairKit : MechRepairKit
 	
 	override int TryAttach(MechHardpoint part)
 	{
-		int status = GetAttachResult(part);
+		int status = GetAttachResult(part, NULL);
 		int success = 0;
 	
 		// Look for damaged items

@@ -312,17 +312,14 @@ class I_ScaleRelative : Inventory
 		let src = Owner.target;
 		if(src)
 		{
-			// Local coords because idk how the fuck else to solve this bullshit properly.
-			let localCoords = DrivablesMath.DiffToLocal(Owner.pos, src.pos, src.angle, src.pitch, src.roll);
-			vector3 relPos = Quat.FromAngles(src.angle, src.pitch, src.roll) * (localCoords * scalar);
-			Owner.SetOrigin(level.vec3offset(src.pos, relPos), false);
+			vector3 diff = level.vec3diff(src.pos, Owner.pos);
+			diff *= scalar;
+			Owner.SetOrigin(level.vec3offset(src.pos, diff), false);
 		}
 	}
 	
 	void ApplyScale(double scalar)
 	{
-		//console.printf("Final Scale: %f", scalar);
-	
 		Owner.A_SetScale(
 			Owner.default.scale.x * scalar, 
 			Owner.default.scale.y * scalar
@@ -335,16 +332,40 @@ class I_ScaleRelative : Inventory
 		
 		Owner.A_SetSpeed(Owner.default.speed * scalar);
 		
-		// Reset speed of projectiles
-		if(Owner.bMISSILE && Owner.getAge() <= 1)
+		// Recalculate projectile velocity
+		/*
+			If you make an issue about this: Yes, I am aware that this 
+			approach has some issues, no I am not aware of how to fix it.
+			Open a pull request if you have the solution.
+		*/
+		if(Owner.bMISSILE && Owner.getAge() <= 1 && Owner.vel.Length() > 0)
 		{
-			Owner.vel = Quat.FromAngles(Owner.angle, Owner.pitch, Owner.roll) * (Owner.speed,0,0);
+			let veldir = Owner.vel.Unit();
+			vector3 velangles = (
+				atan2(veldir.y, veldir.x),
+				-asin(veldir.z),
+				0
+			);
+			
+			// The generic pitch calculation is going to be really off if we don't know who the initial target was.
+			// Recalculate if that information is available.
+			if(Owner.target)
+			{
+				let victim = Owner.target.target;
+				if(victim) velangles.y = Owner.PitchTo(victim, -victim.height * 0.5);
+			}
+
+			Owner.vel = Quat.FromAngles(velangles.x, velangles.y, velangles.z) * (Owner.speed,0,0);
 			// Make projectile visible again
 			Owner.bInvisible = false;
 		}
 		
-		if(Owner.player)
-			Owner.player.viewz *= scalar;
+		let plr = PlayerPawn(Owner);
+		if(plr) 
+		{
+			plr.viewheight = plr.default.viewheight * scalar;
+			plr.viewbob = plr.default.viewbob * scalar;
+		}
 	}
 	
 	double getScalar()
