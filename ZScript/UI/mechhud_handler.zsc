@@ -377,10 +377,12 @@ class VehicleHUD : Object ui
 			case 'C':
 				baseTemp -= 273.0;
 				maxTemp -= 273.0;
+				unit = "C";
 			break;
 			case 'F':
 				baseTemp -= 273.0;
 				maxTemp -= 273.0;
+				unit = "F";
 				
 				baseTemp = (baseTemp * 1.8) + 32.0;
 				maxTemp  = (maxTemp  * 1.8) + 32.0;

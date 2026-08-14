@@ -216,7 +216,7 @@ class MDRTitleMenu : MDRTitleMenuBase
 		}
 			
 		// Add Title Icon
-		double logoWidth = 650 * (isTitlemap ? 0.8 : 0.8);
+		double logoWidth = 650 * 0.8;
 		
 		AddElement("MDRTitleLogo", "TitleIcon", (960 - (logoWidth * 0.5), -(logoWidth * 0.25)), (logoWidth,logoWidth));
 		

@@ -444,7 +444,7 @@ class MGAmmoHalf : MGAmmo
 		SetupHalfAmmo("MGAmmo");
 	}
 }
-class LMGAmmo : MechAmmo
+class LightMGAmmo : MechAmmo
 {
 	override void Defaults()
 	{
@@ -459,15 +459,15 @@ class LMGAmmo : MechAmmo
 		SetupAmmo();
 	}
 }
-class LMGAmmoHalf : LMGAmmo
+class LightMGAmmoHalf : LightMGAmmo
 {
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo("LMGAmmo");
+		SetupHalfAmmo("LightMGAmmo");
 	}
 }
-class HMGAmmo : MechAmmo
+class HeavyMGAmmo : MechAmmo
 {
 	override void Defaults()
 	{
@@ -482,12 +482,12 @@ class HMGAmmo : MechAmmo
 		SetupAmmo();
 	}
 }
-class HMGAmmoHalf : HMGAmmo
+class HMGMAmmoHalf : HeavyMGAmmo
 {
 	override void Defaults()
 	{
 		super.Defaults();
-		SetupHalfAmmo("HMGAmmo");
+		SetupHalfAmmo("HeavyMGAmmo");
 	}
 }
 

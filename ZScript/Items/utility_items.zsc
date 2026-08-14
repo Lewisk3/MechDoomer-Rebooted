@@ -41,6 +41,49 @@ class MechHeatsink : MechUtility
 		mech.maxHeat -= buffer;
 	}
 	
+	virtual double getHeatModifier()
+	{
+		double heatModifier = 1.0;
+		string terrainType;
+		bool inWater = false;
+		
+		// Determine if standing in water
+		let sec = mech.CurSector;
+		string WaterTex[4] = 
+		{
+			"FWATER1",
+			"FWATER2",
+			"FWATER3",
+			"FWATER4"
+		};
+		
+		// Check texture name
+		string floorpicName = TexMan.GetName(mech.floorpic);
+		foreach(wtex : watertex)
+		{
+			if(floorpicName == wtex)
+			{
+				inWater = true;
+				break;
+			}
+		}
+		
+		// Check water level
+		if(mech.waterlevel > 0) 
+			inWater = true;
+		
+		// Check terrain
+		let terrain = sec.GetFloorTerrain(Sector.floor);
+		if(terrain) terrainType = terrain.TerrainName;
+		terrainType = terrainType.MakeLower();
+		if(terrainType.IndexOf("water") != -1 || terrainType.IndexOf("liquid") != -1) 
+			inWater = true;
+			
+		if(inWater) heatModifier = 2.0;
+		return heatModifier;
+	}
+	
+	
 	override void DoEffect()
 	{
 		super.DoEffect();
@@ -49,11 +92,10 @@ class MechHeatsink : MechUtility
 			mech = parent.GetMech();
 			return;
 		}
-		
+				
 		// Dissipate heat.
-		modifyHeat(-heatEff);
-	
-		// console.printf("Removing heat -%f  [%d]", heatEff, level.mapTime);
+		modifyHeat(-heatEff * getHeatModifier());
+		//console.printf("Removing heat -%f  [%d]", heatEff, level.mapTime);
 	}
 	
 	override string GetShopDescription()
