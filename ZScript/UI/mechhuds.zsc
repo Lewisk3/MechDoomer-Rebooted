@@ -384,6 +384,49 @@ class MechHUD : VehicleHUD
 			MWDrawer.DrawThickLine(ln_pos.x, ln_pos.y, ln_len.x, ln_len.y, 1.5, linecol);
 		}
 		
+		// Draw enemies and allies
+		let act_it = BlockThingsIterator.Create(mech, minimap_renderdist);
+		while(act_it.Next())
+		{	
+			let obj = act_it.Thing;	
+			if(minimap_renderdist <= 0) break;
+			bool isMech = obj is "DrivableMech";
+			if(!obj.bSHOOTABLE && !isMech) continue;
+			
+			double x = mech.pos.x - obj.pos.x;
+			double y = mech.pos.y - obj.pos.y;
+			
+			double frontangle = angle+180;
+			vector2 delta = Actor.RotateVector(SwapVector((x,y)), frontangle);
+			delta.x /= zoom;
+			delta.y /= zoom;
+			
+			if(obj.target || isMech)
+			{
+				bool isMechPart = (obj is "MechPart" && !(obj is "DrivableMech"));
+				bool isDeadMonster = obj.health <= 0 && obj.bISMONSTER;
+				String basegraphic = "RadarAllyDot"; 
+				
+				if(isDeadMonster || obj.bCORPSE || isMechPart || obj == mech) continue;
+		
+				if(obj.target != NULL && !obj.bFRIENDLY && obj.bSOLID && obj.bSHOOTABLE)
+					basegraphic = "RadarEnemyDot";
+				else if(obj.bFRIENDLY && obj.bSHOOTABLE)
+					basegraphic = "RadarAllyDot";
+					
+				if(obj is "DrivableMech")
+				{
+					if(!multiplayer || deathmatch) basegraphic = "RadarEnemyDot";
+					if(!deathmatch && multiplayer) basegraphic = "RadarAllyDot";
+				}
+				s
+				vector2 finalpos = ((map_middle.x-delta.x), (map_middle.y-delta.y));		
+				vector2 dScale = (1.0, 1.0);
+				dScale *= max(0.25, (obj.radius / 64.0) / zoom); // Scale by object hitbox size (roughly).
+				MWDrawer.DrawImage("Graphics/HUD/" .. basegraphic .. ".png", finalpos, 0, 1.0, dScale);
+			}
+		}
+		
 		// Disable stencil
 		Screen.EnableStencil(false);
 		Screen.ClearStencil();
