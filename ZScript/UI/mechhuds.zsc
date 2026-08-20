@@ -419,7 +419,7 @@ class MechHUD : VehicleHUD
 					if(!multiplayer || deathmatch) basegraphic = "RadarEnemyDot";
 					if(!deathmatch && multiplayer) basegraphic = "RadarAllyDot";
 				}
-				s
+				
 				vector2 finalpos = ((map_middle.x-delta.x), (map_middle.y-delta.y));		
 				vector2 dScale = (1.0, 1.0);
 				dScale *= max(0.25, (obj.radius / 64.0) / zoom); // Scale by object hitbox size (roughly).
