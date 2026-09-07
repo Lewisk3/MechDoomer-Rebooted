@@ -15,7 +15,10 @@ class MechInteraction_Handler : EventHandler
 		{
 			PlayerInfo plrInfo = players[i];
 			if(!plrInfo || !playerInGame[i]) continue;
+			
+			// Skip voodoos
 			let plr = players[i].mo;
+			if(!plrInfo.mo || plrInfo.mo != plr) continue;		
 			
 			let mechData = I_SaveMechData(plr.FindInventory("I_SaveMechData"));
 			if(!mechData) plr.GiveInventoryType("I_SaveMechData");
@@ -23,13 +26,9 @@ class MechInteraction_Handler : EventHandler
 			// Give player a repair drone
 			if(!plr.FindInventory("RepairDrone"))
 				plr.GiveInventoryType("RepairDrone");
-			
-			// Relative scales
-			if(sv_mdr_relativescales && !plr.FindInventory("I_ScaleRelative"))
-				plr.A_GiveInventory("I_ScaleRelative", 1);
-		}	
+		}
 		
-		// Apply relative scale CVar.
+		// Apply relative scales.
 		let actIt = ThinkerIterator.Create();
 		Actor thing;
 		while(thing = Actor(actIt.Next()))
@@ -38,6 +37,11 @@ class MechInteraction_Handler : EventHandler
 				(thing is "DrivableObjectPart" || thing is "DrivableObject")
 				|| !!thing.FindInventory("I_ScaleRelative")
 			);
+			
+			// Check for voodoos because they break things, it turns out.
+			let pplr = PlayerPawn(thing);
+			if( pplr && (!pplr.player || !pplr.player.mo || pplr.player.mo != pplr) ) 
+				continue;
 			
 			if(doSkip) continue;
 			thing.A_GiveInventory("I_ScaleRelative", 1);
